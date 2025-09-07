@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, Activity, Brain, Dumbbell, Bed } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Loader2, Activity, Brain, Dumbbell, Bed, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface FormData {
@@ -32,12 +33,39 @@ interface TForecastFormProps {
 
 const TForecastForm = ({ onResult }: TForecastFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [showEmailPopup, setShowEmailPopup] = useState(true);
+  const [userEmail, setUserEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const { toast } = useToast();
   
   const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>();
 
+  const handleEmailSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    if (!userEmail) {
+      setEmailError("Email is required");
+      return;
+    }
+    
+    if (!emailRegex.test(userEmail)) {
+      setEmailError("Please enter a valid email address");
+      return;
+    }
+    
+    setEmailError("");
+    setShowEmailPopup(false);
+  };
+
   const onSubmit = async (data: FormData) => {
     setIsLoading(true);
+    
+    // Include the email from the popup
+    const formDataWithEmail = {
+      ...data,
+      email: userEmail
+    };
     
     try {
       const response = await fetch('https://xtracts4u.app.n8n.cloud/webhook-test/testo', {
@@ -45,7 +73,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(formDataWithEmail),
       });
 
       if (!response.ok) {
@@ -74,7 +102,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
     {
       title: "Personal Information",
       icon: <Activity className="h-5 w-5" />,
-      fields: ["email", "gender", "age", "height", "weight"]
+      fields: ["gender", "age", "height", "weight"]
     },
     {
       title: "Training & Activity",
@@ -94,7 +122,45 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
   ];
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+    <>
+      {/* Email Popup */}
+      <Dialog open={showEmailPopup} onOpenChange={() => {}}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10">
+              <Mail className="w-6 h-6 text-primary" />
+            </div>
+            <DialogTitle className="text-center text-xl">Welcome to T-Forecast</DialogTitle>
+            <DialogDescription className="text-center">
+              Enter your email address to get started with your personalized testosterone analysis.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleEmailSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="popup-email">Email Address</Label>
+              <Input
+                id="popup-email"
+                type="email"
+                value={userEmail}
+                onChange={(e) => setUserEmail(e.target.value)}
+                placeholder="your.email@example.com"
+                className="mt-1"
+                autoFocus
+              />
+              {emailError && (
+                <p className="text-sm text-destructive mt-1">{emailError}</p>
+              )}
+            </div>
+            
+            <Button type="submit" className="w-full">
+              Continue to Assessment
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
       {formSections.map((section, index) => (
         <Card key={index} className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader className="pb-4">
@@ -112,23 +178,6 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-2">
-              {/* Email Field */}
-              {section.fields.includes("email") && (
-                <div className="md:col-span-2">
-                  <Label htmlFor="email">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    {...register("email", { required: "Email is required" })}
-                    className="mt-1"
-                    placeholder="your.email@example.com"
-                  />
-                  {errors.email && (
-                    <p className="text-sm text-destructive mt-1">{errors.email.message}</p>
-                  )}
-                </div>
-              )}
-
               {/* Gender Field */}
               {section.fields.includes("gender") && (
                 <div>
@@ -397,6 +446,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
         </Button>
       </div>
     </form>
+    </>
   );
 };
 
