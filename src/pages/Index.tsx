@@ -61,9 +61,9 @@ const Index = () => {
         </div>
         
         {/* Content Grid */}
-        <div className="relative z-10 min-h-[600px] grid lg:grid-cols-2 gap-4 items-center">
+        <div className="relative z-10 min-h-[600px] grid grid-cols-1 lg:grid-cols-[55fr_45fr] gap-8 items-center max-w-7xl mx-auto px-4">
           {/* Left Content */}
-          <div className="px-6 lg:px-8 py-20">
+          <div className="px-6 lg:px-4 py-20">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 text-purple-300 text-sm font-medium mb-8">
               <Sparkles className="h-4 w-4" />
               Усъвършенствана здравна оценка
@@ -95,7 +95,7 @@ const Index = () => {
           </div>
           
           {/* Right Content - Square Image Placeholder */}
-          <div className="hidden lg:flex items-center justify-center px-6 lg:px-8">
+          <div className="flex items-center justify-center lg:justify-start px-6 lg:px-4">
             <div className="w-80 h-80 bg-gradient-to-br from-purple-500/10 to-violet-600/10 rounded-3xl border border-purple-500/20 flex items-center justify-center">
               <div className="text-purple-400/50 text-center">
                 <div className="w-16 h-16 bg-purple-500/20 rounded-full mx-auto mb-4 flex items-center justify-center">
