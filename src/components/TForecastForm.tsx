@@ -45,12 +45,12 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     
     if (!userEmail) {
-      setEmailError("Email is required");
+      setEmailError("Имейлът е задължителен");
       return;
     }
     
     if (!emailRegex.test(userEmail)) {
-      setEmailError("Please enter a valid email address");
+      setEmailError("Моля, въведете валиден имейл адрес");
       return;
     }
     
@@ -85,18 +85,18 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
       // Show thank you message instead of results
       onResult({
         type: 'thank-you',
-        title: 'Thank you! Your T-Forecast is on the way.',
-        description: "We've sent your personalized report to your email address.\nIt may take 1–2 minutes to arrive — if you don't see it, please check your Promotions or Spam folders."
+        title: 'Благодарим! Вашата T-прогноза е в процес.',
+        description: "Изпратихме вашия персонализиран доклад до вашия имейл адрес.\nМоже да отнеме 1–2 минути да пристигне — ако не го видите, моля проверете папките Промоции или Спам."
       });
       
       toast({
-        title: "Analysis Complete",
-        description: "Your T-Forecast has been generated successfully.",
+        title: "Анализът завърши",
+        description: "Вашата T-прогноза беше генерирана успешно.",
       });
     } catch (error) {
       toast({
-        title: "Error",
-        description: "Failed to generate forecast. Please try again.",
+        title: "Грешка",
+        description: "Неуспешно генериране на прогнозата. Моля, опитайте отново.",
         variant: "destructive",
       });
     } finally {
@@ -106,22 +106,22 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
 
   const formSections = [
     {
-      title: "Personal Information",
+      title: "Лична информация",
       icon: <Activity className="h-5 w-5" />,
       fields: ["gender", "age", "height", "weight"]
     },
     {
-      title: "Training & Activity",
+      title: "Тренировки и дейност",
       icon: <Dumbbell className="h-5 w-5" />,
       fields: ["trainingFrequency", "trainingType"]
     },
     {
-      title: "Lifestyle Factors",
+      title: "Фактори от начина на живот",
       icon: <Bed className="h-5 w-5" />,
       fields: ["averageSleep", "diet", "alcohol", "nicotine"]
     },
     {
-      title: "Health Indicators",
+      title: "Здравни показатели",
       icon: <Brain className="h-5 w-5" />,
       fields: ["libido", "morningEnergy", "recovery", "mood"]
     }
@@ -136,15 +136,15 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
             <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10">
               <Mail className="w-6 h-6 text-primary" />
             </div>
-            <DialogTitle className="text-center text-xl">Welcome to T-Forecast</DialogTitle>
+            <DialogTitle className="text-center text-xl">Добре дошли в T-Forecast</DialogTitle>
             <DialogDescription className="text-center">
-              Enter your email address to get started with your personalized testosterone analysis.
+              Въведете вашия имейл адрес, за да започнете с вашия персонализиран анализ на тестостерона.
             </DialogDescription>
           </DialogHeader>
           
           <form onSubmit={handleEmailSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="popup-email">Email Address</Label>
+              <Label htmlFor="popup-email">Имейл адрес</Label>
               <Input
                 id="popup-email"
                 type="email"
@@ -160,7 +160,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
             </div>
             
             <Button type="submit" className="w-full">
-              Continue to Assessment
+              Продължете към оценката
             </Button>
           </form>
         </DialogContent>
@@ -177,7 +177,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               <div>
                 <CardTitle className="text-lg">{section.title}</CardTitle>
                 <CardDescription>
-                  Complete the fields below for accurate analysis
+                  Попълнете полетата по-долу за точен анализ
                 </CardDescription>
               </div>
             </div>
@@ -187,15 +187,15 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Gender Field */}
               {section.fields.includes("gender") && (
                 <div>
-                  <Label htmlFor="gender">Gender</Label>
+                  <Label htmlFor="gender">Пол</Label>
                   <Select onValueChange={(value) => setValue("gender", value)}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select gender" />
+                      <SelectValue placeholder="Изберете пол" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="male">Male</SelectItem>
-                      <SelectItem value="female">Female</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                      <SelectItem value="male">Мъжки</SelectItem>
+                      <SelectItem value="female">Женски</SelectItem>
+                      <SelectItem value="other">Друг</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -204,11 +204,11 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Age Field */}
               {section.fields.includes("age") && (
                 <div>
-                  <Label htmlFor="age">Age (years)</Label>
+                  <Label htmlFor="age">Възраст (години)</Label>
                   <Input
                     id="age"
                     type="number"
-                    {...register("age", { required: "Age is required", min: 18, max: 100 })}
+                    {...register("age", { required: "Възрастта е задължителна", min: 18, max: 100 })}
                     className="mt-1"
                     placeholder="30"
                   />
@@ -221,11 +221,11 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Height Field */}
               {section.fields.includes("height") && (
                 <div>
-                  <Label htmlFor="height">Height (cm)</Label>
+                  <Label htmlFor="height">Ръст (см)</Label>
                   <Input
                     id="height"
                     type="number"
-                    {...register("height", { required: "Height is required", min: 100, max: 250 })}
+                    {...register("height", { required: "Ръстът е задължителен", min: 100, max: 250 })}
                     className="mt-1"
                     placeholder="175"
                   />
@@ -238,11 +238,11 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Weight Field */}
               {section.fields.includes("weight") && (
                 <div>
-                  <Label htmlFor="weight">Weight (kg)</Label>
+                  <Label htmlFor="weight">Тегло (кг)</Label>
                   <Input
                     id="weight"
                     type="number"
-                    {...register("weight", { required: "Weight is required", min: 30, max: 300 })}
+                    {...register("weight", { required: "Теглото е задължително", min: 30, max: 300 })}
                     className="mt-1"
                     placeholder="75"
                   />
@@ -255,17 +255,17 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Training Frequency Field */}
               {section.fields.includes("trainingFrequency") && (
                 <div>
-                  <Label htmlFor="trainingFrequency">Training Frequency</Label>
+                  <Label htmlFor="trainingFrequency">Честота на тренировки</Label>
                   <Select onValueChange={(value) => setValue("trainingFrequency", value)}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select frequency" />
+                      <SelectValue placeholder="Изберете честота" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="1-2">1-2 times/week</SelectItem>
-                      <SelectItem value="3-4">3-4 times/week</SelectItem>
-                      <SelectItem value="5-6">5-6 times/week</SelectItem>
-                      <SelectItem value="6+">6+ times/week</SelectItem>
+                      <SelectItem value="none">Никаква</SelectItem>
+                      <SelectItem value="1-2">1-2 пъти/седмица</SelectItem>
+                      <SelectItem value="3-4">3-4 пъти/седмица</SelectItem>
+                      <SelectItem value="5-6">5-6 пъти/седмица</SelectItem>
+                      <SelectItem value="6+">6+ пъти/седмица</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -274,16 +274,16 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Training Type Field */}
               {section.fields.includes("trainingType") && (
                 <div>
-                  <Label htmlFor="trainingType">Training Type</Label>
+                  <Label htmlFor="trainingType">Тип тренировка</Label>
                   <Select onValueChange={(value) => setValue("trainingType", value)}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select type" />
+                      <SelectValue placeholder="Изберете тип" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="strength">Strength Training</SelectItem>
-                      <SelectItem value="mix">Mixed Training</SelectItem>
-                      <SelectItem value="endurance">Endurance</SelectItem>
+                      <SelectItem value="none">Никаква</SelectItem>
+                      <SelectItem value="strength">Силови тренировки</SelectItem>
+                      <SelectItem value="mix">Смесени тренировки</SelectItem>
+                      <SelectItem value="endurance">Издръжливост</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -292,12 +292,12 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Average Sleep Field */}
               {section.fields.includes("averageSleep") && (
                 <div>
-                  <Label htmlFor="averageSleep">Average Sleep (hours)</Label>
+                  <Label htmlFor="averageSleep">Среден сън (часове)</Label>
                   <Input
                     id="averageSleep"
                     type="number"
                     step="0.5"
-                    {...register("averageSleep", { required: "Sleep hours required", min: 3, max: 12 })}
+                    {...register("averageSleep", { required: "Часовете сън са задължителни", min: 3, max: 12 })}
                     className="mt-1"
                     placeholder="7.5"
                   />
@@ -310,15 +310,15 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Diet Field */}
               {section.fields.includes("diet") && (
                 <div>
-                  <Label htmlFor="diet">Diet Type</Label>
+                  <Label htmlFor="diet">Тип диета</Label>
                   <Select onValueChange={(value) => setValue("diet", value)}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select diet type" />
+                      <SelectValue placeholder="Изберете тип диета" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="balanced">Balanced Diet</SelectItem>
-                      <SelectItem value="processed">Processed Foods</SelectItem>
-                      <SelectItem value="custom">Describe Your Diet</SelectItem>
+                      <SelectItem value="balanced">Балансирана диета</SelectItem>
+                      <SelectItem value="processed">Преработени храни</SelectItem>
+                      <SelectItem value="custom">Опишете вашата диета</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -327,11 +327,11 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Alcohol Field */}
               {section.fields.includes("alcohol") && (
                 <div>
-                  <Label htmlFor="alcohol">Alcohol (drinks/week)</Label>
+                  <Label htmlFor="alcohol">Алкохол (питиета/седмица)</Label>
                   <Input
                     id="alcohol"
                     type="number"
-                    {...register("alcohol", { required: "Alcohol intake required", min: 0, max: 50 })}
+                    {...register("alcohol", { required: "Консумацията на алкохол е задължителна", min: 0, max: 50 })}
                     className="mt-1"
                     placeholder="3"
                   />
@@ -344,17 +344,17 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Nicotine Field */}
               {section.fields.includes("nicotine") && (
                 <div>
-                  <Label htmlFor="nicotine">Nicotine Use</Label>
+                  <Label htmlFor="nicotine">Употреба на никотин</Label>
                   <Select onValueChange={(value) => setValue("nicotine", value)}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select nicotine use" />
+                      <SelectValue placeholder="Изберете употреба на никотин" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      <SelectItem value="vape">Vape</SelectItem>
-                      <SelectItem value="cigarettes">Cigarettes</SelectItem>
+                      <SelectItem value="none">Никаква</SelectItem>
+                      <SelectItem value="vape">Вейп</SelectItem>
+                      <SelectItem value="cigarettes">Цигари</SelectItem>
                       <SelectItem value="iqos">IQOS</SelectItem>
-                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="all">Всички видове</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -363,15 +363,15 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Libido Field */}
               {section.fields.includes("libido") && (
                 <div>
-                  <Label htmlFor="libido">Libido Level</Label>
+                  <Label htmlFor="libido">Ниво на либидо</Label>
                   <Select onValueChange={(value) => setValue("libido", value)}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select level" />
+                      <SelectValue placeholder="Изберете ниво" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="average">Average</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="low">Ниско</SelectItem>
+                      <SelectItem value="average">Средно</SelectItem>
+                      <SelectItem value="high">Високо</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -380,14 +380,14 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Morning Energy Field */}
               {section.fields.includes("morningEnergy") && (
                 <div>
-                  <Label htmlFor="morningEnergy">Morning Energy</Label>
+                  <Label htmlFor="morningEnergy">Сутрешна енергия</Label>
                   <Select onValueChange={(value) => setValue("morningEnergy", value)}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select energy level" />
+                      <SelectValue placeholder="Изберете ниво на енергия" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Low/None</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
+                      <SelectItem value="none">Ниска/Никаква</SelectItem>
+                      <SelectItem value="high">Висока</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -396,15 +396,15 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Recovery Field */}
               {section.fields.includes("recovery") && (
                 <div>
-                  <Label htmlFor="recovery">Recovery Rate</Label>
+                  <Label htmlFor="recovery">Темп на възстановяване</Label>
                   <Select onValueChange={(value) => setValue("recovery", value)}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select recovery rate" />
+                      <SelectValue placeholder="Изберете темп на възстановяване" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="slow">Slow</SelectItem>
-                      <SelectItem value="average">Average</SelectItem>
-                      <SelectItem value="fast">Fast</SelectItem>
+                      <SelectItem value="slow">Бавно</SelectItem>
+                      <SelectItem value="average">Средно</SelectItem>
+                      <SelectItem value="fast">Бързо</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -413,15 +413,15 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {/* Mood Field */}
               {section.fields.includes("mood") && (
                 <div>
-                  <Label htmlFor="mood">Overall Mood</Label>
+                  <Label htmlFor="mood">Общо настроение</Label>
                   <Select onValueChange={(value) => setValue("mood", value)}>
                     <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select mood" />
+                      <SelectValue placeholder="Изберете настроение" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="bad">Poor</SelectItem>
-                      <SelectItem value="neutral">Neutral</SelectItem>
-                      <SelectItem value="good">Good</SelectItem>
+                      <SelectItem value="bad">Лошо</SelectItem>
+                      <SelectItem value="neutral">Неутрално</SelectItem>
+                      <SelectItem value="good">Добро</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -441,12 +441,12 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Analyzing Your Data...
+              Анализираме вашите данни...
             </>
           ) : (
             <>
               <Activity className="mr-2 h-4 w-4" />
-              Get My T-Forecast
+              Получете моята T-прогноза
             </>
           )}
         </Button>

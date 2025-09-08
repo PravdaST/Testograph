@@ -31,7 +31,7 @@ const Index = () => {
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                   T-Forecast
                 </h1>
-                <p className="text-sm text-muted-foreground">Testosterone Estimation Tool</p>
+                <p className="text-sm text-muted-foreground">Инструмент за оценка на тестостерон</p>
               </div>
             </div>
             {showResults && (
@@ -39,7 +39,7 @@ const Index = () => {
                 onClick={resetForm}
                 className="text-sm text-primary hover:text-primary/80 transition-colors"
               >
-                New Assessment
+                Нова оценка
               </button>
             )}
           </div>
@@ -53,18 +53,18 @@ const Index = () => {
             <section className="text-center mb-12">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
                 <Sparkles className="h-4 w-4" />
-                Advanced Health Assessment
+                Усъвършенствана здравна оценка
               </div>
               
               <h1 className="text-4xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent leading-tight">
-                Get Your Personal
+                Получете вашата лична
                 <br />
-                T-Forecast
+                T-прогноза
               </h1>
               
               <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
-                Discover your estimated testosterone levels based on lifestyle factors, 
-                health indicators, and scientific research. Get personalized insights in minutes.
+                Открийте вашите прогнозни нива на тестостерон въз основа на факторите от начина на живот, 
+                здравните показатели и научните изследвания. Получете персонализирани прозрения за минути.
               </p>
 
               {/* Feature Cards */}
@@ -73,9 +73,9 @@ const Index = () => {
                   <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <Target className="h-6 w-6 text-primary" />
                   </div>
-                  <h3 className="font-semibold mb-2">Personalized Analysis</h3>
+                  <h3 className="font-semibold mb-2">Персонализиран анализ</h3>
                   <p className="text-sm text-muted-foreground">
-                    Advanced algorithm considers your unique lifestyle and health factors
+                    Усъвършенстван алгоритъм отчита вашите уникални фактори от начина на живот и здравето
                   </p>
                 </div>
 
@@ -83,9 +83,9 @@ const Index = () => {
                   <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <Activity className="h-6 w-6 text-accent" />
                   </div>
-                  <h3 className="font-semibold mb-2">Instant Results</h3>
+                  <h3 className="font-semibold mb-2">Моментални резултати</h3>
                   <p className="text-sm text-muted-foreground">
-                    Get your testosterone estimate and recommendations immediately
+                    Получете вашата оценка на тестостерона и препоръките незабавно
                   </p>
                 </div>
 
@@ -93,9 +93,9 @@ const Index = () => {
                   <div className="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                     <Shield className="h-6 w-6 text-success" />
                   </div>
-                  <h3 className="font-semibold mb-2">Science-Based</h3>
+                  <h3 className="font-semibold mb-2">Научно обоснован</h3>
                   <p className="text-sm text-muted-foreground">
-                    Built on peer-reviewed research and clinical evidence
+                    Основан на рецензирани изследвания и клинични доказателства
                   </p>
                 </div>
               </div>
@@ -104,9 +104,9 @@ const Index = () => {
             {/* Assessment Form */}
             <section>
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold mb-4">Complete Your Health Assessment</h2>
+                <h2 className="text-2xl font-bold mb-4">Попълнете вашата здравна оценка</h2>
                 <p className="text-muted-foreground">
-                  Please fill out all sections accurately for the most precise estimation
+                  Моля, попълнете всички секции точно за най-прецизната оценка
                 </p>
               </div>
               
@@ -126,10 +126,10 @@ const Index = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="text-center text-sm text-muted-foreground">
             <p className="mb-2">
-              T-Forecast © 2024. Educational tool for testosterone estimation.
+              T-Forecast © 2024. Образователен инструмент за оценка на тестостерон.
             </p>
             <p>
-              Not intended as medical advice. Consult healthcare professionals for medical guidance.
+              Не е предназначен като медицински съвет. Консултирайте се с медицински специалисти за медицинско ръководство.
             </p>
           </div>
         </div>

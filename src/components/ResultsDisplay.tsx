@@ -29,9 +29,9 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-warning mt-1 flex-shrink-0" />
               <div className="text-sm">
-                <p className="font-medium mb-2">Important Disclaimer</p>
+                <p className="font-medium mb-2">Важно предупреждение</p>
                 <p className="text-muted-foreground leading-relaxed">
-                  For completely accurate results, consult a medical institution to perform the tests needed.
+                  За напълно точни резултати се консултирайте с медицинска институция за да се извършат необходимите изследвания.
                 </p>
               </div>
             </div>
@@ -67,7 +67,7 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
           <div className="text-center">
             <AlertTriangle className="h-12 w-12 text-warning mx-auto mb-4" />
             <p className="text-muted-foreground">
-              Unable to process the analysis results. Please try again.
+              Не може да обработи резултатите от анализа. Моля, опитайте отново.
             </p>
           </div>
         </CardContent>
@@ -78,11 +78,11 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
   const getConfidenceBadge = (confidence: string) => {
     const confidenceLevel = confidence.toLowerCase();
     if (confidenceLevel.includes('high')) {
-      return <Badge className="bg-health-good text-white">High Confidence</Badge>;
+      return <Badge className="bg-health-good text-white">Висока увереност</Badge>;
     } else if (confidenceLevel.includes('low')) {
-      return <Badge className="bg-health-warning text-black">Low Confidence</Badge>;
+      return <Badge className="bg-health-warning text-black">Ниска увереност</Badge>;
     }
-    return <Badge className="bg-health-normal text-white">Moderate Confidence</Badge>;
+    return <Badge className="bg-health-normal text-white">Умерена увереност</Badge>;
   };
 
   return (
@@ -92,9 +92,9 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
         <CardContent className="pt-6">
           <div className="text-center">
             <CheckCircle className="h-16 w-16 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Your T-Forecast Analysis</h2>
+            <h2 className="text-2xl font-bold mb-2">Вашият T-Forecast анализ</h2>
             <p className="text-muted-foreground mb-4">
-              Your personalized testosterone estimation is ready
+              Вашата персонализирана оценка на тестостерона е готова
             </p>
             {data.confidence && getConfidenceBadge(data.confidence)}
           </div>
@@ -107,9 +107,9 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
           <div className="flex items-center gap-3">
             <TrendingUp className="h-6 w-6 text-primary" />
             <div>
-              <CardTitle>Testosterone Estimate</CardTitle>
+              <CardTitle>Оценка на тестостерон</CardTitle>
               <CardDescription>
-                Based on your lifestyle factors and health indicators
+                Въз основа на вашите фактори от начина на живот и здравните показатели
               </CardDescription>
             </div>
           </div>
@@ -124,13 +124,13 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
                 }
               </div>
               <p className="text-muted-foreground">
-                Estimated Testosterone Level
+                Прогнозно ниво на тестостерон
               </p>
             </div>
           ) : (
             <div className="text-center py-6">
               <p className="text-muted-foreground">
-                Analysis complete - check recommendations below
+                Анализът приключи - проверете препоръките по-долу
               </p>
             </div>
           )}
@@ -144,9 +144,9 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
             <div className="flex items-center gap-3">
               <Info className="h-6 w-6 text-accent" />
               <div>
-                <CardTitle>Personalized Recommendations</CardTitle>
+                <CardTitle>Персонализирани препоръки</CardTitle>
                 <CardDescription>
-                  Tips to optimize your testosterone levels naturally
+                  Съвети за естественото оптимизиране на вашите нива на тестостерон
                 </CardDescription>
               </div>
             </div>
@@ -170,10 +170,10 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
           <div className="flex items-start gap-3">
             <AlertTriangle className="h-5 w-5 text-warning mt-1 flex-shrink-0" />
             <div className="text-sm">
-              <p className="font-medium mb-2">Important Disclaimer</p>
+              <p className="font-medium mb-2">Важно предупреждение</p>
               <p className="text-muted-foreground leading-relaxed">
-                This T-Forecast is for educational purposes only and should not replace professional medical advice. 
-                For accurate testosterone testing and medical guidance, please consult with a healthcare professional.
+                Този T-Forecast е само за образователни цели и не трябва да замества професионален медицински съвет. 
+                За точни изследвания на тестостерона и медицинско ръководство, моля консултирайте се с медицински специалист.
               </p>
             </div>
           </div>
@@ -184,7 +184,7 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
       {process.env.NODE_ENV === 'development' && (
         <Card className="bg-muted/50">
           <CardHeader>
-            <CardTitle className="text-sm">Debug: Raw Response</CardTitle>
+            <CardTitle className="text-sm">Дебъг: Необработен отговор</CardTitle>
           </CardHeader>
           <CardContent>
             <pre className="text-xs text-muted-foreground overflow-auto">
