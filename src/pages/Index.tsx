@@ -18,7 +18,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 transition-none">
+    <div className="min-h-screen transition-none">
       {/* Floating Sticky Header */}
       <header className="sticky top-4 z-50 transition-none">
         <div className="container mx-auto px-4">
