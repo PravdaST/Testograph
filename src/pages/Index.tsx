@@ -61,47 +61,49 @@ const Index = () => {
         </div>
         
         {/* Content Grid */}
-        <div className="relative z-10 min-h-[600px] grid grid-cols-1 lg:grid-cols-[55fr_45fr] gap-8 items-center max-w-7xl mx-auto px-4">
-          {/* Left Content */}
-          <div className="px-6 lg:px-4 py-20">
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 text-purple-300 text-sm font-medium mb-8">
-              <Sparkles className="h-4 w-4" />
-              Усъвършенствана здравна оценка
+        <div className="relative z-10 container mx-auto px-4 md:px-6 max-w-[1200px] py-14 md:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 xl:gap-10">
+            {/* Left Content */}
+            <div className="lg:col-span-7 xl:col-span-7">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 text-purple-300 text-sm font-medium mb-8">
+                <Sparkles className="h-4 w-4" />
+                Усъвършенствана здравна оценка
+              </div>
+              
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white leading-tight">
+                Получи своят личен
+                <br />
+                <span className="bg-gradient-to-r from-purple-400 to-violet-500 bg-clip-text text-transparent">
+                  Testograph
+                </span>
+              </h1>
+              
+              <p className="text-xl text-gray-300 mb-10 leading-relaxed">
+                Открийте вашите прогнозни нива на тестостерон въз основа на факторите от начина на живот, 
+                здравните показатели и научните изследвания. Получете персонализирани прозрения за минути.
+              </p>
+
+              <button
+                onClick={() => {
+                  const formSection = document.getElementById('assessment-form');
+                  formSection?.scrollIntoView({ behavior: 'smooth' });
+                }}
+                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+              >
+                <Activity className="h-5 w-5" />
+                Започнете анализа
+              </button>
             </div>
             
-            <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white leading-tight">
-              Получи своят личен
-              <br />
-              <span className="bg-gradient-to-r from-purple-400 to-violet-500 bg-clip-text text-transparent">
-                Testograph
-              </span>
-            </h1>
-            
-            <p className="text-xl text-gray-300 mb-10 max-w-xl leading-relaxed">
-              Открийте вашите прогнозни нива на тестостерон въз основа на факторите от начина на живот, 
-              здравните показатели и научните изследвания. Получете персонализирани прозрения за минути.
-            </p>
-
-            <button
-              onClick={() => {
-                const formSection = document.getElementById('assessment-form');
-                formSection?.scrollIntoView({ behavior: 'smooth' });
-              }}
-              className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-            >
-              <Activity className="h-5 w-5" />
-              Започнете анализа
-            </button>
-          </div>
-          
-          {/* Right Content - Square Image Placeholder */}
-          <div className="flex items-center justify-center lg:justify-start px-6 lg:px-4">
-            <div className="w-80 h-80 bg-gradient-to-br from-purple-500/10 to-violet-600/10 rounded-3xl border border-purple-500/20 flex items-center justify-center">
-              <div className="text-purple-400/50 text-center">
-                <div className="w-16 h-16 bg-purple-500/20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                  <Activity className="h-8 w-8" />
+            {/* Right Content - Square Image Placeholder */}
+            <div className="lg:col-span-5 xl:col-span-5 lg:justify-self-end w-full max-w-[420px] xl:max-w-[480px]">
+              <div className="w-full aspect-square bg-gradient-to-br from-purple-500/10 to-violet-600/10 rounded-3xl border border-purple-500/20 flex items-center justify-center">
+                <div className="text-purple-400/50 text-center">
+                  <div className="w-16 h-16 bg-purple-500/20 rounded-full mx-auto mb-4 flex items-center justify-center">
+                    <Activity className="h-8 w-8" />
+                  </div>
+                  <p className="text-sm">Място за изображение</p>
                 </div>
-                <p className="text-sm">Място за изображение</p>
               </div>
             </div>
           </div>
