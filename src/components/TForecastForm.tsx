@@ -162,7 +162,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
             </div>
             
             <Button type="submit" className="w-full">
-              Продължете към оценката
+              Продължете към анализа
             </Button>
           </form>
         </DialogContent>
