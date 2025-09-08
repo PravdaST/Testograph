@@ -210,22 +210,12 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .tg-form-select-content {
-  position: fixed !important;
   z-index: 50;
+  background: hsl(var(--popover));
 }
 
 .tg-form-viewport {
   overflow-y: auto;
   max-height: 200px;
-}
-
-/* Prevent body scroll when form dropdowns are open */
-body:has(.tg-form-select-content[data-state="open"]) {
-  overflow: hidden;
-}
-
-/* Override radix scroll behavior for form selects */
-.tg-form-select-content[data-state="open"] {
-  animation: none !important;
 }
 }
