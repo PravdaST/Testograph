@@ -49,7 +49,7 @@ const Index = () => {
       </header>
 
       {/* Hero Section - Full Width */}
-      <section className="relative overflow-hidden bg-gray-900 mb-12">
+      <section className="relative overflow-hidden bg-gray-900 mb-12 -mt-4">
         {/* Animated Purple Wave Background */}
         <div className="absolute inset-0 overflow-hidden">
           <div className="absolute inset-0 opacity-30">
