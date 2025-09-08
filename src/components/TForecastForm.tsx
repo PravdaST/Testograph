@@ -160,7 +160,7 @@ const TForecastForm = ({
           
           <form onSubmit={handleEmailSubmit} className="space-y-6 mt-8">
             <div>
-              <Label htmlFor="popup-email">Имейл адрес</Label>
+              <Label htmlFor="popup-email" className="rounded-full">Имейл адрес</Label>
               <Input id="popup-email" type="email" value={userEmail} onChange={e => setUserEmail(e.target.value)} placeholder="your.email@example.com" className="mt-1" autoFocus />
               {emailError && <p className="text-sm text-destructive mt-1">{emailError}</p>}
             </div>
