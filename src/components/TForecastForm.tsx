@@ -214,7 +214,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     onChange={(e) => handleInputChange('gender', e.target.value)}
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                   >
-                    <option value="">Изберете пол</option>
+                    <option value="" disabled hidden>Изберете пол</option>
                     <option value="male">Мъжки</option>
                     <option value="female">Женски</option>
                     <option value="other">Друг</option>
@@ -303,7 +303,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     onChange={(e) => handleInputChange('trainingFrequency', e.target.value)}
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                   >
-                    <option value="">Изберете честота</option>
+                    <option value="" disabled hidden>Изберете честота</option>
                     <option value="none">Никаква</option>
                     <option value="1-2">1-2 пъти/седмица</option>
                     <option value="3-4">3-4 пъти/седмица</option>
@@ -323,7 +323,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     onChange={(e) => handleInputChange('trainingType', e.target.value)}
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                   >
-                    <option value="">Изберете тип</option>
+                    <option value="" disabled hidden>Изберете тип</option>
                     <option value="none">Никаква</option>
                     <option value="strength">Силови тренировки</option>
                     <option value="mix">Смесени тренировки</option>
@@ -380,7 +380,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     onChange={(e) => handleInputChange('diet', e.target.value)}
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                   >
-                    <option value="">Изберете тип диета</option>
+                    <option value="" disabled hidden>Изберете тип диета</option>
                     <option value="balanced">Балансирана диета</option>
                     <option value="processed">Преработени храни</option>
                     <option value="custom">Опишете вашата диета</option>
@@ -415,7 +415,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     onChange={(e) => handleInputChange('nicotine', e.target.value)}
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                   >
-                    <option value="">Изберете употреба на никотин</option>
+                    <option value="" disabled hidden>Изберете употреба на никотин</option>
                     <option value="none">Никаква</option>
                     <option value="vape">Вейп</option>
                     <option value="cigarettes">Цигари</option>
@@ -455,7 +455,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     onChange={(e) => handleInputChange('libido', e.target.value)}
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                   >
-                    <option value="">Изберете ниво</option>
+                    <option value="" disabled hidden>Изберете ниво</option>
                     <option value="low">Ниско</option>
                     <option value="average">Средно</option>
                     <option value="high">Високо</option>
@@ -473,7 +473,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     onChange={(e) => handleInputChange('morningEnergy', e.target.value)}
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                   >
-                    <option value="">Изберете ниво на енергия</option>
+                    <option value="" disabled hidden>Изберете ниво на енергия</option>
                     <option value="none">Ниска/Никаква</option>
                     <option value="high">Висока</option>
                   </select>
@@ -490,7 +490,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     onChange={(e) => handleInputChange('recovery', e.target.value)}
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                   >
-                    <option value="">Изберете темп на възстановяване</option>
+                    <option value="" disabled hidden>Изберете темп на възстановяване</option>
                     <option value="slow">Бавно</option>
                     <option value="average">Средно</option>
                     <option value="fast">Бързо</option>
@@ -508,7 +508,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     onChange={(e) => handleInputChange('mood', e.target.value)}
                     className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1"
                   >
-                    <option value="">Изберете настроение</option>
+                    <option value="" disabled hidden>Изберете настроение</option>
                     <option value="bad">Лошо</option>
                     <option value="neutral">Неутрално</option>
                     <option value="good">Добро</option>
