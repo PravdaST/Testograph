@@ -200,22 +200,4 @@ h1, h2, h3, h4, h5, h6 {
 .testograph-form-container {
   position: relative;
 }
-
-.tg-form {
-  position: relative;
-}
-
-.tg-form-select-trigger:focus {
-  scroll-behavior: auto;
-}
-
-.tg-form-select-content {
-  z-index: 50;
-  background: hsl(var(--popover));
-}
-
-.tg-form-viewport {
-  overflow-y: auto;
-  max-height: 200px;
-}
 }
