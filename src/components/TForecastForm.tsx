@@ -196,8 +196,6 @@ const TForecastForm = ({
                   <select id="gender" value={formData.gender} onChange={e => handleInputChange('gender', e.target.value)} className="flex h-10 w-full items-center justify-between border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 mt-1 rounded-2xl">
                     <option value="" disabled hidden>Изберете пол</option>
                     <option value="male">Мъжки</option>
-                    <option value="female">Женски</option>
-                    <option value="other">Друг</option>
                   </select>
                   {errors.gender && <p className="text-sm text-destructive mt-1">{errors.gender}</p>}
                 </div>
