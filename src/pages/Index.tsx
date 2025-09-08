@@ -22,7 +22,7 @@ const Index = () => {
       {/* Floating Sticky Header */}
       <header className="sticky top-4 z-50 transition-none">
         <div className="container mx-auto px-4">
-          <div className="bg-background/90 backdrop-blur-md border border-border/50 rounded-2xl shadow-lg shadow-black/10 px-6 py-4">
+          <div className="bg-background/75 backdrop-blur-md border border-border/50 rounded-3xl shadow-lg shadow-black/10 px-6 py-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-gradient-to-r from-primary to-accent">
