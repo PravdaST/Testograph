@@ -17,6 +17,7 @@ export default {
         'montserrat': ['Montserrat', 'sans-serif'],
         'inter': ['Inter', 'sans-serif'],
         'raleway': ['Raleway', 'sans-serif'],
+        'clash': ['Outfit', 'Montserrat', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
