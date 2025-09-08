@@ -29,7 +29,7 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  T-Forecast
+                  Testograph
                 </h1>
                 <p className="text-sm text-muted-foreground">Инструмент за оценка на тестостерон</p>
               </div>
@@ -71,7 +71,7 @@ const Index = () => {
                   Получете вашата лична
                   <br />
                   <span className="bg-gradient-to-r from-orange-400 to-red-500 bg-clip-text text-transparent">
-                    T-прогноза
+                    Testograph анализ
                   </span>
                 </h1>
                 
@@ -151,7 +151,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="text-center text-sm text-muted-foreground">
             <p className="mb-2">
-              T-Forecast © 2024. Образователен инструмент за оценка на тестостерон.
+              Testograph © 2024. Образователен инструмент за оценка на тестостерон.
             </p>
             <p>
               Не е предназначен като медицински съвет. Консултирайте се с медицински специалисти за медицинско ръководство.

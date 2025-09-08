@@ -92,7 +92,7 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
         <CardContent className="pt-6">
           <div className="text-center">
             <CheckCircle className="h-16 w-16 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl font-bold mb-2">Вашият T-Forecast анализ</h2>
+            <h2 className="text-2xl font-bold mb-2">Вашият Testograph анализ</h2>
             <p className="text-muted-foreground mb-4">
               Вашата персонализирана оценка на тестостерона е готова
             </p>
@@ -172,7 +172,7 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
             <div className="text-sm">
               <p className="font-medium mb-2">Важно предупреждение</p>
               <p className="text-muted-foreground leading-relaxed">
-                Този T-Forecast е само за образователни цели и не трябва да замества професионален медицински съвет. 
+                Този Testograph е само за образователни цели и не трябва да замества професионален медицински съвет. 
                 За точни изследвания на тестостерона и медицинско ръководство, моля консултирайте се с медицински специалист.
               </p>
             </div>

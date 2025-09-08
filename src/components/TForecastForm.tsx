@@ -85,13 +85,13 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
       // Show thank you message instead of results
       onResult({
         type: 'thank-you',
-        title: 'Благодарим! Вашата T-прогноза е в процес.',
+        title: 'Благодарим! Вашата Testograph прогноза е в процес.',
         description: "Изпратихме вашия персонализиран доклад до вашия имейл адрес.\nМоже да отнеме 1–2 минути да пристигне — ако не го видите, моля проверете папките Промоции или Спам."
       });
       
       toast({
         title: "Анализът завърши",
-        description: "Вашата T-прогноза беше генерирана успешно.",
+        description: "Вашата Testograph прогноза беше генерирана успешно.",
       });
     } catch (error) {
       toast({
@@ -137,7 +137,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               <Mail className="w-8 h-8 text-primary" />
             </div>
             <div className="space-y-3">
-              <DialogTitle className="text-center text-2xl font-bold">Добре дошли в T-Forecast</DialogTitle>
+              <DialogTitle className="text-center text-2xl font-bold">Добре дошли в Testograph</DialogTitle>
               <DialogDescription className="text-center text-base leading-relaxed px-4">
                 Въведете вашия имейл адрес, за да започнете с вашия персонализиран анализ на тестостерона.
               </DialogDescription>
@@ -448,7 +448,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
           ) : (
             <>
               <Activity className="mr-2 h-4 w-4" />
-              Получете моята T-прогноза
+              Получете моята Testograph прогноза
             </>
           )}
         </Button>
