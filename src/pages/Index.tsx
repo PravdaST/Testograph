@@ -2,29 +2,27 @@ import { useState } from "react";
 import { Activity, Target, Shield, Sparkles } from "lucide-react";
 import TForecastForm from "@/components/TForecastForm";
 import ResultsDisplay from "@/components/ResultsDisplay";
-
 const Index = () => {
   const [result, setResult] = useState(null);
   const [showResults, setShowResults] = useState(false);
-
   const handleResult = (data: any) => {
     setResult(data);
     setShowResults(true);
     // Scroll to top when results are shown
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
   };
-
   const resetForm = () => {
     setResult(null);
     setShowResults(false);
   };
-
-  return (
-    <div className="min-h-screen transition-none">
+  return <div className="min-h-screen transition-none">
       {/* Floating Sticky Header */}
       <header className="sticky top-4 z-50 transition-none">
         <div className="container mx-auto px-4">
-          <div className="bg-background/75 backdrop-blur-md border border-border/50 rounded-3xl shadow-lg shadow-black/10 px-6 py-4">
+          <div className="bg-background/75 backdrop-blur-md border border-border/50 shadow-lg shadow-black/10 px-6 py-4 rounded-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-gradient-to-r from-primary to-accent">
@@ -37,14 +35,9 @@ const Index = () => {
                   <p className="text-sm text-muted-foreground">Инструмент за оценка на тестостерон</p>
                 </div>
               </div>
-              {showResults && (
-                <button
-                  onClick={resetForm}
-                  className="text-sm text-primary hover:text-primary/80 transition-colors"
-                >
+              {showResults && <button onClick={resetForm} className="text-sm text-primary hover:text-primary/80 transition-colors">
                   Нова оценка
-                </button>
-              )}
+                </button>}
             </div>
           </div>
         </div>
@@ -87,13 +80,12 @@ const Index = () => {
                 здравните показатели и научните изследвания. Получете персонализирани прозрения за минути.
               </p>
 
-              <button
-                onClick={() => {
-                  const formSection = document.getElementById('assessment-form');
-                  formSection?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
-              >
+              <button onClick={() => {
+              const formSection = document.getElementById('assessment-form');
+              formSection?.scrollIntoView({
+                behavior: 'smooth'
+              });
+            }} className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
                 <Activity className="h-5 w-5" />
                 Започнете анализа
               </button>
@@ -115,8 +107,7 @@ const Index = () => {
       </section>
 
       <main className="container mx-auto px-4 py-8 max-w-4xl">
-        {!showResults ? (
-          <>
+        {!showResults ? <>
 
             {/* Feature Cards */}
             <div className="grid md:grid-cols-3 gap-6 mb-12">
@@ -167,13 +158,10 @@ const Index = () => {
               
               <TForecastForm onResult={handleResult} />
             </section>
-          </>
-        ) : (
-          /* Results Section */
-          <section>
+          </> : (/* Results Section */
+      <section>
             <ResultsDisplay result={result} />
-          </section>
-        )}
+          </section>)}
       </main>
 
       {/* Footer */}
@@ -189,8 +177,6 @@ const Index = () => {
           </div>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
