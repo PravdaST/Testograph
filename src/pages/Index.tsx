@@ -28,7 +28,7 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-gradient-to-r from-primary to-accent">
-                  <Activity className="h-6 w-6 text-white" />
+                  <img src="/lovable-uploads/f5d82c7d-feff-40f9-8811-38a53cd3de37.png" alt="Testograph Logo" className="h-6 w-6" />
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold font-clash bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
