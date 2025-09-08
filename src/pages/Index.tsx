@@ -25,7 +25,7 @@ const Index = () => {
           <div className="bg-background/75 backdrop-blur-md border border-border/50 shadow-lg shadow-black/10 px-6 py-4 rounded-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl bg-gradient-to-r from-primary to-accent">
+                <div className="p-2 rounded-xl">
                   <img src="/lovable-uploads/7f610a27-06bc-4bf8-9951-7f52e40688ba.png" alt="Testograph Logo" className="h-6 w-6" />
                 </div>
                 <div>
