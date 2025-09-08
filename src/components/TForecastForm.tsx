@@ -131,18 +131,20 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
     <>
       {/* Email Popup */}
       <Dialog open={showEmailPopup} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <div className="flex items-center justify-center w-12 h-12 mx-auto mb-4 rounded-full bg-primary/10">
-              <Mail className="w-6 h-6 text-primary" />
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader className="space-y-6">
+            <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-primary/10">
+              <Mail className="w-8 h-8 text-primary" />
             </div>
-            <DialogTitle className="text-center text-xl">Добре дошли в T-Forecast</DialogTitle>
-            <DialogDescription className="text-center">
-              Въведете вашия имейл адрес, за да започнете с вашия персонализиран анализ на тестостерона.
-            </DialogDescription>
+            <div className="space-y-3">
+              <DialogTitle className="text-center text-2xl font-bold">Добре дошли в T-Forecast</DialogTitle>
+              <DialogDescription className="text-center text-base leading-relaxed px-4">
+                Въведете вашия имейл адрес, за да започнете с вашия персонализиран анализ на тестостерона.
+              </DialogDescription>
+            </div>
           </DialogHeader>
           
-          <form onSubmit={handleEmailSubmit} className="space-y-4">
+          <form onSubmit={handleEmailSubmit} className="space-y-6 mt-8">
             <div>
               <Label htmlFor="popup-email">Имейл адрес</Label>
               <Input
