@@ -126,6 +126,22 @@ All colors MUST be HSL.
 
 body {
   @apply bg-background text-foreground font-inter;
+  /* Prevent backdrop-filter glitches */
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* Prevent backdrop blur flickering */
+[data-radix-popper-content-wrapper] {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Improve backdrop filter performance */
+.backdrop-blur-md {
+  will-change: backdrop-filter;
+  transform: translateZ(0);
 }
 
 /* Typography System */
