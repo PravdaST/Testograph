@@ -56,6 +56,8 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
     
     setEmailError("");
     setShowEmailPopup(false);
+    // Keep user at the hero section
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const onSubmit = async (data: FormData) => {
