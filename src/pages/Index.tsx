@@ -93,13 +93,12 @@ const Index = () => {
             
             {/* Right Content - Square Image Placeholder */}
             <div className="lg:col-span-5 xl:col-span-5 lg:justify-self-end w-full max-w-[420px] xl:max-w-[480px]">
-              <div className="w-full aspect-square bg-gradient-to-br from-purple-500/10 to-violet-600/10 rounded-3xl border border-purple-500/20 flex items-center justify-center">
-                <div className="text-purple-400/50 text-center">
-                  <div className="w-16 h-16 bg-purple-500/20 rounded-full mx-auto mb-4 flex items-center justify-center">
-                    <Activity className="h-8 w-8" />
-                  </div>
-                  <p className="text-sm">Място за изображение</p>
-                </div>
+              <div className="w-full aspect-square rounded-3xl overflow-hidden">
+                <img 
+                  src="/lovable-uploads/2bcd22a3-0894-400b-950c-c10f8b23bb76.png" 
+                  alt="Testosterone analysis visualization" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
