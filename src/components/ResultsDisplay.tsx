@@ -22,6 +22,21 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Disclaimer */}
+        <Card className="bg-warning/10 border-warning/30">
+          <CardContent className="pt-6">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="h-5 w-5 text-warning mt-1 flex-shrink-0" />
+              <div className="text-sm">
+                <p className="font-medium mb-2">Important Disclaimer</p>
+                <p className="text-muted-foreground leading-relaxed">
+                  For completely accurate results, consult a medical institution to perform the tests needed.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     );
   }
