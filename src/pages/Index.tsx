@@ -154,7 +154,12 @@ const Index = () => {
             {/* Assessment Form */}
             <section id="assessment-form">
               <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold mb-4">Попълнете вашата здравна оценка</h2>
+                <h2 className="text-4xl md:text-5xl font-bold mb-4">
+                  Попълнете бланката за{' '}
+                  <span className="bg-gradient-to-r from-purple-400 to-violet-500 bg-clip-text text-transparent">
+                    анализ
+                  </span>
+                </h2>
                 <p className="text-muted-foreground">
                   Моля, попълнете всички секции точно за най-прецизната оценка
                 </p>
