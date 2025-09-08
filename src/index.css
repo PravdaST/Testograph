@@ -130,6 +130,8 @@ body {
   transform: translateZ(0);
   backface-visibility: hidden;
   perspective: 1000px;
+  /* Prevent auto-scroll on focus changes */
+  scroll-behavior: auto;
 }
 
 /* Prevent backdrop blur flickering */
@@ -142,6 +144,20 @@ body {
 .backdrop-blur-md {
   will-change: backdrop-filter;
   transform: translateZ(0);
+}
+
+/* Fix dropdown scroll issue - prevent page from scrolling to top when dropdown opens */
+[data-radix-select-content] {
+  scroll-behavior: auto !important;
+}
+
+body:has([data-radix-select-content]) {
+  scroll-behavior: auto !important;
+}
+
+/* Ensure select items don't trigger scroll */
+[data-radix-select-item] {
+  scroll-behavior: auto !important;
 }
 
 /* Typography System */
