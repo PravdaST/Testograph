@@ -10,6 +10,8 @@ const Index = () => {
   const handleResult = (data: any) => {
     setResult(data);
     setShowResults(true);
+    // Scroll to top when results are shown
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const resetForm = () => {
