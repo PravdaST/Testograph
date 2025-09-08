@@ -392,7 +392,7 @@ const TForecastForm = ({
                   Анализираме вашите данни...
                 </> : <>
                   <Activity className="mr-2 h-4 w-4" />
-                  Получете моята Testograph прогноза
+                  Вземи своят Testograph анализ
                 </>}
             </Button>
           </div>
