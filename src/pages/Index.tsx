@@ -19,29 +19,31 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-secondary/20 transition-none">
-      {/* Header */}
-      <header className="border-b border-border/50 backdrop-blur-sm bg-background/80 sticky top-0 z-50 transition-none">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-r from-primary to-accent">
-                <Activity className="h-6 w-6 text-white" />
+      {/* Floating Sticky Header */}
+      <header className="sticky top-4 z-50 transition-none">
+        <div className="container mx-auto px-4">
+          <div className="bg-background/90 backdrop-blur-md border border-border/50 rounded-2xl shadow-lg shadow-black/10 px-6 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-xl bg-gradient-to-r from-primary to-accent">
+                  <Activity className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    Testograph
+                  </h1>
+                  <p className="text-sm text-muted-foreground">Инструмент за оценка на тестостерон</p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  Testograph
-                </h1>
-                <p className="text-sm text-muted-foreground">Инструмент за оценка на тестостерон</p>
-              </div>
+              {showResults && (
+                <button
+                  onClick={resetForm}
+                  className="text-sm text-primary hover:text-primary/80 transition-colors"
+                >
+                  Нова оценка
+                </button>
+              )}
             </div>
-            {showResults && (
-              <button
-                onClick={resetForm}
-                className="text-sm text-primary hover:text-primary/80 transition-colors"
-              >
-                Нова оценка
-              </button>
-            )}
           </div>
         </div>
       </header>
