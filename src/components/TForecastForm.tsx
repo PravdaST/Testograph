@@ -81,7 +81,13 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
       }
 
       const result = await response.json();
-      onResult(result);
+      
+      // Show thank you message instead of results
+      onResult({
+        type: 'thank-you',
+        title: 'Thank you! Your T-Forecast is on the way.',
+        description: "We've sent your personalized report to your email address.\nIt may take 1–2 minutes to arrive — if you don't see it, please check your Promotions or Spam folders."
+      });
       
       toast({
         title: "Analysis Complete",

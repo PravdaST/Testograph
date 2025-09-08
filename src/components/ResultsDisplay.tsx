@@ -7,6 +7,25 @@ interface ResultsDisplayProps {
 }
 
 const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
+  // Check if this is a thank you message
+  if (result?.type === 'thank-you') {
+    return (
+      <div className="space-y-6">
+        <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
+          <CardContent className="pt-6">
+            <div className="text-center">
+              <CheckCircle className="h-16 w-16 text-primary mx-auto mb-4" />
+              <h2 className="text-2xl font-bold mb-4">{result.title}</h2>
+              <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                {result.description}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   // Parse the result to extract relevant information
   const parseTestosteroneLevel = (result: any) => {
     if (!result) return null;
