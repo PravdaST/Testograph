@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -38,7 +38,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
   const [emailError, setEmailError] = useState("");
   const { toast } = useToast();
   
-  const { register, handleSubmit, setValue, watch, formState: { errors } } = useForm<FormData>();
+  const { register, handleSubmit, setValue, watch, control, formState: { errors } } = useForm<FormData>();
 
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -192,16 +192,26 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {section.fields.includes("gender") && (
                 <div>
                   <Label htmlFor="gender">Пол</Label>
-                  <Select onValueChange={(value) => setValue("gender", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Изберете пол" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="male">Мъжки</SelectItem>
-                      <SelectItem value="female">Женски</SelectItem>
-                      <SelectItem value="other">Друг</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="gender"
+                    control={control}
+                    rules={{ required: "Полът е задължителен" }}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Изберете пол" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Мъжки</SelectItem>
+                          <SelectItem value="female">Женски</SelectItem>
+                          <SelectItem value="other">Друг</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.gender && (
+                    <p className="text-sm text-destructive mt-1">{errors.gender.message}</p>
+                  )}
                 </div>
               )}
 
@@ -260,18 +270,28 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {section.fields.includes("trainingFrequency") && (
                 <div>
                   <Label htmlFor="trainingFrequency">Честота на тренировки</Label>
-                  <Select onValueChange={(value) => setValue("trainingFrequency", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Изберете честота" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Никаква</SelectItem>
-                      <SelectItem value="1-2">1-2 пъти/седмица</SelectItem>
-                      <SelectItem value="3-4">3-4 пъти/седмица</SelectItem>
-                      <SelectItem value="5-6">5-6 пъти/седмица</SelectItem>
-                      <SelectItem value="6+">6+ пъти/седмица</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="trainingFrequency"
+                    control={control}
+                    rules={{ required: "Честотата на тренировки е задължителна" }}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Изберете честота" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Никаква</SelectItem>
+                          <SelectItem value="1-2">1-2 пъти/седмица</SelectItem>
+                          <SelectItem value="3-4">3-4 пъти/седмица</SelectItem>
+                          <SelectItem value="5-6">5-6 пъти/седмица</SelectItem>
+                          <SelectItem value="6+">6+ пъти/седмица</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.trainingFrequency && (
+                    <p className="text-sm text-destructive mt-1">{errors.trainingFrequency.message}</p>
+                  )}
                 </div>
               )}
 
@@ -279,17 +299,27 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {section.fields.includes("trainingType") && (
                 <div>
                   <Label htmlFor="trainingType">Тип тренировка</Label>
-                  <Select onValueChange={(value) => setValue("trainingType", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Изберете тип" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Никаква</SelectItem>
-                      <SelectItem value="strength">Силови тренировки</SelectItem>
-                      <SelectItem value="mix">Смесени тренировки</SelectItem>
-                      <SelectItem value="endurance">Издръжливост</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="trainingType"
+                    control={control}
+                    rules={{ required: "Типът тренировка е задължителен" }}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Изберете тип" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Никаква</SelectItem>
+                          <SelectItem value="strength">Силови тренировки</SelectItem>
+                          <SelectItem value="mix">Смесени тренировки</SelectItem>
+                          <SelectItem value="endurance">Издръжливост</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.trainingType && (
+                    <p className="text-sm text-destructive mt-1">{errors.trainingType.message}</p>
+                  )}
                 </div>
               )}
 
@@ -315,16 +345,26 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {section.fields.includes("diet") && (
                 <div>
                   <Label htmlFor="diet">Тип диета</Label>
-                  <Select onValueChange={(value) => setValue("diet", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Изберете тип диета" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="balanced">Балансирана диета</SelectItem>
-                      <SelectItem value="processed">Преработени храни</SelectItem>
-                      <SelectItem value="custom">Опишете вашата диета</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="diet"
+                    control={control}
+                    rules={{ required: "Типът диета е задължителен" }}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Изберете тип диета" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="balanced">Балансирана диета</SelectItem>
+                          <SelectItem value="processed">Преработени храни</SelectItem>
+                          <SelectItem value="custom">Опишете вашата диета</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.diet && (
+                    <p className="text-sm text-destructive mt-1">{errors.diet.message}</p>
+                  )}
                 </div>
               )}
 
@@ -349,18 +389,28 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {section.fields.includes("nicotine") && (
                 <div>
                   <Label htmlFor="nicotine">Употреба на никотин</Label>
-                  <Select onValueChange={(value) => setValue("nicotine", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Изберете употреба на никотин" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Никаква</SelectItem>
-                      <SelectItem value="vape">Вейп</SelectItem>
-                      <SelectItem value="cigarettes">Цигари</SelectItem>
-                      <SelectItem value="iqos">IQOS</SelectItem>
-                      <SelectItem value="all">Всички видове</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="nicotine"
+                    control={control}
+                    rules={{ required: "Употребата на никотин е задължителна" }}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Изберете употреба на никотин" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Никаква</SelectItem>
+                          <SelectItem value="vape">Вейп</SelectItem>
+                          <SelectItem value="cigarettes">Цигари</SelectItem>
+                          <SelectItem value="iqos">IQOS</SelectItem>
+                          <SelectItem value="all">Всички видове</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.nicotine && (
+                    <p className="text-sm text-destructive mt-1">{errors.nicotine.message}</p>
+                  )}
                 </div>
               )}
 
@@ -368,16 +418,26 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {section.fields.includes("libido") && (
                 <div>
                   <Label htmlFor="libido">Ниво на либидо</Label>
-                  <Select onValueChange={(value) => setValue("libido", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Изберете ниво" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Ниско</SelectItem>
-                      <SelectItem value="average">Средно</SelectItem>
-                      <SelectItem value="high">Високо</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="libido"
+                    control={control}
+                    rules={{ required: "Нивото на либидо е задължително" }}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Изберете ниво" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">Ниско</SelectItem>
+                          <SelectItem value="average">Средно</SelectItem>
+                          <SelectItem value="high">Високо</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.libido && (
+                    <p className="text-sm text-destructive mt-1">{errors.libido.message}</p>
+                  )}
                 </div>
               )}
 
@@ -385,15 +445,25 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {section.fields.includes("morningEnergy") && (
                 <div>
                   <Label htmlFor="morningEnergy">Сутрешна енергия</Label>
-                  <Select onValueChange={(value) => setValue("morningEnergy", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Изберете ниво на енергия" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Ниска/Никаква</SelectItem>
-                      <SelectItem value="high">Висока</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="morningEnergy"
+                    control={control}
+                    rules={{ required: "Сутрешната енергия е задължителна" }}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Изберете ниво на енергия" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">Ниска/Никаква</SelectItem>
+                          <SelectItem value="high">Висока</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.morningEnergy && (
+                    <p className="text-sm text-destructive mt-1">{errors.morningEnergy.message}</p>
+                  )}
                 </div>
               )}
 
@@ -401,16 +471,26 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {section.fields.includes("recovery") && (
                 <div>
                   <Label htmlFor="recovery">Темп на възстановяване</Label>
-                  <Select onValueChange={(value) => setValue("recovery", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Изберете темп на възстановяване" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="slow">Бавно</SelectItem>
-                      <SelectItem value="average">Средно</SelectItem>
-                      <SelectItem value="fast">Бързо</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="recovery"
+                    control={control}
+                    rules={{ required: "Темпът на възстановяване е задължителен" }}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Изберете темп на възстановяване" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="slow">Бавно</SelectItem>
+                          <SelectItem value="average">Средно</SelectItem>
+                          <SelectItem value="fast">Бързо</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.recovery && (
+                    <p className="text-sm text-destructive mt-1">{errors.recovery.message}</p>
+                  )}
                 </div>
               )}
 
@@ -418,16 +498,26 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
               {section.fields.includes("mood") && (
                 <div>
                   <Label htmlFor="mood">Общо настроение</Label>
-                  <Select onValueChange={(value) => setValue("mood", value)}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Изберете настроение" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="bad">Лошо</SelectItem>
-                      <SelectItem value="neutral">Неутрално</SelectItem>
-                      <SelectItem value="good">Добро</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <Controller
+                    name="mood"
+                    control={control}
+                    rules={{ required: "Общото настроение е задължително" }}
+                    render={({ field }) => (
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Изберете настроение" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="bad">Лошо</SelectItem>
+                          <SelectItem value="neutral">Неутрално</SelectItem>
+                          <SelectItem value="good">Добро</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                  {errors.mood && (
+                    <p className="text-sm text-destructive mt-1">{errors.mood.message}</p>
+                  )}
                 </div>
               )}
             </div>
