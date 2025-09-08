@@ -196,8 +196,7 @@ h1, h2, h3, h4, h5, h6 {
   @apply font-raleway font-semibold;
 }
 
-/* Form-specific styles to prevent dropdown scroll issues */
+/* Form-specific styles */
 .testograph-form-container {
   position: relative;
-}
 }
