@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FormSelect, FormSelectContent, FormSelectItem, FormSelectTrigger, FormSelectValue } from "@/components/FormSelect";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, Activity, Brain, Dumbbell, Bed, Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -170,7 +170,8 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
         </DialogContent>
       </Dialog>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <div className="testograph-form-container">
+        <form onSubmit={handleSubmit(onSubmit)} className="tg-form space-y-8">
       {formSections.map((section, index) => (
         <Card key={index} className="bg-card/50 backdrop-blur-sm border-border/50">
           <CardHeader className="pb-4">
@@ -197,16 +198,16 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     control={control}
                     rules={{ required: "Полът е задължителен" }}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Изберете пол" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="male">Мъжки</SelectItem>
-                          <SelectItem value="female">Женски</SelectItem>
-                          <SelectItem value="other">Друг</SelectItem>
-                        </SelectContent>
-                      </Select>
+                       <FormSelect onValueChange={field.onChange} value={field.value}>
+                         <FormSelectTrigger className="mt-1">
+                           <FormSelectValue placeholder="Изберете пол" />
+                         </FormSelectTrigger>
+                         <FormSelectContent>
+                           <FormSelectItem value="male">Мъжки</FormSelectItem>
+                           <FormSelectItem value="female">Женски</FormSelectItem>
+                           <FormSelectItem value="other">Друг</FormSelectItem>
+                         </FormSelectContent>
+                       </FormSelect>
                     )}
                   />
                   {errors.gender && (
@@ -275,18 +276,18 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     control={control}
                     rules={{ required: "Честотата на тренировки е задължителна" }}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Изберете честота" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Никаква</SelectItem>
-                          <SelectItem value="1-2">1-2 пъти/седмица</SelectItem>
-                          <SelectItem value="3-4">3-4 пъти/седмица</SelectItem>
-                          <SelectItem value="5-6">5-6 пъти/седмица</SelectItem>
-                          <SelectItem value="6+">6+ пъти/седмица</SelectItem>
-                        </SelectContent>
-                      </Select>
+                       <FormSelect onValueChange={field.onChange} value={field.value}>
+                         <FormSelectTrigger className="mt-1">
+                           <FormSelectValue placeholder="Изберете честота" />
+                         </FormSelectTrigger>
+                         <FormSelectContent>
+                           <FormSelectItem value="none">Никаква</FormSelectItem>
+                           <FormSelectItem value="1-2">1-2 пъти/седмица</FormSelectItem>
+                           <FormSelectItem value="3-4">3-4 пъти/седмица</FormSelectItem>
+                           <FormSelectItem value="5-6">5-6 пъти/седмица</FormSelectItem>
+                           <FormSelectItem value="6+">6+ пъти/седмица</FormSelectItem>
+                         </FormSelectContent>
+                       </FormSelect>
                     )}
                   />
                   {errors.trainingFrequency && (
@@ -304,17 +305,17 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     control={control}
                     rules={{ required: "Типът тренировка е задължителен" }}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Изберете тип" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Никаква</SelectItem>
-                          <SelectItem value="strength">Силови тренировки</SelectItem>
-                          <SelectItem value="mix">Смесени тренировки</SelectItem>
-                          <SelectItem value="endurance">Издръжливост</SelectItem>
-                        </SelectContent>
-                      </Select>
+                       <FormSelect onValueChange={field.onChange} value={field.value}>
+                         <FormSelectTrigger className="mt-1">
+                           <FormSelectValue placeholder="Изберете тип" />
+                         </FormSelectTrigger>
+                         <FormSelectContent>
+                           <FormSelectItem value="none">Никаква</FormSelectItem>
+                           <FormSelectItem value="strength">Силови тренировки</FormSelectItem>
+                           <FormSelectItem value="mix">Смесени тренировки</FormSelectItem>
+                           <FormSelectItem value="endurance">Издръжливост</FormSelectItem>
+                         </FormSelectContent>
+                       </FormSelect>
                     )}
                   />
                   {errors.trainingType && (
@@ -350,16 +351,16 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     control={control}
                     rules={{ required: "Типът диета е задължителен" }}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Изберете тип диета" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="balanced">Балансирана диета</SelectItem>
-                          <SelectItem value="processed">Преработени храни</SelectItem>
-                          <SelectItem value="custom">Опишете вашата диета</SelectItem>
-                        </SelectContent>
-                      </Select>
+                       <FormSelect onValueChange={field.onChange} value={field.value}>
+                         <FormSelectTrigger className="mt-1">
+                           <FormSelectValue placeholder="Изберете тип диета" />
+                         </FormSelectTrigger>
+                         <FormSelectContent>
+                           <FormSelectItem value="balanced">Балансирана диета</FormSelectItem>
+                           <FormSelectItem value="processed">Преработени храни</FormSelectItem>
+                           <FormSelectItem value="custom">Опишете вашата диета</FormSelectItem>
+                         </FormSelectContent>
+                       </FormSelect>
                     )}
                   />
                   {errors.diet && (
@@ -394,18 +395,18 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     control={control}
                     rules={{ required: "Употребата на никотин е задължителна" }}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Изберете употреба на никотин" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Никаква</SelectItem>
-                          <SelectItem value="vape">Вейп</SelectItem>
-                          <SelectItem value="cigarettes">Цигари</SelectItem>
-                          <SelectItem value="iqos">IQOS</SelectItem>
-                          <SelectItem value="all">Всички видове</SelectItem>
-                        </SelectContent>
-                      </Select>
+                       <FormSelect onValueChange={field.onChange} value={field.value}>
+                         <FormSelectTrigger className="mt-1">
+                           <FormSelectValue placeholder="Изберете употреба на никотин" />
+                         </FormSelectTrigger>
+                         <FormSelectContent>
+                           <FormSelectItem value="none">Никаква</FormSelectItem>
+                           <FormSelectItem value="vape">Вейп</FormSelectItem>
+                           <FormSelectItem value="cigarettes">Цигари</FormSelectItem>
+                           <FormSelectItem value="iqos">IQOS</FormSelectItem>
+                           <FormSelectItem value="all">Всички видове</FormSelectItem>
+                         </FormSelectContent>
+                       </FormSelect>
                     )}
                   />
                   {errors.nicotine && (
@@ -423,16 +424,16 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     control={control}
                     rules={{ required: "Нивото на либидо е задължително" }}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Изберете ниво" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="low">Ниско</SelectItem>
-                          <SelectItem value="average">Средно</SelectItem>
-                          <SelectItem value="high">Високо</SelectItem>
-                        </SelectContent>
-                      </Select>
+                       <FormSelect onValueChange={field.onChange} value={field.value}>
+                         <FormSelectTrigger className="mt-1">
+                           <FormSelectValue placeholder="Изберете ниво" />
+                         </FormSelectTrigger>
+                         <FormSelectContent>
+                           <FormSelectItem value="low">Ниско</FormSelectItem>
+                           <FormSelectItem value="average">Средно</FormSelectItem>
+                           <FormSelectItem value="high">Високо</FormSelectItem>
+                         </FormSelectContent>
+                       </FormSelect>
                     )}
                   />
                   {errors.libido && (
@@ -450,15 +451,15 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     control={control}
                     rules={{ required: "Сутрешната енергия е задължителна" }}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Изберете ниво на енергия" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Ниска/Никаква</SelectItem>
-                          <SelectItem value="high">Висока</SelectItem>
-                        </SelectContent>
-                      </Select>
+                       <FormSelect onValueChange={field.onChange} value={field.value}>
+                         <FormSelectTrigger className="mt-1">
+                           <FormSelectValue placeholder="Изберете ниво на енергия" />
+                         </FormSelectTrigger>
+                         <FormSelectContent>
+                           <FormSelectItem value="none">Ниска/Никаква</FormSelectItem>
+                           <FormSelectItem value="high">Висока</FormSelectItem>
+                         </FormSelectContent>
+                       </FormSelect>
                     )}
                   />
                   {errors.morningEnergy && (
@@ -476,16 +477,16 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     control={control}
                     rules={{ required: "Темпът на възстановяване е задължителен" }}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Изберете темп на възстановяване" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="slow">Бавно</SelectItem>
-                          <SelectItem value="average">Средно</SelectItem>
-                          <SelectItem value="fast">Бързо</SelectItem>
-                        </SelectContent>
-                      </Select>
+                       <FormSelect onValueChange={field.onChange} value={field.value}>
+                         <FormSelectTrigger className="mt-1">
+                           <FormSelectValue placeholder="Изберете темп на възстановяване" />
+                         </FormSelectTrigger>
+                         <FormSelectContent>
+                           <FormSelectItem value="slow">Бавно</FormSelectItem>
+                           <FormSelectItem value="average">Средно</FormSelectItem>
+                           <FormSelectItem value="fast">Бързо</FormSelectItem>
+                         </FormSelectContent>
+                       </FormSelect>
                     )}
                   />
                   {errors.recovery && (
@@ -503,16 +504,16 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
                     control={control}
                     rules={{ required: "Общото настроение е задължително" }}
                     render={({ field }) => (
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <SelectTrigger className="mt-1">
-                          <SelectValue placeholder="Изберете настроение" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="bad">Лошо</SelectItem>
-                          <SelectItem value="neutral">Неутрално</SelectItem>
-                          <SelectItem value="good">Добро</SelectItem>
-                        </SelectContent>
-                      </Select>
+                       <FormSelect onValueChange={field.onChange} value={field.value}>
+                         <FormSelectTrigger className="mt-1">
+                           <FormSelectValue placeholder="Изберете настроение" />
+                         </FormSelectTrigger>
+                         <FormSelectContent>
+                           <FormSelectItem value="bad">Лошо</FormSelectItem>
+                           <FormSelectItem value="neutral">Неутрално</FormSelectItem>
+                           <FormSelectItem value="good">Добро</FormSelectItem>
+                         </FormSelectContent>
+                       </FormSelect>
                     )}
                   />
                   {errors.mood && (
@@ -546,6 +547,7 @@ const TForecastForm = ({ onResult }: TForecastFormProps) => {
         </Button>
       </div>
     </form>
+      </div>
     </>
   );
 };

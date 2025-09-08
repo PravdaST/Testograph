@@ -195,4 +195,37 @@ h1, h2, h3, h4, h5, h6 {
 .accent-text, .btn-text, .cta-text, .key-number {
   @apply font-raleway font-semibold;
 }
+
+/* Form-specific styles to prevent dropdown scroll issues */
+.testograph-form-container {
+  position: relative;
+}
+
+.tg-form {
+  position: relative;
+}
+
+.tg-form-select-trigger:focus {
+  scroll-behavior: auto;
+}
+
+.tg-form-select-content {
+  position: fixed !important;
+  z-index: 50;
+}
+
+.tg-form-viewport {
+  overflow-y: auto;
+  max-height: 200px;
+}
+
+/* Prevent body scroll when form dropdowns are open */
+body:has(.tg-form-select-content[data-state="open"]) {
+  overflow: hidden;
+}
+
+/* Override radix scroll behavior for form selects */
+.tg-form-select-content[data-state="open"] {
+  animation: none !important;
+}
 }
