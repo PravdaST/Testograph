@@ -147,12 +147,39 @@ body {
 }
 
 /* Fix dropdown scroll issue - prevent page from scrolling to top when dropdown opens */
-[data-radix-select-content] {
+/* Enhanced scroll prevention for dropdowns */
+[data-radix-select-content],
+[data-radix-popover-content],
+[data-radix-dropdown-menu-content] {
+  overflow: hidden !important;
   scroll-behavior: auto !important;
 }
 
-body:has([data-radix-select-content]) {
+[data-radix-select-viewport] {
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+/* Prevent focus-induced scrolling */
+[data-radix-select-trigger]:focus,
+[data-radix-select-item]:focus,
+[data-radix-select-trigger]:focus-visible,
+[data-radix-select-item]:focus-visible {
   scroll-behavior: auto !important;
+  scroll-margin: 0 !important;
+  scroll-padding: 0 !important;
+}
+
+/* Prevent viewport adjustments */
+[data-radix-select-content] {
+  transform: none !important;
+}
+
+/* Override browser scroll restoration for dropdowns */
+@media (prefers-reduced-motion: no-preference) {
+  [data-radix-select-content] {
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Ensure select items don't trigger scroll */
