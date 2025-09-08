@@ -70,10 +70,10 @@ const Index = () => {
             </div>
             
             <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white leading-tight">
-              Получете вашата лична
+              Получи своят личен
               <br />
               <span className="bg-gradient-to-r from-purple-400 to-violet-500 bg-clip-text text-transparent">
-                Testograph анализ
+                Testograph
               </span>
             </h1>
             
