@@ -81,7 +81,9 @@ const Index = () => {
                     var(--color) var(--gap)
                   )
                 `,
-                backgroundSize: 'var(--gap) var(--gap)'
+                backgroundSize: 'var(--gap) var(--gap)',
+                maskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`,
+                WebkitMaskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`
               } as React.CSSProperties}
             />
           </div>
