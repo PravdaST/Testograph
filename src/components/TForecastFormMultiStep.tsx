@@ -757,7 +757,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
         {/* Medical Disclaimer */}
         <div className="mt-8 p-4 bg-muted/50 rounded-lg backdrop-blur-sm border border-muted/20">
           <p className="text-xs text-muted-foreground text-center">
-            <strong>Медицински отказ от отговорност:</strong> Този инструмент не е заместител на медицински съвет, диагноза или лечение. 
+            Този инструмент не е заместител на медицински съвет, диагноза или лечение. 
             Винаги се консултирайте с квалифициран здравен специалист преди да предприемете промени във вашето здраве или начин на живот.
           </p>
         </div>
