@@ -57,9 +57,9 @@ const Index = () => {
 
       {/* Hero Section - Full Width */}
       {!showResults && (
-        <section className="relative mb-8 -mt-4">
+        <section className="relative mb-8 -mt-4 min-h-[80vh] flex items-center">
           {/* Content Grid */}
-          <div className="relative z-10 container mx-auto px-4 md:px-6 max-w-[1200px] py-14 md:py-20">
+          <div className="relative z-10 container mx-auto px-4 md:px-6 max-w-[1200px] py-14 md:py-20 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 xl:gap-10">
               {/* Left Content */}
               <div className="lg:col-span-7 xl:col-span-7">
