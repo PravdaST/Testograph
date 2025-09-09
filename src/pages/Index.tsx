@@ -34,20 +34,20 @@ const Index = () => {
       {/* Floating Sticky Header */}
       <header className="sticky top-4 z-50 transition-none relative">
         <div className="container mx-auto px-4">
-          <div className="bg-background/30 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/20 px-4 py-3 rounded-full backdrop-saturate-150">
-            <div className="flex items-center justify-between">
+          <div className="bg-background/30 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/20 px-3 py-2 rounded-full backdrop-saturate-150 inline-flex items-center gap-3 max-w-fit mx-auto">
+            <div className="">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-xl">
-                  <img src="/lovable-uploads/7f610a27-06bc-4bf8-9951-7f52e40688ba.png" alt="Testograph Logo" className="h-12 w-12 rounded-2xl" />
+                <div className="p-1">
+                  <img src="/lovable-uploads/7f610a27-06bc-4bf8-9951-7f52e40688ba.png" alt="Testograph Logo" className="h-10 w-10 rounded-xl" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold font-clash bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  <h1 className="text-lg font-bold font-clash bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                     Testograph
                   </h1>
-                  <p className="text-sm text-muted-foreground">Инструмент за оценка на тестостерон</p>
+                  <p className="text-xs text-muted-foreground">Инструмент за оценка</p>
                 </div>
               </div>
-              {showResults && <button onClick={resetForm} className="text-sm text-primary hover:text-primary/80 transition-colors">
+              {showResults && <button onClick={resetForm} className="text-xs text-primary hover:text-primary/80 transition-colors ml-4">
                   Нова оценка
                 </button>}
             </div>
