@@ -211,7 +211,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             id="gender"
             value={formData.gender}
             onChange={e => handleInputChange('gender', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-glass-border bg-glass-bg/50 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
+            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
           >
             <option value="" disabled hidden>Изберете пол</option>
             <option value="male">Мъжки</option>
@@ -228,7 +228,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             placeholder="30"
             min="18"
             max="100"
-            className="mt-1 bg-glass-bg/50 border-glass-border backdrop-blur-sm"
+            className="mt-1 bg-muted/10 border-muted/20 backdrop-blur-sm"
           />
           {errors.age && <p className="text-sm text-destructive mt-1">{errors.age}</p>}
         </div>
@@ -242,7 +242,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             placeholder="175"
             min="100"
             max="250"
-            className="mt-1 bg-glass-bg/50 border-glass-border backdrop-blur-sm"
+            className="mt-1 bg-muted/10 border-muted/20 backdrop-blur-sm"
           />
           {errors.height && <p className="text-sm text-destructive mt-1">{errors.height}</p>}
         </div>
@@ -256,7 +256,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             placeholder="75"
             min="30"
             max="300"
-            className="mt-1 bg-glass-bg/50 border-glass-border backdrop-blur-sm"
+            className="mt-1 bg-muted/10 border-muted/20 backdrop-blur-sm"
           />
           {errors.weight && <p className="text-sm text-destructive mt-1">{errors.weight}</p>}
         </div>
@@ -273,7 +273,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             id="trainingFrequency"
             value={formData.trainingFrequency}
             onChange={e => handleInputChange('trainingFrequency', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-glass-border bg-glass-bg/50 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
+            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
           >
             <option value="" disabled hidden>Изберете честота</option>
             <option value="none">Никаква</option>
@@ -290,7 +290,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             id="trainingType"
             value={formData.trainingType}
             onChange={e => handleInputChange('trainingType', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-glass-border bg-glass-bg/50 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
+            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
           >
             <option value="" disabled hidden>Изберете тип</option>
             <option value="none">Никаква</option>
@@ -318,7 +318,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             placeholder="7.5"
             min="3"
             max="12"
-            className="mt-1 bg-glass-bg/50 border-glass-border backdrop-blur-sm"
+            className="mt-1 bg-muted/10 border-muted/20 backdrop-blur-sm"
           />
           {errors.averageSleep && <p className="text-sm text-destructive mt-1">{errors.averageSleep}</p>}
         </div>
@@ -328,7 +328,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             id="diet"
             value={formData.diet}
             onChange={e => handleInputChange('diet', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-glass-border bg-glass-bg/50 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
+            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
           >
             <option value="" disabled hidden>Изберете тип диета</option>
             <option value="balanced">Балансирана диета</option>
@@ -347,7 +347,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             placeholder="3"
             min="0"
             max="50"
-            className="mt-1 bg-glass-bg/50 border-glass-border backdrop-blur-sm"
+            className="mt-1 bg-muted/10 border-muted/20 backdrop-blur-sm"
           />
           {errors.alcohol && <p className="text-sm text-destructive mt-1">{errors.alcohol}</p>}
         </div>
@@ -357,7 +357,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             id="nicotine"
             value={formData.nicotine}
             onChange={e => handleInputChange('nicotine', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-glass-border bg-glass-bg/50 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
+            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
           >
             <option value="" disabled hidden>Изберете употреба на никотин</option>
             <option value="none">Никаква</option>
@@ -380,7 +380,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             id="libido"
             value={formData.libido}
             onChange={e => handleInputChange('libido', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-glass-border bg-glass-bg/50 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
+            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
           >
             <option value="" disabled hidden>Изберете ниво на либидо</option>
             <option value="high">Високо</option>
@@ -396,7 +396,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             id="morningEnergy"
             value={formData.morningEnergy}
             onChange={e => handleInputChange('morningEnergy', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-glass-border bg-glass-bg/50 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
+            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
           >
             <option value="" disabled hidden>Изберете ниво на сутрешна енергия</option>
             <option value="high">Висока</option>
@@ -412,7 +412,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             id="recovery"
             value={formData.recovery}
             onChange={e => handleInputChange('recovery', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-glass-border bg-glass-bg/50 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
+            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
           >
             <option value="" disabled hidden>Изберете темп на възстановяване</option>
             <option value="fast">Бързо</option>
@@ -428,7 +428,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             id="mood"
             value={formData.mood}
             onChange={e => handleInputChange('mood', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-glass-border bg-glass-bg/50 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
+            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
           >
             <option value="" disabled hidden>Изберете общо настроение</option>
             <option value="positive">Позитивно</option>
@@ -509,7 +509,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
       <div className="testograph-form-container">
         <GlassCard variant="elevated" className="max-w-4xl mx-auto animate-scale-in">
           {/* Progress Header */}
-          <div className="p-6 border-b border-glass-border/50 animate-fade-in">
+          <div className="p-6 border-b border-muted/20 animate-fade-in">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-primary/20 text-primary">
@@ -546,13 +546,13 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             </div>
 
             {/* Navigation Buttons */}
-            <div className={`flex mt-8 pt-6 border-t border-glass-border/50 ${currentStep === 0 ? 'justify-end' : 'justify-between'}`}>
+            <div className={`flex mt-8 pt-6 border-t border-muted/20 ${currentStep === 0 ? 'justify-end' : 'justify-between'}`}>
               {currentStep > 0 && (
                 <Button
                   type="button"
                   variant="outline"
                   onClick={prevStep}
-                  className="bg-glass-bg border-glass-border backdrop-blur-sm hover:shadow-glow transition-all duration-300"
+                  className="bg-muted/10 border-muted/20 backdrop-blur-sm hover:shadow-glow transition-all duration-300"
                 >
                   <ChevronLeft className="w-4 h-4 mr-2" />
                   Назад
@@ -605,7 +605,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
                     ? 'border-primary bg-primary/20 shadow-glow'
                     : isPast || isCompleted
                     ? 'border-success bg-success/20'
-                    : 'border-glass-border bg-glass-bg/50 backdrop-blur-sm'
+                    : 'border-muted/20 bg-muted/10 backdrop-blur-sm'
                 }`}
               >
                 <IconComp className={`w-5 h-5 ${
@@ -617,7 +617,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
         </div>
 
         {/* Medical Disclaimer */}
-        <div className="mt-8 p-4 bg-muted/50 rounded-lg backdrop-blur-sm border border-glass-border/50">
+        <div className="mt-8 p-4 bg-muted/50 rounded-lg backdrop-blur-sm border border-muted/20">
           <p className="text-xs text-muted-foreground text-center">
             <strong>Медицински отказ от отговорност:</strong> Този инструмент не е заместител на медицински съвет, диагноза или лечение. 
             Винаги се консултирайте с квалифициран здравен специалист преди да предприемете промени във вашето здраве или начин на живот.
