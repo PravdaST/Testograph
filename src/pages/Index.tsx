@@ -58,6 +58,29 @@ const Index = () => {
       {/* Hero Section - Full Width */}
       {!showResults && (
         <section className="relative mb-8 -mt-4 min-h-[80vh] flex items-center">
+          {/* Floating Images - Desktop Only */}
+          <div className="hidden xl:block absolute inset-0 pointer-events-none">
+            {/* Floating DNA/Molecule icons */}
+            <div className="absolute top-20 left-10 w-8 h-8 opacity-20 animate-float">
+              <div className="w-full h-full bg-gradient-to-br from-purple-400 to-violet-600 rounded-full blur-sm"></div>
+            </div>
+            <div className="absolute top-40 right-16 w-6 h-6 opacity-30 animate-float-delay-1">
+              <div className="w-full h-full bg-gradient-to-br from-violet-400 to-purple-600 rounded-full blur-sm"></div>
+            </div>
+            <div className="absolute bottom-32 left-20 w-10 h-10 opacity-15 animate-float-delay-2">
+              <div className="w-full h-full bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full blur-sm"></div>
+            </div>
+            <div className="absolute top-60 left-1/4 w-4 h-4 opacity-25 animate-float-delay-3">
+              <div className="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full blur-sm"></div>
+            </div>
+            <div className="absolute bottom-48 right-1/4 w-7 h-7 opacity-20 animate-float">
+              <div className="w-full h-full bg-gradient-to-br from-violet-500 to-purple-400 rounded-full blur-sm"></div>
+            </div>
+            <div className="absolute top-32 right-1/3 w-5 h-5 opacity-35 animate-float-delay-2">
+              <div className="w-full h-full bg-gradient-to-br from-purple-300 to-violet-700 rounded-full blur-sm"></div>
+            </div>
+          </div>
+          
           {/* Grid Texture Background */}
           <div className="absolute inset-0">
             <div 
