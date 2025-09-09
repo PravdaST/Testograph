@@ -58,6 +58,47 @@ const Index = () => {
       {/* Hero Section - Full Width */}
       {!showResults && (
         <section className="relative mb-8 -mt-4 min-h-[80vh] flex items-center">
+          {/* Grid Texture Background */}
+          <div className="absolute inset-0 opacity-60">
+            <div 
+              className="w-full h-full"
+              style={{
+                backgroundColor: 'hsl(var(--background))',
+                backgroundImage: `
+                  linear-gradient(
+                    0deg,
+                    transparent 24%,
+                    hsl(var(--border) / 0.3) 25%,
+                    hsl(var(--border) / 0.3) 26%,
+                    transparent 27%,
+                    transparent 74%,
+                    hsl(var(--border) / 0.3) 75%,
+                    hsl(var(--border) / 0.3) 76%,
+                    transparent 77%,
+                    transparent
+                  ),
+                  linear-gradient(
+                    90deg,
+                    transparent 24%,
+                    hsl(var(--border) / 0.3) 25%,
+                    hsl(var(--border) / 0.3) 26%,
+                    transparent 27%,
+                    transparent 74%,
+                    hsl(var(--border) / 0.3) 75%,
+                    hsl(var(--border) / 0.3) 76%,
+                    transparent 77%,
+                    transparent
+                  ),
+                  radial-gradient(
+                    ellipse at center,
+                    transparent 20%,
+                    hsl(var(--background)) 70%
+                  )
+                `,
+                backgroundSize: '55px 55px, 55px 55px, 100% 100%'
+              }}
+            />
+          </div>
           {/* Content Grid */}
           <div className="relative z-10 container mx-auto px-4 md:px-6 max-w-[1200px] py-14 md:py-20 w-full">
             <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 xl:gap-10">
