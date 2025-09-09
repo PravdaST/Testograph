@@ -26,7 +26,6 @@ interface FormData {
   nicotine: string;
   libido: string;
   morningEnergy: string;
-  morningErection: string;
   recovery: string;
   mood: string;
 }
@@ -58,7 +57,7 @@ const sections = [
     title: "Здравни индикатори",
     icon: Heart,
     description: "Как се чувствате и функционирате ежедневно",
-    fields: ['libido', 'morningEnergy', 'morningErection', 'recovery', 'mood']
+    fields: ['libido', 'morningEnergy', 'recovery', 'mood']
   }
 ];
 
@@ -84,7 +83,6 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     nicotine: "",
     libido: "",
     morningEnergy: "",
-    morningErection: "",
     recovery: "",
     mood: ""
   });
@@ -154,7 +152,6 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     if (!formData.nicotine) newErrors.nicotine = "Употребата на никотин е задължителна";
     if (!formData.libido) newErrors.libido = "Нивото на либидо е задължително";
     if (!formData.morningEnergy) newErrors.morningEnergy = "Сутрешната енергия е задължителна";
-    if (!formData.morningErection) newErrors.morningErection = "Сутрешната ерекция е задължителна";
     if (!formData.recovery) newErrors.recovery = "Темпът на възстановяване е задължителен";
     if (!formData.mood) newErrors.mood = "Общото настроение е задължително";
     setErrors(newErrors);
@@ -371,10 +368,11 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
               <FormSelectValue placeholder="Изберете употреба на никотин" />
             </FormSelectTrigger>
             <FormSelectContent>
-              <FormSelectItem value="none">Никаква</FormSelectItem>
+              <FormSelectItem value="none">Не пуша</FormSelectItem>
               <FormSelectItem value="vape">Вейп</FormSelectItem>
               <FormSelectItem value="cigarettes">Цигари</FormSelectItem>
-              <FormSelectItem value="other">Друго</FormSelectItem>
+              <FormSelectItem value="other">IQOS</FormSelectItem>
+              <FormSelectItem value="other">Пуша и трите</FormSelectItem>
             </FormSelectContent>
           </FormSelect>
           {errors.nicotine && <p className="text-sm text-destructive mt-1">{errors.nicotine}</p>}
@@ -415,21 +413,6 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             </FormSelectContent>
           </FormSelect>
           {errors.morningEnergy && <p className="text-sm text-destructive mt-1">{errors.morningEnergy}</p>}
-        </div>
-        <div>
-          <Label htmlFor="morningErection">Сутрешна ерекция</Label>
-          <FormSelect value={formData.morningErection} onValueChange={(value) => handleInputChange('morningErection', value)}>
-            <FormSelectTrigger className="mt-1">
-              <FormSelectValue placeholder="Изберете честота на сутрешна ерекция" />
-            </FormSelectTrigger>
-            <FormSelectContent>
-              <FormSelectItem value="every-morning">Всяка сутрин</FormSelectItem>
-              <FormSelectItem value="sometimes">Понякога</FormSelectItem>
-              <FormSelectItem value="rarely">Рядко</FormSelectItem>
-              <FormSelectItem value="never">Нямам</FormSelectItem>
-            </FormSelectContent>
-          </FormSelect>
-          {errors.morningErection && <p className="text-sm text-destructive mt-1">{errors.morningErection}</p>}
         </div>
         <div>
           <Label htmlFor="recovery">Физическо възстановяване</Label>
