@@ -57,7 +57,7 @@ const Index = () => {
 
       {/* Hero Section - Full Width */}
       {!showResults && (
-        <section className="relative mb-12 -mt-4">
+        <section className="relative mb-8 -mt-4">
           {/* Content Grid */}
           <div className="relative z-10 container mx-auto px-4 md:px-6 max-w-[1200px] py-14 md:py-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 xl:gap-10">
@@ -107,11 +107,11 @@ const Index = () => {
         </section>
       )}
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl relative z-20">
+      <main className="container mx-auto px-4 py-4 max-w-4xl relative z-20">
         {!showResults ? <>
 
             {/* Feature Cards */}
-            <div className="grid md:grid-cols-3 gap-6 mb-12">
+            <div className="grid md:grid-cols-3 gap-6 mb-8">
               <div className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 text-center">
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Target className="h-6 w-6 text-primary" />
