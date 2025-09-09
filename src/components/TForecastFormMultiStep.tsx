@@ -347,14 +347,38 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
         </div>
         <div>
           <Label htmlFor="supplements">Прием на добавки</Label>
-          <Input
-            id="supplements"
-            type="text"
-            value={formData.supplements}
-            onChange={e => handleInputChange('supplements', e.target.value)}
-            placeholder="Протеин, Витамин Д, Креатин"
-            className="mt-1 bg-muted/10 border-muted/20 backdrop-blur-sm"
-          />
+          <div className="mt-2 space-y-3">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="no-supplements"
+                checked={formData.supplements === "Не приемам добавки"}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    handleInputChange('supplements', "Не приемам добавки");
+                  } else {
+                    handleInputChange('supplements', "");
+                  }
+                }}
+                className="rounded border-muted/40 text-primary focus:ring-primary focus:ring-offset-0 focus:ring-2 bg-muted/20"
+              />
+              <Label
+                htmlFor="no-supplements"
+                className="text-sm font-normal cursor-pointer"
+              >
+                Не приемам добавки
+              </Label>
+            </div>
+            <Input
+              id="supplements"
+              type="text"
+              value={formData.supplements === "Не приемам добавки" ? "" : formData.supplements}
+              onChange={e => handleInputChange('supplements', e.target.value)}
+              placeholder="Протеин, Витамин Д, Креатин"
+              disabled={formData.supplements === "Не приемам добавки"}
+              className="bg-muted/10 border-muted/20 backdrop-blur-sm disabled:opacity-50"
+            />
+          </div>
           {errors.supplements && <p className="text-sm text-destructive mt-1">{errors.supplements}</p>}
         </div>
       </div>
