@@ -151,9 +151,7 @@ const TForecastForm = ({
               <Gift className="w-8 h-8 text-white" />
             </div>
             <div className="space-y-3">
-              <DialogTitle className="text-center text-2xl font-bold text-white">
-                Получете безплатния си Testograph анализ
-              </DialogTitle>
+              <DialogTitle className="text-center text-2xl font-bold text-white">Получете своят безплатен Testograph анализ</DialogTitle>
               <DialogDescription className="text-center text-base leading-relaxed px-4 text-slate-300">
                 Присъединете се към хилядите, които подобриха своето здраве.
                 Получете персонализирани съвети и ексклузивни прозрения в пощенската си кутия.
@@ -163,26 +161,16 @@ const TForecastForm = ({
           
           <form onSubmit={handleEmailSubmit} className="space-y-6 mt-8">
             <div>
-              <Input 
-                id="popup-email" 
-                type="email" 
-                value={userEmail} 
-                onChange={e => setUserEmail(e.target.value)} 
-                placeholder="Въведете вашия имейл адрес" 
-                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 focus:ring-primary focus:border-primary" 
-                autoFocus 
-              />
+              <Input id="popup-email" type="email" value={userEmail} onChange={e => setUserEmail(e.target.value)} placeholder="Въведете вашия имейл адрес" className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 focus:ring-primary focus:border-primary" autoFocus />
               {emailError && <p className="text-sm text-red-400 mt-1">{emailError}</p>}
             </div>
             
-            <Button type="submit" className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold py-3">
-              Получете моя безплатен Testograph анализ
-            </Button>
+            <Button type="submit" className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold py-3">Получи в e-mail</Button>
 
             <div className="flex items-center justify-center space-x-6 text-xs text-slate-400">
               <div className="flex items-center space-x-1">
                 <span className="text-yellow-500">★</span>
-                <span>Моментален достъп</span>
+                <span>Бърз достъп</span>
               </div>
               <div className="flex items-center space-x-1">
                 <span className="text-green-500">🔒</span>
