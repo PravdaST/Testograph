@@ -63,28 +63,37 @@ const Index = () => {
             <div 
               className="w-full h-full"
               style={{
-                background: '#000000',
-                '--gap': '5em',
-                '--line': '1px',
-                '--color': 'rgba(255, 255, 255, 0.2)',
+                backgroundColor: 'transparent',
                 backgroundImage: `
                   linear-gradient(
-                    -90deg,
-                    transparent calc(var(--gap) - var(--line)),
-                    var(--color) calc(var(--gap) - var(--line) + 1px),
-                    var(--color) var(--gap)
+                    0deg,
+                    transparent 24%,
+                    hsl(var(--border) / 0.4) 25%,
+                    hsl(var(--border) / 0.4) 26%,
+                    transparent 27%,
+                    transparent 74%,
+                    hsl(var(--border) / 0.4) 75%,
+                    hsl(var(--border) / 0.4) 76%,
+                    transparent 77%,
+                    transparent
                   ),
                   linear-gradient(
-                    0deg,
-                    transparent calc(var(--gap) - var(--line)),
-                    var(--color) calc(var(--gap) - var(--line) + 1px),
-                    var(--color) var(--gap)
+                    90deg,
+                    transparent 24%,
+                    hsl(var(--border) / 0.4) 25%,
+                    hsl(var(--border) / 0.4) 26%,
+                    transparent 27%,
+                    transparent 74%,
+                    hsl(var(--border) / 0.4) 75%,
+                    hsl(var(--border) / 0.4) 76%,
+                    transparent 77%,
+                    transparent
                   )
                 `,
-                backgroundSize: 'var(--gap) var(--gap)',
+                backgroundSize: '55px 55px',
                 maskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`,
                 WebkitMaskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`
-              } as React.CSSProperties}
+              }}
             />
           </div>
           {/* Content Grid */}
