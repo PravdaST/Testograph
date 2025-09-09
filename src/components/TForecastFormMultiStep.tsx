@@ -114,8 +114,8 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
 
   const validateStep = (stepIndex: number) => {
     const section = sections[stepIndex];
-    const hasData = section.fields.some(field => formData[field as keyof FormData]);
-    return hasData;
+    const allFieldsFilled = section.fields.every(field => formData[field as keyof FormData]);
+    return allFieldsFilled;
   };
 
   const getProgress = () => {
@@ -546,17 +546,18 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             </div>
 
             {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-glass-border/50">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={prevStep}
-                disabled={currentStep === 0}
-                className="bg-glass-bg border-glass-border backdrop-blur-sm hover:shadow-glow transition-all duration-300"
-              >
-                <ChevronLeft className="w-4 h-4 mr-2" />
-                Назад
-              </Button>
+            <div className={`flex mt-8 pt-6 border-t border-glass-border/50 ${currentStep === 0 ? 'justify-end' : 'justify-between'}`}>
+              {currentStep > 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={prevStep}
+                  className="bg-glass-bg border-glass-border backdrop-blur-sm hover:shadow-glow transition-all duration-300"
+                >
+                  <ChevronLeft className="w-4 h-4 mr-2" />
+                  Назад
+                </Button>
+              )}
               
               {currentStep < sections.length - 1 ? (
                 <Button
