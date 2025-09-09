@@ -250,7 +250,7 @@ const Index = () => {
         <div className="container mx-auto px-4 py-6">
           <div className="text-center text-sm text-muted-foreground">
             <p className="mb-2">
-              Testograph © 2024. Образователен инструмент за оценка на тестостерон.
+              Testograph © 2029. Образователен инструмент за оценка на тестостерон.
             </p>
             <p>
               Не е предназначен като медицински съвет. Консултирайте се с медицински специалисти за медицинско ръководство.
