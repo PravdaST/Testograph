@@ -8,7 +8,7 @@ const glassCardVariants = cva(
     variants: {
       variant: {
         default: "bg-gradient-card backdrop-blur-md shadow-glass",
-        elevated: "bg-gradient-card backdrop-blur-lg shadow-glow transition-all duration-500",
+        elevated: "bg-gradient-card backdrop-blur-lg shadow-card shadow-glow transition-all duration-500",
         interactive: "bg-gradient-card backdrop-blur-md shadow-glass hover:shadow-glow hover:scale-[1.02] transition-all duration-300 cursor-pointer"
       }
     },
