@@ -6,6 +6,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Loader2, Activity, Brain, Dumbbell, Bed, Mail, Gift, ChevronLeft, ChevronRight, User, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { FormSelect, FormSelectContent, FormSelectItem, FormSelectTrigger, FormSelectValue } from "@/components/FormSelect";
 
 interface TForecastFormProps {
   onResult: (result: any) => void;
@@ -216,15 +217,14 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <Label htmlFor="gender">Пол</Label>
-          <select
-            id="gender"
-            value={formData.gender}
-            onChange={e => handleInputChange('gender', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
-          >
-            <option value="" disabled hidden>Изберете пол</option>
-            <option value="male">Мъжки</option>
-          </select>
+          <FormSelect value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
+            <FormSelectTrigger className="mt-1">
+              <FormSelectValue placeholder="Изберете пол" />
+            </FormSelectTrigger>
+            <FormSelectContent>
+              <FormSelectItem value="male">Мъжки</FormSelectItem>
+            </FormSelectContent>
+          </FormSelect>
           {errors.gender && <p className="text-sm text-destructive mt-1">{errors.gender}</p>}
         </div>
         <div>
@@ -278,35 +278,33 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <Label htmlFor="trainingFrequency">Честота на тренировки</Label>
-          <select
-            id="trainingFrequency"
-            value={formData.trainingFrequency}
-            onChange={e => handleInputChange('trainingFrequency', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
-          >
-            <option value="" disabled hidden>Изберете честота</option>
-            <option value="none">Никаква</option>
-            <option value="1-2">1-2 пъти/седмица</option>
-            <option value="3-4">3-4 пъти/седмица</option>
-            <option value="5-6">5-6 пъти/седмица</option>
-            <option value="6+">6+ пъти/седмица</option>
-          </select>
+          <FormSelect value={formData.trainingFrequency} onValueChange={(value) => handleInputChange('trainingFrequency', value)}>
+            <FormSelectTrigger className="mt-1">
+              <FormSelectValue placeholder="Изберете честота" />
+            </FormSelectTrigger>
+            <FormSelectContent>
+              <FormSelectItem value="none">Никаква</FormSelectItem>
+              <FormSelectItem value="1-2">1-2 пъти/седмица</FormSelectItem>
+              <FormSelectItem value="3-4">3-4 пъти/седмица</FormSelectItem>
+              <FormSelectItem value="5-6">5-6 пъти/седмица</FormSelectItem>
+              <FormSelectItem value="6+">6+ пъти/седмица</FormSelectItem>
+            </FormSelectContent>
+          </FormSelect>
           {errors.trainingFrequency && <p className="text-sm text-destructive mt-1">{errors.trainingFrequency}</p>}
         </div>
         <div>
           <Label htmlFor="trainingType">Тип тренировка</Label>
-          <select
-            id="trainingType"
-            value={formData.trainingType}
-            onChange={e => handleInputChange('trainingType', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
-          >
-            <option value="" disabled hidden>Изберете тип</option>
-            <option value="none">Никаква</option>
-            <option value="strength">Силови тренировки</option>
-            <option value="mix">Смесени тренировки</option>
-            <option value="endurance">Издръжливост</option>
-          </select>
+          <FormSelect value={formData.trainingType} onValueChange={(value) => handleInputChange('trainingType', value)}>
+            <FormSelectTrigger className="mt-1">
+              <FormSelectValue placeholder="Изберете тип" />
+            </FormSelectTrigger>
+            <FormSelectContent>
+              <FormSelectItem value="none">Никаква</FormSelectItem>
+              <FormSelectItem value="strength">Силови тренировки</FormSelectItem>
+              <FormSelectItem value="mix">Смесени тренировки</FormSelectItem>
+              <FormSelectItem value="endurance">Издръжливост</FormSelectItem>
+            </FormSelectContent>
+          </FormSelect>
           {errors.trainingType && <p className="text-sm text-destructive mt-1">{errors.trainingType}</p>}
         </div>
       </div>
@@ -333,17 +331,16 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
         </div>
         <div>
           <Label htmlFor="diet">Тип диета</Label>
-          <select
-            id="diet"
-            value={formData.diet}
-            onChange={e => handleInputChange('diet', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
-          >
-            <option value="" disabled hidden>Изберете тип диета</option>
-            <option value="balanced">Балансирана диета</option>
-            <option value="processed">Преработени храни</option>
-            <option value="custom">Опишете вашата диета</option>
-          </select>
+          <FormSelect value={formData.diet} onValueChange={(value) => handleInputChange('diet', value)}>
+            <FormSelectTrigger className="mt-1">
+              <FormSelectValue placeholder="Изберете тип диета" />
+            </FormSelectTrigger>
+            <FormSelectContent>
+              <FormSelectItem value="balanced">Балансирана диета</FormSelectItem>
+              <FormSelectItem value="processed">Преработени храни</FormSelectItem>
+              <FormSelectItem value="custom">Опишете вашата диета</FormSelectItem>
+            </FormSelectContent>
+          </FormSelect>
           {errors.diet && <p className="text-sm text-destructive mt-1">{errors.diet}</p>}
         </div>
         <div>
@@ -362,18 +359,17 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
         </div>
         <div>
           <Label htmlFor="nicotine">Употреба на никотин</Label>
-          <select
-            id="nicotine"
-            value={formData.nicotine}
-            onChange={e => handleInputChange('nicotine', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
-          >
-            <option value="" disabled hidden>Изберете употреба на никотин</option>
-            <option value="none">Никаква</option>
-            <option value="vape">Вейп</option>
-            <option value="cigarettes">Цигари</option>
-            <option value="other">Друго</option>
-          </select>
+          <FormSelect value={formData.nicotine} onValueChange={(value) => handleInputChange('nicotine', value)}>
+            <FormSelectTrigger className="mt-1">
+              <FormSelectValue placeholder="Изберете употреба на никотин" />
+            </FormSelectTrigger>
+            <FormSelectContent>
+              <FormSelectItem value="none">Никаква</FormSelectItem>
+              <FormSelectItem value="vape">Вейп</FormSelectItem>
+              <FormSelectItem value="cigarettes">Цигари</FormSelectItem>
+              <FormSelectItem value="other">Друго</FormSelectItem>
+            </FormSelectContent>
+          </FormSelect>
           {errors.nicotine && <p className="text-sm text-destructive mt-1">{errors.nicotine}</p>}
         </div>
       </div>
@@ -385,66 +381,62 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
       <div className="grid gap-4 md:grid-cols-2">
         <div>
           <Label htmlFor="libido">Ниво на либидо</Label>
-          <select
-            id="libido"
-            value={formData.libido}
-            onChange={e => handleInputChange('libido', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
-          >
-            <option value="" disabled hidden>Изберете ниво на либидо</option>
-            <option value="high">Високо</option>
-            <option value="normal">Нормално</option>
-            <option value="low">Ниско</option>
-            <option value="very-low">Много ниско</option>
-          </select>
+          <FormSelect value={formData.libido} onValueChange={(value) => handleInputChange('libido', value)}>
+            <FormSelectTrigger className="mt-1">
+              <FormSelectValue placeholder="Изберете ниво на либидо" />
+            </FormSelectTrigger>
+            <FormSelectContent>
+              <FormSelectItem value="high">Високо</FormSelectItem>
+              <FormSelectItem value="normal">Нормално</FormSelectItem>
+              <FormSelectItem value="low">Ниско</FormSelectItem>
+              <FormSelectItem value="very-low">Много ниско</FormSelectItem>
+            </FormSelectContent>
+          </FormSelect>
           {errors.libido && <p className="text-sm text-destructive mt-1">{errors.libido}</p>}
         </div>
         <div>
           <Label htmlFor="morningEnergy">Сутрешна енергия</Label>
-          <select
-            id="morningEnergy"
-            value={formData.morningEnergy}
-            onChange={e => handleInputChange('morningEnergy', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
-          >
-            <option value="" disabled hidden>Изберете ниво на сутрешна енергия</option>
-            <option value="high">Висока</option>
-            <option value="normal">Нормална</option>
-            <option value="low">Ниска</option>
-            <option value="very-low">Много ниска</option>
-          </select>
+          <FormSelect value={formData.morningEnergy} onValueChange={(value) => handleInputChange('morningEnergy', value)}>
+            <FormSelectTrigger className="mt-1">
+              <FormSelectValue placeholder="Изберете ниво на сутрешна енергия" />
+            </FormSelectTrigger>
+            <FormSelectContent>
+              <FormSelectItem value="high">Висока</FormSelectItem>
+              <FormSelectItem value="normal">Нормална</FormSelectItem>
+              <FormSelectItem value="low">Ниска</FormSelectItem>
+              <FormSelectItem value="very-low">Много ниска</FormSelectItem>
+            </FormSelectContent>
+          </FormSelect>
           {errors.morningEnergy && <p className="text-sm text-destructive mt-1">{errors.morningEnergy}</p>}
         </div>
         <div>
           <Label htmlFor="recovery">Темп на възстановяване</Label>
-          <select
-            id="recovery"
-            value={formData.recovery}
-            onChange={e => handleInputChange('recovery', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
-          >
-            <option value="" disabled hidden>Изберете темп на възстановяване</option>
-            <option value="fast">Бързо</option>
-            <option value="normal">Нормално</option>
-            <option value="slow">Бавно</option>
-            <option value="very-slow">Много бавно</option>
-          </select>
+          <FormSelect value={formData.recovery} onValueChange={(value) => handleInputChange('recovery', value)}>
+            <FormSelectTrigger className="mt-1">
+              <FormSelectValue placeholder="Изберете темп на възстановяване" />
+            </FormSelectTrigger>
+            <FormSelectContent>
+              <FormSelectItem value="fast">Бързо</FormSelectItem>
+              <FormSelectItem value="normal">Нормално</FormSelectItem>
+              <FormSelectItem value="slow">Бавно</FormSelectItem>
+              <FormSelectItem value="very-slow">Много бавно</FormSelectItem>
+            </FormSelectContent>
+          </FormSelect>
           {errors.recovery && <p className="text-sm text-destructive mt-1">{errors.recovery}</p>}
         </div>
         <div>
           <Label htmlFor="mood">Общо настроение</Label>
-          <select
-            id="mood"
-            value={formData.mood}
-            onChange={e => handleInputChange('mood', e.target.value)}
-            className="flex h-10 w-full items-center justify-between border border-muted/20 bg-muted/10 backdrop-blur-sm px-3 py-2 text-sm rounded-md mt-1"
-          >
-            <option value="" disabled hidden>Изберете общо настроение</option>
-            <option value="positive">Позитивно</option>
-            <option value="stable">Стабилно</option>
-            <option value="variable">Променливо</option>
-            <option value="negative">Негативно</option>
-          </select>
+          <FormSelect value={formData.mood} onValueChange={(value) => handleInputChange('mood', value)}>
+            <FormSelectTrigger className="mt-1">
+              <FormSelectValue placeholder="Изберете общо настроение" />
+            </FormSelectTrigger>
+            <FormSelectContent>
+              <FormSelectItem value="positive">Позитивно</FormSelectItem>
+              <FormSelectItem value="stable">Стабилно</FormSelectItem>
+              <FormSelectItem value="variable">Променливо</FormSelectItem>
+              <FormSelectItem value="negative">Негативно</FormSelectItem>
+            </FormSelectContent>
+          </FormSelect>
           {errors.mood && <p className="text-sm text-destructive mt-1">{errors.mood}</p>}
         </div>
       </div>
