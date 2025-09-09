@@ -19,7 +19,7 @@ interface FormData {
   height: string;
   weight: string;
   trainingFrequency: string;
-  trainingType: string;
+  trainingType: string[];
   averageSleep: string;
   diet: string;
   alcohol: string;
@@ -77,7 +77,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     height: "",
     weight: "",
     trainingFrequency: "",
-    trainingType: "",
+    trainingType: [],
     averageSleep: "",
     diet: "",
     alcohol: "",
@@ -110,7 +110,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     submitForm();
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: string, value: string | string[]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
@@ -119,7 +119,10 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
 
   const validateStep = (stepIndex: number) => {
     const section = sections[stepIndex];
-    const allFieldsFilled = section.fields.every(field => formData[field as keyof FormData]);
+    const allFieldsFilled = section.fields.every(field => {
+      const value = formData[field as keyof FormData];
+      return Array.isArray(value) ? value.length > 0 : value;
+    });
     return allFieldsFilled;
   };
 
@@ -147,7 +150,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     if (!formData.height) newErrors.height = "Ръстът е задължителен";
     if (!formData.weight) newErrors.weight = "Теглото е задължително";
     if (!formData.trainingFrequency) newErrors.trainingFrequency = "Честотата на тренировки е задължителна";
-    if (!formData.trainingType) newErrors.trainingType = "Типът тренировка е задължителен";
+    if (!formData.trainingType || formData.trainingType.length === 0) newErrors.trainingType = "Типът тренировка е задължителен";
     if (!formData.averageSleep) newErrors.averageSleep = "Часовете сън са задължителни";
     if (!formData.diet) newErrors.diet = "Типът диета е задължителен";
     if (!formData.alcohol) newErrors.alcohol = "Консумацията на алкохол е задължителна";
@@ -296,18 +299,47 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
           {errors.trainingFrequency && <p className="text-sm text-destructive mt-1">{errors.trainingFrequency}</p>}
         </div>
         <div>
-          <Label htmlFor="trainingType">Тип тренировка</Label>
-          <FormSelect value={formData.trainingType} onValueChange={(value) => handleInputChange('trainingType', value)}>
-            <FormSelectTrigger className="mt-1">
-              <FormSelectValue placeholder="Изберете тип" />
-            </FormSelectTrigger>
-            <FormSelectContent>
-              <FormSelectItem value="none">Никаква</FormSelectItem>
-              <FormSelectItem value="strength">Силови тренировки</FormSelectItem>
-              <FormSelectItem value="mix">Смесени тренировки</FormSelectItem>
-              <FormSelectItem value="endurance">Издръжливост</FormSelectItem>
-            </FormSelectContent>
-          </FormSelect>
+          <Label htmlFor="trainingType">Тип тренировка (можете да изберете повече от един)</Label>
+          <div className="mt-2 space-y-3 p-3 rounded-md border border-muted/20 bg-muted/10 backdrop-blur-sm">
+            {[
+              { value: "none", label: "Не спортувам" },
+              { value: "strength", label: "Силови тренировки" },
+              { value: "endurance", label: "За издръжливост" },
+              { value: "cardio", label: "Кардио" }
+            ].map((option) => (
+              <div key={option.value} className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id={`training-${option.value}`}
+                  checked={formData.trainingType.includes(option.value)}
+                  onChange={(e) => {
+                    const newTypes = e.target.checked
+                      ? [...formData.trainingType, option.value]
+                      : formData.trainingType.filter(type => type !== option.value);
+                    
+                    // If "Не спортувам" is selected, clear other selections
+                    if (option.value === "none" && e.target.checked) {
+                      handleInputChange('trainingType', ["none"]);
+                    }
+                    // If any other option is selected while "Не спортувам" is checked, remove "Не спортувам"
+                    else if (option.value !== "none" && e.target.checked && formData.trainingType.includes("none")) {
+                      handleInputChange('trainingType', [option.value]);
+                    }
+                    else {
+                      handleInputChange('trainingType', newTypes);
+                    }
+                  }}
+                  className="rounded border-muted/40 text-primary focus:ring-primary focus:ring-offset-0 focus:ring-2 bg-muted/20"
+                />
+                <Label
+                  htmlFor={`training-${option.value}`}
+                  className="text-sm font-normal cursor-pointer"
+                >
+                  {option.label}
+                </Label>
+              </div>
+            ))}
+          </div>
           {errors.trainingType && <p className="text-sm text-destructive mt-1">{errors.trainingType}</p>}
         </div>
       </div>
