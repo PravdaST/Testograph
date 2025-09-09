@@ -10,7 +10,7 @@ const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
   // Check if this is a thank you message
   if (result?.type === 'thank-you') {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 mt-24">
         <Card className="bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
           <CardContent className="pt-6">
             <div className="text-center">
