@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { Activity, Target, Shield, Sparkles, ChevronDown } from "lucide-react";
-import TForecastFormMultiStep from "@/components/TForecastFormMultiStep";
+import { Activity, Target, Shield, Sparkles } from "lucide-react";
+import TForecastForm from "@/components/TForecastForm";
 import ResultsDisplay from "@/components/ResultsDisplay";
 const Index = () => {
   const [result, setResult] = useState(null);
@@ -18,30 +18,18 @@ const Index = () => {
     setResult(null);
     setShowResults(false);
   };
-  return <div className="min-h-screen transition-none relative bg-gray-900">
-      {/* Animated Purple Wave Background - Full Page */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-purple-600/40 to-purple-800/40 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-          <div className="absolute top-1/2 right-0 w-80 h-80 bg-gradient-to-bl from-purple-500/30 to-indigo-700/30 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-delay-2"></div>
-          <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-gradient-to-tr from-purple-700/35 to-violet-600/35 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-delay-4"></div>
-          <div className="absolute top-1/4 left-1/2 w-64 h-64 bg-gradient-to-tl from-purple-400/25 to-indigo-600/25 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-delay-1"></div>
-        </div>
-        
-        {/* Wave Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-transparent to-purple-800/10"></div>
-      </div>
+  return <div className="min-h-screen transition-none">
       {/* Floating Sticky Header */}
-      <header className="sticky top-4 z-50 transition-none relative">
+      <header className="sticky top-4 z-50 transition-none">
         <div className="container mx-auto px-4">
-          <div className="bg-background/30 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/20 px-5 py-3 rounded-full backdrop-saturate-150">
+          <div className="bg-background/75 backdrop-blur-md border border-border/50 shadow-lg shadow-black/10 px-1 py-2 rounded-full">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-1.5 rounded-xl">
-                  <img src="/lovable-uploads/7f610a27-06bc-4bf8-9951-7f52e40688ba.png" alt="Testograph Logo" className="h-11 w-11 rounded-xl" />
+                <div className="p-2 rounded-xl">
+                  <img src="/lovable-uploads/7f610a27-06bc-4bf8-9951-7f52e40688ba.png" alt="Testograph Logo" className="h-12 w-12 rounded-2xl" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold font-clash bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  <h1 className="text-2xl font-bold font-clash bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                     Testograph
                   </h1>
                   <p className="text-sm text-muted-foreground">Инструмент за оценка на тестостерон</p>
@@ -56,73 +44,72 @@ const Index = () => {
       </header>
 
       {/* Hero Section - Full Width */}
-      {!showResults && (
-        <section className="relative mb-8 -mt-4">
-          {/* Content Grid */}
-          <div className="relative z-10 container mx-auto px-4 md:px-6 max-w-[1200px] py-14 md:py-20">
-            <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 xl:gap-10">
-              {/* Left Content */}
-              <div className="lg:col-span-7 xl:col-span-7">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 text-purple-300 text-sm font-medium mb-8">
-                  <Sparkles className="h-4 w-4" />
-                  Усъвършенствана здравна оценка
-                </div>
-                
-                <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white leading-tight">
-                  Получи своят личен
-                  <br />
-                  <span className="bg-gradient-to-r from-purple-400 to-violet-500 bg-clip-text text-transparent font-clash font-black">
-                    Testograph
-                  </span>
-                </h1>
-                
-                <p className="text-xl text-gray-300 mb-10 leading-relaxed">
-                  Открийте вашите прогнозни нива на тестостерон въз основа на факторите от начина на живот, 
-                  здравните показатели и научните изследвания. Получете персонализирани прозрения за минути.
-                </p>
-
-                <button onClick={() => {
-                const formSection = document.getElementById('assessment-form');
-                formSection?.scrollIntoView({
-                  behavior: 'smooth'
-                });
-              }} className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
-                  <Activity className="h-5 w-5" />
-                  Започнете анализа
-                </button>
+      <section className="relative overflow-hidden bg-gray-900 mb-12 -mt-4">
+        {/* Animated Purple Wave Background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute inset-0 opacity-30">
+            <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-purple-600/40 to-purple-800/40 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+            <div className="absolute top-1/2 right-0 w-80 h-80 bg-gradient-to-bl from-purple-500/30 to-indigo-700/30 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-2000"></div>
+            <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-gradient-to-tr from-purple-700/35 to-violet-600/35 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-4000"></div>
+          </div>
+          
+          {/* Wave Overlay */}
+          <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-transparent to-purple-800/10"></div>
+        </div>
+        
+        {/* Content Grid */}
+        <div className="relative z-10 container mx-auto px-4 md:px-6 max-w-[1200px] py-14 md:py-20">
+          <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 xl:gap-10">
+            {/* Left Content */}
+            <div className="lg:col-span-7 xl:col-span-7">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/20 text-purple-300 text-sm font-medium mb-8">
+                <Sparkles className="h-4 w-4" />
+                Усъвършенствана здравна оценка
               </div>
               
-              {/* Right Content - Square Image Placeholder */}
-              <div className="lg:col-span-5 xl:col-span-5 lg:justify-self-end w-full max-w-[420px] xl:max-w-[480px]">
-                <div className="w-full aspect-square rounded-3xl overflow-hidden">
-                  <img 
-                    src="/lovable-uploads/2bcd22a3-0894-400b-950c-c10f8b23bb76.png" 
-                    alt="Testosterone analysis visualization" 
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+              <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white leading-tight">
+                Получи своят личен
+                <br />
+                <span className="bg-gradient-to-r from-purple-400 to-violet-500 bg-clip-text text-transparent font-clash font-black">
+                  Testograph
+                </span>
+              </h1>
+              
+              <p className="text-xl text-gray-300 mb-10 leading-relaxed">
+                Открийте вашите прогнозни нива на тестостерон въз основа на факторите от начина на живот, 
+                здравните показатели и научните изследвания. Получете персонализирани прозрения за минути.
+              </p>
+
+              <button onClick={() => {
+              const formSection = document.getElementById('assessment-form');
+              formSection?.scrollIntoView({
+                behavior: 'smooth'
+              });
+            }} className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+                <Activity className="h-5 w-5" />
+                Започнете анализа
+              </button>
+            </div>
+            
+            {/* Right Content - Square Image Placeholder */}
+            <div className="lg:col-span-5 xl:col-span-5 lg:justify-self-end w-full max-w-[420px] xl:max-w-[480px]">
+              <div className="w-full aspect-square rounded-3xl overflow-hidden">
+                <img 
+                  src="/lovable-uploads/2bcd22a3-0894-400b-950c-c10f8b23bb76.png" 
+                  alt="Testosterone analysis visualization" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
-        </section>
-      )}
+        </div>
+      </section>
 
-      <main className="container mx-auto px-4 py-4 max-w-4xl relative z-20">
+      <main className="container mx-auto px-4 py-8 max-w-4xl">
         {!showResults ? <>
-            {/* Scroll Down Arrow */}
-            <div className="flex justify-center mb-4 -mt-8 animate-bounce-slow">
-              <div className="flex flex-col items-center cursor-pointer group" onClick={() => {
-                const featureSection = document.querySelector('#feature-cards');
-                featureSection?.scrollIntoView({ behavior: 'smooth' });
-              }}>
-                <div className="p-3 rounded-full bg-purple-500/20 backdrop-blur-sm border border-purple-400/30 group-hover:bg-purple-500/30 transition-all duration-300 group-hover:scale-110">
-                  <ChevronDown className="h-6 w-6 text-purple-300 group-hover:text-purple-200" />
-                </div>
-              </div>
-            </div>
 
             {/* Feature Cards */}
-            <div id="feature-cards" className="grid md:grid-cols-3 gap-6 mb-8 mt-32">
+            <div className="grid md:grid-cols-3 gap-6 mb-12">
               <div className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 text-center">
                 <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
                   <Target className="h-6 w-6 text-primary" />
@@ -168,7 +155,7 @@ const Index = () => {
                 </p>
               </div>
               
-              <TForecastFormMultiStep onResult={handleResult} />
+              <TForecastForm onResult={handleResult} />
             </section>
           </> : (/* Results Section */
       <section>
@@ -177,7 +164,7 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 mt-16 relative z-20">
+      <footer className="border-t border-border/50 mt-16">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center text-sm text-muted-foreground">
             <p className="mb-2">
