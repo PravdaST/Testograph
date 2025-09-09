@@ -20,6 +20,7 @@ interface FormData {
   weight: string;
   trainingFrequency: string;
   trainingType: string[];
+  supplements: string;
   averageSleep: string;
   diet: string;
   alcohol: string;
@@ -44,7 +45,7 @@ const sections = [
     title: "Тренировки и дейност",
     icon: Dumbbell,
     description: "Вашата физическа активност и тренировъчен режим",
-    fields: ['trainingFrequency', 'trainingType']
+    fields: ['trainingFrequency', 'trainingType', 'supplements']
   },
   {
     id: 'lifestyle',
@@ -78,6 +79,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     weight: "",
     trainingFrequency: "",
     trainingType: [],
+    supplements: "",
     averageSleep: "",
     diet: "",
     alcohol: "",
@@ -151,6 +153,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     if (!formData.weight) newErrors.weight = "Теглото е задължително";
     if (!formData.trainingFrequency) newErrors.trainingFrequency = "Честотата на тренировки е задължителна";
     if (!formData.trainingType || formData.trainingType.length === 0) newErrors.trainingType = "Типът тренировка е задължителен";
+    if (!formData.supplements) newErrors.supplements = "Приемът на добавки е задължителен";
     if (!formData.averageSleep) newErrors.averageSleep = "Часовете сън са задължителни";
     if (!formData.diet) newErrors.diet = "Типът диета е задължителен";
     if (!formData.alcohol) newErrors.alcohol = "Консумацията на алкохол е задължителна";
@@ -341,6 +344,18 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             ))}
           </div>
           {errors.trainingType && <p className="text-sm text-destructive mt-1">{errors.trainingType}</p>}
+        </div>
+        <div>
+          <Label htmlFor="supplements">Прием на добавки</Label>
+          <Input
+            id="supplements"
+            type="text"
+            value={formData.supplements}
+            onChange={e => handleInputChange('supplements', e.target.value)}
+            placeholder="Протеин, Витамин Д, Креатин"
+            className="mt-1 bg-muted/10 border-muted/20 backdrop-blur-sm"
+          />
+          {errors.supplements && <p className="text-sm text-destructive mt-1">{errors.supplements}</p>}
         </div>
       </div>
     </div>
