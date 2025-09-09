@@ -59,43 +59,40 @@ const Index = () => {
       {!showResults && (
         <section className="relative mb-8 -mt-4 min-h-[80vh] flex items-center">
           {/* Grid Texture Background */}
-          <div className="absolute inset-0 opacity-60">
+          <div className="absolute inset-0">
             <div 
               className="w-full h-full"
               style={{
-                backgroundColor: 'hsl(var(--background))',
+                backgroundColor: 'transparent',
                 backgroundImage: `
                   linear-gradient(
                     0deg,
                     transparent 24%,
-                    hsl(var(--border) / 0.3) 25%,
-                    hsl(var(--border) / 0.3) 26%,
+                    hsl(var(--border) / 0.4) 25%,
+                    hsl(var(--border) / 0.4) 26%,
                     transparent 27%,
                     transparent 74%,
-                    hsl(var(--border) / 0.3) 75%,
-                    hsl(var(--border) / 0.3) 76%,
+                    hsl(var(--border) / 0.4) 75%,
+                    hsl(var(--border) / 0.4) 76%,
                     transparent 77%,
                     transparent
                   ),
                   linear-gradient(
                     90deg,
                     transparent 24%,
-                    hsl(var(--border) / 0.3) 25%,
-                    hsl(var(--border) / 0.3) 26%,
+                    hsl(var(--border) / 0.4) 25%,
+                    hsl(var(--border) / 0.4) 26%,
                     transparent 27%,
                     transparent 74%,
-                    hsl(var(--border) / 0.3) 75%,
-                    hsl(var(--border) / 0.3) 76%,
+                    hsl(var(--border) / 0.4) 75%,
+                    hsl(var(--border) / 0.4) 76%,
                     transparent 77%,
                     transparent
-                  ),
-                  radial-gradient(
-                    ellipse at center,
-                    transparent 20%,
-                    hsl(var(--background)) 70%
                   )
                 `,
-                backgroundSize: '55px 55px, 55px 55px, 100% 100%'
+                backgroundSize: '55px 55px',
+                maskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`,
+                WebkitMaskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`
               }}
             />
           </div>
