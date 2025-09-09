@@ -337,8 +337,12 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             </FormSelectTrigger>
             <FormSelectContent>
               <FormSelectItem value="balanced">Балансирана диета</FormSelectItem>
-              <FormSelectItem value="processed">Преработени храни</FormSelectItem>
-              <FormSelectItem value="custom">Опишете вашата диета</FormSelectItem>
+              <FormSelectItem value="junk-food">Junk Food</FormSelectItem>
+              <FormSelectItem value="vegan">Веган</FormSelectItem>
+              <FormSelectItem value="vegetarian">Вегетарианска</FormSelectItem>
+              <FormSelectItem value="carnivor">Карнивор</FormSelectItem>
+              <FormSelectItem value="keto">Кето</FormSelectItem>
+              <FormSelectItem value="fasting">Фастинг</FormSelectItem>
             </FormSelectContent>
           </FormSelect>
           {errors.diet && <p className="text-sm text-destructive mt-1">{errors.diet}</p>}
