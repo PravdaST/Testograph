@@ -18,9 +18,21 @@ const Index = () => {
     setResult(null);
     setShowResults(false);
   };
-  return <div className="min-h-screen transition-none">
+  return <div className="min-h-screen transition-none relative overflow-hidden bg-gray-900">
+      {/* Animated Purple Wave Background - Full Page */}
+      <div className="fixed inset-0 overflow-hidden -z-10">
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-purple-600/40 to-purple-800/40 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
+          <div className="absolute top-1/2 right-0 w-80 h-80 bg-gradient-to-bl from-purple-500/30 to-indigo-700/30 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-2000"></div>
+          <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-gradient-to-tr from-purple-700/35 to-violet-600/35 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-4000"></div>
+          <div className="absolute top-1/4 left-1/2 w-64 h-64 bg-gradient-to-tl from-purple-400/25 to-indigo-600/25 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-1000"></div>
+        </div>
+        
+        {/* Wave Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-transparent to-purple-800/10"></div>
+      </div>
       {/* Floating Sticky Header */}
-      <header className="sticky top-4 z-50 transition-none">
+      <header className="sticky top-4 z-50 transition-none relative">
         <div className="container mx-auto px-4">
           <div className="bg-background/75 backdrop-blur-md border border-border/50 shadow-lg shadow-black/10 px-6 py-4 rounded-full">
             <div className="flex items-center justify-between">
@@ -45,19 +57,7 @@ const Index = () => {
 
       {/* Hero Section - Full Width */}
       {!showResults && (
-        <section className="relative overflow-hidden bg-gray-900 mb-12 -mt-4">
-          {/* Animated Purple Wave Background */}
-          <div className="absolute inset-0 overflow-hidden">
-            <div className="absolute inset-0 opacity-30">
-              <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-purple-600/40 to-purple-800/40 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-              <div className="absolute top-1/2 right-0 w-80 h-80 bg-gradient-to-bl from-purple-500/30 to-indigo-700/30 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-2000"></div>
-              <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-gradient-to-tr from-purple-700/35 to-violet-600/35 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-4000"></div>
-            </div>
-            
-            {/* Wave Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-transparent to-purple-800/10"></div>
-          </div>
-          
+        <section className="relative mb-12 -mt-4">
           {/* Content Grid */}
           <div className="relative z-10 container mx-auto px-4 md:px-6 max-w-[1200px] py-14 md:py-20">
             <div className="grid grid-cols-1 lg:grid-cols-12 items-center gap-8 xl:gap-10">
@@ -107,7 +107,7 @@ const Index = () => {
         </section>
       )}
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl">
+      <main className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
         {!showResults ? <>
 
             {/* Feature Cards */}
