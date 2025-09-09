@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Loader2, Activity, Brain, Dumbbell, Bed, Mail } from "lucide-react";
+import { Loader2, Activity, Brain, Dumbbell, Bed, Mail, Gift } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 interface TForecastFormProps {
   onResult: (result: any) => void;
@@ -145,29 +145,54 @@ const TForecastForm = ({
   return <>
       {/* Email Popup */}
       <Dialog open={showEmailPopup} onOpenChange={() => {}}>
-        <DialogContent className="sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg bg-gradient-to-b from-slate-900 to-slate-800 border-slate-700 text-white">
           <DialogHeader className="space-y-6">
-            <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-primary/10">
-              <Mail className="w-8 h-8 text-primary" />
+            <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-gradient-to-br from-primary to-primary/80">
+              <Gift className="w-8 h-8 text-white" />
             </div>
             <div className="space-y-3">
-              <DialogTitle className="text-center text-2xl font-bold">Добре дошли в Testograph</DialogTitle>
-              <DialogDescription className="text-center text-base leading-relaxed px-4">
-                Въведете вашия имейл адрес, за да започнете с вашия персонализиран анализ на тестостерона.
+              <DialogTitle className="text-center text-2xl font-bold text-white">
+                Получете безплатния си Testograph анализ
+              </DialogTitle>
+              <DialogDescription className="text-center text-base leading-relaxed px-4 text-slate-300">
+                Присъединете се към хилядите, които подобриха своето здраве.
+                Получете персонализирани съвети и ексклузивни прозрения в пощенската си кутия.
               </DialogDescription>
             </div>
           </DialogHeader>
           
           <form onSubmit={handleEmailSubmit} className="space-y-6 mt-8">
             <div>
-              <Label htmlFor="popup-email" className="rounded-full">Имейл адрес</Label>
-              <Input id="popup-email" type="email" value={userEmail} onChange={e => setUserEmail(e.target.value)} placeholder="your.email@example.com" className="mt-1" autoFocus />
-              {emailError && <p className="text-sm text-destructive mt-1">{emailError}</p>}
+              <Input 
+                id="popup-email" 
+                type="email" 
+                value={userEmail} 
+                onChange={e => setUserEmail(e.target.value)} 
+                placeholder="Въведете вашия имейл адрес" 
+                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 focus:ring-primary focus:border-primary" 
+                autoFocus 
+              />
+              {emailError && <p className="text-sm text-red-400 mt-1">{emailError}</p>}
             </div>
             
-            <Button type="submit" className="w-full">
-              Продължете към анализа
+            <Button type="submit" className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-white font-semibold py-3">
+              Получете моя безплатен Testograph анализ
             </Button>
+
+            <div className="flex items-center justify-center space-x-6 text-xs text-slate-400">
+              <div className="flex items-center space-x-1">
+                <span className="text-yellow-500">★</span>
+                <span>Моментален достъп</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="text-green-500">🔒</span>
+                <span>Защитена поверителност</span>
+              </div>
+              <div className="flex items-center space-x-1">
+                <span className="text-blue-500">📧</span>
+                <span>Отписване по всяко време</span>
+              </div>
+            </div>
           </form>
         </DialogContent>
       </Dialog>
