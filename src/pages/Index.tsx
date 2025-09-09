@@ -18,14 +18,14 @@ const Index = () => {
     setResult(null);
     setShowResults(false);
   };
-  return <div className="min-h-screen transition-none relative overflow-hidden bg-gray-900">
+  return <div className="min-h-screen transition-none relative bg-gray-900">
       {/* Animated Purple Wave Background - Full Page */}
-      <div className="fixed inset-0 overflow-hidden -z-10">
+      <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 opacity-30">
           <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-purple-600/40 to-purple-800/40 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-          <div className="absolute top-1/2 right-0 w-80 h-80 bg-gradient-to-bl from-purple-500/30 to-indigo-700/30 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-2000"></div>
-          <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-gradient-to-tr from-purple-700/35 to-violet-600/35 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-4000"></div>
-          <div className="absolute top-1/4 left-1/2 w-64 h-64 bg-gradient-to-tl from-purple-400/25 to-indigo-600/25 rounded-full mix-blend-multiply filter blur-3xl animate-pulse animation-delay-1000"></div>
+          <div className="absolute top-1/2 right-0 w-80 h-80 bg-gradient-to-bl from-purple-500/30 to-indigo-700/30 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-delay-2"></div>
+          <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-gradient-to-tr from-purple-700/35 to-violet-600/35 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-delay-4"></div>
+          <div className="absolute top-1/4 left-1/2 w-64 h-64 bg-gradient-to-tl from-purple-400/25 to-indigo-600/25 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-delay-1"></div>
         </div>
         
         {/* Wave Overlay */}
@@ -107,7 +107,7 @@ const Index = () => {
         </section>
       )}
 
-      <main className="container mx-auto px-4 py-8 max-w-4xl relative z-10">
+      <main className="container mx-auto px-4 py-8 max-w-4xl relative z-20">
         {!showResults ? <>
 
             {/* Feature Cards */}
@@ -166,7 +166,7 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 mt-16">
+      <footer className="border-t border-border/50 mt-16 relative z-20">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center text-sm text-muted-foreground">
             <p className="mb-2">
