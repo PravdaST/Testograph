@@ -34,7 +34,7 @@ const Index = () => {
       {/* Floating Sticky Header */}
       <header className="sticky top-4 z-50 transition-none relative">
         <div className="container mx-auto px-4">
-          <div className="bg-background/30 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/20 px-6 py-4 rounded-full backdrop-saturate-150">
+          <div className="bg-background/30 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/20 px-4 py-3 rounded-full backdrop-saturate-150">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-xl">
