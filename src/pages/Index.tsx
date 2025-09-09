@@ -63,37 +63,26 @@ const Index = () => {
             <div 
               className="w-full h-full"
               style={{
-                backgroundColor: 'transparent',
+                background: '#000000',
+                '--gap': '5em',
+                '--line': '1px',
+                '--color': 'rgba(255, 255, 255, 0.2)',
                 backgroundImage: `
                   linear-gradient(
-                    0deg,
-                    transparent 24%,
-                    hsl(var(--border) / 0.4) 25%,
-                    hsl(var(--border) / 0.4) 26%,
-                    transparent 27%,
-                    transparent 74%,
-                    hsl(var(--border) / 0.4) 75%,
-                    hsl(var(--border) / 0.4) 76%,
-                    transparent 77%,
-                    transparent
+                    -90deg,
+                    transparent calc(var(--gap) - var(--line)),
+                    var(--color) calc(var(--gap) - var(--line) + 1px),
+                    var(--color) var(--gap)
                   ),
                   linear-gradient(
-                    90deg,
-                    transparent 24%,
-                    hsl(var(--border) / 0.4) 25%,
-                    hsl(var(--border) / 0.4) 26%,
-                    transparent 27%,
-                    transparent 74%,
-                    hsl(var(--border) / 0.4) 75%,
-                    hsl(var(--border) / 0.4) 76%,
-                    transparent 77%,
-                    transparent
+                    0deg,
+                    transparent calc(var(--gap) - var(--line)),
+                    var(--color) calc(var(--gap) - var(--line) + 1px),
+                    var(--color) var(--gap)
                   )
                 `,
-                backgroundSize: '55px 55px',
-                maskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`,
-                WebkitMaskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`
-              }}
+                backgroundSize: 'var(--gap) var(--gap)'
+              } as React.CSSProperties}
             />
           </div>
           {/* Content Grid */}
