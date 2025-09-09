@@ -49,15 +49,21 @@ All colors MUST be HSL.
     --health-warning: 32 95% 44%;
     --health-bad: 0 84% 60%;
 
+    /* Glass Effects */
+    --glass-bg: 240 5% 15% / 0.1;
+    --glass-border: 0 0% 100% / 0.1;
+    --glass-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+
     /* Purple Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(270, 75%, 60%), hsl(250, 70%, 55%));
-    --gradient-card: linear-gradient(145deg, hsl(260, 25%, 12%), hsl(260, 20%, 15%));
+    --gradient-card: linear-gradient(145deg, hsl(var(--glass-bg)), hsl(240 5% 20% / 0.1));
     --gradient-hero: linear-gradient(135deg, hsl(222, 22%, 8%) 0%, hsl(260, 25%, 12%) 100%);
     --gradient-purple-wave: linear-gradient(135deg, hsl(270, 60%, 25%) 0%, hsl(250, 70%, 30%) 100%);
 
     /* Purple Shadows */
-    --shadow-card: 0 8px 32px -8px hsl(270, 30%, 4%, 0.4);
-    --shadow-glow: 0 0 40px hsl(270, 75%, 60%, 0.15);
+    --shadow-card: 0 20px 40px -12px rgba(0, 0, 0, 0.8);
+    --shadow-glow: 0 0 60px hsl(270, 75%, 60%, 0.3);
+    --shadow-glass: 0 8px 32px rgba(31, 38, 135, 0.37);
     --shadow-purple-glow: 0 0 60px hsl(270, 60%, 50%, 0.2);
 
     --radius: 0.5rem;

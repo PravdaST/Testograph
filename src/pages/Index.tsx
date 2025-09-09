@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Activity, Target, Shield, Sparkles } from "lucide-react";
-import TForecastForm from "@/components/TForecastForm";
+import TForecastFormMultiStep from "@/components/TForecastFormMultiStep";
 import ResultsDisplay from "@/components/ResultsDisplay";
 const Index = () => {
   const [result, setResult] = useState(null);
@@ -155,7 +155,7 @@ const Index = () => {
                 </p>
               </div>
               
-              <TForecastForm onResult={handleResult} />
+              <TForecastFormMultiStep onResult={handleResult} />
             </section>
           </> : (/* Results Section */
       <section>
