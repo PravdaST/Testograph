@@ -69,7 +69,7 @@ const Index = () => {
                 </div>
                 
                 <h1 className="text-4xl md:text-6xl font-bold mb-6 text-white leading-tight">
-                  Получи своят личен
+                  Получи своят персонализиран
                   <br />
                   <span className="bg-gradient-to-r from-purple-400 to-violet-500 bg-clip-text text-transparent font-clash font-black">
                     Testograph
