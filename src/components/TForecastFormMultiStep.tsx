@@ -25,6 +25,7 @@ interface FormData {
   alcohol: string;
   nicotine: string;
   libido: string;
+  morningErection: string;
   morningEnergy: string;
   recovery: string;
   mood: string;
@@ -57,7 +58,7 @@ const sections = [
     title: "Здравни индикатори",
     icon: Heart,
     description: "Как се чувствате и функционирате ежедневно",
-    fields: ['libido', 'morningEnergy', 'recovery', 'mood']
+    fields: ['libido', 'morningErection', 'morningEnergy', 'recovery', 'mood']
   }
 ];
 
@@ -82,6 +83,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     alcohol: "",
     nicotine: "",
     libido: "",
+    morningErection: "",
     morningEnergy: "",
     recovery: "",
     mood: ""
@@ -151,6 +153,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     if (!formData.alcohol) newErrors.alcohol = "Консумацията на алкохол е задължителна";
     if (!formData.nicotine) newErrors.nicotine = "Употребата на никотин е задължителна";
     if (!formData.libido) newErrors.libido = "Нивото на либидо е задължително";
+    if (!formData.morningErection) newErrors.morningErection = "Сутрешната ерекция е задължителна";
     if (!formData.morningEnergy) newErrors.morningEnergy = "Сутрешната енергия е задължителна";
     if (!formData.recovery) newErrors.recovery = "Темпът на възстановяване е задължителен";
     if (!formData.mood) newErrors.mood = "Общото настроение е задължително";
@@ -397,6 +400,21 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             </FormSelectContent>
           </FormSelect>
           {errors.libido && <p className="text-sm text-destructive mt-1">{errors.libido}</p>}
+        </div>
+        <div>
+          <Label htmlFor="morningErection">Сутрешна ерекция</Label>
+          <FormSelect value={formData.morningErection} onValueChange={(value) => handleInputChange('morningErection', value)}>
+            <FormSelectTrigger className="mt-1">
+              <FormSelectValue placeholder="Изберете честота на сутрешна ерекция" />
+            </FormSelectTrigger>
+            <FormSelectContent>
+              <FormSelectItem value="every-morning">Всяка сутрин</FormSelectItem>
+              <FormSelectItem value="sometimes">Понякога</FormSelectItem>
+              <FormSelectItem value="rarely">Рядко</FormSelectItem>
+              <FormSelectItem value="never">Нямам</FormSelectItem>
+            </FormSelectContent>
+          </FormSelect>
+          {errors.morningErection && <p className="text-sm text-destructive mt-1">{errors.morningErection}</p>}
         </div>
         <div>
           <Label htmlFor="morningEnergy">Сутрешна енергия</Label>
