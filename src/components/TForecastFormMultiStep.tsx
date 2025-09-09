@@ -14,6 +14,8 @@ interface TForecastFormProps {
 
 interface FormData {
   email: string;
+  firstName: string;
+  lastName: string;
   gender: string;
   age: string;
   height: string;
@@ -68,11 +70,16 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showEmailPopup, setShowEmailPopup] = useState(false);
   const [userEmail, setUserEmail] = useState("");
+  const [userFirstName, setUserFirstName] = useState("");
+  const [userLastName, setUserLastName] = useState("");
   const [emailError, setEmailError] = useState("");
+  const [firstNameError, setFirstNameError] = useState("");
   const { toast } = useToast();
 
   const [formData, setFormData] = useState<FormData>({
     email: "",
+    firstName: "",
+    lastName: "",
     gender: "",
     age: "",
     height: "",
@@ -96,6 +103,14 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
   const handleEmailSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    
+    setEmailError("");
+    setFirstNameError("");
+    
+    if (!userFirstName.trim()) {
+      setFirstNameError("Името е задължително");
+      return;
+    }
     if (!userEmail) {
       setEmailError("Имейлът е задължителен");
       return;
@@ -104,8 +119,13 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
       setEmailError("Моля, въведете валиден имейл адрес");
       return;
     }
-    setEmailError("");
-    setFormData(prev => ({ ...prev, email: userEmail }));
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      email: userEmail,
+      firstName: userFirstName,
+      lastName: userLastName
+    }));
     setShowEmailPopup(false);
     
     // Proceed with form submission
@@ -566,6 +586,30 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
           </DialogHeader>
           
           <form onSubmit={handleEmailSubmit} className="space-y-6 mt-8">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Input
+                  id="popup-firstName"
+                  type="text"
+                  value={userFirstName}
+                  onChange={e => setUserFirstName(e.target.value)}
+                  placeholder="Име"
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 focus:ring-primary focus:border-primary"
+                  autoFocus
+                />
+                {firstNameError && <p className="text-sm text-red-400 mt-1">{firstNameError}</p>}
+              </div>
+              <div>
+                <Input
+                  id="popup-lastName"
+                  type="text"
+                  value={userLastName}
+                  onChange={e => setUserLastName(e.target.value)}
+                  placeholder="Фамилия (незадължително)"
+                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 focus:ring-primary focus:border-primary"
+                />
+              </div>
+            </div>
             <div>
               <Input
                 id="popup-email"
@@ -574,7 +618,6 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
                 onChange={e => setUserEmail(e.target.value)}
                 placeholder="Въведете вашия имейл адрес"
                 className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 focus:ring-primary focus:border-primary"
-                autoFocus
               />
               {emailError && <p className="text-sm text-red-400 mt-1">{emailError}</p>}
             </div>
