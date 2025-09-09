@@ -47,9 +47,17 @@ const Index = () => {
                   <p className="text-sm text-muted-foreground">Инструмент за оценка на тестостерон</p>
                 </div>
               </div>
-              {showResults && <button onClick={resetForm} className="text-sm text-primary hover:text-primary/80 transition-colors">
+              {showResults && (
+                <button 
+                  onClick={resetForm} 
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary border border-primary/20 hover:border-primary/40 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 animate-fade-in"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
                   Нова оценка
-                </button>}
+                </button>
+              )}
             </div>
           </div>
         </div>
