@@ -205,17 +205,20 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
   const submitForm = async () => {
     setIsLoading(true);
     try {
+      // Prepare the complete payload with all form data
+      const payload = {
+        ...formData,
+        age: parseInt(formData.age),
+        height: parseInt(formData.height),
+        weight: parseInt(formData.weight),
+        averageSleep: parseFloat(formData.averageSleep),
+        alcohol: parseInt(formData.alcohol)
+      };
+
       const response = await fetch('https://xtracts4u.app.n8n.cloud/webhook-test/testo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          age: parseInt(formData.age),
-          height: parseInt(formData.height),
-          weight: parseInt(formData.weight),
-          averageSleep: parseFloat(formData.averageSleep),
-          alcohol: parseInt(formData.alcohol)
-        })
+        body: JSON.stringify(payload)
       });
       if (!response.ok) {
         throw new Error('Failed to get forecast');
