@@ -369,10 +369,9 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             </FormSelectTrigger>
             <FormSelectContent>
               <FormSelectItem value="none">Не пуша</FormSelectItem>
-              <FormSelectItem value="vape">Вейп</FormSelectItem>
               <FormSelectItem value="cigarettes">Цигари</FormSelectItem>
-              <FormSelectItem value="other">IQOS</FormSelectItem>
-              <FormSelectItem value="other">Пуша и трите</FormSelectItem>
+              <FormSelectItem value="iqos">IQOS</FormSelectItem>
+              <FormSelectItem value="vape">Вейп</FormSelectItem>
             </FormSelectContent>
           </FormSelect>
           {errors.nicotine && <p className="text-sm text-destructive mt-1">{errors.nicotine}</p>}
