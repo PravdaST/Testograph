@@ -348,6 +348,15 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
         <div>
           <Label htmlFor="supplements">Прием на добавки</Label>
           <div className="mt-2 space-y-3">
+            <Input
+              id="supplements"
+              type="text"
+              value={formData.supplements === "Не приемам добавки" ? "" : formData.supplements}
+              onChange={e => handleInputChange('supplements', e.target.value)}
+              placeholder="Протеин, Витамин Д, Креатин"
+              disabled={formData.supplements === "Не приемам добавки"}
+              className="bg-muted/10 border-muted/20 backdrop-blur-sm disabled:opacity-50"
+            />
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -369,15 +378,6 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
                 Не приемам добавки
               </Label>
             </div>
-            <Input
-              id="supplements"
-              type="text"
-              value={formData.supplements === "Не приемам добавки" ? "" : formData.supplements}
-              onChange={e => handleInputChange('supplements', e.target.value)}
-              placeholder="Протеин, Витамин Д, Креатин"
-              disabled={formData.supplements === "Не приемам добавки"}
-              className="bg-muted/10 border-muted/20 backdrop-blur-sm disabled:opacity-50"
-            />
           </div>
           {errors.supplements && <p className="text-sm text-destructive mt-1">{errors.supplements}</p>}
         </div>
