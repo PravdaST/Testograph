@@ -120,16 +120,10 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
       return;
     }
     
-    setFormData(prev => ({ 
-      ...prev, 
-      email: userEmail,
-      firstName: userFirstName,
-      lastName: userLastName
-    }));
     setShowEmailPopup(false);
     
-    // Proceed with form submission
-    submitForm();
+    // Pass email and names directly to submitForm to avoid async state issues
+    submitForm(userEmail, userFirstName, userLastName);
   };
 
   const handleInputChange = (field: string, value: string | string[]) => {
@@ -202,12 +196,15 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     setShowEmailPopup(true);
   };
 
-  const submitForm = async () => {
+  const submitForm = async (email?: string, firstName?: string, lastName?: string) => {
     setIsLoading(true);
     try {
       // Prepare the complete payload with all form data
       const payload = {
         ...formData,
+        email: email || formData.email,
+        firstName: firstName || formData.firstName,
+        lastName: lastName || formData.lastName,
         age: parseInt(formData.age),
         height: parseInt(formData.height),
         weight: parseInt(formData.weight),
