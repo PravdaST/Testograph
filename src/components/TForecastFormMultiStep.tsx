@@ -337,12 +337,8 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             </FormSelectTrigger>
             <FormSelectContent>
               <FormSelectItem value="balanced">Балансирана диета</FormSelectItem>
-              <FormSelectItem value="processed">Junk Food</FormSelectItem>
-              <FormSelectItem value="custom">Веган</FormSelectItem>
-              <FormSelectItem value="custom">Вегетарианска диета</FormSelectItem>
-              <FormSelectItem value="custom">Карнивор диета</FormSelectItem>
-              <FormSelectItem value="custom">Кето диета</FormSelectItem>
-              <FormSelectItem value="custom">Фастинг</FormSelectItem>
+              <FormSelectItem value="processed">Преработени храни</FormSelectItem>
+              <FormSelectItem value="custom">Опишете вашата диета</FormSelectItem>
             </FormSelectContent>
           </FormSelect>
           {errors.diet && <p className="text-sm text-destructive mt-1">{errors.diet}</p>}
@@ -414,12 +410,13 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
           {errors.morningEnergy && <p className="text-sm text-destructive mt-1">{errors.morningEnergy}</p>}
         </div>
         <div>
-          <Label htmlFor="recovery">Темп на възстановяване</Label>
+          <Label htmlFor="recovery">Физическо възстановяване</Label>
           <FormSelect value={formData.recovery} onValueChange={(value) => handleInputChange('recovery', value)}>
             <FormSelectTrigger className="mt-1">
               <FormSelectValue placeholder="Изберете темп на възстановяване" />
             </FormSelectTrigger>
             <FormSelectContent>
+              <FormSelectItem value="very-fast">Много бързо</FormSelectItem>
               <FormSelectItem value="fast">Бързо</FormSelectItem>
               <FormSelectItem value="normal">Нормално</FormSelectItem>
               <FormSelectItem value="slow">Бавно</FormSelectItem>
