@@ -63,7 +63,7 @@ const sections = [
 const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
-  const [showEmailPopup, setShowEmailPopup] = useState(true);
+  const [showEmailPopup, setShowEmailPopup] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [emailError, setEmailError] = useState("");
   const { toast } = useToast();
@@ -102,7 +102,9 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     setEmailError("");
     setFormData(prev => ({ ...prev, email: userEmail }));
     setShowEmailPopup(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    // Proceed with form submission
+    submitForm();
   };
 
   const handleInputChange = (field: string, value: string) => {
@@ -165,6 +167,12 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
       });
       return;
     }
+    
+    // Show email popup instead of submitting directly
+    setShowEmailPopup(true);
+  };
+
+  const submitForm = async () => {
     setIsLoading(true);
     try {
       const response = await fetch('https://xtracts4u.app.n8n.cloud/webhook-test/testo', {
@@ -197,6 +205,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
         description: "Неуспешно генериране на прогнозата. Моля, опитайте отново.",
         variant: "destructive"
       });
+      setShowEmailPopup(false); // Allow user to try again
     } finally {
       setIsLoading(false);
     }
@@ -455,7 +464,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
   return (
     <>
       {/* Email Popup */}
-      <Dialog open={showEmailPopup} onOpenChange={() => {}}>
+      <Dialog open={showEmailPopup} onOpenChange={(open) => !isLoading && setShowEmailPopup(open)}>
         <DialogContent className="sm:max-w-lg bg-gradient-to-b from-slate-900 to-slate-800 border-slate-700 text-white">
           <DialogHeader className="space-y-6">
             <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-gradient-primary">
