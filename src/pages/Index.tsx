@@ -93,7 +93,7 @@ const Index = () => {
               </div>
               
               {/* Right Content - Square Image Placeholder */}
-              <div className="lg:col-span-5 xl:col-span-5 lg:justify-self-end w-full max-w-[420px] xl:max-w-[480px]">
+              <div className="hidden lg:block lg:col-span-5 xl:col-span-5 lg:justify-self-end w-full max-w-[420px] xl:max-w-[480px]">
                 <div className="w-full aspect-square rounded-3xl overflow-hidden">
                   <img 
                     src="/lovable-uploads/2bcd22a3-0894-400b-950c-c10f8b23bb76.png" 
