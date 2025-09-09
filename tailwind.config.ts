@@ -131,6 +131,7 @@ export default {
         "pulse-delay-1": "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite 1s",
         "pulse-delay-2": "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite 2s",
         "pulse-delay-4": "pulse 2s cubic-bezier(0.4,0,0.6,1) infinite 4s",
+        "bounce-slow": "bounce 3s ease-in-out infinite",
       },
     },
   },

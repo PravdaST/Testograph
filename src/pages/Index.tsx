@@ -110,17 +110,14 @@ const Index = () => {
       <main className="container mx-auto px-4 py-4 max-w-4xl relative z-20">
         {!showResults ? <>
             {/* Scroll Down Arrow */}
-            <div className="flex justify-center mb-8 animate-bounce">
-              <div className="flex flex-col items-center gap-2 cursor-pointer group" onClick={() => {
+            <div className="flex justify-center mb-4 -mt-8 animate-bounce-slow">
+              <div className="flex flex-col items-center cursor-pointer group" onClick={() => {
                 const featureSection = document.querySelector('#feature-cards');
                 featureSection?.scrollIntoView({ behavior: 'smooth' });
               }}>
                 <div className="p-3 rounded-full bg-purple-500/20 backdrop-blur-sm border border-purple-400/30 group-hover:bg-purple-500/30 transition-all duration-300 group-hover:scale-110">
                   <ChevronDown className="h-6 w-6 text-purple-300 group-hover:text-purple-200" />
                 </div>
-                <span className="text-xs text-purple-300 font-medium opacity-70 group-hover:opacity-100 transition-opacity">
-                  Разгледайте функциите
-                </span>
               </div>
             </div>
 
