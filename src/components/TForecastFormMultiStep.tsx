@@ -283,7 +283,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
               <FormSelectValue placeholder="Изберете честота" />
             </FormSelectTrigger>
             <FormSelectContent>
-              <FormSelectItem value="none">Никаква</FormSelectItem>
+              <FormSelectItem value="none">Не спортувам</FormSelectItem>
               <FormSelectItem value="1-2">1-2 пъти/седмица</FormSelectItem>
               <FormSelectItem value="3-4">3-4 пъти/седмица</FormSelectItem>
               <FormSelectItem value="5-6">5-6 пъти/седмица</FormSelectItem>
