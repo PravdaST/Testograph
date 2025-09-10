@@ -204,3 +204,49 @@ h1, h2, h3, h4, h5, h6 {
   animation: float-delay-3 9s ease-in-out infinite;
   animation-delay: 3s;
 }
+
+/* Rain Background Animation */
+@keyframes rain-fall {
+  0% {
+    background-position:
+      0px 220px,
+      3px 220px,
+      151.5px 337.5px,
+      25px 24px,
+      28px 24px,
+      176.5px 150px,
+      50px 16px,
+      53px 16px,
+      201.5px 91px,
+      75px 224px,
+      78px 224px,
+      226.5px 350.5px,
+      100px 19px,
+      103px 19px,
+      251.5px 121px,
+      125px 120px,
+      128px 120px,
+      276.5px 187px;
+  }
+  100% {
+    background-position:
+      0px 3420px,
+      3px 3420px,
+      151.5px 3537.5px,
+      25px 6816px,
+      28px 6816px,
+      176.5px 6942px,
+      50px 2708px,
+      53px 2708px,
+      201.5px 2783px,
+      75px 8587px,
+      78px 8587px,
+      226.5px 8713.5px,
+      100px 2559px,
+      103px 2559px,
+      251.5px 2661px,
+      125px 4214px,
+      128px 4214px,
+      276.5px 4281px;
+  }
+}

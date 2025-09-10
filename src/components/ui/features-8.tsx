@@ -1,9 +1,54 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Shield, Users, Activity, Brain } from 'lucide-react';
 export function Features() {
-  return <section className="bg-transparent py-16 md:py-32">
+  return <section className="bg-transparent py-16 md:py-32 relative overflow-hidden">
             <div className="mx-auto max-w-3xl lg:max-w-5xl px-6">
                 <div className="relative">
+                    {/* Animated Rain Background Effect */}
+                    <div className="absolute inset-0 -mx-6 pointer-events-none">
+                        {/* Main rain container */}
+                        <div 
+                            className="absolute inset-0 opacity-30"
+                            style={{
+                                backgroundImage: `
+                                    radial-gradient(4px 100px at 0px 235px, hsl(var(--primary)), transparent),
+                                    radial-gradient(4px 100px at 300px 235px, hsl(var(--primary)), transparent),
+                                    radial-gradient(1.5px 1.5px at 150px 117.5px, hsl(var(--primary)) 100%, transparent 150%),
+                                    radial-gradient(4px 100px at 0px 252px, hsl(var(--primary)), transparent),
+                                    radial-gradient(4px 100px at 300px 252px, hsl(var(--primary)), transparent),
+                                    radial-gradient(1.5px 1.5px at 150px 126px, hsl(var(--primary)) 100%, transparent 150%),
+                                    radial-gradient(4px 100px at 0px 150px, hsl(var(--primary)), transparent),
+                                    radial-gradient(4px 100px at 300px 150px, hsl(var(--primary)), transparent),
+                                    radial-gradient(1.5px 1.5px at 150px 75px, hsl(var(--primary)) 100%, transparent 150%),
+                                    radial-gradient(4px 100px at 0px 253px, hsl(var(--primary)), transparent),
+                                    radial-gradient(4px 100px at 300px 253px, hsl(var(--primary)), transparent),
+                                    radial-gradient(1.5px 1.5px at 150px 126.5px, hsl(var(--primary)) 100%, transparent 150%),
+                                    radial-gradient(4px 100px at 0px 204px, hsl(var(--primary)), transparent),
+                                    radial-gradient(4px 100px at 300px 204px, hsl(var(--primary)), transparent),
+                                    radial-gradient(1.5px 1.5px at 150px 102px, hsl(var(--primary)) 100%, transparent 150%),
+                                    radial-gradient(4px 100px at 0px 134px, hsl(var(--primary)), transparent),
+                                    radial-gradient(4px 100px at 300px 134px, hsl(var(--primary)), transparent),
+                                    radial-gradient(1.5px 1.5px at 150px 67px, hsl(var(--primary)) 100%, transparent 150%)
+                                `,
+                                backgroundSize: `
+                                    300px 235px, 300px 235px, 300px 235px,
+                                    300px 252px, 300px 252px, 300px 252px,
+                                    300px 150px, 300px 150px, 300px 150px,
+                                    300px 253px, 300px 253px, 300px 253px,
+                                    300px 204px, 300px 204px, 300px 204px,
+                                    300px 134px, 300px 134px, 300px 134px
+                                `,
+                                animation: 'rain-fall 60s linear infinite'
+                            }}
+                        />
+                        {/* Edge fade mask */}
+                        <div 
+                            className="absolute inset-0"
+                            style={{
+                                background: `radial-gradient(ellipse 80% 60% at center, transparent 0%, transparent 30%, rgba(var(--background), 0.8) 70%, rgba(var(--background), 1) 100%)`
+                            }}
+                        />
+                    </div>
                     <div className="relative z-10 grid grid-cols-6 gap-3">
                         <Card className="relative col-span-full flex overflow-hidden lg:col-span-2 bg-card/50 backdrop-blur-sm border-muted/20">
                             <CardContent className="relative m-auto size-fit pt-6">
