@@ -59,14 +59,12 @@ All colors MUST be HSL.
     --gradient-card: linear-gradient(145deg, hsl(var(--glass-bg)), hsl(240 5% 20% / 0.1));
     --gradient-hero: linear-gradient(135deg, hsl(222, 22%, 8%) 0%, hsl(260, 25%, 12%) 100%);
     --gradient-purple-wave: linear-gradient(135deg, hsl(270, 60%, 25%) 0%, hsl(250, 70%, 30%) 100%);
-    --gradient-glass: linear-gradient(135deg, rgba(139, 92, 246, 0.15) 0%, rgba(167, 139, 250, 0.1) 50%, rgba(196, 181, 253, 0.05) 100%);
-    --gradient-shine: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 50%, rgba(255, 255, 255, 0.05) 100%);
 
     /* Purple Shadows */
     --shadow-card: 0 20px 40px -12px rgba(0, 0, 0, 0.8);
     --shadow-glow: 0 0 60px hsl(270, 75%, 60%, 0.3);
     --shadow-glass: 0 8px 32px rgba(31, 38, 135, 0.37);
-    --shadow-purple-glow: 0 8px 32px rgba(147, 51, 234, 0.35), 0 0 60px rgba(147, 51, 234, 0.15);
+    --shadow-purple-glow: 0 0 60px hsl(270, 60%, 50%, 0.2);
 
     --radius: 0.5rem;
 

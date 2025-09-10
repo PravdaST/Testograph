@@ -196,57 +196,36 @@ const Index = () => {
               <Features />
             </div>
 
-            {/* Feature Cards - Enhanced Glass Effect */}
-            <div id="feature-cards" className="grid md:grid-cols-3 gap-8 mb-16 mt-32">
-              {/* Card 1 - Персонализиран анализ */}
-              <div className="group relative p-8 rounded-3xl bg-gradient-glass backdrop-blur-xl border border-white/20 shadow-purple-glow hover:shadow-glow text-center transition-all duration-500 hover:scale-105 hover:border-purple-400/40 overflow-hidden">
-                {/* Shine overlay */}
-                <div className="absolute inset-0 bg-gradient-shine opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
-                
-                {/* Content */}
-                <div className="relative z-10">
-                  <div className="w-16 h-16 bg-gradient-to-br from-purple-500/30 to-violet-600/20 rounded-2xl flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-purple-400/30 group-hover:scale-110 transition-transform duration-300">
-                    <Target className="h-8 w-8 text-purple-300" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-4 text-white group-hover:text-purple-200 transition-colors duration-300">Персонализиран анализ</h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    Усъвършенстван алгоритъм отчита вашите уникални фактори от начина на живот и здравето
-                  </p>
+            {/* Feature Cards */}
+            <div id="feature-cards" className="grid md:grid-cols-3 gap-6 mb-16 mt-32">
+              <div className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 text-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Target className="h-6 w-6 text-primary" />
                 </div>
+                <h3 className="font-semibold mb-2">Персонализиран анализ</h3>
+                <p className="text-sm text-muted-foreground">
+                  Усъвършенстван алгоритъм отчита вашите уникални фактори от начина на живот и здравето
+                </p>
               </div>
 
-              {/* Card 2 - Моментални резултати */}
-              <div className="group relative p-8 rounded-3xl bg-gradient-glass backdrop-blur-xl border border-white/20 shadow-purple-glow hover:shadow-glow text-center transition-all duration-500 hover:scale-105 hover:border-purple-400/40 overflow-hidden">
-                {/* Shine overlay */}
-                <div className="absolute inset-0 bg-gradient-shine opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
-                
-                {/* Content */}
-                <div className="relative z-10">
-                  <div className="w-16 h-16 bg-gradient-to-br from-violet-500/30 to-purple-600/20 rounded-2xl flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-violet-400/30 group-hover:scale-110 transition-transform duration-300">
-                    <Activity className="h-8 w-8 text-violet-300" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-4 text-white group-hover:text-violet-200 transition-colors duration-300">Моментални резултати</h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    Получете вашата оценка на тестостерона и препоръките незабавно
-                  </p>
+              <div className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 text-center">
+                <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Activity className="h-6 w-6 text-accent" />
                 </div>
+                <h3 className="font-semibold mb-2">Моментални резултати</h3>
+                <p className="text-sm text-muted-foreground">
+                  Получете вашата оценка на тестостерона и препоръките незабавно
+                </p>
               </div>
 
-              {/* Card 3 - Научно обоснован */}
-              <div className="group relative p-8 rounded-3xl bg-gradient-glass backdrop-blur-xl border border-white/20 shadow-purple-glow hover:shadow-glow text-center transition-all duration-500 hover:scale-105 hover:border-purple-400/40 overflow-hidden">
-                {/* Shine overlay */}
-                <div className="absolute inset-0 bg-gradient-shine opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-3xl" />
-                
-                {/* Content */}
-                <div className="relative z-10">
-                  <div className="w-16 h-16 bg-gradient-to-br from-emerald-500/30 to-green-600/20 rounded-2xl flex items-center justify-center mx-auto mb-6 backdrop-blur-sm border border-emerald-400/30 group-hover:scale-110 transition-transform duration-300">
-                    <Shield className="h-8 w-8 text-emerald-300" />
-                  </div>
-                  <h3 className="text-xl font-bold mb-4 text-white group-hover:text-emerald-200 transition-colors duration-300">Научно обоснован</h3>
-                  <p className="text-gray-300 leading-relaxed">
-                    Основан на рецензирани изследвания и клинични доказателства
-                  </p>
+              <div className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 text-center">
+                <div className="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Shield className="h-6 w-6 text-success" />
                 </div>
+                <h3 className="font-semibold mb-2">Научно обоснован</h3>
+                <p className="text-sm text-muted-foreground">
+                  Основан на рецензирани изследвания и клинични доказателства
+                </p>
               </div>
             </div>
 
