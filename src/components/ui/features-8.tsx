@@ -1,7 +1,7 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Shield, Users, Activity, Brain } from 'lucide-react';
 export function Features() {
-  return <section className="bg-transparent py-16 md:py-32 relative overflow-hidden">
+  return <section className="hidden md:block bg-transparent py-16 md:py-32 relative overflow-hidden">
             <div className="mx-auto max-w-3xl lg:max-w-5xl px-6">
                 <div className="relative">
                     {/* Animated Rain Background Effect */}
