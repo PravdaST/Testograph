@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Activity, Target, Shield, Sparkles, ChevronDown, Instagram, Facebook, Youtube } from "lucide-react";
 import TForecastFormMultiStep from "@/components/TForecastFormMultiStep";
 import ResultsDisplay from "@/components/ResultsDisplay";
+import { Features } from "@/components/ui/features-8";
 const Index = () => {
   const [result, setResult] = useState(null);
   const [showResults, setShowResults] = useState(false);
@@ -189,6 +190,9 @@ const Index = () => {
                 </div>
               </div>
             </div>
+
+            {/* Enhanced Features Section */}
+            <Features />
 
             {/* Feature Cards */}
             <div id="feature-cards" className="grid md:grid-cols-3 gap-6 mb-16 mt-32">
