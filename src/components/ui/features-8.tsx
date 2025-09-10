@@ -1,8 +1,43 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { Shield, Users, Activity, Brain } from 'lucide-react';
 export function Features() {
-  return <section className="bg-transparent py-16 md:py-32">
-            <div className="mx-auto max-w-3xl lg:max-w-5xl px-6">
+  return <section className="bg-transparent py-16 md:py-32 relative overflow-hidden">
+            {/* Animated texture background */}
+            <div className="absolute inset-0 opacity-30">
+                {/* Floating particles */}
+                <div className="absolute inset-0">
+                    {Array.from({ length: 20 }).map((_, i) => (
+                        <div
+                            key={i}
+                            className="absolute w-2 h-2 bg-primary/20 rounded-full animate-pulse"
+                            style={{
+                                left: `${Math.random() * 100}%`,
+                                top: `${Math.random() * 100}%`,
+                                animationDelay: `${Math.random() * 3}s`,
+                                animationDuration: `${2 + Math.random() * 2}s`
+                            }}
+                        />
+                    ))}
+                </div>
+                
+                {/* Grid overlay */}
+                <div className="absolute inset-0 opacity-10">
+                    <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+                        <defs>
+                            <pattern id="grid" width="10" height="10" patternUnits="userSpaceOnUse">
+                                <path d="M 10 0 L 0 0 0 10" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.5"/>
+                            </pattern>
+                        </defs>
+                        <rect width="100%" height="100%" fill="url(#grid)" />
+                    </svg>
+                </div>
+                
+                {/* Gradient orbs */}
+                <div className="absolute top-1/4 left-1/4 w-32 h-32 bg-primary/10 rounded-full blur-2xl animate-pulse" style={{ animationDuration: '4s' }} />
+                <div className="absolute bottom-1/4 right-1/4 w-40 h-40 bg-primary/5 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+            </div>
+            
+            <div className="mx-auto max-w-3xl lg:max-w-5xl px-6 relative z-10">
                 <div className="relative">
                     <div className="relative z-10 grid grid-cols-6 gap-3">
                         <Card className="relative col-span-full flex overflow-hidden lg:col-span-2 bg-card/50 backdrop-blur-sm border-muted/20">
