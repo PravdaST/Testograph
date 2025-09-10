@@ -3,7 +3,6 @@ import { Activity, Target, Shield, Sparkles, ChevronDown, Instagram, Facebook, Y
 import TForecastFormMultiStep from "@/components/TForecastFormMultiStep";
 import ResultsDisplay from "@/components/ResultsDisplay";
 import { Features } from "@/components/ui/features-8";
-import { GlassCard } from "@/components/ui/glass-card";
 const Index = () => {
   const [result, setResult] = useState(null);
   const [showResults, setShowResults] = useState(false);
@@ -198,36 +197,36 @@ const Index = () => {
             </div>
 
             {/* Feature Cards */}
-            <div id="feature-cards" className="grid md:grid-cols-3 gap-8 mb-16 mt-32">
-              <GlassCard variant="interactive" className="p-8 text-center group shadow-purple-glow">
-                <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/10 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:shadow-purple-glow transition-all duration-300">
-                  <Target className="h-8 w-8 text-primary group-hover:scale-110 transition-transform duration-300" />
+            <div id="feature-cards" className="grid md:grid-cols-3 gap-6 mb-16 mt-32">
+              <div className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 text-center">
+                <div className="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Target className="h-6 w-6 text-primary" />
                 </div>
-                <h3 className="font-bold text-lg mb-3 bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent">Персонализиран анализ</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <h3 className="font-semibold mb-2">Персонализиран анализ</h3>
+                <p className="text-sm text-muted-foreground">
                   Усъвършенстван алгоритъм отчита вашите уникални фактори от начина на живот и здравето
                 </p>
-              </GlassCard>
+              </div>
 
-              <GlassCard variant="interactive" className="p-8 text-center group shadow-purple-glow">
-                <div className="w-16 h-16 bg-gradient-to-br from-accent/20 to-accent/10 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:shadow-purple-glow transition-all duration-300">
-                  <Activity className="h-8 w-8 text-accent group-hover:scale-110 transition-transform duration-300" />
+              <div className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 text-center">
+                <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Activity className="h-6 w-6 text-accent" />
                 </div>
-                <h3 className="font-bold text-lg mb-3 bg-gradient-to-r from-accent to-accent-glow bg-clip-text text-transparent">Моментални резултати</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <h3 className="font-semibold mb-2">Моментални резултати</h3>
+                <p className="text-sm text-muted-foreground">
                   Получете вашата оценка на тестостерона и препоръките незабавно
                 </p>
-              </GlassCard>
+              </div>
 
-              <GlassCard variant="interactive" className="p-8 text-center group shadow-purple-glow">
-                <div className="w-16 h-16 bg-gradient-to-br from-success/20 to-success/10 rounded-2xl flex items-center justify-center mx-auto mb-6 group-hover:shadow-purple-glow transition-all duration-300">
-                  <Shield className="h-8 w-8 text-success group-hover:scale-110 transition-transform duration-300" />
+              <div className="p-6 rounded-2xl bg-card/50 backdrop-blur-sm border border-border/50 text-center">
+                <div className="w-12 h-12 bg-success/10 rounded-xl flex items-center justify-center mx-auto mb-4">
+                  <Shield className="h-6 w-6 text-success" />
                 </div>
-                <h3 className="font-bold text-lg mb-3 bg-gradient-to-r from-success to-success-glow bg-clip-text text-transparent">Научно обоснован</h3>
-                <p className="text-sm text-muted-foreground leading-relaxed">
+                <h3 className="font-semibold mb-2">Научно обоснован</h3>
+                <p className="text-sm text-muted-foreground">
                   Основан на рецензирани изследвания и клинични доказателства
                 </p>
-              </GlassCard>
+              </div>
             </div>
 
             {/* Assessment Form */}

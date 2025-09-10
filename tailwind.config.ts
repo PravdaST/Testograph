@@ -91,7 +91,6 @@ export default {
         glow: "var(--shadow-glow)",
         glass: "var(--shadow-glass)",
         card: "var(--shadow-card)",
-        "purple-glow": "var(--shadow-purple-glow)",
       },
       borderRadius: {
         lg: "var(--radius)",
