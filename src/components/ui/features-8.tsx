@@ -8,7 +8,7 @@ export function Features() {
                     <div className="absolute inset-0 -mx-6 pointer-events-none">
                         {/* Main rain container */}
                         <div 
-                            className="absolute inset-0 opacity-15"
+                            className="absolute inset-0 opacity-5"
                             style={{
                                 backgroundImage: `
                                     radial-gradient(4px 100px at 0px 235px, hsl(var(--primary)), transparent),
