@@ -60,12 +60,81 @@ export function Features() {
                                         <span className="block size-2 rounded-full border border-muted/20 bg-muted/20"></span>
                                         <span className="block size-2 rounded-full border border-muted/20 bg-muted/20"></span>
                                     </div>
-                                    <div className="mt-8 space-y-2">
-                                        <div className="h-2 bg-primary/20 rounded w-3/4"></div>
-                                        <div className="h-2 bg-primary/30 rounded w-1/2"></div>
-                                        <div className="h-2 bg-primary/20 rounded w-2/3"></div>
-                                        <div className="h-2 bg-primary/40 rounded w-4/5"></div>
-                                        <div className="h-2 bg-primary/20 rounded w-1/3"></div>
+                                    
+                                    {/* Growing Graph */}
+                                    <div className="mt-8 relative h-32">
+                                        {/* Y-axis labels */}
+                                        <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-xs text-muted-foreground">
+                                            <span>800</span>
+                                            <span>600</span>
+                                            <span>400</span>
+                                            <span>200</span>
+                                            <span>0</span>
+                                        </div>
+                                        
+                                        {/* Graph container */}
+                                        <div className="ml-8 h-full relative">
+                                            {/* Grid lines */}
+                                            <div className="absolute inset-0 flex flex-col justify-between">
+                                                <div className="h-px bg-muted/20"></div>
+                                                <div className="h-px bg-muted/20"></div>
+                                                <div className="h-px bg-muted/20"></div>
+                                                <div className="h-px bg-muted/20"></div>
+                                                <div className="h-px bg-muted/20"></div>
+                                            </div>
+                                            
+                                            {/* Animated bars representing testosterone levels */}
+                                            <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between h-full">
+                                                {/* Bar 1 - Animated growth */}
+                                                <div className="w-4 bg-gradient-to-t from-primary to-primary/60 rounded-t animate-pulse" 
+                                                     style={{
+                                                         height: '25%',
+                                                         animationDelay: '0ms',
+                                                         animation: 'fade-in 1s ease-out 0.2s both, scale-in 0.8s ease-out 0.2s both'
+                                                     }}></div>
+                                                
+                                                {/* Bar 2 */}
+                                                <div className="w-4 bg-gradient-to-t from-primary to-primary/60 rounded-t" 
+                                                     style={{
+                                                         height: '45%',
+                                                         animationDelay: '400ms',
+                                                         animation: 'fade-in 1s ease-out 0.4s both, scale-in 0.8s ease-out 0.4s both'
+                                                     }}></div>
+                                                
+                                                {/* Bar 3 */}
+                                                <div className="w-4 bg-gradient-to-t from-primary to-primary/60 rounded-t" 
+                                                     style={{
+                                                         height: '60%',
+                                                         animationDelay: '600ms',
+                                                         animation: 'fade-in 1s ease-out 0.6s both, scale-in 0.8s ease-out 0.6s both'
+                                                     }}></div>
+                                                
+                                                {/* Bar 4 */}
+                                                <div className="w-4 bg-gradient-to-t from-primary to-primary/60 rounded-t" 
+                                                     style={{
+                                                         height: '75%',
+                                                         animationDelay: '800ms',
+                                                         animation: 'fade-in 1s ease-out 0.8s both, scale-in 0.8s ease-out 0.8s both'
+                                                     }}></div>
+                                                
+                                                {/* Bar 5 */}
+                                                <div className="w-4 bg-gradient-to-t from-primary to-primary/60 rounded-t" 
+                                                     style={{
+                                                         height: '90%',
+                                                         animationDelay: '1000ms',
+                                                         animation: 'fade-in 1s ease-out 1s both, scale-in 0.8s ease-out 1s both'
+                                                     }}></div>
+                                            </div>
+                                            
+                                            {/* X-axis labels */}
+                                            <div className="absolute -bottom-6 left-0 right-0 flex justify-between text-xs text-muted-foreground">
+                                                <span>Ян</span>
+                                                <span>Мар</span>
+                                                <span>Май</span>
+                                                <span>Юли</span>
+                                                <span>Сеп</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>
