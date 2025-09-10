@@ -56,59 +56,58 @@ export function Features() {
                                         <span className="block size-2 rounded-full border border-muted/20 bg-muted/20"></span>
                                     </div>
                                     
-                                    {/* Growing Graph */}
+                                    {/* Line Graph */}
                                     <div className="mt-8 relative h-32">
-                                        {/* Y-axis labels */}
-                                        
-                                        
                                         {/* Graph container */}
-                                        <div className="ml-8 h-full relative">
+                                        <div className="h-full relative">
                                             {/* Grid lines */}
                                             <div className="absolute inset-0 flex flex-col justify-between">
                                                 <div className="h-px bg-muted/20"></div>
                                                 <div className="h-px bg-muted/20"></div>
                                                 <div className="h-px bg-muted/20"></div>
                                                 <div className="h-px bg-muted/20"></div>
-                                                <div className="h-px bg-muted/20"></div>
                                             </div>
                                             
-                                            {/* Animated bars representing testosterone levels */}
-                                            <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between h-full">
-                                                {/* Bar 1 - Animated growth */}
-                                                <div className="w-4 bg-gradient-to-t from-primary to-primary/60 rounded-t animate-pulse" style={{
-                        height: '25%',
-                        animationDelay: '0ms',
-                        animation: 'fade-in 1s ease-out 0.2s both, scale-in 0.8s ease-out 0.2s both'
-                      }}></div>
+                                            {/* SVG Line Graph */}
+                                            <svg className="w-full h-full" viewBox="0 0 200 100" preserveAspectRatio="none">
+                                                <defs>
+                                                    <linearGradient id="graphGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                                                        <stop offset="0%" className="text-primary" stopColor="currentColor" stopOpacity="0.3" />
+                                                        <stop offset="100%" className="text-primary" stopColor="currentColor" stopOpacity="0" />
+                                                    </linearGradient>
+                                                </defs>
                                                 
-                                                {/* Bar 2 */}
-                                                <div className="w-4 bg-gradient-to-t from-primary to-primary/60 rounded-t" style={{
-                        height: '45%',
-                        animationDelay: '400ms',
-                        animation: 'fade-in 1s ease-out 0.4s both, scale-in 0.8s ease-out 0.4s both'
-                      }}></div>
+                                                {/* Area fill */}
+                                                <path 
+                                                    d="M0,85 C20,80 40,75 60,65 C80,55 100,50 120,45 C140,35 160,30 180,20 L200,15 L200,100 L0,100 Z"
+                                                    fill="url(#graphGradient)"
+                                                    style={{
+                                                        animation: 'fade-in 2s ease-out 0.5s both'
+                                                    }}
+                                                />
                                                 
-                                                {/* Bar 3 */}
-                                                <div className="w-4 bg-gradient-to-t from-primary to-primary/60 rounded-t" style={{
-                        height: '60%',
-                        animationDelay: '600ms',
-                        animation: 'fade-in 1s ease-out 0.6s both, scale-in 0.8s ease-out 0.6s both'
-                      }}></div>
+                                                {/* Main line */}
+                                                <path 
+                                                    d="M0,85 C20,80 40,75 60,65 C80,55 100,50 120,45 C140,35 160,30 180,20 L200,15"
+                                                    stroke="hsl(var(--primary))" 
+                                                    strokeWidth="2" 
+                                                    fill="none"
+                                                    className="animate-fade-in"
+                                                    style={{
+                                                        strokeDasharray: '300',
+                                                        strokeDashoffset: '300',
+                                                        animation: 'fade-in 2s ease-out both, scale-in 1.5s ease-out both',
+                                                        animationDelay: '0.3s'
+                                                    }}
+                                                />
                                                 
-                                                {/* Bar 4 */}
-                                                <div className="w-4 bg-gradient-to-t from-primary to-primary/60 rounded-t" style={{
-                        height: '75%',
-                        animationDelay: '800ms',
-                        animation: 'fade-in 1s ease-out 0.8s both, scale-in 0.8s ease-out 0.8s both'
-                      }}></div>
-                                                
-                                                {/* Bar 5 */}
-                                                <div className="w-4 bg-gradient-to-t from-primary to-primary/60 rounded-t" style={{
-                        height: '90%',
-                        animationDelay: '1000ms',
-                        animation: 'fade-in 1s ease-out 1s both, scale-in 0.8s ease-out 1s both'
-                      }}></div>
-                                            </div>
+                                                {/* Data points */}
+                                                <circle cx="0" cy="85" r="2" fill="hsl(var(--primary))" style={{animation: 'fade-in 0.5s ease-out 1s both'}} />
+                                                <circle cx="60" cy="65" r="2" fill="hsl(var(--primary))" style={{animation: 'fade-in 0.5s ease-out 1.2s both'}} />
+                                                <circle cx="120" cy="45" r="2" fill="hsl(var(--primary))" style={{animation: 'fade-in 0.5s ease-out 1.4s both'}} />
+                                                <circle cx="180" cy="20" r="2" fill="hsl(var(--primary))" style={{animation: 'fade-in 0.5s ease-out 1.6s both'}} />
+                                                <circle cx="200" cy="15" r="2" fill="hsl(var(--primary))" style={{animation: 'fade-in 0.5s ease-out 1.8s both'}} />
+                                            </svg>
                                             
                                             {/* X-axis labels */}
                                             <div className="absolute -bottom-6 left-0 right-0 flex justify-between text-xs text-muted-foreground">
