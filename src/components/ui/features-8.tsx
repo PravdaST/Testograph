@@ -78,45 +78,38 @@ export function Features() {
                                                 </defs>
                                                 
                                                 {/* Area fill */}
-                                                <path 
-                                                    d="M0,85 C20,80 40,75 60,65 C80,55 100,50 120,45 C140,35 160,30 180,20 L200,15 L200,100 L0,100 Z"
-                                                    fill="url(#graphGradient)"
-                                                    style={{
-                                                        animation: 'fade-in 2s ease-out 0.5s both'
-                                                    }}
-                                                />
+                                                <path d="M0,85 C20,80 40,75 60,65 C80,55 100,50 120,45 C140,35 160,30 180,20 L200,15 L200,100 L0,100 Z" fill="url(#graphGradient)" style={{
+                        animation: 'fade-in 2s ease-out 0.5s both'
+                      }} />
                                                 
                                                 {/* Main line */}
-                                                <path 
-                                                    d="M0,85 C20,80 40,75 60,65 C80,55 100,50 120,45 C140,35 160,30 180,20 L200,15"
-                                                    stroke="hsl(var(--primary))" 
-                                                    strokeWidth="2" 
-                                                    fill="none"
-                                                    className="animate-fade-in"
-                                                    style={{
-                                                        strokeDasharray: '300',
-                                                        strokeDashoffset: '300',
-                                                        animation: 'fade-in 2s ease-out both, scale-in 1.5s ease-out both',
-                                                        animationDelay: '0.3s'
-                                                    }}
-                                                />
+                                                <path d="M0,85 C20,80 40,75 60,65 C80,55 100,50 120,45 C140,35 160,30 180,20 L200,15" stroke="hsl(var(--primary))" strokeWidth="2" fill="none" className="animate-fade-in" style={{
+                        strokeDasharray: '300',
+                        strokeDashoffset: '300',
+                        animation: 'fade-in 2s ease-out both, scale-in 1.5s ease-out both',
+                        animationDelay: '0.3s'
+                      }} />
                                                 
                                                 {/* Data points */}
-                                                <circle cx="0" cy="85" r="2" fill="hsl(var(--primary))" style={{animation: 'fade-in 0.5s ease-out 1s both'}} />
-                                                <circle cx="60" cy="65" r="2" fill="hsl(var(--primary))" style={{animation: 'fade-in 0.5s ease-out 1.2s both'}} />
-                                                <circle cx="120" cy="45" r="2" fill="hsl(var(--primary))" style={{animation: 'fade-in 0.5s ease-out 1.4s both'}} />
-                                                <circle cx="180" cy="20" r="2" fill="hsl(var(--primary))" style={{animation: 'fade-in 0.5s ease-out 1.6s both'}} />
-                                                <circle cx="200" cy="15" r="2" fill="hsl(var(--primary))" style={{animation: 'fade-in 0.5s ease-out 1.8s both'}} />
+                                                <circle cx="0" cy="85" r="2" fill="hsl(var(--primary))" style={{
+                        animation: 'fade-in 0.5s ease-out 1s both'
+                      }} />
+                                                <circle cx="60" cy="65" r="2" fill="hsl(var(--primary))" style={{
+                        animation: 'fade-in 0.5s ease-out 1.2s both'
+                      }} />
+                                                <circle cx="120" cy="45" r="2" fill="hsl(var(--primary))" style={{
+                        animation: 'fade-in 0.5s ease-out 1.4s both'
+                      }} />
+                                                <circle cx="180" cy="20" r="2" fill="hsl(var(--primary))" style={{
+                        animation: 'fade-in 0.5s ease-out 1.6s both'
+                      }} />
+                                                <circle cx="200" cy="15" r="2" fill="hsl(var(--primary))" style={{
+                        animation: 'fade-in 0.5s ease-out 1.8s both'
+                      }} />
                                             </svg>
                                             
                                             {/* X-axis labels */}
-                                            <div className="absolute -bottom-6 left-0 right-0 flex justify-between text-xs text-muted-foreground">
-                                                <span>Ян</span>
-                                                <span>Мар</span>
-                                                <span>Май</span>
-                                                <span>Юли</span>
-                                                <span>Сеп</span>
-                                            </div>
+                                            
                                         </div>
                                     </div>
                                 </div>
