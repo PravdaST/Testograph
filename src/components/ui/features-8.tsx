@@ -17,22 +17,22 @@ export function Features() {
                             </CardContent>
                         </Card>
                         <Card className="relative col-span-full overflow-hidden sm:col-span-3 lg:col-span-2 bg-card/50 backdrop-blur-sm border-muted/20">
-                            <CardContent className="pt-6">
+                            <CardContent className="pt-6 flex flex-col h-full">
                                 <div className="relative mx-auto flex aspect-square size-32 rounded-full border before:absolute before:-inset-2 before:rounded-full before:border border-muted/20 before:border-muted/10">
                                     <Shield className="m-auto size-12 text-primary" strokeWidth={1} />
                                 </div>
-                                <div className="relative z-10 mt-6 space-y-2 text-center">
+                                <div className="relative z-10 mt-6 space-y-2 text-center flex-1 flex flex-col justify-center">
                                     <h2 className="text-lg font-medium transition text-foreground">Сигурност по подразбиране</h2>
                                     <p className="text-muted-foreground">Вашите данни са защитени с най-високите стандарти за сигурност и поверителност.</p>
                                 </div>
                             </CardContent>
                         </Card>
                         <Card className="relative col-span-full overflow-hidden sm:col-span-3 lg:col-span-2 bg-card/50 backdrop-blur-sm border-muted/20">
-                            <CardContent className="pt-6">
-                                <div className="pt-6 lg:px-6">
-                                    <Activity className="mx-auto size-16 text-primary mb-4" strokeWidth={1} />
+                            <CardContent className="pt-6 flex flex-col h-full">
+                                <div className="flex justify-center items-center h-32">
+                                    <Activity className="size-16 text-primary" strokeWidth={1} />
                                 </div>
-                                <div className="relative z-10 mt-6 space-y-2 text-center">
+                                <div className="relative z-10 mt-6 space-y-2 text-center flex-1 flex flex-col justify-center">
                                     <h2 className="text-lg font-medium transition text-foreground">Бърза оценка</h2>
                                     <p className="text-muted-foreground">Получете резултатите от вашата оценка на тестостерона за минути.</p>
                                 </div>
