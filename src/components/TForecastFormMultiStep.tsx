@@ -212,27 +212,90 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
         alcohol: parseInt(formData.alcohol)
       };
 
+      // Debug: Log the request payload
+      console.log('🚀 Submitting webhook request:', {
+        url: 'https://xtracts4u.app.n8n.cloud/webhook/testo',
+        payload: payload,
+        timestamp: new Date().toISOString()
+      });
+
+      // Add timeout to prevent hanging
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
       const response = await fetch('https://xtracts4u.app.n8n.cloud/webhook/testo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(payload),
+        signal: controller.signal
       });
-      if (!response.ok) {
-        throw new Error('Failed to get forecast');
+
+      clearTimeout(timeoutId);
+
+      // Debug: Log response details
+      console.log('📡 Webhook response received:', {
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries()),
+        url: response.url,
+        ok: response.ok
+      });
+
+      // Handle different success status codes (200, 201, 202)
+      if (response.status >= 200 && response.status < 300) {
+        let responseData;
+        try {
+          const responseText = await response.text();
+          console.log('📄 Response body:', responseText);
+          responseData = responseText ? JSON.parse(responseText) : {};
+        } catch (parseError) {
+          console.log('⚠️ Response is not JSON, treating as success');
+          responseData = {};
+        }
+
+        console.log('✅ Webhook submission successful');
+        onResult({
+          type: 'thank-you',
+          title: 'Благодарим! Вашата Testograph прогноза е в процес.',
+          description: "Изпратихме вашия персонализиран доклад до вашия имейл адрес.\nМоже да отнеме 1–2 минути да пристигне — ако не го видите, моля проверете папките Промоции или Спам."
+        });
+        toast({
+          title: "Анализът завърши",
+          description: "Вашата Testograph прогноза беше генерирана успешно."
+        });
+      } else {
+        // Handle non-success status codes
+        let errorBody = '';
+        try {
+          errorBody = await response.text();
+          console.log('❌ Error response body:', errorBody);
+        } catch (e) {
+          console.log('❌ Could not read error response body');
+        }
+
+        throw new Error(`Webhook failed with status ${response.status}: ${response.statusText}. Response: ${errorBody}`);
       }
-      onResult({
-        type: 'thank-you',
-        title: 'Благодарим! Вашата Testograph прогноза е в процес.',
-        description: "Изпратихме вашия персонализиран доклад до вашия имейл адрес.\nМоже да отнеме 1–2 минути да пристигне — ако не го видите, моля проверете папките Промоции или Спам."
-      });
-      toast({
-        title: "Анализът завърши",
-        description: "Вашата Testograph прогноза беше генерирана успешно."
-      });
     } catch (error) {
+      console.error('💥 Webhook submission error:', error);
+      
+      let errorMessage = "Неуспешно генериране на прогнозата. Моля, опитайте отново.";
+      let errorTitle = "Грешка";
+
+      // Provide specific error messages based on error type
+      if (error.name === 'AbortError') {
+        errorMessage = "Заявката отнемат твърде много време. Моля, проверете връзката си и опитайте отново.";
+        errorTitle = "Таймаут на заявката";
+      } else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+        errorMessage = "Няма връзка със сървъра. Моля, проверете интернет връзката си.";
+        errorTitle = "Мрежова грешка";
+      } else if (error.message.includes('status')) {
+        errorMessage = `Сървърна грешка: ${error.message}`;
+        errorTitle = "Сървърна грешка";
+      }
+
       toast({
-        title: "Грешка",
-        description: "Неуспешно генериране на прогнозата. Моля, опитайте отново.",
+        title: errorTitle,
+        description: errorMessage,
         variant: "destructive"
       });
       setShowEmailPopup(false); // Allow user to try again
