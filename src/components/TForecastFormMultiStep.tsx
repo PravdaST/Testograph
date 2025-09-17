@@ -212,7 +212,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
         alcohol: parseInt(formData.alcohol)
       };
 
-      const response = await fetch('https://xtracts4u.app.n8n.cloud/webhook-test/testo', {
+      const response = await fetch('https://xtracts4u.app.n8n.cloud/webhook/testo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
