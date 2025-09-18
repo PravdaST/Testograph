@@ -1,17 +1,11 @@
 import { GlassCard } from "@/components/ui/glass-card";
-
 const Partner = () => {
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background/90 to-background/80">
+  return <div className="min-h-screen bg-gradient-to-br from-background via-background/90 to-background/80">
       {/* Header */}
       <header className="text-center py-16 px-8">
         <div className="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-primary to-primary/80 rounded-3xl flex items-center justify-center text-6xl font-bold text-background shadow-2xl shadow-primary/30 relative">
           <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 rounded-3xl blur-xl opacity-50 -z-10"></div>
-          <img 
-            src="/lovable-uploads/7f610a27-06bc-4bf8-9951-7f52e40688ba.png" 
-            alt="Testograph Logo" 
-            className="w-full h-full rounded-3xl object-cover"
-          />
+          <img src="/lovable-uploads/7f610a27-06bc-4bf8-9951-7f52e40688ba.png" alt="Testograph Logo" className="w-full h-full rounded-3xl object-cover" />
         </div>
         <h1 className="text-5xl lg:text-6xl font-clash font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-6">
           TestoGraph Партньорство
@@ -453,7 +447,7 @@ const Partner = () => {
               <div className="space-y-4">
                 <div className="text-center">
                   <p className="text-lg text-primary font-semibold mb-2">Email:</p>
-                  <p className="text-xs sm:text-sm md:text-base font-mono px-2">partnership@testograph.eu</p>
+                  <p className="sm:text-sm md:text-base font-mono py-[14px] px-0 mx-px my-0 text-xs">partnership@testograph.eu</p>
                 </div>
                 <p className="text-lg">
                   <strong className="text-primary">Тема:</strong> Partnership Application
@@ -475,10 +469,7 @@ const Partner = () => {
           <p className="text-lg leading-relaxed mb-6">
             Ако си готов да работиш с най-добрата система в България за мъжко здраве и fitness, и искаш да печелиш като собственик...
           </p>
-          <a 
-            href="mailto:partnership@testograph.eu?subject=Заявка за TestoGraph партньорство"
-            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-lg"
-          >
+          <a href="mailto:partnership@testograph.eu?subject=Заявка за TestoGraph партньорство" className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-lg">
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
             </svg>
@@ -489,8 +480,6 @@ const Partner = () => {
           </p>
         </GlassCard>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Partner;
