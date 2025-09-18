@@ -470,8 +470,17 @@ const Partner = () => {
           <p className="text-lg leading-relaxed mb-6">
             Ако си готов да работиш с най-добрата система в България за мъжко здраве и fitness, и искаш да печелиш като собственик...
           </p>
-          <p className="text-xl font-semibold text-primary">
-            Изпрати ни email. Нека видим дали си подходящ.
+          <a 
+            href="mailto:partnership@testograph.eu?subject=Заявка за TestoGraph партньорство"
+            className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl text-lg"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+            Изпрати ни имейл
+          </a>
+          <p className="text-sm text-muted-foreground mt-4">
+            Нека видим дали си подходящ.
           </p>
         </GlassCard>
       </div>
