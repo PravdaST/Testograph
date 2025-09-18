@@ -340,7 +340,7 @@ const Partner = () => {
               <ul className="space-y-3">
                 <li className="flex items-start gap-3">
                   <span className="text-green-500 font-bold">✓</span>
-                  Минимум 15,000 активни последователи
+                  Минимум 3,000 активни последователи
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-green-500 font-bold">✓</span>
