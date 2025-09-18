@@ -453,7 +453,7 @@ const Partner = () => {
               <div className="space-y-4">
                 <div className="text-center">
                   <p className="text-lg text-primary font-semibold mb-2">Email:</p>
-                  <p className="text-base sm:text-lg font-mono">partnership@testograph.eu</p>
+                  <p className="text-sm sm:text-base md:text-lg font-mono">partnership@testograph.eu</p>
                 </div>
                 <p className="text-lg">
                   <strong className="text-primary">Тема:</strong> Partnership Application
