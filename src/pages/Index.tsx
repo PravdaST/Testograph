@@ -40,7 +40,7 @@ const Index = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-1.5 rounded-xl">
-                  <img src="/lovable-uploads/7f610a27-06bc-4bf8-9951-7f52e40688ba.png" alt="Testograph Logo" className="h-11 w-11 rounded-xl" />
+                  <img src="/lovable-uploads/7f610a27-06bc-4bf8-9951-7f52e40688ba.png" alt="Testograph Logo" className="h-11 w-auto max-w-11 rounded-xl object-contain" />
                 </div>
                 <div>
                   <h1 className="text-xl font-bold font-clash bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
