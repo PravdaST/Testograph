@@ -263,21 +263,18 @@ const Index = () => {
               <h3 className="text-base font-semibold text-foreground mb-3">Последвай ни в социалните мрежи</h3>
               <div className="flex justify-center gap-6">
                 <a 
-                  href="#" 
+                  href="https://www.instagram.com/testograph.eu/" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110"
                   aria-label="Instagram"
                 >
                   <Instagram className="w-5 h-5" />
                 </a>
                 <a 
-                  href="#" 
-                  className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="w-5 h-5" />
-                </a>
-                <a 
-                  href="#" 
+                  href="https://www.tiktok.com/@testograph.eu" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110"
                   aria-label="TikTok"
                 >
@@ -286,7 +283,9 @@ const Index = () => {
                   </svg>
                 </a>
                 <a 
-                  href="#" 
+                  href="https://www.youtube.com/@testograph" 
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110"
                   aria-label="YouTube"
                 >
