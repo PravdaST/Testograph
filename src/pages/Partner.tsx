@@ -377,7 +377,7 @@ const Partner = () => {
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-amber-500 font-bold">+</span>
-                  Опит с supplement продажби
+                  Опит със supplement продажби
                 </li>
                 <li className="flex items-start gap-3">
                   <span className="text-amber-500 font-bold">+</span>
