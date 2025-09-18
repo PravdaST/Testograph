@@ -7,7 +7,11 @@ const Partner = () => {
       <header className="text-center py-16 px-8">
         <div className="w-32 h-32 mx-auto mb-8 bg-gradient-to-br from-primary to-primary/80 rounded-3xl flex items-center justify-center text-6xl font-bold text-background shadow-2xl shadow-primary/30 relative">
           <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80 rounded-3xl blur-xl opacity-50 -z-10"></div>
-          T
+          <img 
+            src="/lovable-uploads/7f610a27-06bc-4bf8-9951-7f52e40688ba.png" 
+            alt="Testograph Logo" 
+            className="w-20 h-20 rounded-2xl"
+          />
         </div>
         <h1 className="text-5xl lg:text-6xl font-clash font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-6">
           TestoGraph Партньорство
