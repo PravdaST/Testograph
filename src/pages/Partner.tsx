@@ -451,8 +451,8 @@ const Partner = () => {
             
             <div className="bg-background/50 backdrop-blur-lg border border-primary/40 rounded-2xl p-8 max-w-md mx-auto">
               <div className="space-y-4">
-                <p className="text-lg">
-                  <strong className="text-primary">Email:</strong> partnership@testograph.eu
+                <p className="text-lg break-words">
+                  <strong className="text-primary">Email:</strong> <span className="break-all">partnership@testograph.eu</span>
                 </p>
                 <p className="text-lg">
                   <strong className="text-primary">Тема:</strong> Partnership Application
