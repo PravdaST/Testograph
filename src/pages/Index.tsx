@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Activity, Target, Shield, Sparkles, ChevronDown, Instagram, Facebook, Youtube } from "lucide-react";
+import { Link } from "react-router-dom";
 import TForecastFormMultiStep from "@/components/TForecastFormMultiStep";
 import ResultsDisplay from "@/components/ResultsDisplay";
 import { Features } from "@/components/ui/features-8";
@@ -48,17 +49,25 @@ const Index = () => {
                   <p className="text-sm text-muted-foreground">Инструмент за оценка на тестостерон</p>
                 </div>
               </div>
-              {showResults && (
-                <button 
-                  onClick={resetForm} 
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary border border-primary/20 hover:border-primary/40 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 animate-fade-in"
+              <div className="flex items-center gap-3">
+                <Link 
+                  to="/partner" 
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600/10 to-violet-600/10 hover:from-purple-600/20 hover:to-violet-600/20 text-purple-300 hover:text-purple-200 border border-purple-500/20 hover:border-purple-400/40 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                  </svg>
-                  Нов анализ
-                </button>
-              )}
+                  Партньорство
+                </Link>
+                {showResults && (
+                  <button 
+                    onClick={resetForm} 
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary border border-primary/20 hover:border-primary/40 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 animate-fade-in"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Нов анализ
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
