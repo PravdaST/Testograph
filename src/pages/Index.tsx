@@ -50,12 +50,6 @@ const Index = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <Link 
-                  to="/partner" 
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600/10 to-violet-600/10 hover:from-purple-600/20 hover:to-violet-600/20 text-purple-300 hover:text-purple-200 border border-purple-500/20 hover:border-purple-400/40 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500/50 focus:ring-offset-2"
-                >
-                  Партньорство
-                </Link>
                 {showResults && (
                   <button 
                     onClick={resetForm} 
