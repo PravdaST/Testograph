@@ -21,9 +21,7 @@ const Partner = () => {
           <p className="text-lg leading-relaxed mb-6">
             Всеки ден виждам fitness инфлуенсъри които правят страхотно съдържание, имат хиляди последователи, coaching клиенти, брандирани постове... но все още се борят да управляват всичко и да растат.
           </p>
-          <p className="text-xl font-semibold text-primary">
-            Знаеш ли защо? Защото работят В бизнеса, вместо НА бизнеса.
-          </p>
+          <p className="text-xl font-semibold text-primary">Знаеш ли защо? Защото те работят за бизнеса, вместо да го изградят по начин, който да работи за тях.</p>
         </GlassCard>
 
         {/* Situation Section */}
