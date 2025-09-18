@@ -10,7 +10,7 @@ const Partner = () => {
           <img 
             src="/lovable-uploads/7f610a27-06bc-4bf8-9951-7f52e40688ba.png" 
             alt="Testograph Logo" 
-            className="w-20 h-20 rounded-2xl"
+            className="w-full h-full rounded-3xl object-cover"
           />
         </div>
         <h1 className="text-5xl lg:text-6xl font-clash font-bold bg-gradient-to-r from-primary to-primary/80 bg-clip-text text-transparent mb-6">
