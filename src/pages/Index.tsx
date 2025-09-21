@@ -50,17 +50,12 @@ const Index = () => {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                {showResults && (
-                  <button 
-                    onClick={resetForm} 
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary border border-primary/20 hover:border-primary/40 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 animate-fade-in"
-                  >
+                {showResults && <button onClick={resetForm} className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary border border-primary/20 hover:border-primary/40 rounded-xl text-sm font-medium transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-offset-2 animate-fade-in">
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                     </svg>
                     Нов анализ
-                  </button>
-                )}
+                  </button>}
               </div>
             </div>
           </div>
@@ -68,8 +63,7 @@ const Index = () => {
       </header>
 
       {/* Hero Section - Full Width */}
-      {!showResults && (
-        <section className="relative mb-8 -mt-4 min-h-[80vh] flex items-center">
+      {!showResults && <section className="relative mb-8 -mt-4 min-h-[80vh] flex items-center">
           {/* Floating Images - Desktop Only */}
           <div className="hidden xl:block absolute inset-0 pointer-events-none">
             {/* Floating DNA/Molecule icons */}
@@ -95,11 +89,9 @@ const Index = () => {
           
           {/* Grid Texture Background */}
           <div className="absolute inset-0">
-            <div 
-              className="w-full h-full"
-              style={{
-                backgroundColor: 'transparent',
-                backgroundImage: `
+            <div className="w-full h-full" style={{
+          backgroundColor: 'transparent',
+          backgroundImage: `
                   linear-gradient(
                     0deg,
                     transparent 24%,
@@ -125,11 +117,10 @@ const Index = () => {
                     transparent
                   )
                 `,
-                backgroundSize: '55px 55px',
-                maskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`,
-                WebkitMaskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`
-              }}
-            />
+          backgroundSize: '55px 55px',
+          maskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`,
+          WebkitMaskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`
+        }} />
           </div>
           {/* Content Grid */}
           <div className="relative z-10 container mx-auto px-4 md:px-6 max-w-[1200px] py-14 md:py-20 w-full">
@@ -155,11 +146,11 @@ const Index = () => {
                 </p>
 
                 <button onClick={() => {
-                const formSection = document.getElementById('assessment-form');
-                formSection?.scrollIntoView({
-                  behavior: 'smooth'
-                });
-              }} className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
+              const formSection = document.getElementById('assessment-form');
+              formSection?.scrollIntoView({
+                behavior: 'smooth'
+              });
+            }} className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 text-white font-semibold rounded-full transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl">
                   <Activity className="h-5 w-5" />
                   Започнете анализа
                 </button>
@@ -168,26 +159,23 @@ const Index = () => {
               {/* Right Content - Square Image Placeholder */}
               <div className="hidden lg:block lg:col-span-5 xl:col-span-5 lg:justify-self-end w-full max-w-[420px] xl:max-w-[480px]">
                 <div className="w-full aspect-square rounded-3xl overflow-hidden">
-                  <img 
-                    src="/lovable-uploads/2bcd22a3-0894-400b-950c-c10f8b23bb76.png" 
-                    alt="Testosterone analysis visualization" 
-                    className="w-full h-full object-cover"
-                  />
+                  <img src="/lovable-uploads/2bcd22a3-0894-400b-950c-c10f8b23bb76.png" alt="Testosterone analysis visualization" className="w-full h-full object-cover" />
                 </div>
               </div>
             </div>
           </div>
-        </section>
-      )}
+        </section>}
 
       <main className="container mx-auto px-4 py-4 max-w-4xl relative z-20">
         {!showResults ? <>
             {/* Scroll Down Arrow */}
             <div className="flex justify-center mb-4 -mt-8 animate-bounce-slow">
               <div className="flex flex-col items-center cursor-pointer group" onClick={() => {
-                const featureSection = document.querySelector('#enhanced-features');
-                featureSection?.scrollIntoView({ behavior: 'smooth' });
-              }}>
+            const featureSection = document.querySelector('#enhanced-features');
+            featureSection?.scrollIntoView({
+              behavior: 'smooth'
+            });
+          }}>
                 <div className="p-3 rounded-full bg-purple-500/20 backdrop-blur-sm border border-purple-400/30 group-hover:bg-purple-500/30 transition-all duration-300 group-hover:scale-110">
                   <ChevronDown className="h-6 w-6 text-purple-300 group-hover:text-purple-200" />
                 </div>
@@ -262,41 +250,21 @@ const Index = () => {
             <div className="mb-6">
               <h3 className="text-base font-semibold text-foreground mb-3">Последвай ни в социалните мрежи</h3>
               <div className="flex justify-center gap-6">
-                <a 
-                  href="https://www.instagram.com/testograph.eu/" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110"
-                  aria-label="Instagram"
-                >
+                <a href="https://www.instagram.com/testograph.eu/" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110" aria-label="Instagram">
                   <Instagram className="w-5 h-5" />
                 </a>
-                <a 
-                  href="https://www.tiktok.com/@testograph.eu" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110"
-                  aria-label="TikTok"
-                >
+                <a href="https://www.tiktok.com/@testograph.eu" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110" aria-label="TikTok">
                   <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z"/>
+                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.1z" />
                   </svg>
                 </a>
-                <a 
-                  href="https://www.youtube.com/@testograph" 
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110"
-                  aria-label="YouTube"
-                >
+                <a href="https://www.youtube.com/@testograph" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110" aria-label="YouTube">
                   <Youtube className="w-5 h-5" />
                 </a>
               </div>
             </div>
             
-            <p className="mb-2">
-              Testograph © 2029. Образователен инструмент за оценка на тестостерон.
-            </p>
+            <p className="mb-2">Testograph © 2025. Образователен инструмент за оценка на тестостерон.</p>
             <p>
               Не е предназначен като медицински съвет. Консултирайте се с медицински специалисти за медицинско ръководство.
             </p>
