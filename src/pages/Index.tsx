@@ -3,6 +3,7 @@ import { Activity, Target, Shield, Sparkles, ChevronDown, Instagram, Facebook, Y
 import { Link } from "react-router-dom";
 import TForecastFormMultiStep from "@/components/TForecastFormMultiStep";
 import ResultsDisplay from "@/components/ResultsDisplay";
+import ChatAssistant from "@/components/ChatAssistant";
 import { Features } from "@/components/ui/features-8";
 const Index = () => {
   const [result, setResult] = useState(null);
@@ -274,6 +275,9 @@ const Index = () => {
           </div>
         </div>
       </footer>
+
+      {/* Chat Assistant */}
+      <ChatAssistant />
     </div>;
 };
 export default Index;
