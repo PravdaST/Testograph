@@ -142,18 +142,18 @@ export const Step2ThreeKillers = ({ userData }: Step2ThreeKillersProps) => {
 
         <div
           className={cn(
-            "bg-orange-50 dark:bg-orange-950/20 border-2 border-orange-300 dark:border-orange-800 rounded-lg p-6 text-center space-y-3 transition-all duration-700",
+            "bg-gradient-to-r from-orange-500 to-red-600 border-2 border-orange-400 rounded-lg p-6 text-center space-y-3 transition-all duration-700 shadow-xl",
             visibleProblems > 3 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
           )}
         >
-          <AlertTriangle className="w-12 h-12 mx-auto text-orange-600" />
-          <p className="text-xl font-bold text-foreground">
+          <AlertTriangle className="w-12 h-12 mx-auto text-white drop-shadow-lg" />
+          <p className="text-xl font-bold text-white">
             ⚠ ПОВЕЧЕТО МЪЖЕ АТАКУВАТ САМО ЕДИН ПРОБЛЕМ...
           </p>
-          <p className="text-lg text-muted-foreground">
+          <p className="text-lg text-white/90">
             ...и се чудят защо нищо не се подобрява.
           </p>
-          <p className="text-lg font-semibold text-foreground">
+          <p className="text-lg font-semibold text-white">
             Трябва ви СИСТЕМА която атакува и трите едновременно.
           </p>
         </div>

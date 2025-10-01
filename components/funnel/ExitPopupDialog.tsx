@@ -72,7 +72,7 @@ export const ExitPopupDialog = ({ open, onOpenChange }: ExitPopupDialogProps) =>
               size="lg"
               asChild
             >
-              <a href="https://buy.stripe.com/test_DOWNSELL_PLACEHOLDER" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.shop.testograph.eu" target="_blank" rel="noopener noreferrer">
                 🎁 ВЗЕМИ ОФЕРТАТА - 17 ЛВ
               </a>
             </Button>

@@ -97,7 +97,7 @@ export const Step4TheOffer = ({ onDecline, userData }: Step4TheOfferProps) => {
       className={`w-full ${variant === "compact" ? "text-base py-5" : "text-xl py-6"} bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-xl hover:shadow-2xl transition-all`}
       asChild
     >
-      <a href="https://buy.stripe.com/test_PLACEHOLDER" target="_blank" rel="noopener noreferrer">
+      <a href="https://www.shop.testograph.eu" target="_blank" rel="noopener noreferrer">
         🚀 ПОРЪЧАЙ СЕГА - 97 ЛВ
       </a>
     </Button>
@@ -277,7 +277,7 @@ export const Step4TheOffer = ({ onDecline, userData }: Step4TheOfferProps) => {
               className="bg-white text-primary hover:bg-white/90 font-bold shadow-lg"
               asChild
             >
-              <a href="https://buy.stripe.com/test_PLACEHOLDER" target="_blank" rel="noopener noreferrer">
+              <a href="https://www.shop.testograph.eu" target="_blank" rel="noopener noreferrer">
                 ПОРЪЧАЙ СЕГА
               </a>
             </Button>
