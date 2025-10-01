@@ -2,7 +2,21 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { AlertTriangle } from "lucide-react";
 
-export const Step2ThreeKillers = () => {
+interface UserData {
+  firstName?: string;
+  age?: string;
+  weight?: string;
+  height?: string;
+  libido?: string;
+  morningEnergy?: string;
+  mood?: string;
+}
+
+interface Step2ThreeKillersProps {
+  userData?: UserData;
+}
+
+export const Step2ThreeKillers = ({ userData }: Step2ThreeKillersProps) => {
   const [visibleProblems, setVisibleProblems] = useState<number>(0);
 
   useEffect(() => {
@@ -56,7 +70,44 @@ export const Step2ThreeKillers = () => {
           ❌ ТРИТЕ ПРИЧИНИ ЗА НИСКИТЕ ТЕСТОСТЕРОНОВИ НИВА
         </h1>
 
-        <div className="grid md:grid-cols-3 gap-6">
+        {/* Mobile: Horizontal Scroll, Desktop: Grid */}
+        <div className="md:hidden overflow-x-auto pb-4 -mx-4 px-4">
+          <div className="flex gap-4" style={{ width: 'max-content' }}>
+            {problems.map((problem, index) => (
+              <div
+                key={index}
+                className={cn(
+                  "bg-card border-2 border-destructive/20 rounded-lg p-6 space-y-4 transition-all duration-700 w-[85vw] flex-shrink-0",
+                  visibleProblems > index ? "opacity-100 translate-x-0" : "opacity-0 translate-x-4"
+                )}
+              >
+                <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+                  <span className="text-2xl font-bold text-destructive">{index + 1}</span>
+                </div>
+
+                <h3 className="text-lg font-bold text-destructive">
+                  {problem.title}
+                </h3>
+
+                <p className="text-muted-foreground">
+                  {problem.description}
+                </p>
+
+                <div className="pt-2">
+                  <p className="font-semibold mb-2">Резултат:</p>
+                  <ul className="space-y-1 text-sm text-muted-foreground">
+                    {problem.results.map((result, i) => (
+                      <li key={i}>• {result}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop: Grid */}
+        <div className="hidden md:grid md:grid-cols-3 gap-6">
           {problems.map((problem, index) => (
             <div
               key={index}

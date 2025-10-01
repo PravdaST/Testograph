@@ -4,13 +4,26 @@ import { CheckCircle, Clock } from "lucide-react";
 import Image from "next/image";
 import { ProtocolDashboardMockup } from "./ProtocolDashboardMockup";
 
-interface Step4TheOfferProps {
-  onDecline: () => void;
+interface UserData {
+  firstName?: string;
+  age?: string;
+  weight?: string;
+  height?: string;
+  libido?: string;
+  morningEnergy?: string;
+  mood?: string;
 }
 
-export const Step4TheOffer = ({ onDecline }: Step4TheOfferProps) => {
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+interface Step4TheOfferProps {
+  onDecline: () => void;
+  userData?: UserData;
+}
 
+export const Step4TheOffer = ({ onDecline, userData }: Step4TheOfferProps) => {
+  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+  const [showStickyButton, setShowStickyButton] = useState(false);
+
+  // Countdown timer
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft((prev) => {
@@ -24,6 +37,17 @@ export const Step4TheOffer = ({ onDecline }: Step4TheOfferProps) => {
     }, 1000);
 
     return () => clearInterval(timer);
+  }, []);
+
+  // Sticky button on scroll (mobile only)
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolled = window.scrollY > 600;
+      setShowStickyButton(scrolled);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
   const formatTime = (seconds: number) => {
@@ -61,11 +85,23 @@ export const Step4TheOffer = ({ onDecline }: Step4TheOfferProps) => {
   ];
 
   const guarantees = [
+    "30-дневна гаранция за връщане на пари",
     "Над 3,247 доволни клиенти в България",
     "Научно базиран протокол (не магия)",
-    "100% естествени съставки",
-    "Дискретна доставка до 24 часа"
+    "100% естествени съставки"
   ];
+
+  const CTAButton = ({ variant = "default" }: { variant?: "default" | "compact" }) => (
+    <Button
+      size={variant === "compact" ? "default" : "lg"}
+      className={`w-full ${variant === "compact" ? "text-base py-5" : "text-xl py-6"} bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-xl hover:shadow-2xl transition-all`}
+      asChild
+    >
+      <a href="https://buy.stripe.com/test_PLACEHOLDER" target="_blank" rel="noopener noreferrer">
+        🚀 ПОРЪЧАЙ СЕГА - 97 ЛВ
+      </a>
+    </Button>
+  );
 
   return (
     <div className="min-h-[80vh] px-4 py-12">
@@ -99,6 +135,9 @@ export const Step4TheOffer = ({ onDecline }: Step4TheOfferProps) => {
           </p>
         </div>
 
+        {/* CTA #1 - Top */}
+        <CTAButton />
+
         {/* Product Images */}
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/20 rounded-lg p-8 flex items-center justify-center min-h-[300px]">
@@ -117,6 +156,9 @@ export const Step4TheOffer = ({ onDecline }: Step4TheOfferProps) => {
             <ProtocolDashboardMockup />
           </div>
         </div>
+
+        {/* CTA #2 - Middle */}
+        <CTAButton variant="compact" />
 
         {/* Features List */}
         <div className="bg-card border border-border rounded-lg p-6 space-y-4">
@@ -156,17 +198,23 @@ export const Step4TheOffer = ({ onDecline }: Step4TheOfferProps) => {
           </p>
         </div>
 
-        {/* CTA Button */}
+        {/* CTA #3 - Bottom */}
         <div className="space-y-4">
-          <Button
-            size="lg"
-            className="w-full text-xl py-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
-            asChild
-          >
-            <a href="https://buy.stripe.com/test_PLACEHOLDER" target="_blank" rel="noopener noreferrer">
-              🚀 ПОРЪЧАЙ СЕГА - 97 ЛВ
-            </a>
-          </Button>
+          <CTAButton />
+
+          {/* Money-Back Guarantee Badge */}
+          <div className="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 rounded-lg p-6 border-2 border-green-500 text-center space-y-2">
+            <div className="w-16 h-16 mx-auto rounded-full bg-green-500 flex items-center justify-center text-3xl mb-2">
+              ✓
+            </div>
+            <h3 className="text-xl font-bold text-foreground">30-ДНЕВНА ГАРАНЦИЯ</h3>
+            <p className="text-muted-foreground">
+              Не сте доволни? Връщаме ви парите. Без въпроси.
+            </p>
+            <p className="text-sm font-semibold text-green-700 dark:text-green-400">
+              100% Risk-Free
+            </p>
+          </div>
 
           {/* Guarantees */}
           <div className="bg-primary/5 rounded-lg p-6 space-y-3">
@@ -183,6 +231,27 @@ export const Step4TheOffer = ({ onDecline }: Step4TheOfferProps) => {
             </div>
           </div>
 
+          {/* Payment Trust Badges */}
+          <div className="flex flex-wrap items-center justify-center gap-4 pt-4">
+            <div className="flex items-center gap-2 px-4 py-2 bg-card rounded-lg border">
+              <svg className="w-8 h-5" viewBox="0 0 32 20" fill="none">
+                <rect width="32" height="20" rx="2" fill="#1434CB"/>
+                <path d="M13.8 14.5h4.4l2.8-9h-4.4l-2.8 9z" fill="#fff"/>
+              </svg>
+              <svg className="w-8 h-5" viewBox="0 0 32 20" fill="none">
+                <rect width="32" height="20" rx="2" fill="#EB001B"/>
+                <circle cx="12" cy="10" r="6" fill="#F79E1B" fillOpacity="0.7"/>
+              </svg>
+              <span className="text-xs font-medium">Visa/Mastercard</span>
+            </div>
+            <div className="px-4 py-2 bg-card rounded-lg border">
+              <span className="text-xs font-medium">🔒 SSL Secure</span>
+            </div>
+            <div className="px-4 py-2 bg-card rounded-lg border">
+              <span className="text-xs font-medium">🇧🇬 Доставка от България</span>
+            </div>
+          </div>
+
           {/* Decline Button */}
           <div className="text-center pt-4">
             <button
@@ -194,6 +263,27 @@ export const Step4TheOffer = ({ onDecline }: Step4TheOfferProps) => {
           </div>
         </div>
       </div>
+
+      {/* Sticky CTA Button (Mobile) */}
+      {showStickyButton && (
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-primary to-violet-600 p-4 shadow-2xl border-t-2 border-primary animate-in slide-in-from-bottom duration-300">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex-1">
+              <p className="text-white text-xs font-medium">ЕКСКЛУЗИВНА ОФЕРТА</p>
+              <p className="text-white text-lg font-bold">97 ЛВ</p>
+            </div>
+            <Button
+              size="lg"
+              className="bg-white text-primary hover:bg-white/90 font-bold shadow-lg"
+              asChild
+            >
+              <a href="https://buy.stripe.com/test_PLACEHOLDER" target="_blank" rel="noopener noreferrer">
+                ПОРЪЧАЙ СЕГА
+              </a>
+            </Button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
