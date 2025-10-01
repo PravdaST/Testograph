@@ -3,8 +3,47 @@ import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
 import Image from "next/image";
 
-export const Step3StefanStory = () => {
+interface UserData {
+  firstName?: string;
+  age?: string;
+  weight?: string;
+  height?: string;
+  libido?: string;
+  morningEnergy?: string;
+  mood?: string;
+}
+
+interface Step3StefanStoryProps {
+  userData?: UserData;
+}
+
+export const Step3StefanStory = ({ userData }: Step3StefanStoryProps) => {
   const [visibleSections, setVisibleSections] = useState<number>(0);
+
+  // Generate personalized symptom list
+  const getUserSymptoms = (): string[] => {
+    if (!userData) return [];
+
+    const symptoms: string[] = [];
+
+    if (userData.libido === "low") {
+      symptoms.push("Ниско либидо");
+    }
+    if (userData.morningEnergy === "low") {
+      symptoms.push("Липса на сутрешна енергия");
+    }
+    if (userData.mood === "irritable") {
+      symptoms.push("Раздразнителност");
+    }
+    if (userData.weight && parseInt(userData.weight) > 90) {
+      symptoms.push("Излишни килограми");
+    }
+
+    return symptoms;
+  };
+
+  const userSymptoms = getUserSymptoms();
+  const hasSymptoms = userSymptoms.length > 0;
 
   useEffect(() => {
     const timers = [
@@ -19,7 +58,7 @@ export const Step3StefanStory = () => {
   }, []);
 
   const results = [
-    "Тестостерон: 289 → 794 ng/dL (174% увеличение)",
+    "Тестостерон: 289 → 485 ng/dL (68% увеличение)",
     "Енергия: От изтощение → Пълна работна седмица + време за семейството",
     'Либидо: От нула → "Жената ми забеляза разликата"',
     "Зала: 3 тренировки седмично, личен рекорд на лежанка",
@@ -44,12 +83,37 @@ export const Step3StefanStory = () => {
           )}
         >
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-            💡 МАРТИН, 38 ГОДИНИ: ОТ ИЗТОЩЕНИЕ ДО ДОМИНАЦИЯ ЗА 30 ДНИ
+            💡 МАРТИН К., 38 ГОДИНИ: ОТ ИЗТОЩЕНИЕ ДО ДОМИНАЦИЯ ЗА 30 ДНИ
           </h1>
           <p className="text-lg text-muted-foreground">
             Маркетинг мениджър, баща на 2 деца. Работеше 10+ часа дневно, нямаше енергия за нищо друго.
           </p>
         </div>
+
+        {/* Personalized Connection Section */}
+        {hasSymptoms && (
+          <div
+            className={cn(
+              "bg-gradient-to-r from-primary/10 to-violet-500/10 border-2 border-primary/30 rounded-lg p-6 space-y-4 transition-all duration-700",
+              visibleSections > 0 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+            )}
+          >
+            <p className="text-lg font-semibold text-foreground">
+              {userData?.firstName ? `${userData.firstName}, ` : ""}ти отбеляза че имаш:
+            </p>
+            <div className="grid md:grid-cols-2 gap-2">
+              {userSymptoms.map((symptom, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-primary flex-shrink-0" />
+                  <span className="text-muted-foreground font-medium">{symptom}</span>
+                </div>
+              ))}
+            </div>
+            <p className="text-lg font-semibold text-primary pt-2">
+              Мартин К. имаше СЪЩИТЕ проблеми. Ето какво стана след 30 дни...
+            </p>
+          </div>
+        )}
 
         <div
           className={cn(
@@ -58,7 +122,7 @@ export const Step3StefanStory = () => {
           )}
         >
           <div className="bg-card border-2 border-destructive/30 rounded-lg p-6 text-center space-y-4">
-            <div className="relative w-full h-48 rounded-lg overflow-hidden">
+            <div className="relative w-full h-56 md:h-48 rounded-lg overflow-hidden">
               <Image
                 src="/funnel/martin-before.jpg"
                 alt="Преди трансформация"
@@ -73,7 +137,7 @@ export const Step3StefanStory = () => {
           </div>
 
           <div className="bg-card border-2 border-primary rounded-lg p-6 text-center space-y-4">
-            <div className="relative w-full h-48 rounded-lg overflow-hidden">
+            <div className="relative w-full h-56 md:h-48 rounded-lg overflow-hidden">
               <Image
                 src="/funnel/martin-after.jpg"
                 alt="След трансформация"
@@ -83,7 +147,7 @@ export const Step3StefanStory = () => {
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">СЛЕД 30 ДНИ:</p>
-              <p className="text-lg font-bold text-primary">Тестостерон: 794 ng/dL</p>
+              <p className="text-lg font-bold text-primary">Тестостерон: 485 ng/dL</p>
             </div>
           </div>
         </div>
@@ -114,7 +178,7 @@ export const Step3StefanStory = () => {
           )}
         >
           <p className="text-lg font-semibold text-foreground">
-            Мартин е един от 341 български мъже които следват протокола.
+            Мартин К. е един от 341 български мъже които следват протокола.
           </p>
           
           <div className="bg-primary/10 rounded-lg p-6 space-y-3">
@@ -146,10 +210,10 @@ export const Step3StefanStory = () => {
             Безплатният 7-дневен план който получавате е ДОБРО НАЧАЛО - ще усетите първата разлика.
           </p>
           <p className="text-muted-foreground">
-            Но Мартин следва ПЪЛНИЯ 30-дневен протокол. Същият който атакува всичките 3 причини за ниски нива едновременно.
+            Но Мартин К. следва ПЪЛНИЯ 30-дневен протокол. Същият който атакува всичките 3 причини за ниски нива едновременно.
           </p>
           <p className="text-lg font-semibold text-foreground">
-            Искате същите резултати като Мартин? Нужен ви е пълният протокол.
+            Искате същите резултати като Мартин К.? Нужен ви е пълният протокол.
           </p>
           <p className="text-xl font-bold text-primary">
             И той е на екран разстояние...

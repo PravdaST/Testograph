@@ -9,7 +9,9 @@ export const ProtocolDashboardMockup = () => {
             <span className="text-white font-bold">TestoGraph Pro</span>
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-emerald-500" />
+            <div className="w-8 h-8 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-white text-xs font-bold">
+              МК
+            </div>
             <span className="text-white text-sm">Мартин К.</span>
           </div>
         </div>

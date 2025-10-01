@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Clock } from "lucide-react";
+import { CheckCircle, Clock, ChevronDown } from "lucide-react";
 import Image from "next/image";
 import { ProtocolDashboardMockup } from "./ProtocolDashboardMockup";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface UserData {
   firstName?: string;
@@ -22,6 +28,19 @@ interface Step4TheOfferProps {
 export const Step4TheOffer = ({ onDecline, userData }: Step4TheOfferProps) => {
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
   const [showStickyButton, setShowStickyButton] = useState(false);
+
+  // Determine primary pain point for personalization
+  const getPrimaryPainPoint = (): 'libido' | 'energy' | 'weight' | null => {
+    if (!userData) return null;
+
+    if (userData.libido === "low") return 'libido';
+    if (userData.morningEnergy === "low") return 'energy';
+    if (userData.weight && parseInt(userData.weight) > 90) return 'weight';
+
+    return null;
+  };
+
+  const primaryPainPoint = getPrimaryPainPoint();
 
   // Countdown timer
   useEffect(() => {
@@ -56,33 +75,56 @@ export const Step4TheOffer = ({ onDecline, userData }: Step4TheOfferProps) => {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const features = [
+  // Base features with IDs for reordering
+  const baseFeatures = [
     {
+      id: 'protocol',
       title: "30-дневен интерактивен web протокол",
       description: "Ден-по-ден план за хранене, тренировки, добавки. Персонален tracker за проследяване на напредъка",
-      value: "197 лв"
+      value: "197 лв",
+      relevantFor: ['weight', 'energy']
     },
     {
+      id: 'testoup',
       title: "TestoUP Premium добавка (30 дни)",
       description: "40% Протодиосцин Трибулус - 5x по-мощен от пазара. Адаптогени + витамини за хормонален баланс",
-      value: "67 лв"
+      value: "67 лв",
+      relevantFor: ['libido']
     },
     {
+      id: 'ai-expert',
       title: "AI Тестостеронов Експерт (НОВ!)",
       description: "Персонален асистент 24/7 за адаптиране на протокола. Отговаря на всички въпроси за тренировки, храна, добавки",
-      value: "99 лв"
+      value: "99 лв",
+      relevantFor: ['energy']
     },
     {
+      id: 'meal-planner',
       title: "Meal Planner + Food Tracker App (НОВ!)",
       description: "Автоматично планиране на храни според протокола. Персонализирани рецепти с български продукти",
-      value: "79 лв"
+      value: "79 лв",
+      relevantFor: ['weight', 'energy']
     },
     {
+      id: 'telegram',
       title: "Telegram VIP общност",
       description: "Ежедневни съвети от експерти. Директна подкрепа + мотивация",
-      value: "Безценно"
+      value: "Безценно",
+      relevantFor: []
     }
   ];
+
+  // Reorder features based on primary pain point
+  const features = [...baseFeatures].sort((a, b) => {
+    if (!primaryPainPoint) return 0;
+
+    const aRelevant = a.relevantFor.includes(primaryPainPoint);
+    const bRelevant = b.relevantFor.includes(primaryPainPoint);
+
+    if (aRelevant && !bRelevant) return -1;
+    if (!aRelevant && bRelevant) return 1;
+    return 0;
+  });
 
   const guarantees = [
     "30-дневна гаранция за връщане на пари",
@@ -91,6 +133,28 @@ export const Step4TheOffer = ({ onDecline, userData }: Step4TheOfferProps) => {
     "100% естествени съставки"
   ];
 
+  // Personalized CTA text
+  const getCTAText = (variant: "default" | "compact" = "default"): string => {
+    const firstName = userData?.firstName;
+    const name = firstName ? `${firstName}, ` : "";
+
+    if (variant === "compact") {
+      return primaryPainPoint ? "ПОРЪЧАЙ СЕГА" : "ПОРЪЧАЙ СЕГА - 97 ЛВ";
+    }
+
+    if (!primaryPainPoint) {
+      return `🚀 ${name}ПОРЪЧАЙ СЕГА - 97 ЛВ`;
+    }
+
+    const painPointMessages = {
+      libido: `🚀 ${name}РЕШИ ПРОБЛЕМА С ЛИБИДОТО - 97 ЛВ`,
+      energy: `🚀 ${name}ВЪРНИ ЕНЕРГИЯТА СИ - 97 ЛВ`,
+      weight: `🚀 ${name}ЗАПОЧНИ ТРАНСФОРМАЦИЯТА - 97 ЛВ`
+    };
+
+    return painPointMessages[primaryPainPoint];
+  };
+
   const CTAButton = ({ variant = "default" }: { variant?: "default" | "compact" }) => (
     <Button
       size={variant === "compact" ? "default" : "lg"}
@@ -98,7 +162,7 @@ export const Step4TheOffer = ({ onDecline, userData }: Step4TheOfferProps) => {
       asChild
     >
       <a href="https://www.shop.testograph.eu" target="_blank" rel="noopener noreferrer">
-        🚀 ПОРЪЧАЙ СЕГА - 97 ЛВ
+        {getCTAText(variant)}
       </a>
     </Button>
   );
@@ -160,23 +224,80 @@ export const Step4TheOffer = ({ onDecline, userData }: Step4TheOfferProps) => {
         {/* CTA #2 - Middle */}
         <CTAButton variant="compact" />
 
-        {/* Features List */}
-        <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-          <h2 className="text-xl font-bold text-center text-foreground mb-4">
-            Това което получавате ДНЕС:
-          </h2>
-          {features.map((feature, index) => (
-            <div key={index} className="flex items-start gap-3 pb-3 border-b border-border last:border-0">
-              <CheckCircle className="w-5 h-5 text-primary flex-shrink-0 mt-1" />
-              <div className="flex-1">
-                <h3 className="font-semibold text-foreground">{feature.title}</h3>
-                <p className="text-sm text-muted-foreground">{feature.description}</p>
-              </div>
-              <span className="text-sm font-semibold text-muted-foreground whitespace-nowrap">
-                ({feature.value})
-              </span>
-            </div>
-          ))}
+        {/* Features List - Desktop: Always Open, Mobile: Accordion */}
+        <div className="bg-card border border-border rounded-lg overflow-hidden">
+          {/* Desktop - Always Visible */}
+          <div className="hidden md:block p-6 space-y-4">
+            <h2 className="text-xl font-bold text-center text-foreground mb-4">
+              Това което получавате ДНЕС:
+            </h2>
+            {features.map((feature, index) => {
+              const isRelevant = primaryPainPoint && feature.relevantFor.includes(primaryPainPoint);
+              return (
+                <div
+                  key={index}
+                  className={`flex items-start gap-3 pb-3 border-b border-border last:border-0 relative ${isRelevant ? 'bg-primary/5 -mx-3 px-3 py-3 rounded-lg' : ''}`}
+                >
+                  {isRelevant && (
+                    <span className="absolute -top-2 right-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                      ⚡ ЗА ТЕБ
+                    </span>
+                  )}
+                  <CheckCircle className={`w-5 h-5 flex-shrink-0 mt-1 ${isRelevant ? 'text-orange-500' : 'text-primary'}`} />
+                  <div className="flex-1">
+                    <h3 className={`font-semibold ${isRelevant ? 'text-primary' : 'text-foreground'}`}>{feature.title}</h3>
+                    <p className="text-sm text-muted-foreground">{feature.description}</p>
+                  </div>
+                  <span className="text-sm font-semibold text-muted-foreground whitespace-nowrap">
+                    ({feature.value})
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Mobile - Accordion */}
+          <Accordion type="single" collapsible className="md:hidden">
+            <AccordionItem value="features" className="border-none">
+              <AccordionTrigger className="px-6 py-4 hover:no-underline">
+                <div className="flex items-center justify-between w-full">
+                  <h2 className="text-lg font-bold text-foreground">
+                    Виж какво получаваш
+                  </h2>
+                  <span className="text-sm text-muted-foreground mr-2">
+                    (442 лв стойност)
+                  </span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="px-6 pb-4">
+                <div className="space-y-3">
+                  {features.map((feature, index) => {
+                    const isRelevant = primaryPainPoint && feature.relevantFor.includes(primaryPainPoint);
+                    return (
+                      <div
+                        key={index}
+                        className={`flex items-start gap-3 pb-3 border-b border-border last:border-0 relative ${isRelevant ? 'bg-primary/5 -mx-3 px-3 py-3 rounded-lg' : ''}`}
+                      >
+                        {isRelevant && (
+                          <span className="absolute -top-2 right-2 bg-orange-500 text-white text-xs px-2 py-0.5 rounded-full font-bold">
+                            ⚡ ЗА ТЕБ
+                          </span>
+                        )}
+                        <CheckCircle className={`w-5 h-5 flex-shrink-0 mt-1 ${isRelevant ? 'text-orange-500' : 'text-primary'}`} />
+                        <div className="flex-1">
+                          <h3 className={`font-semibold text-sm ${isRelevant ? 'text-primary' : 'text-foreground'}`}>{feature.title}</h3>
+                          <p className="text-xs text-muted-foreground">{feature.description}</p>
+                        </div>
+                        <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">
+                          ({feature.value})
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
         </div>
 
         {/* Pricing */}
@@ -269,7 +390,9 @@ export const Step4TheOffer = ({ onDecline, userData }: Step4TheOfferProps) => {
         <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-gradient-to-r from-primary to-violet-600 p-4 shadow-2xl border-t-2 border-primary animate-in slide-in-from-bottom duration-300">
           <div className="flex items-center justify-between gap-3">
             <div className="flex-1">
-              <p className="text-white text-xs font-medium">ЕКСКЛУЗИВНА ОФЕРТА</p>
+              <p className="text-white text-xs font-medium">
+                {primaryPainPoint ? "СПЕЦИАЛНА ОФЕРТА ЗА ТЕБ" : "ЕКСКЛУЗИВНА ОФЕРТА"}
+              </p>
               <p className="text-white text-lg font-bold">97 ЛВ</p>
             </div>
             <Button
@@ -278,7 +401,7 @@ export const Step4TheOffer = ({ onDecline, userData }: Step4TheOfferProps) => {
               asChild
             >
               <a href="https://www.shop.testograph.eu" target="_blank" rel="noopener noreferrer">
-                ПОРЪЧАЙ СЕГА
+                {getCTAText("compact")}
               </a>
             </Button>
           </div>

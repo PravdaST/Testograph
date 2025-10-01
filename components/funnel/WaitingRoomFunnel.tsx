@@ -168,7 +168,7 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
       <div className="pt-8">
         {currentStep === 1 && <Step1DataAnalysis userData={userData} />}
         {currentStep === 2 && <Step2ThreeKillers userData={userData} />}
-        {currentStep === 3 && <Step3StefanStory />}
+        {currentStep === 3 && <Step3StefanStory userData={userData} />}
         {currentStep === 4 && <Step4TheOffer onDecline={handleDecline} userData={userData} />}
       </div>
 
