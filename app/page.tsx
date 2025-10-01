@@ -212,7 +212,7 @@ const Index = () => {
                 <div className="p-1.5 rounded-xl">
                   <img src="/testograph-logo.png" alt="Testograph Logo" className="h-11 w-auto max-w-11 rounded-xl object-contain" />
                 </div>
-                <div className="hidden sm:block">
+                <div>
                   <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                     Testograph
                   </h1>
@@ -893,7 +893,7 @@ const Index = () => {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-border/50 mt-16 relative z-20">
+      <footer className="border-t border-border/50 mt-16 pb-20 relative z-20">
         <div className="container mx-auto px-4 py-6">
           <div className="text-center text-sm text-muted-foreground">
             {/* Social Media Section */}
