@@ -40,7 +40,7 @@ const sections = [
     title: "Лична информация",
     icon: User,
     description: "Попълнете основните данни за точен анализ",
-    fields: ['gender', 'age', 'height', 'weight']
+    fields: ['age', 'height', 'weight']
   },
   {
     id: 'training',
@@ -80,7 +80,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     email: "",
     firstName: "",
     lastName: "",
-    gender: "",
+    gender: "male",
     age: "",
     height: "",
     weight: "",
@@ -161,7 +161,6 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    if (!formData.gender) newErrors.gender = "Полът е задължителен";
     if (!formData.age) newErrors.age = "Възрастта е задължителна";
     if (!formData.height) newErrors.height = "Ръстът е задължителен";
     if (!formData.weight) newErrors.weight = "Теглото е задължително";
@@ -308,18 +307,6 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     <div className="space-y-6">
       <div className="grid gap-4 md:grid-cols-2">
         <div>
-          <Label htmlFor="gender">Пол</Label>
-          <FormSelect value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
-            <FormSelectTrigger className="mt-1">
-              <FormSelectValue placeholder="Изберете пол" />
-            </FormSelectTrigger>
-            <FormSelectContent>
-              <FormSelectItem value="male">Мъжки</FormSelectItem>
-            </FormSelectContent>
-          </FormSelect>
-          {errors.gender && <p className="text-sm text-destructive mt-1">{errors.gender}</p>}
-        </div>
-        <div>
           <Label htmlFor="age">Възраст (години)</Label>
           <Input
             id="age"
@@ -329,7 +316,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             placeholder="30"
             min="18"
             max="100"
-            className="mt-1 bg-muted/10 border-muted/20 backdrop-blur-sm"
+            className="mt-1"
           />
           {errors.age && <p className="text-sm text-destructive mt-1">{errors.age}</p>}
         </div>
@@ -343,7 +330,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             placeholder="175"
             min="100"
             max="250"
-            className="mt-1 bg-muted/10 border-muted/20 backdrop-blur-sm"
+            className="mt-1"
           />
           {errors.height && <p className="text-sm text-destructive mt-1">{errors.height}</p>}
         </div>
@@ -357,7 +344,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             placeholder="75"
             min="30"
             max="300"
-            className="mt-1 bg-muted/10 border-muted/20 backdrop-blur-sm"
+            className="mt-1"
           />
           {errors.weight && <p className="text-sm text-destructive mt-1">{errors.weight}</p>}
         </div>
@@ -386,7 +373,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
         </div>
         <div>
           <Label htmlFor="trainingType">Тип тренировка (можете да изберете повече от един)</Label>
-          <div className="mt-2 space-y-3 p-3 rounded-md border border-muted/20 bg-muted/10 backdrop-blur-sm">
+          <div className="mt-2 space-y-3 p-3 rounded-md border border-purple-500/30 bg-background backdrop-blur-sm shadow-sm shadow-purple-500/10">
             {[
               { value: "none", label: "Не спортувам" },
               { value: "strength", label: "Силови тренировки" },
@@ -438,7 +425,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
               onChange={e => handleInputChange('supplements', e.target.value)}
               placeholder="Протеин, Витамин Д, Креатин"
               disabled={formData.supplements === "Не приемам добавки"}
-              className="bg-muted/10 border-muted/20 backdrop-blur-sm disabled:opacity-50"
+              className="disabled:opacity-50"
             />
             <div className="flex items-center space-x-2">
               <input
@@ -482,7 +469,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             placeholder="7.5"
             min="3"
             max="12"
-            className="mt-1 bg-muted/10 border-muted/20 backdrop-blur-sm"
+            className="mt-1"
           />
           {errors.averageSleep && <p className="text-sm text-destructive mt-1">{errors.averageSleep}</p>}
         </div>
@@ -514,7 +501,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
             placeholder="3"
             min="0"
             max="50"
-            className="mt-1 bg-muted/10 border-muted/20 backdrop-blur-sm"
+            className="mt-1"
           />
           {errors.alcohol && <p className="text-sm text-destructive mt-1">{errors.alcohol}</p>}
         </div>
@@ -708,35 +695,35 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
       </Dialog>
 
       <div className="testograph-form-container">
-        <GlassCard variant="elevated" className="max-w-4xl mx-auto animate-scale-in">
-          {/* Progress Header */}
-          <div className="p-6 border-b border-muted/20 animate-fade-in">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-primary/20 text-primary">
-                  <IconComponent className="h-6 w-6" />
+        <GlassCard variant="elevated" className="max-w-3xl mx-auto animate-scale-in">
+          {/* Progress Header - Modernized */}
+          <div className="p-5 border-b border-primary/10 animate-fade-in bg-gradient-to-r from-primary/5 to-accent/5">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center gap-2.5">
+                <div className="p-1.5 rounded-lg bg-primary/20 text-primary">
+                  <IconComponent className="h-5 w-5" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold">{currentSection.title}</h2>
-                  <p className="text-sm text-muted-foreground">{currentSection.description}</p>
+                  <h2 className="text-lg font-bold">{currentSection.title}</h2>
+                  <p className="text-xs text-muted-foreground">{currentSection.description}</p>
                 </div>
               </div>
-              <div className="text-sm text-muted-foreground">
-                Стъпка {currentStep + 1} от {sections.length}
+              <div className="text-xs font-medium text-muted-foreground bg-muted/20 px-2.5 py-1 rounded-full">
+                {currentStep + 1}/{sections.length}
               </div>
             </div>
-            
-            {/* Progress Bar */}
-            <div className="w-full bg-muted rounded-full h-2">
-              <div 
-                className="bg-gradient-primary h-2 rounded-full transition-all duration-500"
-                style={{ width: `${getProgress()}%` }}
-              />
-            </div>
-            <div className="flex justify-between mt-2 text-xs text-muted-foreground">
-              <span>0%</span>
-              <span>{Math.round(getProgress())}% завършено</span>
-              <span>100%</span>
+
+            {/* Progress Bar - Modern */}
+            <div className="relative">
+              <div className="w-full bg-muted/30 rounded-full h-1.5 overflow-hidden">
+                <div
+                  className="bg-gradient-to-r from-primary to-accent h-1.5 rounded-full transition-all duration-500 shadow-sm shadow-primary/50"
+                  style={{ width: `${getProgress()}%` }}
+                />
+              </div>
+              <div className="flex justify-end mt-1.5">
+                <span className="text-[10px] font-medium text-primary">{Math.round(getProgress())}% завършено</span>
+              </div>
             </div>
           </div>
 
@@ -746,40 +733,40 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
               {renderSteps[currentStep]()}
             </div>
 
-            {/* Navigation Buttons */}
-            <div className={`flex mt-8 pt-6 border-t border-muted/20 ${currentStep === 0 ? 'justify-end' : 'justify-between'}`}>
+            {/* Navigation Buttons - Modernized */}
+            <div className={`flex mt-6 pt-5 border-t border-primary/10 ${currentStep === 0 ? 'justify-end' : 'justify-between'}`}>
               {currentStep > 0 && (
                 <Button
                   type="button"
                   variant="outline"
                   onClick={prevStep}
-                  className="bg-muted/10 border-muted/20 backdrop-blur-sm hover:shadow-glow transition-all duration-300"
+                  className="bg-muted/10 border-muted/30 backdrop-blur-sm hover:bg-muted/20 hover:border-primary/30 transition-all duration-300 text-sm px-5 py-2 h-auto"
                 >
-                  <ChevronLeft className="w-4 h-4 mr-2" />
+                  <ChevronLeft className="w-3.5 h-3.5 mr-1.5" />
                   Назад
                 </Button>
               )}
-              
+
               {currentStep < sections.length - 1 ? (
                 <Button
                   type="button"
                   onClick={nextStep}
                   disabled={!validateStep(currentStep)}
-                  className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
+                  className="bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 text-sm px-6 py-2 h-auto font-semibold"
                 >
                   Напред
-                  <ChevronRight className="w-4 h-4 ml-2" />
+                  <ChevronRight className="w-3.5 h-3.5 ml-1.5" />
                 </Button>
               ) : (
                 <Button
                   type="submit"
                   disabled={isLoading || !validateStep(currentStep)}
-                  className="bg-gradient-primary hover:shadow-glow transition-all duration-300"
+                  className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:shadow-lg hover:shadow-green-500/30 transition-all duration-300 text-sm px-6 py-2 h-auto font-semibold"
                 >
                   {isLoading ? (
                     <>
-                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                      Генериране на доклад...
+                      <Loader2 className="h-3.5 w-3.5 animate-spin mr-1.5" />
+                      Генериране...
                     </>
                   ) : (
                     "Завърши анализа"
@@ -790,26 +777,26 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
           </form>
         </GlassCard>
 
-        {/* Step Indicators */}
-        <div className="flex justify-center mt-8 space-x-2">
+        {/* Step Indicators - Minimalist */}
+        <div className="flex justify-center mt-6 gap-2">
           {sections.map((section, index) => {
             const IconComp = section.icon;
             const isCompleted = validateStep(index);
             const isCurrent = index === currentStep;
             const isPast = index < currentStep;
-            
+
             return (
               <div
                 key={section.id}
-                className={`flex items-center justify-center w-12 h-12 rounded-full border-2 transition-all duration-300 ${
+                className={`flex items-center justify-center w-10 h-10 rounded-full border transition-all duration-300 ${
                   isCurrent
-                    ? 'border-primary bg-primary/20 shadow-glow'
+                    ? 'border-primary bg-primary/20 shadow-md shadow-primary/30 scale-110'
                     : isPast || isCompleted
-                    ? 'border-success bg-success/20'
-                    : 'border-muted/20 bg-muted/10 backdrop-blur-sm'
+                    ? 'border-success/50 bg-success/10'
+                    : 'border-muted/30 bg-muted/5 backdrop-blur-sm'
                 }`}
               >
-                <IconComp className={`w-5 h-5 ${
+                <IconComp className={`w-4 h-4 ${
                   isCurrent ? 'text-primary' : isPast || isCompleted ? 'text-success' : 'text-muted-foreground'
                 }`} />
               </div>
@@ -817,9 +804,9 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
           })}
         </div>
 
-        {/* Medical Disclaimer */}
-        <div className="mt-8 p-4 bg-muted/50 rounded-lg backdrop-blur-sm border border-muted/20">
-          <p className="text-xs text-muted-foreground text-center">
+        {/* Medical Disclaimer - Compact */}
+        <div className="mt-6 p-3 bg-muted/30 rounded-lg backdrop-blur-sm border border-muted/20">
+          <p className="text-[10px] text-muted-foreground text-center leading-relaxed">
             Този инструмент не е заместител на медицински изследвания, диагнози и лечение. Преди да предприемате промени във вашето здраве или начин на живот винаги се консултирайте с квалифициран здравен специалист.
           </p>
         </div>
