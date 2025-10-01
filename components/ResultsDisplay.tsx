@@ -10,7 +10,7 @@ interface ResultsDisplayProps {
 const ResultsDisplay = ({ result }: ResultsDisplayProps) => {
   // Check if this is a thank you message - show waiting room funnel
   if (result?.type === 'thank-you') {
-    return <WaitingRoomFunnel />;
+    return <WaitingRoomFunnel userData={result.userData} />;
   }
 
   // Parse the result to extract relevant information

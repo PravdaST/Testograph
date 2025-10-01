@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock } from "lucide-react";
+import Image from "next/image";
+import { ProtocolDashboardMockup } from "./ProtocolDashboardMockup";
 
 interface Step4TheOfferProps {
   onDecline: () => void;
@@ -97,20 +99,22 @@ export const Step4TheOffer = ({ onDecline }: Step4TheOfferProps) => {
           </p>
         </div>
 
-        {/* Product Image Placeholder */}
+        {/* Product Images */}
         <div className="grid md:grid-cols-2 gap-6">
           <div className="bg-gradient-to-br from-purple-100 to-violet-100 dark:from-purple-900/20 dark:to-violet-900/20 rounded-lg p-8 flex items-center justify-center min-h-[300px]">
-            <div className="text-center space-y-4">
-              <div className="w-32 h-40 bg-gradient-to-br from-primary to-violet-600 rounded-lg mx-auto" />
-              <p className="font-semibold text-foreground">[TestoUP Bottle Image]</p>
+            <div className="relative w-full h-full flex items-center justify-center">
+              <Image
+                src="/funnel/testoup-bottle.webp"
+                alt="TestoUP Premium добавка"
+                width={250}
+                height={350}
+                className="object-contain drop-shadow-2xl"
+              />
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-blue-100 to-cyan-100 dark:from-blue-900/20 dark:to-cyan-900/20 rounded-lg p-8 flex items-center justify-center min-h-[300px]">
-            <div className="text-center space-y-4">
-              <div className="w-full h-32 bg-gradient-to-r from-blue-500 to-cyan-500 rounded-lg" />
-              <p className="font-semibold text-foreground">[Web Protocol Screenshot]</p>
-            </div>
+          <div className="rounded-lg overflow-hidden min-h-[300px]">
+            <ProtocolDashboardMockup />
           </div>
         </div>
 
@@ -154,12 +158,12 @@ export const Step4TheOffer = ({ onDecline }: Step4TheOfferProps) => {
 
         {/* CTA Button */}
         <div className="space-y-4">
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="w-full text-xl py-6 bg-primary hover:bg-primary/90 text-primary-foreground font-bold"
             asChild
           >
-            <a href="#">
+            <a href="https://buy.stripe.com/test_PLACEHOLDER" target="_blank" rel="noopener noreferrer">
               🚀 ПОРЪЧАЙ СЕГА - 97 ЛВ
             </a>
           </Button>

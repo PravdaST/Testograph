@@ -256,7 +256,16 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
         onResult({
           type: 'thank-you',
           title: 'Благодарим! Вашата Testograph прогноза е в процес.',
-          description: "Изпратихме вашия персонализиран доклад до вашия имейл адрес.\nМоже да отнеме 1–2 минути да пристигне — ако не го видите, моля проверете папките Промоции или Спам."
+          description: "Изпратихме вашия персонализиран доклад до вашия имейл адрес.\nМоже да отнеме 1–2 минути да пристигне — ако не го видите, моля проверете папките Промоции или Спам.",
+          userData: {
+            firstName: formData.firstName,
+            age: formData.age,
+            weight: formData.weight,
+            height: formData.height,
+            libido: formData.libido,
+            morningEnergy: formData.morningEnergy,
+            mood: formData.mood
+          }
         });
         toast({
           title: "Анализът завърши",

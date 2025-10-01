@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
+import { ProtocolAppMockup } from "./ProtocolAppMockup";
 
 interface ExitPopupDialogProps {
   open: boolean;
@@ -40,8 +41,8 @@ export const ExitPopupDialog = ({ open, onOpenChange }: ExitPopupDialogProps) =>
         <div className="space-y-4 pt-4">
           {/* Downsell Offer */}
           <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-lg p-6 space-y-3 border-2 border-primary">
-            <div className="w-full h-32 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-lg flex items-center justify-center text-white font-semibold">
-              [Web Protocol Image]
+            <div className="w-full h-64 rounded-lg overflow-hidden">
+              <ProtocolAppMockup />
             </div>
             
             <h3 className="font-bold text-lg text-foreground">
@@ -66,12 +67,12 @@ export const ExitPopupDialog = ({ open, onOpenChange }: ExitPopupDialogProps) =>
 
           {/* Buttons */}
           <div className="space-y-2">
-            <Button 
+            <Button
               className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold"
               size="lg"
               asChild
             >
-              <a href="#">
+              <a href="https://buy.stripe.com/test_DOWNSELL_PLACEHOLDER" target="_blank" rel="noopener noreferrer">
                 🎁 ВЗЕМИ ОФЕРТАТА - 17 ЛВ
               </a>
             </Button>

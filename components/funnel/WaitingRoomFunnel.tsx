@@ -9,7 +9,21 @@ import { ExitPopupDialog } from "./ExitPopupDialog";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
 
-export const WaitingRoomFunnel = () => {
+interface UserData {
+  firstName?: string;
+  age?: string;
+  weight?: string;
+  height?: string;
+  libido?: string;
+  morningEnergy?: string;
+  mood?: string;
+}
+
+interface WaitingRoomFunnelProps {
+  userData?: UserData;
+}
+
+export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [progress, setProgress] = useState(0);
   const [canSkip, setCanSkip] = useState(false);
@@ -29,30 +43,30 @@ export const WaitingRoomFunnel = () => {
     };
   }, []);
 
-  // Skip button logic - show after 10 seconds
+  // Skip button logic - show after 6 seconds (optimized from 10s)
   useEffect(() => {
     if (currentStep < 4) {
       setCanSkip(false);
       const timer = setTimeout(() => {
         setCanSkip(true);
-      }, 10000);
+      }, 6000);
       return () => clearTimeout(timer);
     }
   }, [currentStep]);
 
-  // Auto-advance timers
+  // Auto-advance timers (OPTIMIZED: 105s → 67s)
   useEffect(() => {
     let advanceTimer: NodeJS.Timeout;
 
     if (currentStep === 1) {
-      // Step 1: 20 seconds, progress 0% → 25%
+      // Step 1: 12 seconds (was 20s), progress 0% → 25%
       advanceTimer = setTimeout(() => {
         setCurrentStep(2);
-      }, 20000);
+      }, 12000);
 
       const progressInterval = setInterval(() => {
         setProgress((prev) => {
-          if (prev < 25) return prev + 1.25;
+          if (prev < 25) return prev + 2.08; // 25/12
           return 25;
         });
       }, 1000);
@@ -62,14 +76,14 @@ export const WaitingRoomFunnel = () => {
         clearInterval(progressInterval);
       };
     } else if (currentStep === 2) {
-      // Step 2: 37 seconds, progress 25% → 55%
+      // Step 2: 25 seconds (was 37s), progress 25% → 55%
       advanceTimer = setTimeout(() => {
         setCurrentStep(3);
-      }, 37000);
+      }, 25000);
 
       const progressInterval = setInterval(() => {
         setProgress((prev) => {
-          if (prev < 55) return prev + 0.81;
+          if (prev < 55) return prev + 1.2; // 30/25
           return 55;
         });
       }, 1000);
@@ -79,14 +93,14 @@ export const WaitingRoomFunnel = () => {
         clearInterval(progressInterval);
       };
     } else if (currentStep === 3) {
-      // Step 3: 48 seconds, progress 55% → 85%
+      // Step 3: 30 seconds (was 48s), progress 55% → 85%
       advanceTimer = setTimeout(() => {
         setCurrentStep(4);
-      }, 48000);
+      }, 30000);
 
       const progressInterval = setInterval(() => {
         setProgress((prev) => {
-          if (prev < 85) return prev + 0.625;
+          if (prev < 85) return prev + 1.0; // 30/30
           return 85;
         });
       }, 1000);
@@ -152,10 +166,10 @@ export const WaitingRoomFunnel = () => {
 
       {/* Step Content */}
       <div className="pt-8">
-        {currentStep === 1 && <Step1DataAnalysis />}
-        {currentStep === 2 && <Step2ThreeKillers />}
+        {currentStep === 1 && <Step1DataAnalysis userData={userData} />}
+        {currentStep === 2 && <Step2ThreeKillers userData={userData} />}
         {currentStep === 3 && <Step3StefanStory />}
-        {currentStep === 4 && <Step4TheOffer onDecline={handleDecline} />}
+        {currentStep === 4 && <Step4TheOffer onDecline={handleDecline} userData={userData} />}
       </div>
 
       {/* Exit Popup */}

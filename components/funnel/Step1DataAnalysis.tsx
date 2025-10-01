@@ -1,6 +1,21 @@
 import { useEffect, useState } from "react";
+import { cn } from "@/lib/utils";
 
-export const Step1DataAnalysis = () => {
+interface UserData {
+  firstName?: string;
+  age?: string;
+  weight?: string;
+  height?: string;
+  libido?: string;
+  morningEnergy?: string;
+  mood?: string;
+}
+
+interface Step1DataAnalysisProps {
+  userData?: UserData;
+}
+
+export const Step1DataAnalysis = ({ userData }: Step1DataAnalysisProps) => {
   const [visibleSteps, setVisibleSteps] = useState<number>(0);
   const [percentage, setPercentage] = useState<number>(0);
 
@@ -29,8 +44,12 @@ export const Step1DataAnalysis = () => {
   }, []);
 
   const steps = [
-    "✓ Обработка на възраст и тегло...",
-    "✓ Анализ на симптомите...",
+    userData?.age && userData?.weight
+      ? `✓ Обработка: ${userData.age} години, ${userData.weight} кг...`
+      : "✓ Обработка на възраст и тегло...",
+    userData?.libido || userData?.morningEnergy
+      ? `✓ Анализ на симптомите (${userData?.libido === 'low' ? 'ниско либидо' : 'енергия'}${userData?.morningEnergy === 'low' ? ', липса на енергия' : ''})...`
+      : "✓ Анализ на симптомите...",
     "✓ Калкулиране на рискови фактори..."
   ];
 
@@ -82,5 +101,3 @@ export const Step1DataAnalysis = () => {
     </div>
   );
 };
-
-const cn = (...classes: (string | boolean | undefined)[]) => classes.filter(Boolean).join(' ');

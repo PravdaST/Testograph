@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { CheckCircle } from "lucide-react";
+import Image from "next/image";
 
 export const Step3StefanStory = () => {
   const [visibleSections, setVisibleSections] = useState<number>(0);
@@ -57,8 +58,13 @@ export const Step3StefanStory = () => {
           )}
         >
           <div className="bg-card border-2 border-destructive/30 rounded-lg p-6 text-center space-y-4">
-            <div className="w-full h-48 bg-gradient-to-br from-gray-300 to-gray-400 rounded-lg flex items-center justify-center text-gray-600 font-semibold">
-              [ПРЕДИ снимка]
+            <div className="relative w-full h-48 rounded-lg overflow-hidden">
+              <Image
+                src="/funnel/martin-before.jpg"
+                alt="Преди трансформация"
+                fill
+                className="object-cover"
+              />
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">ПРЕДИ (Ден 0):</p>
@@ -67,8 +73,13 @@ export const Step3StefanStory = () => {
           </div>
 
           <div className="bg-card border-2 border-primary rounded-lg p-6 text-center space-y-4">
-            <div className="w-full h-48 bg-gradient-to-br from-green-300 to-emerald-400 rounded-lg flex items-center justify-center text-green-700 font-semibold">
-              [СЛЕД снимка]
+            <div className="relative w-full h-48 rounded-lg overflow-hidden">
+              <Image
+                src="/funnel/martin-after.jpg"
+                alt="След трансформация"
+                fill
+                className="object-cover"
+              />
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">СЛЕД 30 ДНИ:</p>
