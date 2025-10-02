@@ -9,12 +9,17 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { ProtocolAppMockup } from "./ProtocolAppMockup";
 
+interface UserData {
+  firstName?: string;
+}
+
 interface ExitPopupDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  userData?: UserData;
 }
 
-export const ExitPopupDialog = ({ open, onOpenChange }: ExitPopupDialogProps) => {
+export const ExitPopupDialog = ({ open, onOpenChange, userData }: ExitPopupDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -23,14 +28,14 @@ export const ExitPopupDialog = ({ open, onOpenChange }: ExitPopupDialogProps) =>
             <AlertTriangle className="w-16 h-16 text-orange-500" />
           </div>
           <DialogTitle className="text-2xl text-center">
-            ⚠️ ИЗЧАКАЙТЕ!
+            {userData?.firstName ? `${userData.firstName}, ` : ""}⚠️ ИЗЧАКАЙ!
           </DialogTitle>
           <DialogDescription className="text-center text-base space-y-4 pt-4">
             <p className="text-lg font-semibold text-foreground">
               ПОСЛЕДНА ВЪЗМОЖНОСТ!
             </p>
             <p>
-              Разбираме - може би пълният пакет е твърде много за момента.
+              Разбирам - може би пълният пакет е твърде много за момента.
             </p>
             <p className="text-foreground">
               Но какво ако започнете само с 30-дневния Web Протокол?

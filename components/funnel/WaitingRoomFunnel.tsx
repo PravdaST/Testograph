@@ -144,12 +144,12 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
       
       {/* Steps 2-3: Loading header with dynamic progress */}
       {(currentStep === 2 || currentStep === 3) && (
-        <LoadingHeader progress={progress} />
+        <LoadingHeader progress={progress} userName={userData?.firstName} />
       )}
-      
+
       {/* Step 4: Loading header with flicker animation at 98% */}
       {currentStep === 4 && (
-        <LoadingHeader progress={98} flicker />
+        <LoadingHeader progress={98} flicker userName={userData?.firstName} />
       )}
 
       {/* Skip Button */}
@@ -173,7 +173,7 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
       </div>
 
       {/* Exit Popup */}
-      <ExitPopupDialog open={showExitPopup} onOpenChange={setShowExitPopup} />
+      <ExitPopupDialog open={showExitPopup} onOpenChange={setShowExitPopup} userData={userData} />
     </div>
   );
 };

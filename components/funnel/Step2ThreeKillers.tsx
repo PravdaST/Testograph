@@ -81,7 +81,7 @@ export const Step2ThreeKillers = ({ userData }: Step2ThreeKillersProps) => {
     <div className="min-h-[80vh] px-4 py-12">
       <div className="max-w-5xl mx-auto space-y-8">
         <h1 className="text-3xl md:text-4xl font-bold text-center text-foreground">
-          ❌ ТРИТЕ ПРИЧИНИ ЗА НИСКИТЕ ТЕСТОСТЕРОНОВИ НИВА
+          {userData?.firstName ? `${userData.firstName}, ` : ""}❌ ЕТО ЗАЩО ИМАШ ТЕЗИ СИМПТОМИ
         </h1>
 
         {/* Mobile: Horizontal Scroll, Desktop: Grid */}
