@@ -916,7 +916,22 @@ const Index = () => {
                 </a>
               </div>
             </div>
-            
+
+            {/* Legal Links */}
+            <div className="mb-4 flex flex-wrap justify-center gap-4 text-xs">
+              <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
+                Политика за поверителност
+              </Link>
+              <span className="text-border">|</span>
+              <Link href="/cookies" className="text-muted-foreground hover:text-primary transition-colors">
+                Политика за бисквитки
+              </Link>
+              <span className="text-border">|</span>
+              <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors">
+                Общи условия
+              </Link>
+            </div>
+
             <p className="mb-2">Testograph © 2025. Образователен инструмент за оценка на тестостерон.</p>
             <p>
               Не е предназначен като медицински съвет. Консултирайте се с медицински специалисти за медицинско ръководство.
