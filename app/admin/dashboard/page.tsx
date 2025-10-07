@@ -129,8 +129,8 @@ export default function DashboardPage() {
           totalRevenue: purchasesData?.stats?.totalRevenue ?? 0,
           totalPurchases: purchasesData?.stats?.totalPurchases ?? 0,
           averageOrderValue: purchasesData?.stats?.averageOrderValue ?? 0,
-          appStats: appProRes.ok ? appProData.app : undefined,
-          proStats: appProRes.ok ? appProData.pro : undefined,
+          appStats: (appProRes.ok && appProData?.app) ? appProData.app : undefined,
+          proStats: (appProRes.ok && appProData?.pro) ? appProData.pro : undefined,
         });
 
         setRecentPurchases(purchasesData.purchases || []);
