@@ -16,6 +16,12 @@ import {
   Loader2,
   DollarSign,
   ShoppingCart,
+  Utensils,
+  Moon,
+  Flask,
+  Dumbbell,
+  Target,
+  Flame,
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -28,6 +34,20 @@ interface DashboardStats {
   totalRevenue: number;
   totalPurchases: number;
   averageOrderValue: number;
+  appStats?: {
+    totalUsers: number;
+    activeMealPlans: number;
+    sleepLogsLast30Days: number;
+    exerciseLogsLast30Days: number;
+    totalLabResults: number;
+  };
+  proStats?: {
+    totalUsers: number;
+    activeProtocols: number;
+    dailyEntriesLast30Days: number;
+    averageCompliance: number | null;
+    totalWeightTracking: number;
+  };
 }
 
 interface RecentPurchase {
@@ -84,6 +104,10 @@ export default function DashboardPage() {
       const purchasesRes = await fetch('/api/admin/purchases?limit=10');
       const purchasesData = await purchasesRes.json();
 
+      // Fetch app/pro stats
+      const appProRes = await fetch('/api/admin/app-pro-stats');
+      const appProData = await appProRes.json();
+
       if (usersRes.ok && funnelRes.ok && chatRes.ok && purchasesRes.ok) {
         // Calculate stats
         const now = new Date();
@@ -105,6 +129,8 @@ export default function DashboardPage() {
           totalRevenue: purchasesData.stats.totalRevenue,
           totalPurchases: purchasesData.stats.totalPurchases,
           averageOrderValue: purchasesData.stats.averageOrderValue,
+          appStats: appProRes.ok ? appProData.app : undefined,
+          proStats: appProRes.ok ? appProData.pro : undefined,
         });
 
         setRecentPurchases(purchasesData.purchases || []);
@@ -258,6 +284,163 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Testograph-app Stats */}
+        {stats?.appStats && (
+          <>
+            <div className="mt-8">
+              <h2 className="text-2xl font-bold mb-4">Testograph-app Metrics</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="border-blue-200 bg-blue-50/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Users className="h-4 w-4 text-blue-600" />
+                    App Users
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-blue-600">{stats.appStats.totalUsers}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    С активен достъп до app features
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Utensils className="h-4 w-4" />
+                    Активни Meal Plans
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.appStats.activeMealPlans}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Потребители с meal plan
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Moon className="h-4 w-4" />
+                    Sleep Logs
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.appStats.sleepLogsLast30Days}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Последните 30 дни
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Dumbbell className="h-4 w-4" />
+                    Exercise Logs
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.appStats.exerciseLogsLast30Days}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Последните 30 дни
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Flask className="h-4 w-4" />
+                    Lab Results
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.appStats.totalLabResults}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Качени тестови резултати
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
+
+        {/* Testograph-PRO Stats */}
+        {stats?.proStats && (
+          <>
+            <div className="mt-8">
+              <h2 className="text-2xl font-bold mb-4">Testograph-PRO Metrics</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="border-purple-200 bg-purple-50/50">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Users className="h-4 w-4 text-purple-600" />
+                    PRO Users
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-purple-600">{stats.proStats.totalUsers}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    С достъп до PRO протокол
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Target className="h-4 w-4" />
+                    Активни Протоколи
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.proStats.activeProtocols}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Стартирани PRO протоколи
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <Flame className="h-4 w-4" />
+                    Daily Entries
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stats.proStats.dailyEntriesLast30Days}</div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Последните 30 дни
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Average Compliance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {stats.proStats.averageCompliance?.toFixed(1) || 'N/A'}/10
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Среден план compliance
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
