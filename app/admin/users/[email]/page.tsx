@@ -439,7 +439,7 @@ export default function UserProfilePage() {
         )}
 
         {/* Testograph-app Data */}
-        {profileData.appData && (
+        {profileData.appData && profileData.appData.mealPlan && (
           <>
             {/* Meal Planning */}
             {profileData.appData.mealPlan.hasActivePlan && (
@@ -473,7 +473,7 @@ export default function UserProfilePage() {
             )}
 
             {/* Sleep Logs */}
-            {profileData.appData.sleepLogs.totalLogs > 0 && (
+            {profileData.appData.sleepLogs && profileData.appData.sleepLogs.totalLogs > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -522,7 +522,7 @@ export default function UserProfilePage() {
             )}
 
             {/* Lab Results */}
-            {profileData.appData.labResults.totalResults > 0 && (
+            {profileData.appData.labResults && profileData.appData.labResults.totalResults > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -569,7 +569,7 @@ export default function UserProfilePage() {
             )}
 
             {/* Exercise Logs */}
-            {profileData.appData.exerciseLogs.totalLogs > 0 && (
+            {profileData.appData.exerciseLogs && profileData.appData.exerciseLogs.totalLogs > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -600,7 +600,7 @@ export default function UserProfilePage() {
             )}
 
             {/* Analytics Events */}
-            {profileData.appData.analyticsEvents.totalEvents > 0 && (
+            {profileData.appData.analyticsEvents && profileData.appData.analyticsEvents.totalEvents > 0 && (
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -694,7 +694,7 @@ export default function UserProfilePage() {
               </div>
 
               {/* Weight Tracking */}
-              {profileData.proData.weeklyMeasurements.totalMeasurements > 0 && (
+              {profileData.proData.weeklyMeasurements && profileData.proData.weeklyMeasurements.totalMeasurements > 0 && (
                 <div>
                   <h4 className="font-medium mb-3 flex items-center gap-2">
                     <Scale className="h-4 w-4" />
@@ -728,7 +728,7 @@ export default function UserProfilePage() {
               )}
 
               {/* Missed Days Warning */}
-              {profileData.proData.dailyEntries.missedDays > 0 && (
+              {profileData.proData.dailyEntries && profileData.proData.dailyEntries.missedDays > 0 && (
                 <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                   <XCircle className="h-5 w-5 text-yellow-600" />
                   <p className="text-sm">
