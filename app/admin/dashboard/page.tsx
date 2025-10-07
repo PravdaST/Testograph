@@ -300,7 +300,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{stats.appStats.totalUsers}</div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.appStats?.totalUsers ?? 0}</div>
                   <p className="text-xs text-muted-foreground mt-1">
                     С активен достъп до app features
                   </p>
@@ -315,7 +315,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.appStats.activeMealPlans}</div>
+                  <div className="text-2xl font-bold">{stats.appStats?.activeMealPlans ?? 0}</div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Потребители с meal plan
                   </p>
@@ -330,7 +330,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.appStats.sleepLogsLast30Days}</div>
+                  <div className="text-2xl font-bold">{stats.appStats?.sleepLogsLast30Days ?? 0}</div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Последните 30 дни
                   </p>
@@ -345,7 +345,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.appStats.exerciseLogsLast30Days}</div>
+                  <div className="text-2xl font-bold">{stats.appStats?.exerciseLogsLast30Days ?? 0}</div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Последните 30 дни
                   </p>
@@ -360,7 +360,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.appStats.totalLabResults}</div>
+                  <div className="text-2xl font-bold">{stats.appStats?.totalLabResults ?? 0}</div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Качени тестови резултати
                   </p>
@@ -385,7 +385,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold text-purple-600">{stats.proStats.totalUsers}</div>
+                  <div className="text-2xl font-bold text-purple-600">{stats.proStats?.totalUsers ?? 0}</div>
                   <p className="text-xs text-muted-foreground mt-1">
                     С достъп до PRO протокол
                   </p>
@@ -400,7 +400,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.proStats.activeProtocols}</div>
+                  <div className="text-2xl font-bold">{stats.proStats?.activeProtocols ?? 0}</div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Стартирани PRO протоколи
                   </p>
@@ -415,7 +415,7 @@ export default function DashboardPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{stats.proStats.dailyEntriesLast30Days}</div>
+                  <div className="text-2xl font-bold">{stats.proStats?.dailyEntriesLast30Days ?? 0}</div>
                   <p className="text-xs text-muted-foreground mt-1">
                     Последните 30 дни
                   </p>
