@@ -130,21 +130,53 @@ export default function AnalyticsDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
+      // Use absolute URLs to prevent any URL resolution issues
+      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
+      const statsUrl = `${baseUrl}/api/analytics/funnel-stats?days=${selectedDays}`;
+      const timeUrl = `${baseUrl}/api/analytics/time-spent?days=${selectedDays}`;
+      const trendsUrl = `${baseUrl}/api/analytics/trends?days=${selectedDays}`;
+
+      console.log('🔍 Fetching analytics data from:', { statsUrl, timeUrl, trendsUrl });
+
       const [statsRes, timeRes, trendsRes] = await Promise.all([
-        fetch(`/api/analytics/funnel-stats?days=${selectedDays}`),
-        fetch(`/api/analytics/time-spent?days=${selectedDays}`),
-        fetch(`/api/analytics/trends?days=${selectedDays}`),
+        fetch(statsUrl),
+        fetch(timeUrl),
+        fetch(trendsUrl),
       ]);
+
+      console.log('📊 Response status:', {
+        stats: statsRes.status,
+        time: timeRes.status,
+        trends: trendsRes.status,
+      });
+
+      if (!statsRes.ok || !timeRes.ok || !trendsRes.ok) {
+        const errors = [];
+        if (!statsRes.ok) errors.push(`Stats API: ${statsRes.status} ${statsRes.statusText}`);
+        if (!timeRes.ok) errors.push(`Time API: ${timeRes.status} ${timeRes.statusText}`);
+        if (!trendsRes.ok) errors.push(`Trends API: ${trendsRes.status} ${trendsRes.statusText}`);
+        throw new Error(`API errors: ${errors.join(', ')}`);
+      }
 
       const stats = await statsRes.json();
       const time = await timeRes.json();
       const trends = await trendsRes.json();
 
+      console.log('✅ Analytics data loaded successfully');
+
       setFunnelStats(stats);
       setTimeSpentData(time);
       setTrendsData(trends);
     } catch (error) {
-      console.error('Error fetching analytics:', error);
+      console.error('❌ Error fetching analytics:', error);
+      // Show user-friendly error
+      alert(
+        'Failed to load analytics data. Please try:\n' +
+          '1. Hard refresh the page (Ctrl+Shift+R)\n' +
+          '2. Clear browser cache\n' +
+          '3. Check browser console for details\n\n' +
+          `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+      );
     } finally {
       setLoading(false);
     }
