@@ -32,13 +32,11 @@ interface DashboardStats {
 
 interface RecentPurchase {
   id: string;
-  email: string;
+  userEmail: string;
+  userName: string | null;
   productName: string;
   amount: number;
   purchasedAt: string;
-  profiles: {
-    name: string;
-  };
 }
 
 interface ActivityEvent {
@@ -328,19 +326,12 @@ export default function DashboardPage() {
                     key={purchase.id}
                     className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors cursor-pointer"
                     onClick={() => {
-                      // Extract email - handle both direct email and nested profiles structure
-                      const email = purchase.profiles ?
-                        (typeof purchase.profiles === 'object' && 'email' in purchase.profiles ?
-                          (purchase.profiles as any).email : purchase.email)
-                        : purchase.email;
-                      if (email) {
-                        router.push(`/admin/users/${encodeURIComponent(email)}`);
-                      }
+                      router.push(`/admin/users/${encodeURIComponent(purchase.userEmail)}`);
                     }}
                   >
                     <div className="flex-1">
                       <p className="text-sm font-medium">
-                        {purchase.profiles?.name || purchase.email || 'Unknown User'}
+                        {purchase.userName || purchase.userEmail}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {purchase.productName}

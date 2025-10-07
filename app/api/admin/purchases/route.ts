@@ -31,6 +31,16 @@ export async function GET(request: Request) {
 
     if (error) throw error;
 
+    // Enrich purchases with user email/name from auth
+    const { data: authUsers } = await supabase.auth.admin.listUsers();
+    const userMap = new Map(authUsers?.users.map(u => [u.id, { email: u.email, name: u.user_metadata?.full_name }]));
+
+    const enrichedPurchases = purchases?.map(purchase => ({
+      ...purchase,
+      userEmail: userMap.get(purchase.user_id)?.email || 'Unknown',
+      userName: userMap.get(purchase.user_id)?.name || null,
+    })) || [];
+
     // Calculate revenue stats
     const { data: stats } = await supabase
       .from('purchases')
@@ -44,7 +54,7 @@ export async function GET(request: Request) {
     const averageOrderValue = totalPurchases > 0 ? totalRevenue / totalPurchases : 0;
 
     return NextResponse.json({
-      purchases: purchases || [],
+      purchases: enrichedPurchases,
       total: count || 0,
       stats: {
         totalRevenue: Math.round(totalRevenue * 100) / 100,
