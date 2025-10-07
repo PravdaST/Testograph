@@ -113,22 +113,22 @@ export default function DashboardPage() {
         const now = new Date();
         const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-        const recentChats = chatData.sessions.filter(
+        const recentChats = (chatData?.sessions || []).filter(
           (s: any) => new Date(s.created_at) > oneDayAgo
         ).length;
 
-        const recentFunnels = funnelData.stats.totalSessions || 0;
+        const recentFunnels = funnelData?.stats?.totalSessions ?? 0;
 
         setStats({
-          totalChatSessions: chatData.total,
-          totalFunnelSessions: funnelData.stats.totalSessions,
-          totalUsers: usersData.total,
-          conversionRate: funnelData.stats.overallConversionRate,
+          totalChatSessions: chatData?.total ?? 0,
+          totalFunnelSessions: funnelData?.stats?.totalSessions ?? 0,
+          totalUsers: usersData?.total ?? 0,
+          conversionRate: funnelData?.stats?.overallConversionRate ?? 0,
           recentChatSessions: recentChats,
           recentFunnelSessions: recentFunnels,
-          totalRevenue: purchasesData.stats.totalRevenue,
-          totalPurchases: purchasesData.stats.totalPurchases,
-          averageOrderValue: purchasesData.stats.averageOrderValue,
+          totalRevenue: purchasesData?.stats?.totalRevenue ?? 0,
+          totalPurchases: purchasesData?.stats?.totalPurchases ?? 0,
+          averageOrderValue: purchasesData?.stats?.averageOrderValue ?? 0,
           appStats: appProRes.ok ? appProData.app : undefined,
           proStats: appProRes.ok ? appProData.pro : undefined,
         });
