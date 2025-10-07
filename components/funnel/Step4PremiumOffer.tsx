@@ -21,13 +21,12 @@ interface UserData {
   mood?: string;
 }
 
-interface Step4TheOfferProps {
+interface Step4PremiumOfferProps {
   onDecline: () => void;
-  onSkipToFree?: () => void;
   userData?: UserData;
 }
 
-export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOfferProps) => {
+export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProps) => {
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [scrollProgress, setScrollProgress] = useState(0);
 
@@ -68,26 +67,59 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
 
   const features = [
     {
-      title: "1× TESTO UP бутилка",
-      value: "67 лв",
-      description: "Най-силната естествена добавка на пазара. 30-дневен запас. Достатъчно за да видиш как работи.",
+      title: "3× TESTO UP бутилки",
+      value: "201 лв",
+      description: "Най-силната естествена добавка на пазара. 3 месеца запас. Както мултивитамин на стероиди - всичко от което тялото ти се нуждае за да произвежда тестостерон бързо.",
+      isCoreProduct: true
     },
     {
       title: "TESTOGRAPH PRO интерактивен план",
       value: "197 лв",
-      description: "Точно какво да правиш всеки ден. Храна. Тренировки. Сън. Всичко. Пълния план.",
+      description: "Точно какво да правиш всеки ден. Храна. Тренировки. Сън. Всичко. Направен за 100% гарантиран успех ако го следваш докрай.",
+      isCoreProduct: true
     },
     {
       title: "24/7 Хормонален Експерт поддръжка",
       value: "Включена",
-      description: "Винаги до теб в плана. Питай каквото искаш.",
+      description: "Винаги до теб в плана. Питай каквото искаш. Никога не си сам.",
+      isCoreProduct: true
+    },
+    {
+      title: "БОНУС: Meal Planner",
+      value: "28 лв",
+      description: "Точно какво да ядеш и кога. Нищо сложно. Просто следваш.",
+      isBonus: true
+    },
+    {
+      title: "БОНУС: Sleep Protocol",
+      value: "29 лв",
+      description: "Как да спиш за максимално възстановяване и тестостерон.",
+      isBonus: true
+    },
+    {
+      title: "БОНУС: Timing Guide",
+      value: "24 лв",
+      description: "Кога точно да вземеш какво за максимален ефект.",
+      isBonus: true
+    },
+    {
+      title: "БОНУС: Exercise Reference Guide",
+      value: "24 лв",
+      description: "Упражненията които вдигат тестостерона. Без излишни неща.",
+      isBonus: true
+    },
+    {
+      title: "БОНУС: Lab Testing Guide",
+      value: "59 лв",
+      description: "Как да тестваш хормоните си правилно. Да знаеш къде си.",
+      isBonus: true
     }
   ];
 
   return (
     <>
       {/* Progress Bar - Top */}
-      <OfferProgressBar price="97 лв" discount="63%" tier="single" scrollProgress={scrollProgress} />
+      <OfferProgressBar price="197 лв" discount="65%" tier="premium" scrollProgress={scrollProgress} />
 
       <div className="min-h-[80vh] px-4 py-12 md:py-16 pt-20 md:pt-12">
         <div className="max-w-4xl mx-auto space-y-8">
@@ -133,47 +165,51 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
           {/* Header - NEW COPY */}
           <div className="text-center space-y-6 max-w-3xl mx-auto">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight">
-              Колко дълго още<br />ще се правиш че всичко е наред?
+              Колко време още<br />ще се правиш че всичко е наред?
             </h1>
 
             <div className="text-lg md:text-xl text-muted-foreground space-y-4 text-left">
-              <p>Разбирам. 197 лв е много.</p>
-              <p>Но знаеш какво е наистина скъпо?</p>
-              <p>Още една година да гледаш как животът ти минава, без да си мъжът, който искаш да бъдеш.</p>
+              <p>Не говоря за усещането "добре съм".</p>
+              <p>Говоря за чувството, че си способен на всичко - енергия, сила, увереност.</p>
+            </div>
+
+            <p className="text-xl md:text-2xl font-bold text-foreground">
+              Ако не можеш да си го спомниш, разбирам те напълно.
+            </p>
+
+            <div className="text-lg md:text-xl text-muted-foreground space-y-4 text-left">
+              <p>Тялото ти те издаде. Енергията ти е на нулата - нито в залата можеш, нито на работа.</p>
+              <p>Всичко е по-трудно и просто не си мъжът, който искаш да бъдеш.</p>
             </div>
 
             <p className="text-xl md:text-2xl font-bold text-primary">
-              Слушай, не искам да те изгубя като клиент.
+              На една стъпка си от промяната.
             </p>
 
             <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg p-6 md:p-8 border-2 border-primary/30 text-left space-y-4">
               <p className="text-lg md:text-xl font-bold text-foreground">
-                Ето какво ще направим:
+                Ето как излязох от този капан:
               </p>
               <ul className="space-y-3 text-base md:text-lg text-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span>Една бутилка TESTO UP - 30 дни за да видиш как тялото ти се променя</span>
+                  <span>Най-силната естествена добавка на пазара - 3 месеца запас за да видиш ИСТИНСКА промяна</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span>Целият TESTOGRAPH PRO план - точно какво да правиш</span>
+                  <span>Точен план какво да правиш всеки ден - няма място за грешка</span>
                 </li>
               </ul>
               <p className="text-base md:text-lg text-foreground pt-4 border-t border-border">
-                Само 97 лв - толкова струва.
+                Всичко е просто и ясно.
               </p>
               <p className="text-sm md:text-base text-muted-foreground">
-                Повече от достатъчно, за да видиш че наистина работи.
+                Направи го. След 2 седмици ще усетиш как тялото ти се събужда.
               </p>
             </div>
 
             <p className="text-lg md:text-xl text-foreground">
-              След 30 дни ще се върнеш за повече - не защото аз ти казвам, а защото тялото ти ще ти каже.
-            </p>
-
-            <p className="text-base md:text-lg text-muted-foreground">
-              Виждал съм го стотици пъти. Започват с една бутилка. След месец искат три.
+              Всеки ден на чакане е още един изгубен ден.
             </p>
           </div>
 
@@ -183,24 +219,24 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
           {/* Main CTA */}
           <Button
             size="lg"
-            className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
+            className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://www.shop.testograph.eu?tier=single" target="_blank" rel="noopener noreferrer" className="block">
-              Вземи го за 97 лв
+            <a href="https://www.shop.testograph.eu?tier=premium" target="_blank" rel="noopener noreferrer" className="block">
+              Вземи го за 197 лв
             </a>
           </Button>
 
           {/* Product Images */}
           <div className="grid md:grid-cols-2 gap-6">
             <div className="relative flex items-center justify-center min-h-[300px]">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 blur-3xl"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 via-transparent to-red-500/10 blur-3xl"></div>
               <Image
-                src="/funnel/regular-offer-hero.webp"
-                alt="TESTOGRAPH - 1 бутилка TestoUP + Интерактивен план"
+                src="/funnel/premium-offer-hero.webp"
+                alt="TESTOGRAPH Premium - 3 бутилки TestoUP + Интерактивен план"
                 width={600}
                 height={600}
-                className="object-contain drop-shadow-[0_20px_60px_rgba(139,92,246,0.3)] relative z-10 hover:scale-105 transition-transform duration-500"
+                className="object-contain drop-shadow-[0_20px_60px_rgba(249,115,22,0.3)] relative z-10 hover:scale-105 transition-transform duration-500"
                 priority
               />
             </div>
@@ -211,64 +247,109 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
           </div>
 
           {/* Success Moments - Viber Chats - MOVED BEFORE PRICING */}
-          <SuccessMomentsViber tier="regular" />
+          <SuccessMomentsViber tier="premium" />
 
           {/* VALUE STACK - HORMOZI STYLE */}
           <ValueStackVisual
             items={[
               {
-                name: "1× TESTO UP бутилка",
-                value: 67,
-                description: "Най-силната естествена добавка на пазара. 30-дневен запас. Достатъчно за да видиш как работи.",
+                name: "3× TESTO UP бутилки",
+                value: 201,
+                description: "Най-силната естествена добавка на пазара. 3 месеца запас. Както мултивитамин на стероиди - всичко от което тялото ти се нуждае за да произвежда тестостерон бързо.",
                 icon: "💊",
                 highlight: true
               },
               {
                 name: "TESTOGRAPH PRO интерактивен план",
                 value: 197,
-                description: "Точно какво да правиш всеки ден. Храна. Тренировки. Сън. Всичко. Пълния план.",
+                description: "Точно какво да правиш всеки ден. Храна. Тренировки. Сън. Всичко. Направен за 100% гарантиран успех ако го следваш докрай.",
                 icon: "📋",
                 highlight: true
               },
               {
                 name: "24/7 Хормонален Експерт поддръжка",
                 value: "Включена",
-                description: "Винаги до теб в плана. Питай каквото искаш.",
+                description: "Винаги до теб в плана. Питай каквото искаш. Никога не си сам.",
                 icon: "🤝",
                 highlight: true
+              },
+              {
+                name: "Meal Planner",
+                value: 28,
+                description: "Точно какво да ядеш и кога. Нищо сложно. Просто следваш.",
+                icon: "🍴",
+                isBonus: true
+              },
+              {
+                name: "Sleep Protocol",
+                value: 29,
+                description: "Как да спиш за максимално възстановяване и тестостерон.",
+                icon: "😴",
+                isBonus: true
+              },
+              {
+                name: "Timing Guide",
+                value: 24,
+                description: "Кога точно да вземеш какво за максимален ефект.",
+                icon: "⏰",
+                isBonus: true
+              },
+              {
+                name: "Exercise Reference Guide",
+                value: 24,
+                description: "Упражненията които вдигат тестостерона. Без излишни неща.",
+                icon: "💪",
+                isBonus: true
+              },
+              {
+                name: "Lab Testing Guide",
+                value: 59,
+                description: "Как да тестваш хормоните си правилно. Да знаеш къде си.",
+                icon: "🔬",
+                isBonus: true
               }
             ]}
-            totalValue={264}
-            discountedPrice={97}
-            savings={167}
+            totalValue={562}
+            discountedPrice={197}
+            savings={365}
             spotsLeft={15}
-            tier="regular"
+            tier="premium"
           />
 
           {/* Final Message */}
           <div className="text-center space-y-4 max-w-2xl mx-auto">
             <p className="text-xl md:text-2xl font-bold text-foreground">
-              97 лв. Пробвай.
+              197 лв. Това е.
+            </p>
+            <p className="text-base md:text-lg text-muted-foreground">
+              Ако не проработи - връщам ти парите без въпроси.<br />
+              Гарантирам ти - ще проработи.
+            </p>
+            <p className="text-lg md:text-xl font-semibold text-primary">
+              Кога за последен път се почувства като истински мъж?
+            </p>
+            <p className="text-base text-muted-foreground">
+              Реши СЕГА. За себе си.
             </p>
           </div>
 
           {/* What Happens Next Timeline */}
-          <WhatHappensNextTimeline tier="regular" />
+          <WhatHappensNextTimeline tier="premium" />
 
           {/* Qualification Section */}
-          <QualificationSection tier="regular" />
+          <QualificationSection tier="premium" />
 
           {/* FAQ Section */}
-          <FAQSection tier="regular" />
+          <FAQSection tier="premium" />
 
           {/* CTA Again */}
           <Button
             size="lg"
-            className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
+            className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://www.shop.testograph.eu?tier=single" target="_blank" rel="noopener noreferrer" className="block">
-              Вземи го за 97 лв
+            <a href="https://www.shop.testograph.eu?tier=premium" target="_blank" rel="noopener noreferrer" className="block">
+              Вземи го за 197 лв
             </a>
           </Button>
 
@@ -287,26 +368,13 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
           </div>
 
           {/* Decline Button */}
-          <div className="pt-4 space-y-3">
+          <div className="pt-4">
             <button
               onClick={onDecline}
               className="w-full py-3 text-sm md:text-base font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg hover:border-foreground transition-colors"
             >
-              Все още е скъпо, покажи ми най-евтината опция →
+              Не, покажи ми по-евтина опция →
             </button>
-
-            {/* Free Plan Link */}
-            {onSkipToFree && (
-              <p className="text-center text-xs md:text-sm text-muted-foreground">
-                Не си готов да купуваш?{" "}
-                <button
-                  onClick={onSkipToFree}
-                  className="text-primary hover:underline font-medium"
-                >
-                  Вземи безплатния 7-дневен план →
-                </button>
-              </p>
-            )}
           </div>
         </div>
       </div>

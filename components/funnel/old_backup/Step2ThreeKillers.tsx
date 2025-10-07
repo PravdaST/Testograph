@@ -18,7 +18,6 @@ interface Step2ThreeKillersProps {
 
 export const Step2ThreeKillers = ({ userData }: Step2ThreeKillersProps) => {
   const [visibleProblems, setVisibleProblems] = useState<number>(0);
-  const [selectedProblem, setSelectedProblem] = useState<number | null>(null);
 
   // Determine which problem to highlight based on user symptoms
   const getHighlightedProblem = (): number | null => {
@@ -177,51 +176,6 @@ export const Step2ThreeKillers = ({ userData }: Step2ThreeKillersProps) => {
               </div>
             );
           })}
-        </div>
-
-        {/* Interactive Quiz - Micro-Commitment */}
-        <div
-          className={cn(
-            "bg-card border-2 border-primary/30 rounded-lg p-6 space-y-4 transition-all duration-700",
-            visibleProblems > 3 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          )}
-        >
-          <h3 className="text-xl font-bold text-center text-foreground">
-            💭 Кое от тези те удря най-силно?
-          </h3>
-          <p className="text-sm text-center text-muted-foreground">
-            (Избери един, за да продължиш)
-          </p>
-
-          <div className="grid md:grid-cols-3 gap-3 pt-2">
-            {[
-              { id: 0, label: "😴 Умора и стрес", emoji: "😴" },
-              { id: 1, label: "🍔 Корем и тегло", emoji: "🍔" },
-              { id: 2, label: "💜 Либидо проблеми", emoji: "💜" }
-            ].map((option) => (
-              <button
-                key={option.id}
-                onClick={() => setSelectedProblem(option.id)}
-                className={cn(
-                  "p-4 rounded-lg border-2 transition-all duration-300 hover:scale-105",
-                  selectedProblem === option.id
-                    ? "border-primary bg-primary/10 shadow-lg shadow-primary/20"
-                    : "border-border bg-card hover:border-primary/50"
-                )}
-              >
-                <div className="text-3xl mb-2">{option.emoji}</div>
-                <div className="text-sm font-semibold">{option.label}</div>
-              </button>
-            ))}
-          </div>
-
-          {selectedProblem !== null && (
-            <div className="text-center pt-2 animate-in fade-in duration-500">
-              <p className="text-sm text-primary font-semibold">
-                ✓ Благодаря! Това помага на AI-a да персонализира препоръките ти
-              </p>
-            </div>
-          )}
         </div>
 
         <div

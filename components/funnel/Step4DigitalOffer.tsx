@@ -21,14 +21,14 @@ interface UserData {
   mood?: string;
 }
 
-interface Step4TheOfferProps {
+interface Step4DigitalOfferProps {
   onDecline: () => void;
   onSkipToFree?: () => void;
   userData?: UserData;
 }
 
-export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOfferProps) => {
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
+export const Step4DigitalOffer = ({ onDecline, onSkipToFree, userData }: Step4DigitalOfferProps) => {
+  const [timeLeft, setTimeLeft] = useState(180); // 3 minutes
   const [scrollProgress, setScrollProgress] = useState(0);
 
   // Countdown timer
@@ -37,6 +37,7 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
       setTimeLeft((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
+          window.location.href = "/";
           return 0;
         }
         return prev - 1;
@@ -68,11 +69,6 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
 
   const features = [
     {
-      title: "1× TESTO UP бутилка",
-      value: "67 лв",
-      description: "Най-силната естествена добавка на пазара. 30-дневен запас. Достатъчно за да видиш как работи.",
-    },
-    {
       title: "TESTOGRAPH PRO интерактивен план",
       value: "197 лв",
       description: "Точно какво да правиш всеки ден. Храна. Тренировки. Сън. Всичко. Пълния план.",
@@ -81,27 +77,32 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
       title: "24/7 Хормонален Експерт поддръжка",
       value: "Включена",
       description: "Винаги до теб в плана. Питай каквото искаш.",
+    },
+    {
+      title: "Персонален Tracker",
+      value: "Включен",
+      description: "Следи напредъка си. Виж как тялото ти се трансформира.",
     }
   ];
 
   return (
     <>
       {/* Progress Bar - Top */}
-      <OfferProgressBar price="97 лв" discount="63%" tier="single" scrollProgress={scrollProgress} />
+      <OfferProgressBar price="47 лв" discount="76%" tier="digital" scrollProgress={scrollProgress} />
 
       <div className="min-h-[80vh] px-4 py-12 md:py-16 pt-20 md:pt-12">
         <div className="max-w-4xl mx-auto space-y-8">
           {/* Timer - URGENT COMPACT */}
           <div className={`relative rounded-xl p-4 md:p-5 border-4 shadow-2xl transition-all duration-300 ${
-            timeLeft <= 60
-              ? 'bg-gradient-to-r from-red-500 to-red-600 border-red-700 animate-pulse'
-              : 'bg-gradient-to-r from-red-400 to-orange-500 border-red-600'
+            timeLeft <= 90
+              ? 'bg-gradient-to-r from-red-600 to-red-700 border-red-800 animate-pulse'
+              : 'bg-gradient-to-r from-red-500 to-orange-600 border-red-700'
           }`}>
             <div className="flex items-center justify-center gap-3 md:gap-4">
               {/* Urgency Icon */}
               <div className="relative flex-shrink-0">
                 <Clock className="w-10 h-10 md:w-12 md:h-12 text-white animate-pulse" />
-                {timeLeft <= 60 && (
+                {timeLeft <= 90 && (
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
                 )}
               </div>
@@ -109,20 +110,20 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
               {/* Timer Content */}
               <div className="flex-1 text-center md:text-left">
                 <p className="text-sm md:text-base font-black text-white uppercase tracking-wide">
-                  {timeLeft <= 60 ? '⚠️ ПОСЛЕДЕН ШАНС!' : '🔥 ОФЕРТАТА ИЗТИЧА!'}
+                  {timeLeft <= 90 ? '🚨 АБСОЛЮТНО ПОСЛЕДЕН ШАНС!' : '⚠️ ПОСЛЕДЕН ШАНС!'}
                 </p>
                 <div className="flex items-baseline gap-2 justify-center md:justify-start mt-1">
                   <p className="text-4xl md:text-5xl font-black text-white tabular-nums">
                     {formatTime(timeLeft)}
                   </p>
                   <p className="text-lg md:text-xl font-bold text-white/90">
-                    {timeLeft <= 60 ? 'сек' : 'мин'}
+                    {timeLeft <= 90 ? 'сек' : 'мин'}
                   </p>
                 </div>
               </div>
 
               {/* Urgency Pulse Effect */}
-              {timeLeft <= 60 && (
+              {timeLeft <= 90 && (
                 <div className="hidden md:block flex-shrink-0">
                   <div className="text-3xl animate-bounce">⏰</div>
                 </div>
@@ -133,47 +134,52 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
           {/* Header - NEW COPY */}
           <div className="text-center space-y-6 max-w-3xl mx-auto">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight">
-              Колко дълго още<br />ще се правиш че всичко е наред?
+              Колко време още имаш?
             </h1>
 
             <div className="text-lg md:text-xl text-muted-foreground space-y-4 text-left">
-              <p>Разбирам. 197 лв е много.</p>
-              <p>Но знаеш какво е наистина скъпо?</p>
-              <p>Още една година да гледаш как животът ти минава, без да си мъжът, който искаш да бъдеш.</p>
+              <p>На 30 беше по-лесно, на 35 - още по-трудно.</p>
+              <p>А сега всеки месец, в който чакаш, става още по-тежко.</p>
+              <p>Нито тялото, нито времето те чакат.</p>
             </div>
 
             <p className="text-xl md:text-2xl font-bold text-primary">
-              Слушай, не искам да те изгубя като клиент.
+              Добре, нека да започнем само с плана.
             </p>
 
             <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg p-6 md:p-8 border-2 border-primary/30 text-left space-y-4">
-              <p className="text-lg md:text-xl font-bold text-foreground">
-                Ето какво ще направим:
+              <p className="text-base md:text-lg text-foreground">
+                Без добавки. Само точният план какво да правиш.
               </p>
-              <ul className="space-y-3 text-base md:text-lg text-foreground">
+              <ul className="space-y-2 text-base md:text-lg text-foreground">
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span>Една бутилка TESTO UP - 30 дни за да видиш как тялото ти се променя</span>
+                  <span>Точно какво да ядеш и кога</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  <span>Целият TESTOGRAPH PRO план - точно какво да правиш</span>
+                  <span>Как да тренираш за тестостерон</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-primary">•</span>
+                  <span>Как да спиш за да се възстановяваш</span>
                 </li>
               </ul>
               <p className="text-base md:text-lg text-foreground pt-4 border-t border-border">
-                Само 97 лв - толкова струва.
+                Ако го следваш стриктно - и имам предвид наистина стриктно - ще проработи.
               </p>
               <p className="text-sm md:text-base text-muted-foreground">
-                Повече от достатъчно, за да видиш че наистина работи.
+                Само 47 лв. Реалната стойност е 197 лв, но искам да започнеш ДНЕС.
               </p>
             </div>
 
-            <p className="text-lg md:text-xl text-foreground">
-              След 30 дни ще се върнеш за повече - не защото аз ти казвам, а защото тялото ти ще ти каже.
+            <p className="text-lg md:text-xl font-semibold text-foreground">
+              Това е последният път когато питам.
             </p>
 
-            <p className="text-base md:text-lg text-muted-foreground">
-              Виждал съм го стотици пъти. Започват с една бутилка. След месец искат три.
+            <p className="text-base text-muted-foreground">
+              След това си тръгваш без нищо и продължаваш да живееш така.<br />
+              Или започваш промяната. Твой е изборът.
             </p>
           </div>
 
@@ -186,43 +192,30 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://www.shop.testograph.eu?tier=single" target="_blank" rel="noopener noreferrer" className="block">
-              Вземи го за 97 лв
+            <a href="https://www.shop.testograph.eu?tier=digital" target="_blank" rel="noopener noreferrer" className="block">
+              Вземи го за 47 лв
             </a>
           </Button>
 
-          {/* Product Images */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div className="relative flex items-center justify-center min-h-[300px]">
-              <div className="absolute inset-0 bg-gradient-to-br from-primary/10 via-transparent to-accent/10 blur-3xl"></div>
-              <Image
-                src="/funnel/regular-offer-hero.webp"
-                alt="TESTOGRAPH - 1 бутилка TestoUP + Интерактивен план"
-                width={600}
-                height={600}
-                className="object-contain drop-shadow-[0_20px_60px_rgba(139,92,246,0.3)] relative z-10 hover:scale-105 transition-transform duration-500"
-                priority
-              />
-            </div>
-
-            <div className="rounded-lg overflow-hidden min-h-[300px]">
-              <ProtocolDashboardMockup />
-            </div>
+          {/* Product Hero Image */}
+          <div className="relative flex items-center justify-center min-h-[400px] -mx-4 md:mx-0">
+            <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-transparent to-accent/5 blur-3xl"></div>
+            <Image
+              src="/funnel/digital-offer-hero.webp"
+              alt="TESTOGRAPH Digital - Интерактивен план"
+              width={700}
+              height={700}
+              className="object-contain drop-shadow-[0_20px_60px_rgba(139,92,246,0.3)] relative z-10 hover:scale-105 transition-transform duration-500"
+              priority
+            />
           </div>
 
           {/* Success Moments - Viber Chats - MOVED BEFORE PRICING */}
-          <SuccessMomentsViber tier="regular" />
+          <SuccessMomentsViber tier="digital" />
 
           {/* VALUE STACK - HORMOZI STYLE */}
           <ValueStackVisual
             items={[
-              {
-                name: "1× TESTO UP бутилка",
-                value: 67,
-                description: "Най-силната естествена добавка на пазара. 30-дневен запас. Достатъчно за да видиш как работи.",
-                icon: "💊",
-                highlight: true
-              },
               {
                 name: "TESTOGRAPH PRO интерактивен план",
                 value: 197,
@@ -236,30 +229,30 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
                 description: "Винаги до теб в плана. Питай каквото искаш.",
                 icon: "🤝",
                 highlight: true
+              },
+              {
+                name: "Персонален Tracker",
+                value: "Включен",
+                description: "Следи напредъка си. Виж как тялото ти се трансформира.",
+                icon: "📊",
+                highlight: true
               }
             ]}
-            totalValue={264}
-            discountedPrice={97}
-            savings={167}
+            totalValue={197}
+            discountedPrice={47}
+            savings={150}
             spotsLeft={15}
-            tier="regular"
+            tier="digital"
           />
 
-          {/* Final Message */}
-          <div className="text-center space-y-4 max-w-2xl mx-auto">
-            <p className="text-xl md:text-2xl font-bold text-foreground">
-              97 лв. Пробвай.
-            </p>
-          </div>
-
           {/* What Happens Next Timeline */}
-          <WhatHappensNextTimeline tier="regular" />
+          <WhatHappensNextTimeline tier="digital" />
 
           {/* Qualification Section */}
-          <QualificationSection tier="regular" />
+          <QualificationSection tier="digital" />
 
           {/* FAQ Section */}
-          <FAQSection tier="regular" />
+          <FAQSection tier="digital" />
 
           {/* CTA Again */}
           <Button
@@ -267,8 +260,8 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://www.shop.testograph.eu?tier=single" target="_blank" rel="noopener noreferrer" className="block">
-              Вземи го за 97 лв
+            <a href="https://www.shop.testograph.eu?tier=digital" target="_blank" rel="noopener noreferrer" className="block">
+              Вземи го за 47 лв
             </a>
           </Button>
 
@@ -287,12 +280,12 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
           </div>
 
           {/* Decline Button */}
-          <div className="pt-4 space-y-3">
+          <div className="pt-4 mb-16 space-y-3">
             <button
               onClick={onDecline}
               className="w-full py-3 text-sm md:text-base font-medium text-muted-foreground hover:text-foreground border border-border rounded-lg hover:border-foreground transition-colors"
             >
-              Все още е скъпо, покажи ми най-евтината опция →
+              Не благодаря →
             </button>
 
             {/* Free Plan Link */}

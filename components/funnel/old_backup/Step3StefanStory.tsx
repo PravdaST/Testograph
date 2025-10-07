@@ -58,7 +58,7 @@ export const Step3StefanStory = ({ userData }: Step3StefanStoryProps) => {
   }, []);
 
   const results = [
-    "Тестостерон: 10.03 → 16.83 nmol/L (68% увеличение)",
+    "Тестостерон: 289 → 485 ng/dL (68% увеличение)",
     "Енергия: От изтощение → Пълна работна седмица + време за семейството",
     'Либидо: От нула → "Жената ми забеляза разликата"',
     "Зала: 3 тренировки седмично, личен рекорд на лежанка",
@@ -83,7 +83,7 @@ export const Step3StefanStory = ({ userData }: Step3StefanStoryProps) => {
           )}
         >
           <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-            💡 МАРТИН К., 38 ГОДИНИ: ОТ ИЗТОЩЕНИЕ ДО ЕНЕРГИЯ ЗА 30 ДНИ
+            💡 МАРТИН К., 38 ГОДИНИ: ОТ ИЗТОЩЕНИЕ ДО ДОМИНАЦИЯ ЗА 30 ДНИ
           </h1>
           <p className="text-lg text-muted-foreground">
             Маркетинг мениджър, баща на 2 деца. Работеше 10+ часа дневно, нямаше енергия за нищо друго.
@@ -132,7 +132,7 @@ export const Step3StefanStory = ({ userData }: Step3StefanStoryProps) => {
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">ПРЕДИ (Ден 0):</p>
-              <p className="text-lg font-bold text-destructive">Тестостерон: 10.03 nmol/L</p>
+              <p className="text-lg font-bold text-destructive">Тестостерон: 289 ng/dL</p>
             </div>
           </div>
 
@@ -147,36 +147,8 @@ export const Step3StefanStory = ({ userData }: Step3StefanStoryProps) => {
             </div>
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">СЛЕД 30 ДНИ:</p>
-              <p className="text-lg font-bold text-primary">Тестостерон: 16.83 nmol/L</p>
+              <p className="text-lg font-bold text-primary">Тестостерон: 485 ng/dL</p>
             </div>
-          </div>
-        </div>
-
-        {/* WhatsApp-Style Authentic Testimonial */}
-        <div
-          className={cn(
-            "bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20 border-2 border-green-500/30 rounded-lg p-6 space-y-4 transition-all duration-700",
-            visibleSections > 2 ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-          )}
-        >
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-full bg-green-500 flex items-center justify-center text-white font-bold text-lg">
-              М
-            </div>
-            <div>
-              <p className="font-semibold text-foreground">Мартин К.</p>
-              <p className="text-xs text-muted-foreground">2 седмици след старт на плана</p>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-slate-800 rounded-lg p-4 relative">
-            <div className="absolute -left-2 top-4 w-0 h-0 border-t-[8px] border-t-transparent border-r-[12px] border-r-white dark:border-r-slate-800 border-b-[8px] border-b-transparent"></div>
-            <p className="text-foreground italic leading-relaxed">
-              "След 2 седмици жена ми забеляза разликата. Не съм й казвал че правя нещо ново. Тя просто ме погледна и каза: 'Какво ти стана? Изглеждаш по-добре.'"
-            </p>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <CheckCircle className="w-4 h-4 text-green-600" />
-            <span>Проверен клиент • 15 март 2025</span>
           </div>
         </div>
 
@@ -206,7 +178,7 @@ export const Step3StefanStory = ({ userData }: Step3StefanStoryProps) => {
           )}
         >
           <p className="text-lg font-semibold text-foreground">
-            Мартин К. е един от 341 български мъже които следват плана.
+            Мартин К. е един от 341 български мъже които следват протокола.
           </p>
           
           <div className="bg-primary/10 rounded-lg p-6 space-y-3">
@@ -238,10 +210,10 @@ export const Step3StefanStory = ({ userData }: Step3StefanStoryProps) => {
             Безплатният 7-дневен план който получавате е ДОБРО НАЧАЛО - ще усетите първата разлика.
           </p>
           <p className="text-muted-foreground">
-            Но Мартин К. следва ПЪЛНИЯ 30-дневен план. Същият който атакува всичките 3 причини за ниски нива едновременно.
+            Но Мартин К. следва ПЪЛНИЯ 30-дневен протокол. Същият който атакува всичките 3 причини за ниски нива едновременно.
           </p>
           <p className="text-lg font-semibold text-foreground">
-            Искате същите резултати като Мартин К.? Нужен ви е пълният план.
+            Искате същите резултати като Мартин К.? Нужен ви е пълният протокол.
           </p>
           <p className="text-xl font-bold text-primary">
             И той е на екран разстояние...
