@@ -14,6 +14,8 @@ import {
   ArrowRight,
   Activity,
   Loader2,
+  DollarSign,
+  ShoppingCart,
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -23,6 +25,20 @@ interface DashboardStats {
   conversionRate: number;
   recentChatSessions: number;
   recentFunnelSessions: number;
+  totalRevenue: number;
+  totalPurchases: number;
+  averageOrderValue: number;
+}
+
+interface RecentPurchase {
+  id: string;
+  email: string;
+  productName: string;
+  amount: number;
+  purchasedAt: string;
+  profiles: {
+    name: string;
+  };
 }
 
 interface ActivityEvent {
@@ -37,6 +53,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activities, setActivities] = useState<ActivityEvent[]>([]);
+  const [recentPurchases, setRecentPurchases] = useState<RecentPurchase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -65,7 +82,11 @@ export default function DashboardPage() {
       const chatRes = await fetch('/api/admin/chat-sessions?limit=1000');
       const chatData = await chatRes.json();
 
-      if (usersRes.ok && funnelRes.ok && chatRes.ok) {
+      // Fetch purchases
+      const purchasesRes = await fetch('/api/admin/purchases?limit=10');
+      const purchasesData = await purchasesRes.json();
+
+      if (usersRes.ok && funnelRes.ok && chatRes.ok && purchasesRes.ok) {
         // Calculate stats
         const now = new Date();
         const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
@@ -83,7 +104,12 @@ export default function DashboardPage() {
           conversionRate: funnelData.stats.overallConversionRate,
           recentChatSessions: recentChats,
           recentFunnelSessions: recentFunnels,
+          totalRevenue: purchasesData.stats.totalRevenue,
+          totalPurchases: purchasesData.stats.totalPurchases,
+          averageOrderValue: purchasesData.stats.averageOrderValue,
         });
+
+        setRecentPurchases(purchasesData.purchases || []);
       }
     } catch (error) {
       console.error('Error fetching dashboard data:', error);
@@ -137,7 +163,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           <Card>
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
@@ -179,6 +205,40 @@ export default function DashboardPage() {
               <div className="text-2xl font-bold">{stats?.totalFunnelSessions || 0}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 Последните 30 дни
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                Общо Приходи
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {stats?.totalRevenue || 0} лв
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {stats?.totalPurchases || 0} покупки
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                Средна Стойност
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {stats?.averageOrderValue || 0} лв
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Per order
               </p>
             </CardContent>
           </Card>
@@ -242,6 +302,64 @@ export default function DashboardPage() {
             </CardHeader>
           </Card>
         </div>
+
+        {/* Recent Purchases */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <ShoppingCart className="h-5 w-5" />
+                  Последни Покупки
+                </CardTitle>
+                <CardDescription>Най-скорошните 10 поръчки</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {recentPurchases.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                Няма покупки все още
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {recentPurchases.map((purchase) => (
+                  <div
+                    key={purchase.id}
+                    className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors cursor-pointer"
+                    onClick={() => {
+                      // Extract email - handle both direct email and nested profiles structure
+                      const email = purchase.profiles ?
+                        (typeof purchase.profiles === 'object' && 'email' in purchase.profiles ?
+                          (purchase.profiles as any).email : purchase.email)
+                        : purchase.email;
+                      if (email) {
+                        router.push(`/admin/users/${encodeURIComponent(email)}`);
+                      }
+                    }}
+                  >
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">
+                        {purchase.profiles?.name || purchase.email || 'Unknown User'}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {purchase.productName}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold text-green-600">
+                        {purchase.amount} лв
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDate(purchase.purchasedAt)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         {/* Recent Activity Feed */}
         <Card>

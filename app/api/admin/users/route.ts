@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY!
 );
 
 interface UserData {
@@ -13,6 +13,9 @@ interface UserData {
   funnelAttempts: number;
   converted: boolean;
   lastActivity: string;
+  purchasesCount: number;
+  totalSpent: number;
+  latestPurchase?: string;
 }
 
 export async function GET(request: Request) {
@@ -34,6 +37,23 @@ export async function GET(request: Request) {
 
     if (funnelError) throw funnelError;
 
+    // Get all purchases
+    const { data: purchases, error: purchasesError } = await supabase
+      .from('purchases')
+      .select(`
+        user_id,
+        amount,
+        status,
+        purchased_at,
+        profiles:user_id (
+          id,
+          name
+        )
+      `)
+      .eq('status', 'completed');
+
+    if (purchasesError) throw purchasesError;
+
     // Merge and aggregate data by email
     const usersMap = new Map<string, UserData>();
 
@@ -54,6 +74,8 @@ export async function GET(request: Request) {
           funnelAttempts: 0,
           converted: false,
           lastActivity: session.updated_at,
+          purchasesCount: 0,
+          totalSpent: 0,
         });
       }
     });
@@ -83,7 +105,85 @@ export async function GET(request: Request) {
           funnelAttempts: 1,
           converted: session.completed || false,
           lastActivity: session.last_activity,
+          purchasesCount: 0,
+          totalSpent: 0,
         });
+      }
+    });
+
+    // Process purchases - match by user_id to email from profiles
+    // First, create a map of user_id to email from existing users
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id');
+
+    // Get auth.users emails to match with purchases user_id
+    purchases?.forEach((purchase: any) => {
+      // We need to find the email for this user_id
+      // Since purchases have user_id, we need to get the email from auth.users
+      // For now, we'll aggregate by user_id and match later
+    });
+
+    // Alternative approach: Get profiles with email mapping
+    const { data: profilesWithAuth } = await supabase
+      .from('profiles')
+      .select('id, name');
+
+    // Create user_id to existing usersMap mapping
+    // We'll need to query auth.users table for emails
+    // Since we can't directly access auth.users, let's use a different approach
+
+    // Group purchases by user_id first
+    const purchasesByUserId = new Map<string, { count: number; total: number; latest: string }>();
+    purchases?.forEach((purchase: any) => {
+      const userId = purchase.user_id;
+      const existing = purchasesByUserId.get(userId);
+      if (existing) {
+        existing.count += 1;
+        existing.total += parseFloat(purchase.amount);
+        if (new Date(purchase.purchased_at) > new Date(existing.latest)) {
+          existing.latest = purchase.purchased_at;
+        }
+      } else {
+        purchasesByUserId.set(userId, {
+          count: 1,
+          total: parseFloat(purchase.amount),
+          latest: purchase.purchased_at,
+        });
+      }
+    });
+
+    // Now we need to match user_id to email
+    // Get all profiles to map id to emails in chat_sessions or funnel_sessions
+    // This is tricky - we'll fetch auth users list with service role
+    const { data: authUsers } = await supabase.auth.admin.listUsers();
+
+    authUsers?.users.forEach((authUser) => {
+      const userId = authUser.id;
+      const email = authUser.email;
+
+      if (!email) return;
+
+      const purchaseData = purchasesByUserId.get(userId);
+      if (purchaseData) {
+        const existing = usersMap.get(email);
+        if (existing) {
+          existing.purchasesCount = purchaseData.count;
+          existing.totalSpent = Math.round(purchaseData.total * 100) / 100;
+          existing.latestPurchase = purchaseData.latest;
+        } else {
+          // User has purchases but no chat/funnel activity
+          usersMap.set(email, {
+            email,
+            chatSessions: 0,
+            funnelAttempts: 0,
+            converted: true, // Has made a purchase
+            lastActivity: purchaseData.latest,
+            purchasesCount: purchaseData.count,
+            totalSpent: Math.round(purchaseData.total * 100) / 100,
+            latestPurchase: purchaseData.latest,
+          });
+        }
       }
     });
 

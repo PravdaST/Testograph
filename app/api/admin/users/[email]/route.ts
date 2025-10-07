@@ -3,12 +3,12 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY!
 );
 
 interface TimelineEvent {
   id: string;
-  type: 'chat_session' | 'funnel_session' | 'funnel_event';
+  type: 'chat_session' | 'funnel_session' | 'funnel_event' | 'purchase';
   timestamp: string;
   data: any;
 }
@@ -54,6 +54,23 @@ export async function GET(
       funnelEvents = events || [];
     }
 
+    // Get user's purchases
+    // First find user_id by email from auth
+    const { data: authUsers } = await supabase.auth.admin.listUsers();
+    const authUser = authUsers?.users.find((u) => u.email === email);
+    let purchases: any[] = [];
+
+    if (authUser) {
+      const { data: purchasesData, error: purchasesError } = await supabase
+        .from('purchases')
+        .select('*')
+        .eq('user_id', authUser.id)
+        .order('purchased_at', { ascending: false });
+
+      if (purchasesError) throw purchasesError;
+      purchases = purchasesData || [];
+    }
+
     // Create timeline by merging all events
     const timeline: TimelineEvent[] = [];
 
@@ -93,18 +110,35 @@ export async function GET(
       }
     });
 
+    // Add purchases to timeline
+    purchases.forEach((purchase) => {
+      timeline.push({
+        id: purchase.id,
+        type: 'purchase',
+        timestamp: purchase.purchased_at,
+        data: purchase,
+      });
+    });
+
     // Sort timeline by timestamp (most recent first)
     timeline.sort((a, b) => {
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
 
     // Calculate stats
+    const totalSpent = purchases
+      .filter((p) => p.status === 'completed')
+      .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+
     const stats = {
       totalChatSessions: chatSessions?.length || 0,
       totalFunnelAttempts: funnelSessions?.length || 0,
       completedFunnels: funnelSessions?.filter((s) => s.completed).length || 0,
       totalEvents: funnelEvents.length,
       firstName: funnelSessions?.[0]?.user_data?.firstName || null,
+      totalPurchases: purchases.length,
+      totalSpent: Math.round(totalSpent * 100) / 100,
+      activeApps: [...new Set(purchases.flatMap((p) => p.apps_included || []))],
     };
 
     return NextResponse.json({
@@ -113,6 +147,7 @@ export async function GET(
       timeline,
       chatSessions: chatSessions || [],
       funnelSessions: funnelSessions || [],
+      purchases: purchases || [],
     });
   } catch (error: any) {
     console.error('Error fetching user timeline:', error);

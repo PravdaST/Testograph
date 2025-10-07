@@ -25,6 +25,9 @@ interface User {
   funnelAttempts: number;
   converted: boolean;
   lastActivity: string;
+  purchasesCount: number;
+  totalSpent: number;
+  latestPurchase?: string;
 }
 
 interface UsersResponse {
@@ -102,7 +105,7 @@ export default function UsersPage() {
 
         {/* Stats Cards */}
         {!isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <Card>
               <CardHeader className="pb-3">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -149,6 +152,32 @@ export default function UsersPage() {
               <CardContent>
                 <div className="text-2xl font-bold">
                   {users.filter((u) => u.funnelAttempts > 0).length}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  С Покупки
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {users.filter((u) => u.purchasesCount > 0).length}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-sm font-medium text-muted-foreground">
+                  Общо Приходи
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {users.reduce((sum, u) => sum + (u.totalSpent || 0), 0).toFixed(2)} лв
                 </div>
               </CardContent>
             </Card>
@@ -206,6 +235,8 @@ export default function UsersPage() {
                       <TableHead>Име</TableHead>
                       <TableHead className="text-center">Chat Сесии</TableHead>
                       <TableHead className="text-center">Funnel Опити</TableHead>
+                      <TableHead className="text-center">Покупки</TableHead>
+                      <TableHead className="text-right">Общо Платено</TableHead>
                       <TableHead className="text-center">Конвертирал</TableHead>
                       <TableHead>Последна Активност</TableHead>
                     </TableRow>
@@ -228,6 +259,19 @@ export default function UsersPage() {
                         </TableCell>
                         <TableCell className="text-center">
                           <Badge variant="secondary">{user.funnelAttempts}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge
+                            variant={user.purchasesCount > 0 ? "default" : "outline"}
+                            className={user.purchasesCount > 0 ? "bg-green-600" : ""}
+                          >
+                            {user.purchasesCount}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <span className={user.totalSpent > 0 ? "font-semibold text-green-600" : "text-muted-foreground"}>
+                            {user.totalSpent > 0 ? `${user.totalSpent.toFixed(2)} лв` : '—'}
+                          </span>
                         </TableCell>
                         <TableCell className="text-center">
                           {user.converted ? (
