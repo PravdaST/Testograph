@@ -14,7 +14,9 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, Users as UsersIcon, CheckCircle, XCircle, Loader2 } from 'lucide-react';
+import { Search, Users as UsersIcon, CheckCircle, XCircle, Loader2, Download } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { exportToCSV } from '@/lib/utils/exportToCSV';
 
 interface User {
   email: string;
@@ -73,6 +75,19 @@ export default function UsersPage() {
 
   const handleSearch = (value: string) => {
     setSearch(value);
+  };
+
+  const handleExport = () => {
+    const exportData = users.map((user) => ({
+      Email: user.email,
+      'First Name': user.firstName || 'N/A',
+      'Chat Sessions': user.chatSessions,
+      'Funnel Attempts': user.funnelAttempts,
+      'Converted': user.converted ? 'Yes' : 'No',
+      'Last Activity': formatDate(user.lastActivity),
+    }));
+
+    exportToCSV(exportData, `users-${new Date().toISOString().split('T')[0]}`);
   };
 
   return (
@@ -149,14 +164,24 @@ export default function UsersPage() {
                   Общо {users.length} {users.length === 1 ? 'потребител' : 'потребители'}
                 </CardDescription>
               </div>
-              <div className="relative w-full md:w-64">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Търси по email или име..."
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
-                />
+              <div className="flex items-center gap-2">
+                <div className="relative w-full md:w-64">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Търси по email или име..."
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleExport}
+                  disabled={users.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
               </div>
             </div>
           </CardHeader>

@@ -18,6 +18,7 @@ import {
   Copy,
   Check,
 } from 'lucide-react';
+import { exportToTextFile } from '@/lib/utils/exportToCSV';
 
 interface ChatMessage {
   id: string;
@@ -100,6 +101,24 @@ export default function ChatSessionDetailsPage() {
     setTimeout(() => setIsCopied(false), 2000);
   };
 
+  const downloadTranscript = () => {
+    const transcript = messages
+      .map((msg) => {
+        const timestamp = formatTime(msg.created_at);
+        return `[${timestamp}] ${msg.role === 'user' ? 'User' : 'Assistant'}:\n${msg.content}`;
+      })
+      .join('\n\n---\n\n');
+
+    const header = `Chat Transcript - ${session?.email}\nSession ID: ${sessionId}\nDate: ${session ? formatDate(session.created_at) : ''}\n\n${'='.repeat(60)}\n\n`;
+    const fullTranscript = header + transcript;
+
+    exportToTextFile(
+      fullTranscript,
+      `chat-transcript-${session?.email.replace('@', '_')}-${new Date().toISOString().split('T')[0]}`,
+      'txt'
+    );
+  };
+
   if (isLoading) {
     return (
       <AdminLayout>
@@ -141,19 +160,25 @@ export default function ChatSessionDetailsPage() {
               Преглед на разговор и информация
             </p>
           </div>
-          <Button variant="outline" onClick={copyTranscript}>
-            {isCopied ? (
-              <>
-                <Check className="h-4 w-4 mr-2" />
-                Копирано
-              </>
-            ) : (
-              <>
-                <Copy className="h-4 w-4 mr-2" />
-                Копирай transcript
-              </>
-            )}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={downloadTranscript}>
+              <Download className="h-4 w-4 mr-2" />
+              Download Transcript
+            </Button>
+            <Button variant="outline" onClick={copyTranscript}>
+              {isCopied ? (
+                <>
+                  <Check className="h-4 w-4 mr-2" />
+                  Копирано
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 mr-2" />
+                  Копирай transcript
+                </>
+              )}
+            </Button>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

@@ -14,7 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Search, FileText, MessageSquare, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Search, FileText, MessageSquare, ChevronLeft, ChevronRight, Loader2, Download } from 'lucide-react';
+import { exportToCSV } from '@/lib/utils/exportToCSV';
 
 interface ChatSession {
   id: string;
@@ -87,6 +88,18 @@ export default function ChatSessionsPage() {
 
   const totalPages = Math.ceil(total / limit);
 
+  const handleExport = () => {
+    const exportData = sessions.map((session) => ({
+      Email: session.email,
+      'PDF Filename': session.pdf_filename || 'N/A',
+      'Message Count': session.message_count,
+      'Created At': formatDate(session.created_at),
+      'Last Activity': formatDate(session.updated_at),
+    }));
+
+    exportToCSV(exportData, `chat-sessions-${new Date().toISOString().split('T')[0]}`);
+  };
+
   return (
     <AdminLayout>
       <div className="space-y-6">
@@ -106,14 +119,24 @@ export default function ChatSessionsPage() {
                   Общо {total} {total === 1 ? 'сесия' : 'сесии'}
                 </CardDescription>
               </div>
-              <div className="relative w-full md:w-64">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Търси по email..."
-                  value={search}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  className="pl-10"
-                />
+              <div className="flex items-center gap-2">
+                <div className="relative w-full md:w-64">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Търси по email..."
+                    value={search}
+                    onChange={(e) => handleSearch(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                <Button
+                  variant="outline"
+                  onClick={handleExport}
+                  disabled={sessions.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export CSV
+                </Button>
               </div>
             </div>
           </CardHeader>
