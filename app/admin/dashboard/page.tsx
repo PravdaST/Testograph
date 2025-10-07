@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { StatCard } from '@/components/admin/StatCard';
+import { SkeletonCard, SkeletonTable } from '@/components/admin/SkeletonCard';
+import { EmptyState } from '@/components/admin/EmptyState';
+import { SearchBar } from '@/components/admin/SearchBar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -14,6 +17,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   MessageSquare,
   TrendingUp,
@@ -29,6 +33,7 @@ import {
   Dumbbell,
   Target,
   Flame,
+  RefreshCw,
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -80,13 +85,20 @@ export default function DashboardPage() {
   const [activities, setActivities] = useState<ActivityEvent[]>([]);
   const [recentPurchases, setRecentPurchases] = useState<RecentPurchase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
   }, []);
 
-  const fetchDashboardData = async () => {
-    setIsLoading(true);
+  const fetchDashboardData = async (isRefresh = false) => {
+    if (isRefresh) {
+      setIsRefreshing(true);
+    } else {
+      setIsLoading(true);
+    }
     try {
       // Fetch activity feed
       const activityRes = await fetch('/api/admin/activity?limit=10');
@@ -146,6 +158,8 @@ export default function DashboardPage() {
       console.error('Error fetching dashboard data:', error);
     } finally {
       setIsLoading(false);
+      setIsRefreshing(false);
+      setLastUpdated(new Date());
     }
   };
 
@@ -173,11 +187,79 @@ export default function DashboardPage() {
     return <Activity className="h-4 w-4" />;
   };
 
+  const formatTimestamp = (date: Date | null) => {
+    if (!date) return '';
+    const now = new Date();
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+
+    if (diffMins < 1) return 'току-що';
+    if (diffMins < 60) return `преди ${diffMins} мин`;
+
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return `преди ${diffHours} ч`;
+
+    return date.toLocaleDateString('bg-BG', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  };
+
+  // Filter purchases and activities based on search
+  const filteredPurchases = recentPurchases.filter(p =>
+    searchQuery === '' ||
+    p.userEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.userName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.productName.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  const filteredActivities = activities.filter(a =>
+    searchQuery === '' ||
+    a.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    a.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center py-12">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <div className="space-y-8">
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
+              Зареждане на данни...
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Product Usage</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <SkeletonCard key={i} />
+              ))}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Recent Purchases</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SkeletonTable rows={5} />
+              </CardContent>
+            </Card>
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Recent Activity</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <SkeletonTable rows={5} />
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </AdminLayout>
     );
@@ -186,11 +268,31 @@ export default function DashboardPage() {
   return (
     <AdminLayout>
       <div className="space-y-8">
-        <div>
-          <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-1">
-            Преглед на всички системни metrics и последна активност
-          </p>
+        {/* Header with Search and Refresh */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground mt-1">
+              {lastUpdated && `Last updated: ${formatTimestamp(lastUpdated)}`}
+            </p>
+          </div>
+          <div className="flex items-center gap-3">
+            <SearchBar
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder="Search users, purchases..."
+              className="w-full md:w-64"
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => fetchDashboardData(true)}
+              disabled={isRefreshing}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </div>
 
         {/* Key Metrics */}
@@ -355,45 +457,64 @@ export default function DashboardPage() {
                 <ShoppingCart className="h-5 w-5" />
                 Recent Purchases
               </CardTitle>
+              {searchQuery && (
+                <p className="text-xs text-muted-foreground">
+                  Showing {filteredPurchases.length} of {recentPurchases.length} purchases
+                </p>
+              )}
             </CardHeader>
             <CardContent>
-              {recentPurchases.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Няма покупки все още
-                </p>
+              {filteredPurchases.length === 0 ? (
+                searchQuery ? (
+                  <EmptyState
+                    icon={ShoppingCart}
+                    title="No matching purchases"
+                    description={`No purchases found for "${searchQuery}"`}
+                  />
+                ) : (
+                  <EmptyState
+                    icon={ShoppingCart}
+                    title="No purchases yet"
+                    description="Purchases will appear here once users make their first order"
+                  />
+                )
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>User</TableHead>
-                      <TableHead>Product</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                      <TableHead className="text-right">Date</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {recentPurchases.map((purchase) => (
-                      <TableRow
-                        key={purchase.id}
-                        className="cursor-pointer"
-                        onClick={() => router.push(`/admin/users/${encodeURIComponent(purchase.userEmail)}`)}
-                      >
-                        <TableCell className="font-medium">
-                          {purchase.userName || purchase.userEmail}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {purchase.productName}
-                        </TableCell>
-                        <TableCell className="text-right font-semibold text-green-600">
-                          {purchase.amount} лв
-                        </TableCell>
-                        <TableCell className="text-right text-sm text-muted-foreground">
-                          {formatDate(purchase.purchasedAt)}
-                        </TableCell>
+                <div className="relative overflow-x-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background">
+                      <TableRow>
+                        <TableHead className="h-10">User</TableHead>
+                        <TableHead className="h-10">Product</TableHead>
+                        <TableHead className="h-10 text-right">Amount</TableHead>
+                        <TableHead className="h-10 text-right">Date</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredPurchases.map((purchase, index) => (
+                        <TableRow
+                          key={purchase.id}
+                          className={`h-10 cursor-pointer transition-colors ${
+                            index % 2 === 0 ? '' : 'bg-muted/30'
+                          }`}
+                          onClick={() => router.push(`/admin/users/${encodeURIComponent(purchase.userEmail)}`)}
+                        >
+                          <TableCell className="font-medium text-sm py-2">
+                            {purchase.userName || purchase.userEmail}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground py-2">
+                            {purchase.productName}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold text-green-600 text-sm py-2">
+                            {purchase.amount} лв
+                          </TableCell>
+                          <TableCell className="text-right text-xs text-muted-foreground py-2">
+                            {formatDate(purchase.purchasedAt)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -405,51 +526,73 @@ export default function DashboardPage() {
                 <Activity className="h-5 w-5" />
                 Recent Activity
               </CardTitle>
+              {searchQuery && (
+                <p className="text-xs text-muted-foreground">
+                  Showing {filteredActivities.length} of {activities.length} activities
+                </p>
+              )}
             </CardHeader>
             <CardContent>
-              {activities.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">
-                  Няма последна активност
-                </p>
+              {filteredActivities.length === 0 ? (
+                searchQuery ? (
+                  <EmptyState
+                    icon={Activity}
+                    title="No matching activity"
+                    description={`No activity found for "${searchQuery}"`}
+                  />
+                ) : (
+                  <EmptyState
+                    icon={Activity}
+                    title="No recent activity"
+                    description="User activity will appear here"
+                  />
+                )
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12"></TableHead>
-                      <TableHead>User</TableHead>
-                      <TableHead>Action</TableHead>
-                      <TableHead className="text-right">Time</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {activities.map((activity) => (
-                      <TableRow key={activity.id}>
-                        <TableCell>
-                          <div
-                            className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                              activity.type === 'chat_session'
-                                ? 'bg-blue-100 text-blue-600'
-                                : activity.type === 'funnel_session'
-                                ? 'bg-purple-100 text-purple-600'
-                                : 'bg-gray-100 text-gray-600'
-                            }`}
-                          >
-                            {getActivityIcon(activity.type)}
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-medium">{activity.user}</TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {activity.description}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Badge variant="outline" className="text-xs">
-                            {formatDate(activity.timestamp)}
-                          </Badge>
-                        </TableCell>
+                <div className="relative overflow-x-auto">
+                  <Table>
+                    <TableHeader className="sticky top-0 bg-background">
+                      <TableRow>
+                        <TableHead className="w-12 h-10"></TableHead>
+                        <TableHead className="h-10">User</TableHead>
+                        <TableHead className="h-10">Action</TableHead>
+                        <TableHead className="h-10 text-right">Time</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredActivities.map((activity, index) => (
+                        <TableRow
+                          key={activity.id}
+                          className={`h-10 transition-colors ${
+                            index % 2 === 0 ? '' : 'bg-muted/30'
+                          }`}
+                        >
+                          <TableCell className="py-2">
+                            <div
+                              className={`flex items-center justify-center w-7 h-7 rounded-full ${
+                                activity.type === 'chat_session'
+                                  ? 'bg-blue-100 text-blue-600'
+                                  : activity.type === 'funnel_session'
+                                  ? 'bg-purple-100 text-purple-600'
+                                  : 'bg-gray-100 text-gray-600'
+                              }`}
+                            >
+                              {getActivityIcon(activity.type)}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium text-sm py-2">{activity.user}</TableCell>
+                          <TableCell className="text-xs text-muted-foreground py-2">
+                            {activity.description}
+                          </TableCell>
+                          <TableCell className="text-right py-2">
+                            <Badge variant="outline" className="text-xs">
+                              {formatDate(activity.timestamp)}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
               )}
             </CardContent>
           </Card>

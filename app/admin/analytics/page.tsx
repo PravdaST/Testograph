@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { supabase } from '@/integrations/supabase/client';
+import AdminLayout from '@/components/admin/AdminLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -20,7 +19,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
-import { RefreshCw, Download, TrendingUp, Users, Target, Clock, Lock } from 'lucide-react';
+import { RefreshCw, Download, TrendingUp, Users, Target, Clock } from 'lucide-react';
 import { HeatmapChart } from '@/components/analytics/HeatmapChart';
 import { TrendComparisonChart } from '@/components/analytics/TrendComparisonChart';
 
@@ -89,43 +88,13 @@ interface TrendsData {
 }
 
 const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
-const ADMIN_USER_ID = 'e4ea078b-30b2-4347-801f-6d26a87318b6';
 
 export default function AnalyticsDashboard() {
-  const router = useRouter();
   const [funnelStats, setFunnelStats] = useState<FunnelStats | null>(null);
   const [timeSpentData, setTimeSpentData] = useState<TimeSpentData | null>(null);
   const [trendsData, setTrendsData] = useState<TrendsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDays, setSelectedDays] = useState(7);
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
-  const [userEmail, setUserEmail] = useState<string>('');
-
-  // Check authentication
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        // Not logged in
-        setIsAuthorized(false);
-        return;
-      }
-
-      if (user.id !== ADMIN_USER_ID) {
-        // Logged in but not admin
-        setIsAuthorized(false);
-        setUserEmail(user.email || '');
-        return;
-      }
-
-      // Admin user - authorized
-      setIsAuthorized(true);
-      setUserEmail(user.email || '');
-    };
-
-    checkAuth();
-  }, []);
 
   const fetchData = async () => {
     setLoading(true);
@@ -183,10 +152,8 @@ export default function AnalyticsDashboard() {
   };
 
   useEffect(() => {
-    if (isAuthorized) {
-      fetchData();
-    }
-  }, [selectedDays, isAuthorized]);
+    fetchData();
+  }, [selectedDays]);
 
   const formatTime = (seconds: number) => {
     if (seconds < 60) return `${seconds}s`;
@@ -228,74 +195,33 @@ export default function AnalyticsDashboard() {
       ]
     : [];
 
-  // Auth check loading
-  if (isAuthorized === null) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Проверка на достъп...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Access denied screen
-  if (isAuthorized === false) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Card className="max-w-md mx-4">
-          <CardHeader className="text-center">
-            <div className="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center mb-4">
-              <Lock className="w-8 h-8 text-red-600 dark:text-red-400" />
-            </div>
-            <CardTitle className="text-2xl">Достъпът е отказан</CardTitle>
-            <CardDescription className="mt-2">
-              {userEmail
-                ? `Вашият акаунт (${userEmail}) няма права за достъп до тази страница.`
-                : 'Трябва да влезете в акаунт с административни права.'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="text-center space-y-3">
-            <p className="text-sm text-muted-foreground">
-              Само администраторски акаунти имат достъп до analytics dashboard.
-            </p>
-            <Button
-              variant="outline"
-              onClick={() => router.push('/')}
-              className="w-full"
-            >
-              Към началната страница
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
-          <p className="text-muted-foreground">Зареждане на analytics...</p>
+      <AdminLayout>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-muted-foreground">Зареждане на analytics...</p>
+          </div>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   if (!funnelStats) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <p className="text-xl text-muted-foreground">Няма данни</p>
+      <AdminLayout>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <p className="text-xl text-muted-foreground">Няма данни</p>
+          </div>
         </div>
-      </div>
+      </AdminLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
+    <AdminLayout>
       <div className="max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -572,6 +498,6 @@ export default function AnalyticsDashboard() {
           </CardContent>
         </Card>
       </div>
-    </div>
+    </AdminLayout>
   );
 }
