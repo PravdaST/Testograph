@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { LoadingProgressBar } from "./LoadingProgressBar";
 import { LoadingHeader } from "./LoadingHeader";
 import { Step1DataAnalysis } from "./Step1DataAnalysis";
@@ -16,6 +16,16 @@ import { ExitPopupDialog } from "./ExitPopupDialog";
 import { SocialProofNotification } from "./SocialProofNotification";
 import { Button } from "@/components/ui/button";
 import { ChevronRight } from "lucide-react";
+import {
+  initFunnelSession,
+  trackStepEntered,
+  trackStepExited,
+  trackSkipUsed,
+  trackButtonClick,
+  trackExitIntent,
+  updateOfferTier,
+  trackFunnelExit,
+} from "@/lib/analytics/funnel-tracker";
 
 type OfferTier = 'premium' | 'single' | 'digital' | 'rejected' | null;
 
@@ -44,19 +54,56 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
   // Total micro-steps: 1(loading) + 2a,2b,2c + 3a,3b,3c + 4(offer) = 8 steps
   const totalSteps = 8;
 
+  // Tracking: Store entry time for each step to calculate time spent
+  const stepEntryTimeRef = useRef<number>(Date.now());
+
+  // Initialize funnel session on mount
+  useEffect(() => {
+    initFunnelSession(userData);
+  }, []);
+
   // Hide header when funnel is active
   useEffect(() => {
     const header = document.querySelector('header');
     if (header) {
       header.style.display = 'none';
     }
-    
+
     return () => {
       if (header) {
         header.style.display = '';
       }
     };
   }, []);
+
+  // Track step changes
+  useEffect(() => {
+    // Track step entered
+    trackStepEntered(currentStep);
+    stepEntryTimeRef.current = Date.now();
+
+    // Track step exited on cleanup
+    return () => {
+      const timeSpentSeconds = Math.floor((Date.now() - stepEntryTimeRef.current) / 1000);
+      trackStepExited(currentStep, timeSpentSeconds);
+    };
+  }, [currentStep]);
+
+  // Track offer tier changes (only when user first reaches step 8)
+  useEffect(() => {
+    if (currentStep === 8 && currentOfferTier === 'premium') {
+      updateOfferTier('premium');
+    }
+  }, [currentStep, currentOfferTier]);
+
+  // Track user choice from Step 2c
+  useEffect(() => {
+    if (userChoice !== null) {
+      import('@/lib/analytics/funnel-tracker').then(({ trackChoiceMade }) => {
+        trackChoiceMade(4, userChoice);
+      });
+    }
+  }, [userChoice]);
 
   // Skip button logic - show after 6 seconds (optimized from 10s)
   useEffect(() => {
@@ -80,6 +127,7 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
       if (e.clientY < 10 && !hasShownPopup) {
         hasShownPopup = true;
         setShowExitPopup(true);
+        trackExitIntent(currentStep, { offerTier: currentOfferTier });
       }
     };
 
@@ -88,7 +136,7 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
     return () => {
       document.removeEventListener('mouseleave', handleMouseLeave);
     };
-  }, [currentStep]);
+  }, [currentStep, currentOfferTier]);
 
   // Auto-advance timers (NEW: Engagement-driven with slow progress)
   useEffect(() => {
@@ -174,6 +222,9 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
 
   const handleSkip = () => {
     if (currentStep < 8) {
+      // Track skip usage
+      trackSkipUsed(currentStep);
+
       // Rapidly complete progress to target % before advancing
       const progressMap: Record<number, number> = {
         1: 12,
@@ -208,6 +259,12 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
   };
 
   const handleDecline = () => {
+    // Track decline button click
+    trackButtonClick(currentStep, 'Decline', {
+      previousTier: currentOfferTier,
+      action: 'decline_offer'
+    });
+
     // Scroll to top for better UX when switching offers
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -215,16 +272,26 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
     if (currentOfferTier === 'premium') {
       // Declined premium → show single bottle offer
       setCurrentOfferTier('single');
+      updateOfferTier('single');
     } else if (currentOfferTier === 'single') {
       // Declined single → show digital-only offer
       setCurrentOfferTier('digital');
+      updateOfferTier('digital');
     } else {
       // Declined digital → show final thank you message
       setCurrentOfferTier('rejected');
+      trackFunnelExit(currentStep, false);
     }
   };
 
   const handleSkipToFree = () => {
+    // Track skip to free plan
+    trackButtonClick(currentStep, 'Skip to Free', {
+      previousTier: currentOfferTier,
+      action: 'skip_to_free'
+    });
+    trackFunnelExit(currentStep, false);
+
     // Skip directly to free plan (final thank you)
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setCurrentOfferTier('rejected');
