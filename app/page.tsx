@@ -14,6 +14,7 @@ import { TestimonialCard } from "@/components/ui/testimonial-card";
 import { StatComparison } from "@/components/ui/stat-comparison";
 import { ValueStack } from "@/components/ui/value-stack";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { WaitingRoomFunnel } from "@/components/funnel/WaitingRoomFunnel";
 
 // Testimonials Carousel Component
 const TestimonialsCarousel = () => {
@@ -157,6 +158,8 @@ const TestimonialsCarousel = () => {
 const Index = () => {
   const [result, setResult] = useState(null);
   const [showResults, setShowResults] = useState(false);
+  const [showFunnel, setShowFunnel] = useState(false);
+  const [userData, setUserData] = useState(null);
   const [formModalOpen, setFormModalOpen] = useState(false);
   const [showScarcityBanner, setShowScarcityBanner] = useState(false);
   const { scrollDirection, isAtTop } = useScrollDirection();
@@ -175,18 +178,38 @@ const Index = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
   const handleResult = (data: any) => {
-    setResult(data);
-    setShowResults(true);
-    // Scroll to top when results are shown
-    window.scrollTo({
-      top: 0,
-      behavior: 'smooth'
-    });
+    if (data.type === 'funnel') {
+      // Trigger funnel flow
+      setUserData(data.userData);
+      setShowFunnel(true);
+      setFormModalOpen(false);
+      // Scroll to top when funnel starts
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    } else {
+      // Standard results display
+      setResult(data);
+      setShowResults(true);
+      // Scroll to top when results are shown
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
   };
   const resetForm = () => {
     setResult(null);
     setShowResults(false);
+    setShowFunnel(false);
+    setUserData(null);
   };
+
+  // If funnel should be shown, render only the funnel
+  if (showFunnel) {
+    return <WaitingRoomFunnel userData={userData} />;
+  }
   return <div className="min-h-screen transition-none relative bg-gray-900">
       {/* Animated Purple Wave Background - Full Page */}
       <div className="fixed inset-0 z-0">

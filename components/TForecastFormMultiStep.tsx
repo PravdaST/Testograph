@@ -254,11 +254,11 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
 
         console.log('✅ Webhook submission successful');
         onResult({
-          type: 'thank-you',
+          type: 'funnel',
           title: 'Благодарим! Вашата Testograph прогноза е в процес.',
           description: "Изпратихме вашия персонализиран доклад до вашия имейл адрес.\nМоже да отнеме 1–2 минути да пристигне — ако не го видите, моля проверете папките Промоции или Спам.",
           userData: {
-            firstName: formData.firstName,
+            firstName: email?.split('@')[0] || firstName || formData.firstName,
             age: formData.age,
             weight: formData.weight,
             height: formData.height,
