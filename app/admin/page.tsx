@@ -29,8 +29,8 @@ export default function AdminLoginPage() {
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        // Already logged in, redirect to analytics
-        router.push('/admin/analytics');
+        // Already logged in, redirect to dashboard
+        router.push('/admin/dashboard');
       } else {
         setCheckingAuth(false);
       }
@@ -57,8 +57,8 @@ export default function AdminLoginPage() {
       }
 
       if (data.user) {
-        // Successful login, redirect to analytics
-        router.push('/admin/analytics');
+        // Successful login, redirect to dashboard
+        router.push('/admin/dashboard');
       }
     } catch (err) {
       setError('Възникна грешка при влизане');
