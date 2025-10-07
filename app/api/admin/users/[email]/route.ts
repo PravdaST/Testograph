@@ -68,7 +68,18 @@ export async function GET(
         .order('purchased_at', { ascending: false });
 
       if (purchasesError) throw purchasesError;
-      purchases = purchasesData || [];
+
+      // Map snake_case to camelCase for frontend
+      purchases = purchasesData?.map(p => ({
+        id: p.id,
+        productName: p.product_name,
+        productType: p.product_type,
+        amount: p.amount,
+        currency: p.currency,
+        status: p.status,
+        appsIncluded: p.apps_included,
+        purchasedAt: p.purchased_at,
+      })) || [];
     }
 
     // Create timeline by merging all events
