@@ -75,7 +75,7 @@ export const ExitPopupDialog = ({ open, onOpenChange, userData }: ExitPopupDialo
               asChild
             >
               <a href="https://www.shop.testograph.eu" target="_blank" rel="noopener noreferrer">
-                🎁 ВЗЕМИ ОФЕРТАТА - 17 ЛВ
+                🎁 ВЗЕМИ ОФЕРТАТА - 19 ЛВ
               </a>
             </Button>
 

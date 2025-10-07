@@ -166,7 +166,7 @@ export const TierComparisonTable = ({ currentTier }: TierComparisonTableProps) =
                   className="w-full"
                   asChild
                 >
-                  <a href="https://www.shop.testograph.eu?tier=digital" target="_blank" rel="noopener noreferrer">
+                  <a href="https://shop.testograph.eu/collections/digitals" target="_blank" rel="noopener noreferrer">
                     {currentTier === "digital" ? "Избрахте това ✓" : "Избери Digital"}
                   </a>
                 </Button>
@@ -178,7 +178,7 @@ export const TierComparisonTable = ({ currentTier }: TierComparisonTableProps) =
                   className="w-full"
                   asChild
                 >
-                  <a href="https://www.shop.testograph.eu?tier=single" target="_blank" rel="noopener noreferrer">
+                  <a href="https://shop.testograph.eu/collections/regular" target="_blank" rel="noopener noreferrer">
                     {currentTier === "regular" ? "Избрахте това ✓" : "Избери Regular"}
                   </a>
                 </Button>
@@ -190,7 +190,7 @@ export const TierComparisonTable = ({ currentTier }: TierComparisonTableProps) =
                   className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700"
                   asChild
                 >
-                  <a href="https://www.shop.testograph.eu?tier=premium" target="_blank" rel="noopener noreferrer">
+                  <a href="https://shop.testograph.eu/collections/bundles" target="_blank" rel="noopener noreferrer">
                     {currentTier === "premium" ? "Избрахте това ✓" : "Избери Premium"}
                   </a>
                 </Button>
