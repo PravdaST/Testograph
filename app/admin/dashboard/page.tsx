@@ -18,7 +18,7 @@ import {
   ShoppingCart,
   Utensils,
   Moon,
-  Flask,
+  FlaskConical,
   Dumbbell,
   Target,
   Flame,
@@ -355,7 +355,7 @@ export default function DashboardPage() {
               <Card>
                 <CardHeader className="pb-3">
                   <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Flask className="h-4 w-4" />
+                    <FlaskConical className="h-4 w-4" />
                     Lab Results
                   </CardTitle>
                 </CardHeader>

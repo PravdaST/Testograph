@@ -24,7 +24,7 @@ import {
   Package,
   Utensils,
   Moon,
-  Flask,
+  FlaskConical,
   Dumbbell,
   Activity,
   Target,
@@ -526,7 +526,7 @@ export default function UserProfilePage() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Flask className="h-5 w-5" />
+                    <FlaskConical className="h-5 w-5" />
                     Lab Results
                   </CardTitle>
                   <CardDescription>
