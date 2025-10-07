@@ -984,13 +984,7 @@ const Index = () => {
               Безплатен тестостерон анализ - 4 въпроса
             </DialogTitle>
           </DialogHeader>
-          <TForecastFormMultiStep
-            onResult={(data) => {
-              setResult(data);
-              setShowResults(true);
-              setFormModalOpen(false);
-            }}
-          />
+          <TForecastFormMultiStep onResult={handleResult} />
         </DialogContent>
       </Dialog>
     </div>;
