@@ -16,14 +16,7 @@ export async function GET(request: Request) {
     // Build query
     let query = supabase
       .from('purchases')
-      .select(`
-        *,
-        profiles:user_id (
-          id,
-          name,
-          avatar
-        )
-      `, { count: 'exact' })
+      .select('*', { count: 'exact' })
       .order('purchased_at', { ascending: false });
 
     // Apply filters

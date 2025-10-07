@@ -40,16 +40,7 @@ export async function GET(request: Request) {
     // Get all purchases
     const { data: purchases, error: purchasesError } = await supabase
       .from('purchases')
-      .select(`
-        user_id,
-        amount,
-        status,
-        purchased_at,
-        profiles:user_id (
-          id,
-          name
-        )
-      `)
+      .select('user_id, amount, status, purchased_at')
       .eq('status', 'completed');
 
     if (purchasesError) throw purchasesError;
