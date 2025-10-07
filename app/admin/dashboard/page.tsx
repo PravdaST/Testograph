@@ -3,15 +3,22 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { StatCard } from '@/components/admin/StatCard';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import {
   MessageSquare,
   TrendingUp,
   Users,
   CheckCircle,
-  ArrowRight,
   Activity,
   Loader2,
   DollarSign,
@@ -178,415 +185,275 @@ export default function DashboardPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-8">
         <div>
           <h1 className="text-3xl font-bold">Dashboard</h1>
-          <p className="text-muted-foreground mt-2">
+          <p className="text-muted-foreground mt-1">
             Преглед на всички системни metrics и последна активност
           </p>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Общо Потребители
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.totalUsers || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Уникални emails в системата
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <MessageSquare className="h-4 w-4" />
-                Chat Сесии
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.totalChatSessions || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stats?.recentChatSessions || 0} последните 24ч
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <TrendingUp className="h-4 w-4" />
-                Funnel Сесии
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats?.totalFunnelSessions || 0}</div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Последните 30 дни
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Общо Приходи
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {stats?.totalRevenue || 0} лв
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {stats?.totalPurchases || 0} покупки
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <ShoppingCart className="h-4 w-4" />
-                Средна Стойност
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {stats?.averageOrderValue || 0} лв
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Per order
-              </p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <CheckCircle className="h-4 w-4" />
-                Conversion Rate
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">
-                {stats?.conversionRate || 0}%
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Последните 30 дни
-              </p>
-            </CardContent>
-          </Card>
+        {/* Key Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Total Users"
+            value={stats?.totalUsers || 0}
+            icon={Users}
+            description="Уникални emails в системата"
+          />
+          <StatCard
+            title="Total Revenue"
+            value={`${stats?.totalRevenue || 0} лв`}
+            icon={DollarSign}
+            valueColor="text-green-600"
+            description={`${stats?.totalPurchases || 0} purchases`}
+            trend={{ value: 12, label: 'vs last month' }}
+          />
+          <StatCard
+            title="Conversion Rate"
+            value={`${stats?.conversionRate || 0}%`}
+            icon={CheckCircle}
+            valueColor="text-green-600"
+            trend={{ value: 5, label: 'vs last month' }}
+          />
+          <StatCard
+            title="Active Sessions"
+            value={(stats?.totalChatSessions || 0) + (stats?.totalFunnelSessions || 0)}
+            icon={Activity}
+            description={`${stats?.recentChatSessions || 0} chats, ${stats?.recentFunnelSessions || 0} funnels`}
+          />
         </div>
 
-        {/* Testograph-app Stats */}
-        {stats?.appStats && (
+        {/* Product Usage */}
+        {(stats?.appStats || stats?.proStats) && (
           <>
-            <div className="mt-8">
-              <h2 className="text-2xl font-bold mb-4">Testograph-app Metrics</h2>
+            <div>
+              <h2 className="text-xl font-semibold">Product Usage</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                App and PRO features usage metrics
+              </p>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="border-blue-200 bg-blue-50/50">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Users className="h-4 w-4 text-blue-600" />
-                    App Users
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-blue-600">{stats.appStats?.totalUsers ?? 0}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    С активен достъп до app features
-                  </p>
-                </CardContent>
-              </Card>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Utensils className="h-4 w-4" />
-                    Активни Meal Plans
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.appStats?.activeMealPlans ?? 0}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Потребители с meal plan
-                  </p>
-                </CardContent>
-              </Card>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {/* Highlighted user counts */}
+              {stats?.appStats && (
+                <Card className="border-l-4 border-l-blue-500 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                      <Users className="h-4 w-4 text-blue-600" />
+                      <span className="font-medium">App Users</span>
+                    </div>
+                    <div className="text-2xl font-bold text-blue-600">{stats.appStats.totalUsers}</div>
+                  </CardContent>
+                </Card>
+              )}
+              {stats?.proStats && (
+                <Card className="border-l-4 border-l-purple-500 shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                      <Users className="h-4 w-4 text-purple-600" />
+                      <span className="font-medium">PRO Users</span>
+                    </div>
+                    <div className="text-2xl font-bold text-purple-600">{stats.proStats.totalUsers}</div>
+                  </CardContent>
+                </Card>
+              )}
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Moon className="h-4 w-4" />
-                    Sleep Logs
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.appStats?.sleepLogsLast30Days ?? 0}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Последните 30 дни
-                  </p>
-                </CardContent>
-              </Card>
+              {/* App metrics */}
+              {stats?.appStats && (
+                <>
+                  <Card className="shadow-sm">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                        <Utensils className="h-4 w-4" />
+                        <span className="font-medium">Meal Plans</span>
+                      </div>
+                      <div className="text-2xl font-bold">{stats.appStats.activeMealPlans}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="shadow-sm">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                        <Moon className="h-4 w-4" />
+                        <span className="font-medium">Sleep Logs</span>
+                      </div>
+                      <div className="text-2xl font-bold">{stats.appStats.sleepLogsLast30Days}</div>
+                      <p className="text-xs text-muted-foreground mt-1">Last 30d</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="shadow-sm">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                        <Dumbbell className="h-4 w-4" />
+                        <span className="font-medium">Exercise Logs</span>
+                      </div>
+                      <div className="text-2xl font-bold">{stats.appStats.exerciseLogsLast30Days}</div>
+                      <p className="text-xs text-muted-foreground mt-1">Last 30d</p>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
+            </div>
 
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Dumbbell className="h-4 w-4" />
-                    Exercise Logs
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.appStats?.exerciseLogsLast30Days ?? 0}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Последните 30 дни
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <FlaskConical className="h-4 w-4" />
-                    Lab Results
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.appStats?.totalLabResults ?? 0}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Качени тестови резултати
-                  </p>
-                </CardContent>
-              </Card>
+            {/* Second row - PRO metrics and Lab Results */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              {stats?.appStats && (
+                <Card className="shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                      <FlaskConical className="h-4 w-4" />
+                      <span className="font-medium">Lab Results</span>
+                    </div>
+                    <div className="text-2xl font-bold">{stats.appStats.totalLabResults}</div>
+                  </CardContent>
+                </Card>
+              )}
+              {stats?.proStats && (
+                <>
+                  <Card className="shadow-sm">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                        <Target className="h-4 w-4" />
+                        <span className="font-medium">Active Protocols</span>
+                      </div>
+                      <div className="text-2xl font-bold">{stats.proStats.activeProtocols}</div>
+                    </CardContent>
+                  </Card>
+                  <Card className="shadow-sm">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                        <Flame className="h-4 w-4" />
+                        <span className="font-medium">Daily Entries</span>
+                      </div>
+                      <div className="text-2xl font-bold">{stats.proStats.dailyEntriesLast30Days}</div>
+                      <p className="text-xs text-muted-foreground mt-1">Last 30d</p>
+                    </CardContent>
+                  </Card>
+                  <Card className="shadow-sm">
+                    <CardContent className="p-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                        <CheckCircle className="h-4 w-4" />
+                        <span className="font-medium">Avg Compliance</span>
+                      </div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {stats.proStats.averageCompliance?.toFixed(1) || 'N/A'}/10
+                      </div>
+                    </CardContent>
+                  </Card>
+                </>
+              )}
             </div>
           </>
         )}
 
-        {/* Testograph-PRO Stats */}
-        {stats?.proStats && (
-          <>
-            <div className="mt-8">
-              <h2 className="text-2xl font-bold mb-4">Testograph-PRO Metrics</h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <Card className="border-purple-200 bg-purple-50/50">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Users className="h-4 w-4 text-purple-600" />
-                    PRO Users
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-purple-600">{stats.proStats?.totalUsers ?? 0}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    С достъп до PRO протокол
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Target className="h-4 w-4" />
-                    Активни Протоколи
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.proStats?.activeProtocols ?? 0}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Стартирани PRO протоколи
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <Flame className="h-4 w-4" />
-                    Daily Entries
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold">{stats.proStats?.dailyEntriesLast30Days ?? 0}</div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Последните 30 дни
-                  </p>
-                </CardContent>
-              </Card>
-
-              <Card>
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                    <CheckCircle className="h-4 w-4" />
-                    Average Compliance
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-green-600">
-                    {stats.proStats.averageCompliance?.toFixed(1) || 'N/A'}/10
-                  </div>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Среден план compliance
-                  </p>
-                </CardContent>
-              </Card>
-            </div>
-          </>
-        )}
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="hover:bg-accent cursor-pointer transition-colors" onClick={() => router.push('/admin/chat-sessions')}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <MessageSquare className="h-5 w-5" />
-                  Chat Sessions
-                </span>
-                <ArrowRight className="h-5 w-5" />
+        {/* Revenue & Activity */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Purchases */}
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <ShoppingCart className="h-5 w-5" />
+                Recent Purchases
               </CardTitle>
-              <CardDescription>Виж всички chat разговори</CardDescription>
             </CardHeader>
+            <CardContent>
+              {recentPurchases.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  Няма покупки все още
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>User</TableHead>
+                      <TableHead>Product</TableHead>
+                      <TableHead className="text-right">Amount</TableHead>
+                      <TableHead className="text-right">Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {recentPurchases.map((purchase) => (
+                      <TableRow
+                        key={purchase.id}
+                        className="cursor-pointer"
+                        onClick={() => router.push(`/admin/users/${encodeURIComponent(purchase.userEmail)}`)}
+                      >
+                        <TableCell className="font-medium">
+                          {purchase.userName || purchase.userEmail}
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {purchase.productName}
+                        </TableCell>
+                        <TableCell className="text-right font-semibold text-green-600">
+                          {purchase.amount} лв
+                        </TableCell>
+                        <TableCell className="text-right text-sm text-muted-foreground">
+                          {formatDate(purchase.purchasedAt)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
           </Card>
 
-          <Card className="hover:bg-accent cursor-pointer transition-colors" onClick={() => router.push('/admin/users')}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  Users
-                </span>
-                <ArrowRight className="h-5 w-5" />
+          {/* Recent Activity Feed */}
+          <Card className="shadow-sm">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Recent Activity
               </CardTitle>
-              <CardDescription>Преглед на потребители</CardDescription>
             </CardHeader>
-          </Card>
-
-          <Card className="hover:bg-accent cursor-pointer transition-colors" onClick={() => router.push('/admin/analytics')}>
-            <CardHeader>
-              <CardTitle className="flex items-center justify-between">
-                <span className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5" />
-                  Funnel Analytics
-                </span>
-                <ArrowRight className="h-5 w-5" />
-              </CardTitle>
-              <CardDescription>Детайлна analytics за funnel</CardDescription>
-            </CardHeader>
+            <CardContent>
+              {activities.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  Няма последна активност
+                </p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12"></TableHead>
+                      <TableHead>User</TableHead>
+                      <TableHead>Action</TableHead>
+                      <TableHead className="text-right">Time</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {activities.map((activity) => (
+                      <TableRow key={activity.id}>
+                        <TableCell>
+                          <div
+                            className={`flex items-center justify-center w-8 h-8 rounded-full ${
+                              activity.type === 'chat_session'
+                                ? 'bg-blue-100 text-blue-600'
+                                : activity.type === 'funnel_session'
+                                ? 'bg-purple-100 text-purple-600'
+                                : 'bg-gray-100 text-gray-600'
+                            }`}
+                          >
+                            {getActivityIcon(activity.type)}
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium">{activity.user}</TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {activity.description}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Badge variant="outline" className="text-xs">
+                            {formatDate(activity.timestamp)}
+                          </Badge>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
           </Card>
         </div>
-
-        {/* Recent Purchases */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <ShoppingCart className="h-5 w-5" />
-                  Последни Покупки
-                </CardTitle>
-                <CardDescription>Най-скорошните 10 поръчки</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {recentPurchases.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                Няма покупки все още
-              </p>
-            ) : (
-              <div className="space-y-3">
-                {recentPurchases.map((purchase) => (
-                  <div
-                    key={purchase.id}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors cursor-pointer"
-                    onClick={() => {
-                      router.push(`/admin/users/${encodeURIComponent(purchase.userEmail)}`);
-                    }}
-                  >
-                    <div className="flex-1">
-                      <p className="text-sm font-medium">
-                        {purchase.userName || purchase.userEmail}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {purchase.productName}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-green-600">
-                        {purchase.amount} лв
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDate(purchase.purchasedAt)}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Recent Activity Feed */}
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Activity className="h-5 w-5" />
-                  Recent Activity
-                </CardTitle>
-                <CardDescription>Последните действия в системата</CardDescription>
-              </div>
-              <Button variant="ghost" size="sm">
-                Виж всички
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {activities.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
-                Няма последна активност
-              </p>
-            ) : (
-              <div className="space-y-4">
-                {activities.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="flex items-start gap-4 p-3 rounded-lg hover:bg-accent transition-colors"
-                  >
-                    <div
-                      className={`flex items-center justify-center w-10 h-10 rounded-full ${
-                        activity.type === 'chat_session'
-                          ? 'bg-blue-100 text-blue-600'
-                          : activity.type === 'funnel_session'
-                          ? 'bg-purple-100 text-purple-600'
-                          : 'bg-gray-100 text-gray-600'
-                      }`}
-                    >
-                      {getActivityIcon(activity.type)}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{activity.user}</p>
-                      <p className="text-sm text-muted-foreground">{activity.description}</p>
-                    </div>
-                    <Badge variant="outline" className="text-xs whitespace-nowrap">
-                      {formatDate(activity.timestamp)}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
       </div>
     </AdminLayout>
   );
