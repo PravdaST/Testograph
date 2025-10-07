@@ -21,6 +21,8 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { RefreshCw, Download, TrendingUp, Users, Target, Clock, Lock } from 'lucide-react';
+import { HeatmapChart } from '@/components/analytics/HeatmapChart';
+import { TrendComparisonChart } from '@/components/analytics/TrendComparisonChart';
 
 interface FunnelStats {
   stats: {
@@ -63,6 +65,29 @@ interface TimeSpentData {
   }>;
 }
 
+interface TrendsData {
+  heatmapData: Array<{
+    step: number;
+    intensity: number;
+    enters: number;
+    exits: number;
+    clicks: number;
+    total: number;
+  }>;
+  trendData: Array<{
+    date: string;
+    sessions: number;
+    completed: number;
+    dropped: number;
+    conversionRate: number;
+  }>;
+  avgTimePerStep: Array<{
+    step: number;
+    avgSeconds: number;
+    sampleSize: number;
+  }>;
+}
+
 const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
 const ADMIN_USER_ID = 'e4ea078b-30b2-4347-801f-6d26a87318b6';
 
@@ -70,6 +95,7 @@ export default function AnalyticsDashboard() {
   const router = useRouter();
   const [funnelStats, setFunnelStats] = useState<FunnelStats | null>(null);
   const [timeSpentData, setTimeSpentData] = useState<TimeSpentData | null>(null);
+  const [trendsData, setTrendsData] = useState<TrendsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDays, setSelectedDays] = useState(7);
   const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
@@ -104,16 +130,19 @@ export default function AnalyticsDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [statsRes, timeRes] = await Promise.all([
+      const [statsRes, timeRes, trendsRes] = await Promise.all([
         fetch(`/api/analytics/funnel-stats?days=${selectedDays}`),
         fetch(`/api/analytics/time-spent?days=${selectedDays}`),
+        fetch(`/api/analytics/trends?days=${selectedDays}`),
       ]);
 
       const stats = await statsRes.json();
       const time = await timeRes.json();
+      const trends = await trendsRes.json();
 
       setFunnelStats(stats);
       setTimeSpentData(time);
+      setTrendsData(trends);
     } catch (error) {
       console.error('Error fetching analytics:', error);
     } finally {
@@ -433,6 +462,16 @@ export default function AnalyticsDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Heatmap Chart */}
+        {trendsData && trendsData.heatmapData.length > 0 && (
+          <HeatmapChart data={trendsData.heatmapData} />
+        )}
+
+        {/* Trend Comparison Chart */}
+        {trendsData && trendsData.trendData.length > 0 && (
+          <TrendComparisonChart data={trendsData.trendData} />
+        )}
 
         {/* Time Spent Chart */}
         {timeSpentData && timeSpentData.timeSpentData.length > 0 && (
