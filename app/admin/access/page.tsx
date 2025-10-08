@@ -122,19 +122,14 @@ export default function AccessControlPage() {
 
   const fetchUsers = async () => {
     try {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, name, protocol_start_date_pro')
-        .order('protocol_start_date_pro', { ascending: false, nullsFirst: false });
+      const response = await fetch('/api/admin/access/users');
+      const data = await response.json();
 
-      const { data: authUsers } = await supabase.auth.admin.listUsers();
-
-      const enrichedUsers = profiles?.map(profile => ({
-        ...profile,
-        email: authUsers?.users.find(u => u.id === profile.id)?.email || 'Unknown'
-      })) || [];
-
-      setUsers(enrichedUsers);
+      if (response.ok) {
+        setUsers(data.users || []);
+      } else {
+        console.error('Error fetching users:', data.error);
+      }
     } catch (error) {
       console.error('Error fetching users:', error);
     }
