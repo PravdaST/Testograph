@@ -18,6 +18,26 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  PieChart,
+  Pie,
+  BarChart,
+  Bar,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from 'recharts';
+import {
   Target,
   RefreshCw,
   Flame,
@@ -26,6 +46,8 @@ import {
   ArrowUpDown,
   Calendar,
   Activity,
+  Download,
+  Filter,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -51,6 +73,10 @@ interface ProUserData {
 
 type SortField = 'email' | 'daysOnProtocol' | 'currentStreak' | 'complianceRate' | 'weightChange';
 type SortDirection = 'asc' | 'desc';
+type ComplianceFilter = 'all' | 'high' | 'medium' | 'low';
+type ActivityFilter = 'all' | 'active' | 'inactive';
+
+const COLORS = ['#10b981', '#f59e0b', '#ef4444'];
 
 export default function ProUsersPage() {
   const router = useRouter();
@@ -60,6 +86,8 @@ export default function ProUsersPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [sortField, setSortField] = useState<SortField>('complianceRate');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+  const [complianceFilter, setComplianceFilter] = useState<ComplianceFilter>('all');
+  const [activityFilter, setActivityFilter] = useState<ActivityFilter>('all');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -125,12 +153,92 @@ export default function ProUsersPage() {
     return { label: 'Ниско', variant: 'destructive' as const };
   };
 
-  // Filter users based on search
-  const filteredUsers = users.filter(user =>
-    searchQuery === '' ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.name?.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const exportToCSV = () => {
+    if (sortedUsers.length === 0) return;
+
+    const headers = [
+      'Email',
+      'Name',
+      'Days on Protocol',
+      'Current Streak',
+      'Longest Streak',
+      'Compliance %',
+      'Total Entries',
+      'Missed Days',
+      'Avg Feeling',
+      'Avg Energy',
+      'Avg Compliance',
+      'Start Weight (kg)',
+      'Current Weight (kg)',
+      'Weight Change (kg)',
+      'Last Activity',
+    ];
+
+    const csvData = sortedUsers.map(user => [
+      user.email,
+      user.name || '',
+      user.daysOnProtocol,
+      user.currentStreak,
+      user.longestStreak,
+      user.complianceRate,
+      user.totalEntries,
+      user.missedDays,
+      user.averageFeeling?.toFixed(1) || '',
+      user.averageEnergy?.toFixed(1) || '',
+      user.averageCompliance?.toFixed(1) || '',
+      user.startWeight?.toFixed(1) || '',
+      user.currentWeight?.toFixed(1) || '',
+      user.weightChange?.toFixed(1) || '',
+      user.lastActivityDate || '',
+    ]);
+
+    const csv = [
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `testograph-pro-users-${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Filter users based on search, compliance, and activity
+  let filteredUsers = users.filter(user => {
+    // Search filter
+    const matchesSearch = searchQuery === '' ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Compliance filter
+    let matchesCompliance = true;
+    if (complianceFilter === 'high') {
+      matchesCompliance = user.complianceRate >= 80;
+    } else if (complianceFilter === 'medium') {
+      matchesCompliance = user.complianceRate >= 60 && user.complianceRate < 80;
+    } else if (complianceFilter === 'low') {
+      matchesCompliance = user.complianceRate < 60;
+    }
+
+    // Activity filter
+    let matchesActivity = true;
+    if (activityFilter === 'active') {
+      const daysSinceActivity = user.lastActivityDate
+        ? Math.floor((new Date().getTime() - new Date(user.lastActivityDate).getTime()) / (1000 * 60 * 60 * 24))
+        : 999;
+      matchesActivity = daysSinceActivity <= 3;
+    } else if (activityFilter === 'inactive') {
+      const daysSinceActivity = user.lastActivityDate
+        ? Math.floor((new Date().getTime() - new Date(user.lastActivityDate).getTime()) / (1000 * 60 * 60 * 24))
+        : 999;
+      matchesActivity = daysSinceActivity > 3;
+    }
+
+    return matchesSearch && matchesCompliance && matchesActivity;
+  });
 
   // Sort users
   const sortedUsers = [...filteredUsers].sort((a, b) => {
@@ -146,6 +254,21 @@ export default function ProUsersPage() {
       return aValue < bValue ? 1 : -1;
     }
   });
+
+  // Chart data
+  const complianceDistribution = [
+    { name: 'Високо (≥80%)', value: users.filter(u => u.complianceRate >= 80).length, color: '#10b981' },
+    { name: 'Средно (60-79%)', value: users.filter(u => u.complianceRate >= 60 && u.complianceRate < 80).length, color: '#f59e0b' },
+    { name: 'Ниско (<60%)', value: users.filter(u => u.complianceRate < 60).length, color: '#ef4444' },
+  ];
+
+  const streakDistribution = [
+    { range: '0', count: users.filter(u => u.currentStreak === 0).length },
+    { range: '1-5', count: users.filter(u => u.currentStreak >= 1 && u.currentStreak <= 5).length },
+    { range: '6-10', count: users.filter(u => u.currentStreak >= 6 && u.currentStreak <= 10).length },
+    { range: '11-20', count: users.filter(u => u.currentStreak >= 11 && u.currentStreak <= 20).length },
+    { range: '20+', count: users.filter(u => u.currentStreak > 20).length },
+  ];
 
   if (isLoading) {
     return (
@@ -172,32 +295,83 @@ export default function ProUsersPage() {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Target className="h-8 w-8 text-purple-600" />
-              Testograph PRO Users
-            </h1>
-            <p className="text-muted-foreground mt-1">
-              {lastUpdated && `Last updated: ${formatTimestamp(lastUpdated)}`} • {users.length} active users
-            </p>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold flex items-center gap-2">
+                <Target className="h-8 w-8 text-purple-600" />
+                Testograph PRO Users
+              </h1>
+              <p className="text-muted-foreground mt-1">
+                {lastUpdated && `Last updated: ${formatTimestamp(lastUpdated)}`} • {users.length} active users
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportToCSV}
+                disabled={sortedUsers.length === 0}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fetchProUsers(true)}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
+
+          {/* Filters */}
+          <div className="flex flex-wrap items-center gap-3">
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
               placeholder="Search by email or name..."
               className="w-full md:w-64"
             />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchProUsers(true)}
-              disabled={isRefreshing}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
+            <Select value={complianceFilter} onValueChange={(value: ComplianceFilter) => setComplianceFilter(value)}>
+              <SelectTrigger className="w-[180px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Compliance" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Compliance</SelectItem>
+                <SelectItem value="high">High (≥80%)</SelectItem>
+                <SelectItem value="medium">Medium (60-79%)</SelectItem>
+                <SelectItem value="low">Low (&lt;60%)</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={activityFilter} onValueChange={(value: ActivityFilter) => setActivityFilter(value)}>
+              <SelectTrigger className="w-[160px]">
+                <Activity className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Activity" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Users</SelectItem>
+                <SelectItem value="active">Active (≤3d)</SelectItem>
+                <SelectItem value="inactive">Inactive (&gt;3d)</SelectItem>
+              </SelectContent>
+            </Select>
+            {(complianceFilter !== 'all' || activityFilter !== 'all' || searchQuery) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  setComplianceFilter('all');
+                  setActivityFilter('all');
+                  setSearchQuery('');
+                }}
+              >
+                Clear Filters
+              </Button>
+            )}
           </div>
         </div>
 
@@ -255,6 +429,57 @@ export default function ProUsersPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Charts */}
+        {users.length > 0 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Compliance Distribution */}
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Compliance Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <PieChart>
+                    <Pie
+                      data={complianceDistribution}
+                      cx="50%"
+                      cy="50%"
+                      labelLine={false}
+                      label={({ name, value }) => `${name}: ${value}`}
+                      outerRadius={100}
+                      fill="#8884d8"
+                      dataKey="value"
+                    >
+                      {complianceDistribution.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            {/* Streak Distribution */}
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg">Current Streak Distribution</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={300}>
+                  <BarChart data={streakDistribution}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="range" label={{ value: 'Days', position: 'insideBottom', offset: -5 }} />
+                    <YAxis label={{ value: 'Users', angle: -90, position: 'insideLeft' }} />
+                    <Tooltip />
+                    <Bar dataKey="count" fill="#f97316" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* PRO Users Table */}
         <Card className="shadow-sm">
