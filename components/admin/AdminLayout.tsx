@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Users,
   BarChart3,
+  Target,
   FileText,
   LogOut,
   Menu,
@@ -48,6 +49,11 @@ const navItems = [
     title: 'Funnel Analytics',
     href: '/admin/analytics',
     icon: BarChart3,
+  },
+  {
+    title: 'Testograph PRO',
+    href: '/admin/pro-users',
+    icon: Target,
   },
 ];
 
