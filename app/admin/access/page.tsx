@@ -51,7 +51,8 @@ interface User {
 interface Purchase {
   id: string;
   user_id: string;
-  user_email: string;
+  userEmail: string; // Changed from user_email to match API response
+  userName?: string | null;
   product_name: string;
   product_type: string;
   apps_included: string[];
@@ -410,7 +411,7 @@ export default function AccessControlPage() {
                 <TableBody>
                   {filteredPurchases.map(purchase => (
                     <TableRow key={purchase.id}>
-                      <TableCell className="font-medium">{purchase.user_email}</TableCell>
+                      <TableCell className="font-medium">{purchase.userEmail}</TableCell>
                       <TableCell>{purchase.product_name}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
