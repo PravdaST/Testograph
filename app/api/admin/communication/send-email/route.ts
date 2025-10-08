@@ -1,8 +1,13 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { createClient } from '@supabase/supabase-js';
 import { createAuditLog } from '@/lib/admin/audit-log';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY!
+);
 
 export async function POST(request: Request) {
   try {
@@ -13,7 +18,8 @@ export async function POST(request: Request) {
       message,
       isBulk,      // boolean - true for bulk emails
       adminId,
-      adminEmail
+      adminEmail,
+      templateId   // optional - for tracking template usage
     } = body;
 
     // Validation
@@ -67,6 +73,30 @@ export async function POST(request: Request) {
         }
       } catch (err: any) {
         errors.push({ recipient, error: err.message });
+      }
+    }
+
+    // Update template usage if templateId provided
+    if (templateId && results.length > 0) {
+      try {
+        const { data: template } = await supabase
+          .from('email_templates')
+          .select('usage_count')
+          .eq('id', templateId)
+          .single();
+
+        if (template) {
+          await supabase
+            .from('email_templates')
+            .update({
+              usage_count: template.usage_count + 1,
+              last_used_at: new Date().toISOString()
+            })
+            .eq('id', templateId);
+        }
+      } catch (error) {
+        console.error('Error updating template usage:', error);
+        // Don't fail the request if template update fails
       }
     }
 

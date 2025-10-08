@@ -12,6 +12,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -26,7 +33,9 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
-  Search
+  Search,
+  FileText,
+  Download
 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
@@ -44,6 +53,17 @@ interface User {
   id: string;
   email: string;
   name?: string;
+}
+
+interface EmailTemplate {
+  id: string;
+  name: string;
+  subject: string;
+  body: string;
+  variables: string[];
+  category: string;
+  is_active: boolean;
+  usage_count: number;
 }
 
 export default function CommunicationPage() {
@@ -64,9 +84,14 @@ export default function CommunicationPage() {
   const [bulkMessage, setBulkMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Template state
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
+  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+
   useEffect(() => {
     checkAuth();
     fetchUsers();
+    fetchTemplates();
   }, []);
 
   const checkAuth = async () => {
@@ -88,6 +113,37 @@ export default function CommunicationPage() {
     } catch (error) {
       console.error('Error fetching users:', error);
     }
+  };
+
+  const fetchTemplates = async () => {
+    try {
+      const response = await fetch('/api/admin/communication/templates?active_only=true');
+      const data = await response.json();
+
+      if (response.ok) {
+        setTemplates(data.templates || []);
+      }
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+    }
+  };
+
+  const loadTemplate = (templateId: string, target: 'single' | 'bulk') => {
+    const template = templates.find(t => t.id === templateId);
+    if (!template) return;
+
+    if (target === 'single') {
+      setSingleSubject(template.subject);
+      setSingleMessage(template.body);
+    } else {
+      setBulkSubject(template.subject);
+      setBulkMessage(template.body);
+    }
+
+    toast({
+      title: 'Template зареден',
+      description: `"${template.name}" е зареден успешно`,
+    });
   };
 
   const handleSendSingle = async () => {
@@ -112,6 +168,7 @@ export default function CommunicationPage() {
           isBulk: false,
           adminId: ADMIN_ID,
           adminEmail: ADMIN_EMAIL,
+          templateId: selectedTemplate || undefined,
         }),
       });
 
@@ -126,6 +183,7 @@ export default function CommunicationPage() {
         setSingleTo('');
         setSingleSubject('');
         setSingleMessage('');
+        setSelectedTemplate('');
       } else {
         throw new Error(data.error);
       }
@@ -166,6 +224,7 @@ export default function CommunicationPage() {
           isBulk: true,
           adminId: ADMIN_ID,
           adminEmail: ADMIN_EMAIL,
+          templateId: selectedTemplate || undefined,
         }),
       });
 
@@ -180,6 +239,7 @@ export default function CommunicationPage() {
         setSelectedUsers(new Set());
         setBulkSubject('');
         setBulkMessage('');
+        setSelectedTemplate('');
       } else {
         throw new Error(data.error);
       }
@@ -222,14 +282,23 @@ export default function CommunicationPage() {
     <AdminLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Mail className="h-8 w-8" />
-            Комуникация
-          </h1>
-          <p className="text-muted-foreground mt-2">
-            Изпращайте emails до потребители - единични или групови
-          </p>
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              <Mail className="h-8 w-8" />
+              Комуникация
+            </h1>
+            <p className="text-muted-foreground mt-2">
+              Изпращайте emails до потребители - единични или групови
+            </p>
+          </div>
+          <Button
+            onClick={() => router.push('/admin/communication/templates')}
+            variant="outline"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            Управление на Templates
+          </Button>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -254,6 +323,47 @@ export default function CommunicationPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Template Selector */}
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    <Label className="text-blue-900 font-medium">Използвай Email Template</Label>
+                  </div>
+                  <div className="flex gap-2">
+                    <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                      <SelectTrigger className="flex-1 bg-white">
+                        <SelectValue placeholder="Изберете template (опционално)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {templates.map((template) => (
+                          <SelectItem key={template.id} value={template.id}>
+                            {template.name} ({template.category})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={() => selectedTemplate && loadTemplate(selectedTemplate, 'single')}
+                      disabled={!selectedTemplate}
+                      variant="outline"
+                      className="bg-white"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Зареди
+                    </Button>
+                  </div>
+                  {selectedTemplate && templates.find(t => t.id === selectedTemplate)?.variables.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-blue-200">
+                      <span className="text-xs text-blue-700 font-medium">Променливи:</span>
+                      {templates.find(t => t.id === selectedTemplate)?.variables.map((variable) => (
+                        <Badge key={variable} variant="secondary" className="text-xs">
+                          {`{{${variable}}}`}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="single-to">До (Email)</Label>
                   <Input
@@ -320,6 +430,47 @@ export default function CommunicationPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Template Selector */}
+                <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
+                  <div className="flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-blue-600" />
+                    <Label className="text-blue-900 font-medium">Използвай Email Template</Label>
+                  </div>
+                  <div className="flex gap-2">
+                    <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                      <SelectTrigger className="flex-1 bg-white">
+                        <SelectValue placeholder="Изберете template (опционално)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {templates.map((template) => (
+                          <SelectItem key={template.id} value={template.id}>
+                            {template.name} ({template.category})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Button
+                      onClick={() => selectedTemplate && loadTemplate(selectedTemplate, 'bulk')}
+                      disabled={!selectedTemplate}
+                      variant="outline"
+                      className="bg-white"
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      Зареди
+                    </Button>
+                  </div>
+                  {selectedTemplate && templates.find(t => t.id === selectedTemplate)?.variables.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2 border-t border-blue-200">
+                      <span className="text-xs text-blue-700 font-medium">Променливи:</span>
+                      {templates.find(t => t.id === selectedTemplate)?.variables.map((variable) => (
+                        <Badge key={variable} variant="secondary" className="text-xs">
+                          {`{{${variable}}}`}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="bulk-subject">Тема</Label>
                   <Input
@@ -458,6 +609,7 @@ export default function CommunicationPage() {
           </CardHeader>
           <CardContent className="text-blue-800 text-sm space-y-2">
             <p>• Emails се изпращат чрез Resend с domain testograph.eu</p>
+            <p>• Използвайте Email Templates за бързо зареждане на готови съобщения</p>
             <p>• Всички изпратени emails се записват в Audit Logs за проследяване</p>
             <p>• За bulk emails, процесът може да отнеме няколко секунди</p>
             <p>• Проверете историята на изпратени emails в Audit Logs таба</p>
