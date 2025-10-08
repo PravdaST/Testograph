@@ -271,16 +271,16 @@ export default function DashboardPage() {
         {/* Header with Search and Refresh */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <h1 className="text-3xl font-bold">Табло за Управление</h1>
             <p className="text-muted-foreground mt-1">
-              {lastUpdated && `Last updated: ${formatTimestamp(lastUpdated)}`}
+              {lastUpdated && `Последна актуализация: ${formatTimestamp(lastUpdated)}`}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
-              placeholder="Search users, purchases..."
+              placeholder="Търси потребители, покупки..."
               className="w-full md:w-64"
             />
             <Button
@@ -290,7 +290,7 @@ export default function DashboardPage() {
               disabled={isRefreshing}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Refresh
+              Обнови
             </Button>
           </div>
         </div>
@@ -298,31 +298,31 @@ export default function DashboardPage() {
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
-            title="Total Users"
+            title="Общо Потребители"
             value={stats?.totalUsers || 0}
             icon={Users}
             description="Уникални emails в системата"
           />
           <StatCard
-            title="Total Revenue"
+            title="Общ Приход"
             value={`${stats?.totalRevenue || 0} лв`}
             icon={DollarSign}
             valueColor="text-green-600"
-            description={`${stats?.totalPurchases || 0} purchases`}
-            trend={{ value: 12, label: 'vs last month' }}
+            description={`${stats?.totalPurchases || 0} покупки`}
+            trend={{ value: 12, label: 'спрямо миналия месец' }}
           />
           <StatCard
-            title="Conversion Rate"
+            title="Конверсия"
             value={`${stats?.conversionRate || 0}%`}
             icon={CheckCircle}
             valueColor="text-green-600"
-            trend={{ value: 5, label: 'vs last month' }}
+            trend={{ value: 5, label: 'спрямо миналия месец' }}
           />
           <StatCard
-            title="Active Sessions"
+            title="Активни Сесии"
             value={(stats?.totalChatSessions || 0) + (stats?.totalFunnelSessions || 0)}
             icon={Activity}
-            description={`${stats?.recentChatSessions || 0} chats, ${stats?.recentFunnelSessions || 0} funnels`}
+            description={`${stats?.recentChatSessions || 0} чатове, ${stats?.recentFunnelSessions || 0} фънъли`}
           />
         </div>
 
@@ -330,9 +330,9 @@ export default function DashboardPage() {
         {(stats?.appStats || stats?.proStats) && (
           <>
             <div>
-              <h2 className="text-xl font-semibold">Product Usage</h2>
+              <h2 className="text-xl font-semibold">Използване на Продукти</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                App and PRO features usage metrics
+                Метрики за използване на App и PRO функции
               </p>
             </div>
 
@@ -343,7 +343,7 @@ export default function DashboardPage() {
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                       <Users className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium">App Users</span>
+                      <span className="font-medium">App Потребители</span>
                     </div>
                     <div className="text-2xl font-bold text-blue-600">{stats.appStats.totalUsers}</div>
                   </CardContent>
@@ -354,7 +354,7 @@ export default function DashboardPage() {
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                       <Users className="h-4 w-4 text-purple-600" />
-                      <span className="font-medium">PRO Users</span>
+                      <span className="font-medium">PRO Потребители</span>
                     </div>
                     <div className="text-2xl font-bold text-purple-600">{stats.proStats.totalUsers}</div>
                   </CardContent>
@@ -368,7 +368,7 @@ export default function DashboardPage() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                         <Utensils className="h-4 w-4" />
-                        <span className="font-medium">Meal Plans</span>
+                        <span className="font-medium">Хранителни Планове</span>
                       </div>
                       <div className="text-2xl font-bold">{stats.appStats.activeMealPlans}</div>
                     </CardContent>
@@ -377,20 +377,20 @@ export default function DashboardPage() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                         <Moon className="h-4 w-4" />
-                        <span className="font-medium">Sleep Logs</span>
+                        <span className="font-medium">Записи за Сън</span>
                       </div>
                       <div className="text-2xl font-bold">{stats.appStats.sleepLogsLast30Days}</div>
-                      <p className="text-xs text-muted-foreground mt-1">Last 30d</p>
+                      <p className="text-xs text-muted-foreground mt-1">Последни 30д</p>
                     </CardContent>
                   </Card>
                   <Card className="shadow-sm">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                         <Dumbbell className="h-4 w-4" />
-                        <span className="font-medium">Exercise Logs</span>
+                        <span className="font-medium">Записи за Упражнения</span>
                       </div>
                       <div className="text-2xl font-bold">{stats.appStats.exerciseLogsLast30Days}</div>
-                      <p className="text-xs text-muted-foreground mt-1">Last 30d</p>
+                      <p className="text-xs text-muted-foreground mt-1">Последни 30д</p>
                     </CardContent>
                   </Card>
                 </>
@@ -404,7 +404,7 @@ export default function DashboardPage() {
                   <CardContent className="p-4">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                       <FlaskConical className="h-4 w-4" />
-                      <span className="font-medium">Lab Results</span>
+                      <span className="font-medium">Лабораторни Резултати</span>
                     </div>
                     <div className="text-2xl font-bold">{stats.appStats.totalLabResults}</div>
                   </CardContent>
@@ -416,7 +416,7 @@ export default function DashboardPage() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                         <Target className="h-4 w-4" />
-                        <span className="font-medium">Active Protocols</span>
+                        <span className="font-medium">Активни Протоколи</span>
                       </div>
                       <div className="text-2xl font-bold">{stats.proStats.activeProtocols}</div>
                     </CardContent>
@@ -425,17 +425,17 @@ export default function DashboardPage() {
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                         <Flame className="h-4 w-4" />
-                        <span className="font-medium">Daily Entries</span>
+                        <span className="font-medium">Дневни Записи</span>
                       </div>
                       <div className="text-2xl font-bold">{stats.proStats.dailyEntriesLast30Days}</div>
-                      <p className="text-xs text-muted-foreground mt-1">Last 30d</p>
+                      <p className="text-xs text-muted-foreground mt-1">Последни 30д</p>
                     </CardContent>
                   </Card>
                   <Card className="shadow-sm">
                     <CardContent className="p-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                         <CheckCircle className="h-4 w-4" />
-                        <span className="font-medium">Avg Compliance</span>
+                        <span className="font-medium">Средна Дисциплина</span>
                       </div>
                       <div className="text-2xl font-bold text-green-600">
                         {stats.proStats.averageCompliance?.toFixed(1) || 'N/A'}/10
@@ -455,11 +455,11 @@ export default function DashboardPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <ShoppingCart className="h-5 w-5" />
-                Recent Purchases
+                Последни Покупки
               </CardTitle>
               {searchQuery && (
                 <p className="text-xs text-muted-foreground">
-                  Showing {filteredPurchases.length} of {recentPurchases.length} purchases
+                  Показвам {filteredPurchases.length} от {recentPurchases.length} покупки
                 </p>
               )}
             </CardHeader>
@@ -524,11 +524,11 @@ export default function DashboardPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Activity className="h-5 w-5" />
-                Recent Activity
+                Последна Активност
               </CardTitle>
               {searchQuery && (
                 <p className="text-xs text-muted-foreground">
-                  Showing {filteredActivities.length} of {activities.length} activities
+                  Показвам {filteredActivities.length} от {activities.length} активности
                 </p>
               )}
             </CardHeader>

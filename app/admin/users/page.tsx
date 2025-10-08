@@ -97,7 +97,7 @@ export default function UsersPage() {
     <AdminLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Users</h1>
+          <h1 className="text-3xl font-bold">Потребители</h1>
           <p className="text-muted-foreground mt-2">
             Преглед на всички потребители и тяхната активност
           </p>

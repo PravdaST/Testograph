@@ -303,7 +303,7 @@ export default function ProUsersPage() {
                 Testograph PRO Users
               </h1>
               <p className="text-muted-foreground mt-1">
-                {lastUpdated && `Last updated: ${formatTimestamp(lastUpdated)}`} • {users.length} active users
+                {lastUpdated && `Последна актуализация: ${formatTimestamp(lastUpdated)}`} • {users.length} активни потребители
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -314,7 +314,7 @@ export default function ProUsersPage() {
                 disabled={sortedUsers.length === 0}
               >
                 <Download className="h-4 w-4 mr-2" />
-                Export CSV
+                Експорт CSV
               </Button>
               <Button
                 variant="outline"
@@ -323,7 +323,7 @@ export default function ProUsersPage() {
                 disabled={isRefreshing}
               >
                 <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-                Refresh
+                Обнови
               </Button>
             </div>
           </div>
@@ -333,30 +333,30 @@ export default function ProUsersPage() {
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
-              placeholder="Search by email or name..."
+              placeholder="Търси по имейл или име..."
               className="w-full md:w-64"
             />
             <Select value={complianceFilter} onValueChange={(value: ComplianceFilter) => setComplianceFilter(value)}>
               <SelectTrigger className="w-[180px]">
                 <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Compliance" />
+                <SelectValue placeholder="Дисциплина" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Compliance</SelectItem>
-                <SelectItem value="high">High (≥80%)</SelectItem>
-                <SelectItem value="medium">Medium (60-79%)</SelectItem>
-                <SelectItem value="low">Low (&lt;60%)</SelectItem>
+                <SelectItem value="all">Всички</SelectItem>
+                <SelectItem value="high">Висока (≥80%)</SelectItem>
+                <SelectItem value="medium">Средна (60-79%)</SelectItem>
+                <SelectItem value="low">Ниска (&lt;60%)</SelectItem>
               </SelectContent>
             </Select>
             <Select value={activityFilter} onValueChange={(value: ActivityFilter) => setActivityFilter(value)}>
               <SelectTrigger className="w-[160px]">
                 <Activity className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Activity" />
+                <SelectValue placeholder="Активност" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Users</SelectItem>
-                <SelectItem value="active">Active (≤3d)</SelectItem>
-                <SelectItem value="inactive">Inactive (&gt;3d)</SelectItem>
+                <SelectItem value="all">Всички Потребители</SelectItem>
+                <SelectItem value="active">Активни (≤3д)</SelectItem>
+                <SelectItem value="inactive">Неактивни (&gt;3д)</SelectItem>
               </SelectContent>
             </Select>
             {(complianceFilter !== 'all' || activityFilter !== 'all' || searchQuery) && (
@@ -369,7 +369,7 @@ export default function ProUsersPage() {
                   setSearchQuery('');
                 }}
               >
-                Clear Filters
+                Изчисти Филтри
               </Button>
             )}
           </div>
@@ -381,7 +381,7 @@ export default function ProUsersPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <Target className="h-4 w-4" />
-                <span className="font-medium">Total PRO Users</span>
+                <span className="font-medium">Общо PRO Потребители</span>
               </div>
               <div className="text-2xl font-bold text-purple-600">{users.length}</div>
             </CardContent>
@@ -391,7 +391,7 @@ export default function ProUsersPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <Flame className="h-4 w-4" />
-                <span className="font-medium">Avg Streak</span>
+                <span className="font-medium">Средна Серия</span>
               </div>
               <div className="text-2xl font-bold">
                 {users.length > 0
@@ -405,7 +405,7 @@ export default function ProUsersPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <Activity className="h-4 w-4" />
-                <span className="font-medium">Avg Compliance</span>
+                <span className="font-medium">Средна Дисциплина</span>
               </div>
               <div className="text-2xl font-bold text-green-600">
                 {users.length > 0
@@ -419,12 +419,12 @@ export default function ProUsersPage() {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                 <Calendar className="h-4 w-4" />
-                <span className="font-medium">Avg Days Active</span>
+                <span className="font-medium">Средни Активни Дни</span>
               </div>
               <div className="text-2xl font-bold">
                 {users.length > 0
                   ? Math.round(users.reduce((sum, u) => sum + u.daysOnProtocol, 0) / users.length)
-                  : 0}d
+                  : 0}д
               </div>
             </CardContent>
           </Card>
@@ -436,7 +436,7 @@ export default function ProUsersPage() {
             {/* Compliance Distribution */}
             <Card className="shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Compliance Distribution</CardTitle>
+                <CardTitle className="text-lg">Разпределение на Дисциплината</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -464,7 +464,7 @@ export default function ProUsersPage() {
             {/* Streak Distribution */}
             <Card className="shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Current Streak Distribution</CardTitle>
+                <CardTitle className="text-lg">Разпределение на Текущите Серии</CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -485,10 +485,10 @@ export default function ProUsersPage() {
         <Card className="shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>PRO Users Progress</span>
+              <span>Напредък на PRO Потребители</span>
               {searchQuery && (
                 <span className="text-sm text-muted-foreground font-normal">
-                  Showing {sortedUsers.length} of {users.length} users
+                  Показвам {sortedUsers.length} от {users.length} потребители
                 </span>
               )}
             </CardTitle>
@@ -518,7 +518,7 @@ export default function ProUsersPage() {
                         onClick={() => handleSort('email')}
                       >
                         <div className="flex items-center gap-1">
-                          User
+                          Потребител
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
@@ -527,7 +527,7 @@ export default function ProUsersPage() {
                         onClick={() => handleSort('daysOnProtocol')}
                       >
                         <div className="flex items-center gap-1">
-                          Days
+                          Дни
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
@@ -536,7 +536,7 @@ export default function ProUsersPage() {
                         onClick={() => handleSort('currentStreak')}
                       >
                         <div className="flex items-center gap-1">
-                          Streak
+                          Серия
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
@@ -545,7 +545,7 @@ export default function ProUsersPage() {
                         onClick={() => handleSort('complianceRate')}
                       >
                         <div className="flex items-center gap-1">
-                          Compliance
+                          Дисциплина
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
@@ -554,12 +554,12 @@ export default function ProUsersPage() {
                         onClick={() => handleSort('weightChange')}
                       >
                         <div className="flex items-center gap-1">
-                          Weight Δ
+                          Тегло Δ
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
-                      <TableHead className="h-10">Status</TableHead>
-                      <TableHead className="h-10 text-right">Last Activity</TableHead>
+                      <TableHead className="h-10">Статус</TableHead>
+                      <TableHead className="h-10 text-right">Последна Активност</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
