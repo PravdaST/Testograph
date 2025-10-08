@@ -1,12 +1,14 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
 import { StatCard } from '@/components/admin/StatCard';
 import { SkeletonCard, SkeletonTable } from '@/components/admin/SkeletonCard';
 import { EmptyState } from '@/components/admin/EmptyState';
 import { SearchBar } from '@/components/admin/SearchBar';
+import { UsersGrowthChart } from '@/components/admin/UsersGrowthChart';
+import { RevenueTrendChart } from '@/components/admin/RevenueTrendChart';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -18,6 +20,14 @@ import {
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   MessageSquare,
   TrendingUp,
@@ -34,6 +44,13 @@ import {
   Target,
   Flame,
   RefreshCw,
+  Mail,
+  Shield,
+  ClipboardList,
+  Zap,
+  Database,
+  Server,
+  Clock,
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -89,9 +106,27 @@ export default function DashboardPage() {
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // New states for enhancements
+  const [timeRange, setTimeRange] = useState<string>('30');
+  const [autoRefresh, setAutoRefresh] = useState(false);
+  const [usersGrowthData, setUsersGrowthData] = useState<any[]>([]);
+  const [revenueData, setRevenueData] = useState<any[]>([]);
+  const [chartsLoading, setChartsLoading] = useState(true);
+  const [systemHealth, setSystemHealth] = useState({
+    dbStatus: 'healthy',
+    apiResponseTime: 0,
+    activeSessions: 0,
+  });
+  const autoRefreshInterval = useRef<NodeJS.Timeout | null>(null);
+
   useEffect(() => {
     fetchDashboardData();
+    fetchChartsData();
   }, []);
+
+  useEffect(() => {
+    fetchChartsData();
+  }, [timeRange]);
 
   const fetchDashboardData = async (isRefresh = false) => {
     if (isRefresh) {
@@ -160,6 +195,59 @@ export default function DashboardPage() {
       setIsLoading(false);
       setIsRefreshing(false);
       setLastUpdated(new Date());
+    }
+  };
+
+  // Auto-refresh logic
+  useEffect(() => {
+    if (autoRefresh) {
+      // Refresh every 60 seconds
+      autoRefreshInterval.current = setInterval(() => {
+        fetchDashboardData(true);
+        fetchChartsData();
+      }, 60000);
+    } else {
+      if (autoRefreshInterval.current) {
+        clearInterval(autoRefreshInterval.current);
+        autoRefreshInterval.current = null;
+      }
+    }
+
+    return () => {
+      if (autoRefreshInterval.current) {
+        clearInterval(autoRefreshInterval.current);
+      }
+    };
+  }, [autoRefresh]);
+
+  // Fetch charts data
+  const fetchChartsData = async () => {
+    setChartsLoading(true);
+    try {
+      const startTime = Date.now();
+      const response = await fetch(`/api/admin/stats/growth?days=${timeRange}`);
+      const apiResponseTime = Date.now() - startTime;
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setUsersGrowthData(data.usersGrowth || []);
+        setRevenueData(data.revenueData || []);
+        setSystemHealth({
+          dbStatus: 'healthy',
+          apiResponseTime,
+          activeSessions: data.usersGrowth?.[data.usersGrowth.length - 1]?.users || 0,
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching charts data:', error);
+      setSystemHealth({
+        dbStatus: 'error',
+        apiResponseTime: 0,
+        activeSessions: 0,
+      });
+    } finally {
+      setChartsLoading(false);
     }
   };
 
@@ -269,29 +357,54 @@ export default function DashboardPage() {
     <AdminLayout>
       <div className="space-y-8">
         {/* Header with Search and Refresh */}
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-bold">Табло за Управление</h1>
-            <p className="text-muted-foreground mt-1">
-              {lastUpdated && `Последна актуализация: ${formatTimestamp(lastUpdated)}`}
-            </p>
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold">Табло за Управление</h1>
+              <p className="text-muted-foreground mt-1">
+                {lastUpdated && `Последна актуализация: ${formatTimestamp(lastUpdated)}`}
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              <SearchBar
+                value={searchQuery}
+                onChange={setSearchQuery}
+                placeholder="Търси потребители, покупки..."
+                className="w-full md:w-64"
+              />
+              <Select value={timeRange} onValueChange={setTimeRange}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="7">7 дни</SelectItem>
+                  <SelectItem value="30">30 дни</SelectItem>
+                  <SelectItem value="90">90 дни</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  fetchDashboardData(true);
+                  fetchChartsData();
+                }}
+                disabled={isRefreshing}
+              >
+                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                Обнови
+              </Button>
+            </div>
           </div>
-          <div className="flex items-center gap-3">
-            <SearchBar
-              value={searchQuery}
-              onChange={setSearchQuery}
-              placeholder="Търси потребители, покупки..."
-              className="w-full md:w-64"
+          <div className="flex items-center gap-2 text-sm">
+            <Checkbox
+              checked={autoRefresh}
+              onCheckedChange={(checked) => setAutoRefresh(checked as boolean)}
+              id="auto-refresh"
             />
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => fetchDashboardData(true)}
-              disabled={isRefreshing}
-            >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
-              Обнови
-            </Button>
+            <label htmlFor="auto-refresh" className="cursor-pointer text-muted-foreground">
+              Автоматично обновяване (на всеки 60 сек)
+            </label>
           </div>
         </div>
 
@@ -324,6 +437,110 @@ export default function DashboardPage() {
             icon={Activity}
             description={`${stats?.recentChatSessions || 0} чатове, ${stats?.recentFunnelSessions || 0} фънъли`}
           />
+        </div>
+
+        {/* Quick Actions & System Health */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Zap className="h-5 w-5" />
+                Бързи Действия
+              </CardTitle>
+              <CardDescription>Shortcuts към често използвани функции</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 gap-3">
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2"
+                  onClick={() => router.push('/admin/communication')}
+                >
+                  <Mail className="h-6 w-6 text-primary" />
+                  <span className="text-sm">Изпрати Email</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2"
+                  onClick={() => router.push('/admin/settings')}
+                >
+                  <Shield className="h-6 w-6 text-primary" />
+                  <span className="text-sm">Добави Админ</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2"
+                  onClick={() => router.push('/admin/audit-logs')}
+                >
+                  <ClipboardList className="h-6 w-6 text-primary" />
+                  <span className="text-sm">Audit Logs</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  className="h-auto py-4 flex flex-col items-center gap-2"
+                  onClick={() => router.push('/admin/access')}
+                >
+                  <Target className="h-6 w-6 text-primary" />
+                  <span className="text-sm">PRO Достъп</span>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* System Health */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Server className="h-5 w-5" />
+                Състояние на Системата
+              </CardTitle>
+              <CardDescription>Real-time system health indicators</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Database className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Database Status</span>
+                </div>
+                <Badge
+                  variant={systemHealth.dbStatus === 'healthy' ? 'default' : 'destructive'}
+                  className={systemHealth.dbStatus === 'healthy' ? 'bg-green-600' : ''}
+                >
+                  {systemHealth.dbStatus === 'healthy' ? 'Healthy' : 'Error'}
+                </Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">API Response Time</span>
+                </div>
+                <Badge variant="outline">{systemHealth.apiResponseTime}ms</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Total Users</span>
+                </div>
+                <Badge variant="outline">{stats?.totalUsers || 0}</Badge>
+              </div>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Last Update</span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {lastUpdated ? formatTimestamp(lastUpdated) : '—'}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <UsersGrowthChart data={usersGrowthData} isLoading={chartsLoading} />
+          <RevenueTrendChart data={revenueData} isLoading={chartsLoading} />
         </div>
 
         {/* Product Usage */}
