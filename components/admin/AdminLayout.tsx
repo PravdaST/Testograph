@@ -13,7 +13,12 @@ import {
   FileText,
   LogOut,
   Menu,
-  X
+  X,
+  Shield,
+  ClipboardList,
+  Mail,
+  Database,
+  Settings as SettingsIcon
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -31,19 +36,24 @@ interface AdminLayoutProps {
 
 const navItems = [
   {
-    title: 'Dashboard',
+    title: 'Табло',
     href: '/admin/dashboard',
     icon: LayoutDashboard,
   },
   {
-    title: 'Chat Sessions',
+    title: 'Потребители',
+    href: '/admin/users',
+    icon: Users,
+  },
+  {
+    title: 'Чат Сесии',
     href: '/admin/chat-sessions',
     icon: MessageSquare,
   },
   {
-    title: 'Users',
-    href: '/admin/users',
-    icon: Users,
+    title: 'Testograph PRO',
+    href: '/admin/pro-users',
+    icon: Target,
   },
   {
     title: 'Funnel Analytics',
@@ -51,9 +61,29 @@ const navItems = [
     icon: BarChart3,
   },
   {
-    title: 'Testograph PRO',
-    href: '/admin/pro-users',
-    icon: Target,
+    title: 'Access Control',
+    href: '/admin/access',
+    icon: Shield,
+  },
+  {
+    title: 'App Data',
+    href: '/admin/app-data',
+    icon: Database,
+  },
+  {
+    title: 'Комуникация',
+    href: '/admin/communication',
+    icon: Mail,
+  },
+  {
+    title: 'Audit Logs',
+    href: '/admin/audit-logs',
+    icon: ClipboardList,
+  },
+  {
+    title: 'Настройки',
+    href: '/admin/settings',
+    icon: SettingsIcon,
   },
 ];
 
