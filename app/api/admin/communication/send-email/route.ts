@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     for (const recipient of recipients) {
       try {
         const { data, error } = await resend.emails.send({
-          from: 'Testograph Admin <admin@testograph.eu>',
+          from: 'Testograph Admin <admin@shop.testograph.eu>',
           to: recipient,
           subject: subject,
           html: `
