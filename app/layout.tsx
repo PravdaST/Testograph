@@ -138,6 +138,22 @@ export default function RootLayout({
             alt=""
           />
         </noscript>
+
+        {/* Google Analytics */}
+        <script
+          async
+          src="https://www.googletagmanager.com/gtag/js?id=G-88D9NGJX4M"
+        />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              window.dataLayer = window.dataLayer || [];
+              function gtag(){dataLayer.push(arguments);}
+              gtag('js', new Date());
+              gtag('config', 'G-88D9NGJX4M');
+            `
+          }}
+        />
       </head>
       <body className={inter.className}>
         <QueryProvider>
