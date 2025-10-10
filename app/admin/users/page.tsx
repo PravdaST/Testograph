@@ -10,14 +10,6 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -47,7 +39,13 @@ import {
   CheckSquare,
   Edit,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  MessageCircle,
+  TrendingUp,
+  ShoppingBag,
+  Crown,
+  User,
+  Clock
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils/exportToCSV';
 import { useToast } from '@/hooks/use-toast';
@@ -87,6 +85,7 @@ export default function UsersPage() {
 
   // Modal states
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [userDetailModal, setUserDetailModal] = useState(false);
   const [grantProModal, setGrantProModal] = useState(false);
   const [resetPasswordModal, setResetPasswordModal] = useState(false);
   const [banUserModal, setBanUserModal] = useState(false);
@@ -159,6 +158,21 @@ export default function UsersPage() {
       hour: '2-digit',
       minute: '2-digit',
     });
+  };
+
+  const getRelativeTime = (dateString: string) => {
+    const now = new Date();
+    const date = new Date(dateString);
+    const diffMs = now.getTime() - date.getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return 'Сега';
+    if (diffMins < 60) return `Преди ${diffMins} мин`;
+    if (diffHours < 24) return `Преди ${diffHours} час${diffHours === 1 ? '' : 'а'}`;
+    if (diffDays < 30) return `Преди ${diffDays} ден${diffDays === 1 ? '' : 'и'}`;
+    return formatDate(dateString);
   };
 
   const handleSearch = (value: string) => {
@@ -557,139 +571,98 @@ export default function UsersPage() {
                 </p>
               </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Email</TableHead>
-                      <TableHead>Име</TableHead>
-                      <TableHead className="text-center">Chat Сесии</TableHead>
-                      <TableHead className="text-center">Funnel Опити</TableHead>
-                      <TableHead className="text-center">Покупки</TableHead>
-                      <TableHead className="text-right">Общо Платено</TableHead>
-                      <TableHead className="text-center">Статус</TableHead>
-                      <TableHead>Последна Активност</TableHead>
-                      <TableHead className="w-12">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {users.map((user) => (
-                      <TableRow key={user.email}>
-                        <TableCell className="font-medium">{user.email}</TableCell>
-                        <TableCell>
-                          {user.firstName || user.name || (
-                            <span className="text-muted-foreground text-sm">—</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="secondary">{user.chatSessions}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="secondary">{user.funnelAttempts}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge
-                            variant={user.purchasesCount > 0 ? "default" : "outline"}
-                            className={user.purchasesCount > 0 ? "bg-green-600" : ""}
-                          >
-                            {user.purchasesCount}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <span className={user.totalSpent > 0 ? "font-semibold text-green-600" : "text-muted-foreground"}>
-                            {user.totalSpent > 0 ? `${user.totalSpent.toFixed(2)} лв` : '—'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {user.banned ? (
-                            <Badge variant="destructive">BANNED</Badge>
-                          ) : user.converted ? (
-                            <CheckCircle className="h-5 w-5 text-green-600 mx-auto" />
-                          ) : (
-                            <XCircle className="h-5 w-5 text-muted-foreground mx-auto" />
-                          )}
-                        </TableCell>
-                        <TableCell className="text-sm text-muted-foreground">
-                          {formatDate(user.lastActivity)}
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-56">
-                              <DropdownMenuLabel>Действия</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => openGrantProModal(user)}
-                              >
-                                <Shield className="h-4 w-4 mr-2" />
-                                Дай PRO Достъп
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setNewPassword('');
-                                  setResetPasswordModal(true);
-                                }}
-                              >
-                                <Key className="h-4 w-4 mr-2" />
-                                Промени Парола
-                              </DropdownMenuItem>
-                              {user.banned ? (
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setSelectedUser(user);
-                                    setUnbanUserModal(true);
-                                  }}
-                                >
-                                  <CheckSquare className="h-4 w-4 mr-2" />
-                                  Разблокирай
-                                </DropdownMenuItem>
-                              ) : (
-                                <DropdownMenuItem
-                                  onClick={() => {
-                                    setSelectedUser(user);
-                                    setBanReason('');
-                                    setBanUserModal(true);
-                                  }}
-                                >
-                                  <Ban className="h-4 w-4 mr-2" />
-                                  Блокирай
-                                </DropdownMenuItem>
-                              )}
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setEditName(user.name || user.firstName || '');
-                                  setEditAvatar(user.avatar || '');
-                                  setEditProfileModal(true);
-                                }}
-                              >
-                                <Edit className="h-4 w-4 mr-2" />
-                                Редактирай Профил
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setSelectedUser(user);
-                                  setDeleteConfirmEmail('');
-                                  setDeleteUserModal(true);
-                                }}
-                                className="text-red-600"
-                              >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Изтрий Потребител
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {users.map((user) => (
+                  <Card
+                    key={user.email}
+                    className="cursor-pointer hover:border-primary transition-colors"
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setUserDetailModal(true);
+                    }}
+                  >
+                    <CardContent className="p-4">
+                      {/* User Header */}
+                      <div className="flex items-center gap-3 mb-4">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                          <User className="w-6 h-6 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold truncate">
+                            {user.name || user.firstName || user.email.split('@')[0]}
+                          </p>
+                          <p className="text-xs text-muted-foreground truncate">
+                            {user.email}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Services Badges */}
+                      <div className="space-y-2 mb-3">
+                        {/* Chat Sessions */}
+                        {user.chatSessions > 0 && (
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <MessageCircle className="w-4 h-4 text-blue-500" />
+                              <span className="text-muted-foreground">Chat</span>
+                            </div>
+                            <Badge variant="secondary">{user.chatSessions}</Badge>
+                          </div>
+                        )}
+
+                        {/* Funnel Attempts */}
+                        {user.funnelAttempts > 0 && (
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="w-4 h-4 text-orange-500" />
+                              <span className="text-muted-foreground">Funnel</span>
+                            </div>
+                            <Badge variant="secondary">{user.funnelAttempts}</Badge>
+                          </div>
+                        )}
+
+                        {/* Purchases */}
+                        {user.purchasesCount > 0 && (
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <ShoppingBag className="w-4 h-4 text-green-500" />
+                              <span className="text-muted-foreground">Покупки</span>
+                            </div>
+                            <Badge variant="default" className="bg-green-600">
+                              {user.purchasesCount} ({user.totalSpent.toFixed(2)} лв)
+                            </Badge>
+                          </div>
+                        )}
+
+                        {/* PRO Access - TODO: Add hasPro check */}
+                        {/* {user.hasPro && (
+                          <div className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <Crown className="w-4 h-4 text-yellow-500" />
+                              <span className="text-muted-foreground">PRO</span>
+                            </div>
+                            <Badge variant="default" className="bg-yellow-600">Active</Badge>
+                          </div>
+                        )} */}
+                      </div>
+
+                      {/* Status & Last Activity */}
+                      <div className="flex items-center justify-between pt-3 border-t">
+                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                          <Clock className="w-3 h-3" />
+                          {getRelativeTime(user.lastActivity)}
+                        </div>
+                        {user.banned ? (
+                          <Badge variant="destructive" className="text-xs">BANNED</Badge>
+                        ) : user.converted ? (
+                          <CheckCircle className="w-4 h-4 text-green-600" />
+                        ) : (
+                          <XCircle className="w-4 h-4 text-muted-foreground" />
+                        )}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             )}
           </CardContent>
@@ -932,6 +905,195 @@ export default function UsersPage() {
               Изтрий Завинаги
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* User Detail Modal */}
+      <Dialog open={userDetailModal} onOpenChange={setUserDetailModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                <User className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <p className="text-xl font-semibold">
+                  {selectedUser?.name || selectedUser?.firstName || selectedUser?.email.split('@')[0]}
+                </p>
+                <p className="text-sm text-muted-foreground font-normal">
+                  {selectedUser?.email}
+                </p>
+              </div>
+            </DialogTitle>
+          </DialogHeader>
+
+          {selectedUser && (
+            <div className="space-y-6 py-4">
+              {/* Quick Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2">
+                      <MessageCircle className="w-5 h-5 text-blue-500" />
+                      <div>
+                        <p className="text-2xl font-bold">{selectedUser.chatSessions}</p>
+                        <p className="text-xs text-muted-foreground">Chat Сесии</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-orange-500" />
+                      <div>
+                        <p className="text-2xl font-bold">{selectedUser.funnelAttempts}</p>
+                        <p className="text-xs text-muted-foreground">Funnel Опити</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2">
+                      <ShoppingBag className="w-5 h-5 text-green-500" />
+                      <div>
+                        <p className="text-2xl font-bold">{selectedUser.purchasesCount}</p>
+                        <p className="text-xs text-muted-foreground">Покупки</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl">💰</span>
+                      <div>
+                        <p className="text-2xl font-bold text-green-600">
+                          {selectedUser.totalSpent.toFixed(2)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">Общо (лв)</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Status & Info */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Статус</Label>
+                  <div className="flex items-center gap-2">
+                    {selectedUser.banned ? (
+                      <Badge variant="destructive">🚫 BANNED</Badge>
+                    ) : selectedUser.converted ? (
+                      <Badge variant="default" className="bg-green-600">
+                        <CheckCircle className="w-3 h-3 mr-1" />
+                        Конвертирал
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline">Не е конвертирал</Badge>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Последна Активност</Label>
+                  <p className="text-sm text-muted-foreground">
+                    {formatDate(selectedUser.lastActivity)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Admin Actions */}
+              <div className="border-t pt-4">
+                <Label className="text-base font-semibold mb-3 block">Admin Действия</Label>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setUserDetailModal(false);
+                      openGrantProModal(selectedUser);
+                    }}
+                  >
+                    <Shield className="w-4 h-4 mr-2" />
+                    Дай PRO Достъп
+                  </Button>
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setUserDetailModal(false);
+                      setNewPassword('');
+                      setResetPasswordModal(true);
+                    }}
+                  >
+                    <Key className="w-4 h-4 mr-2" />
+                    Промени Парола
+                  </Button>
+
+                  {selectedUser.banned ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setUserDetailModal(false);
+                        setUnbanUserModal(true);
+                      }}
+                    >
+                      <CheckSquare className="w-4 w-4 mr-2" />
+                      Разблокирай
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setUserDetailModal(false);
+                        setBanReason('');
+                        setBanUserModal(true);
+                      }}
+                    >
+                      <Ban className="w-4 h-4 mr-2" />
+                      Блокирай
+                    </Button>
+                  )}
+
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setUserDetailModal(false);
+                      setEditName(selectedUser.name || selectedUser.firstName || '');
+                      setEditAvatar(selectedUser.avatar || '');
+                      setEditProfileModal(true);
+                    }}
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Редактирай Профил
+                  </Button>
+
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      setUserDetailModal(false);
+                      setDeleteConfirmEmail('');
+                      setDeleteUserModal(true);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Изтрий Потребител
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </AdminLayout>
