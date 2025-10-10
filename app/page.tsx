@@ -15,6 +15,11 @@ import { StatComparison } from "@/components/ui/stat-comparison";
 import { ValueStack } from "@/components/ui/value-stack";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { WaitingRoomFunnel } from "@/components/funnel/WaitingRoomFunnel";
+import { LiveActivityNotifications } from "@/components/ui/LiveActivityNotifications";
+import { SpotCounter } from "@/components/ui/SpotCounter";
+import { CountdownTimer } from "@/components/ui/CountdownTimer";
+import { ViberProofGrid } from "@/components/ui/ViberProof";
+import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
 
 // Testimonials Carousel Component
 const TestimonialsCarousel = () => {
@@ -26,10 +31,10 @@ const TestimonialsCarousel = () => {
       name: "Мартин",
       age: 34,
       city: "София, IT специалист",
-      quote: "Преди 6 месеца бях на дъното. Жена ми ме гледаше като брат, не като мъж. Testograph ми показа че тестостеронът ми е на 280. Сега съм на 670. Всичко се промени.",
-      beforeStat: "280",
-      afterStat: "670",
-      statLabel: "Тестостерон (ng/dL)"
+      quote: "Преди 6 месеца бях на дъното. Жена ми ме гледаше като брат, не като мъж. Testograph ми показа че тестостеронът ми е на 9.7. Сега съм на 23.2. Всичко се промени.",
+      beforeStat: "9.7",
+      afterStat: "23.2",
+      statLabel: "Тестостерон (nmol/L)"
     },
     {
       name: "Георги",
@@ -62,10 +67,10 @@ const TestimonialsCarousel = () => {
       name: "Стоян",
       age: 29,
       city: "Пловдив, Треньор",
-      quote: "Мислех че съм млад и всичко е ОК. Оказа се тестостеронът ми е на 310. За 29 години? AI чатът ми обясни всичко - стрес, алкохол, лош сън. Сега съм на 580 и се чувствам ЖИВ.",
-      beforeStat: "310",
-      afterStat: "580",
-      statLabel: "Тестостерон (ng/dL)"
+      quote: "Мислех че съм млад и всичко е ОК. Оказа се тестостеронът ми е на 10.7. За 29 години? AI чатът ми обясни всичко - стрес, алкохол, лош сън. Сега съм на 20.1 и се чувствам ЖИВ.",
+      beforeStat: "10.7",
+      afterStat: "20.1",
+      statLabel: "Тестостерон (nmol/L)"
     },
     {
       name: "Петър",
@@ -388,10 +393,7 @@ const Index = () => {
                       <p className="text-2xl font-bold text-success">2 мин</p>
                       <p className="text-xs text-muted-foreground mt-0.5">PDF</p>
                     </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-accent">4.9/5</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Рейтинг</p>
-                    </div>
+                    <SpotCounter totalSpots={50} />
                   </div>
                 </div>
               </div>
@@ -414,8 +416,8 @@ const Index = () => {
                       {/* Left Half - Before (Red) - Slide in from left + continuous subtle pulse */}
                       <div className="absolute left-0 top-0 w-1/2 h-full bg-gradient-to-br from-destructive/80 to-destructive/40 flex flex-col items-center justify-center animate-slide-in-left">
                         <p className="text-white/60 text-[10px] uppercase font-semibold mb-1 animate-fade-pulse">Преди</p>
-                        <p className="text-white font-bold text-4xl animate-count-up">280</p>
-                        <p className="text-white/80 text-[10px] mt-0.5">ng/dL</p>
+                        <p className="text-white font-bold text-4xl animate-count-up">9.7</p>
+                        <p className="text-white/80 text-[10px] mt-0.5">nmol/L</p>
                         <div className="mt-2 text-white/60 animate-pulse-slow">
                           <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
@@ -426,8 +428,8 @@ const Index = () => {
                       {/* Right Half - After (Green) - Slide in from right + glow pulse */}
                       <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-bl from-success/80 to-success/40 flex flex-col items-center justify-center animate-slide-in-right">
                         <p className="text-white/60 text-[10px] uppercase font-semibold mb-1 animate-fade-pulse-delayed">След</p>
-                        <p className="text-white font-bold text-4xl animate-count-up-delayed">670</p>
-                        <p className="text-white/80 text-[10px] mt-0.5">ng/dL</p>
+                        <p className="text-white font-bold text-4xl animate-count-up-delayed">23.2</p>
+                        <p className="text-white/80 text-[10px] mt-0.5">nmol/L</p>
                         <div className="mt-2 text-white/80 animate-bounce-subtle">
                           <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
@@ -474,8 +476,8 @@ const Index = () => {
                 <div className="flex items-center justify-between mb-5">
                   <div className="text-center flex-1">
                     <p className="text-xs text-white/60 uppercase font-semibold mb-2">Преди</p>
-                    <p className="text-destructive font-bold text-4xl mb-1">280</p>
-                    <p className="text-xs text-muted-foreground">ng/dL</p>
+                    <p className="text-destructive font-bold text-4xl mb-1">9.7</p>
+                    <p className="text-xs text-muted-foreground">nmol/L</p>
                   </div>
                   <div className="px-4">
                     <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
@@ -486,8 +488,8 @@ const Index = () => {
                   </div>
                   <div className="text-center flex-1">
                     <p className="text-xs text-white/60 uppercase font-semibold mb-2">След</p>
-                    <p className="text-success font-bold text-4xl mb-1">670</p>
-                    <p className="text-xs text-muted-foreground">ng/dL</p>
+                    <p className="text-success font-bold text-4xl mb-1">23.2</p>
+                    <p className="text-xs text-muted-foreground">nmol/L</p>
                   </div>
                 </div>
                 <div className="text-center mb-4">
@@ -652,12 +654,12 @@ const Index = () => {
               <div className="grid md:grid-cols-2 gap-6 mb-12">
                 <StatComparison
                   label="Тестостерон"
-                  beforeValue={280}
-                  afterValue={670}
-                  unit=" ng/dL"
-                  normalRange="300-1000"
+                  beforeValue={9.7}
+                  afterValue={23.2}
+                  unit=" nmol/L"
+                  normalRange="8.6-29"
                   isHigherBetter={true}
-                  maxValue={1000}
+                  maxValue={35}
                 />
                 <StatComparison
                   label="Либидо скор"
@@ -669,6 +671,20 @@ const Index = () => {
                   maxValue={10}
                 />
               </div>
+            </section>
+
+            {/* Success Stories Wall */}
+            <section className="mb-20">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                  Реални трансформации.{' '}
+                  <span className="text-primary">Реални резултати.</span>
+                </h2>
+                <p className="text-muted-foreground text-lg">
+                  Естествени промени. Без химия. Само протокол.
+                </p>
+              </div>
+              <SuccessStoriesWall />
             </section>
 
             {/* Social Proof - Testimonials Carousel */}
@@ -687,8 +703,33 @@ const Index = () => {
 
             </section>
 
+            {/* Viber Chat Proofs Section */}
+            <section className="mb-20 w-full max-w-full overflow-hidden">
+              <div className="text-center mb-12">
+                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+                  Какво си пишат{' '}
+                  <span className="text-primary">нашите клиенти</span>
+                </h2>
+                <p className="text-muted-foreground text-lg">
+                  Реални разговори. Реални резултати. Без филтри.
+                </p>
+              </div>
+
+              <ViberProofGrid />
+            </section>
+
             {/* Assessment Form - MOVED HERE - After Testimonials */}
             <section id="assessment-form" className="mb-20">
+              {/* Countdown Timer */}
+              <div className="flex justify-center mb-8">
+                <div className="bg-card/40 backdrop-blur-sm border border-destructive/30 rounded-xl px-6 py-3">
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm text-muted-foreground">Офертата изтича след:</span>
+                    <CountdownTimer size="large" />
+                  </div>
+                </div>
+              </div>
+
               <div className="text-center mb-10">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-success/10 rounded-full mb-3">
                   <FileText className="w-3.5 h-3.5 text-success" />
@@ -972,6 +1013,9 @@ const Index = () => {
           <ScarcityBanner />
         </div>
       )}
+
+      {/* Live Activity Notifications */}
+      {!showResults && <LiveActivityNotifications />}
 
       {/* Chat Assistant */}
       <ChatAssistant />
