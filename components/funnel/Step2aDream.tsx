@@ -9,11 +9,11 @@ interface Step2aDreamProps {
 }
 
 export const Step2aDream = ({ onProceed, userData }: Step2aDreamProps) => {
-  // Auto-forward after 15 seconds if user doesn't click
+  // Auto-forward after 10 seconds if user doesn't click
   useEffect(() => {
     const timer = setTimeout(() => {
       onProceed();
-    }, 15000);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, [onProceed]);
@@ -67,7 +67,7 @@ export const Step2aDream = ({ onProceed, userData }: Step2aDreamProps) => {
             ДА. ИСКАМ.
           </Button>
 
-          <AutoAdvanceIndicator totalSeconds={15} className="pt-2" />
+          <AutoAdvanceIndicator totalSeconds={10} className="pt-2" />
         </div>
       </div>
     </div>

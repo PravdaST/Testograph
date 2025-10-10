@@ -246,7 +246,7 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
     let progressInterval: NodeJS.Timeout;
 
     if (currentStep === 1) {
-      // Step 1: 16s slow progress to 11%, then rapid complete to 12%
+      // Step 1: 7s slow progress to 11%, then rapid complete to 12%
       progressInterval = setInterval(() => {
         setProgress((prev) => {
           if (prev < 11) return prev + 0.7;
@@ -254,7 +254,7 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
         });
       }, 1000);
 
-      // After 16 seconds, rapidly complete to 12% and advance
+      // After 7 seconds, rapidly complete to 12% and advance
       advanceTimer = setTimeout(() => {
         clearInterval(progressInterval);
 
@@ -273,7 +273,7 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
           setProgress(12);
           setCurrentStep(2);
         }, 200);
-      }, 16000);
+      }, 7000);
 
       return () => {
         clearTimeout(advanceTimer);

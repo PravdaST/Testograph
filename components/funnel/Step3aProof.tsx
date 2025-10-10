@@ -78,11 +78,11 @@ export const Step3aProof = ({ onProceed, userData }: Step3aProofProps) => {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  // Auto-forward after 22 seconds if user doesn't click
+  // Auto-forward after 12 seconds if user doesn't click
   useEffect(() => {
     const timer = setTimeout(() => {
       onProceed();
-    }, 22000);
+    }, 12000);
 
     return () => clearTimeout(timer);
   }, [onProceed]);
@@ -204,7 +204,7 @@ export const Step3aProof = ({ onProceed, userData }: Step3aProofProps) => {
             Искам същото
           </Button>
 
-          <AutoAdvanceIndicator totalSeconds={22} />
+          <AutoAdvanceIndicator totalSeconds={12} />
         </div>
       </div>
     </div>

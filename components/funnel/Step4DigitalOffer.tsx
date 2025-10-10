@@ -217,7 +217,7 @@ export const Step4DigitalOffer = ({ onDecline, onSkipToFree, userData }: Step4Di
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://www.shop.testograph.eu?tier=digital" target="_blank" rel="noopener noreferrer" className="block">
+            <a href="https://shop.testograph.eu?tier=digital" target="_blank" rel="noopener noreferrer" className="block">
               Вземи го за 47 лв
             </a>
           </Button>
@@ -285,7 +285,7 @@ export const Step4DigitalOffer = ({ onDecline, onSkipToFree, userData }: Step4Di
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://www.shop.testograph.eu?tier=digital" target="_blank" rel="noopener noreferrer" className="block">
+            <a href="https://shop.testograph.eu?tier=digital" target="_blank" rel="noopener noreferrer" className="block">
               Вземи го за 47 лв
             </a>
           </Button>

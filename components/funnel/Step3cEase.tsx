@@ -10,11 +10,11 @@ interface Step3cEaseProps {
 }
 
 export const Step3cEase = ({ onProceed, userData }: Step3cEaseProps) => {
-  // Auto-forward after 15 seconds if user doesn't click
+  // Auto-forward after 12 seconds if user doesn't click
   useEffect(() => {
     const timer = setTimeout(() => {
       onProceed();
-    }, 15000);
+    }, 12000);
 
     return () => clearTimeout(timer);
   }, [onProceed]);
@@ -88,7 +88,7 @@ export const Step3cEase = ({ onProceed, userData }: Step3cEaseProps) => {
             Добре. Покажи.
           </Button>
 
-          <AutoAdvanceIndicator totalSeconds={15} />
+          <AutoAdvanceIndicator totalSeconds={12} />
         </div>
       </div>
     </div>

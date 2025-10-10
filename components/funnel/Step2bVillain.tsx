@@ -8,11 +8,11 @@ interface Step2bVillainProps {
 }
 
 export const Step2bVillain = ({ onProceed, userData }: Step2bVillainProps) => {
-  // Auto-forward after 15 seconds if user doesn't click
+  // Auto-forward after 10 seconds if user doesn't click
   useEffect(() => {
     const timer = setTimeout(() => {
       onProceed();
-    }, 15000);
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, [onProceed]);
@@ -23,7 +23,7 @@ export const Step2bVillain = ({ onProceed, userData }: Step2bVillainProps) => {
         emoji: "🧪",
         title: "ЕСТРОГЕНЪТ",
         subtitle: "(блокира тестостерона)",
-        description: "Естрогенът те прави СЛАБ като жена. Пластмаса, соя, пестициди - пълни с естроген. Блокират тестостерона. Нулево либидо. Слаба ереция. Загуба на мускули.",
+        description: "Естрогенът те прави СЛАБ като жена. Пластмаса, соя, пестициди - пълни с естроген. Блокират тестостерона. Нулево либидо. Слаба ерекция. Загуба на мускули.",
         stat: "71% от мъжете над 35 - АТАКУВАНИ от естроген",
         color: "from-purple-500/20 to-violet-500/20 border-purple-500/40"
       };
@@ -124,7 +124,7 @@ export const Step2bVillain = ({ onProceed, userData }: Step2bVillainProps) => {
             Как го СПИРАМ?
           </Button>
 
-          <AutoAdvanceIndicator totalSeconds={15} />
+          <AutoAdvanceIndicator totalSeconds={10} />
         </div>
       </div>
     </div>

@@ -10,11 +10,11 @@ interface Step3bSpeedProps {
 }
 
 export const Step3bSpeed = ({ onProceed, userData }: Step3bSpeedProps) => {
-  // Auto-forward after 15 seconds if user doesn't click
+  // Auto-forward after 12 seconds if user doesn't click
   useEffect(() => {
     const timer = setTimeout(() => {
       onProceed();
-    }, 15000);
+    }, 12000);
 
     return () => clearTimeout(timer);
   }, [onProceed]);
@@ -86,7 +86,7 @@ export const Step3bSpeed = ({ onProceed, userData }: Step3bSpeedProps) => {
             (Започни още утре сутрин)
           </p>
 
-          <AutoAdvanceIndicator totalSeconds={15} />
+          <AutoAdvanceIndicator totalSeconds={12} />
         </div>
       </div>
     </div>

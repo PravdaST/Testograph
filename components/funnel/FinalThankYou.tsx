@@ -94,7 +94,7 @@ export const FinalThankYou = ({ userData }: FinalThankYouProps) => {
             Промени ли си мнението? Офертата все още е налична за ограничено време.
           </p>
           <a
-            href="https://www.shop.testograph.eu"
+            href="https://shop.testograph.eu"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-block mt-3 text-primary hover:text-primary/80 font-semibold text-sm md:text-base"
