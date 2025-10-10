@@ -7,8 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
-import { ProtocolAppMockup } from "./ProtocolAppMockup";
-import { addUTMToUrl, trackCTAClick } from "@/lib/analytics/funnel-tracker";
+import Image from "next/image";
 
 interface UserData {
   firstName?: string;
@@ -23,64 +22,71 @@ interface ExitPopupDialogProps {
 export const ExitPopupDialog = ({ open, onOpenChange, userData }: ExitPopupDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto p-4">
-        <DialogHeader className="space-y-2">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto p-6 bg-background">
+        <DialogHeader className="space-y-3">
           <div className="flex justify-center">
             <AlertTriangle className="w-12 h-12 text-orange-500" />
           </div>
-          <DialogTitle className="text-xl text-center leading-tight">
+          <DialogTitle className="text-2xl text-center leading-tight text-foreground font-bold">
             {userData?.firstName ? `${userData.firstName}, ` : ""}⚠️ ИЗЧАКАЙ!
           </DialogTitle>
-          <DialogDescription className="text-center text-sm space-y-2">
-            <p className="text-base font-semibold text-foreground">
+          <DialogDescription className="text-center space-y-2">
+            <p className="text-lg font-bold text-foreground">
               ПОСЛЕДНА ВЪЗМОЖНОСТ!
             </p>
-            <p className="text-sm">
-              Започни само с 30-дневния Web Протокол - 17 лв.
+            <p className="text-base text-foreground font-medium">
+              Вземи Smart App за Планиране на Хранителен Режим само за 19 лв вместо 28 лв!
             </p>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-3 pt-2">
+        <div className="space-y-4 pt-2">
           {/* Downsell Offer - Compact */}
-          <div className="bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950/20 dark:to-cyan-950/20 rounded-lg p-4 space-y-3 border-2 border-primary">
-            <div className="w-full h-40 rounded-lg overflow-hidden">
-              <ProtocolAppMockup />
+          <div className="bg-card rounded-xl p-5 space-y-4 border-2 border-primary/50 shadow-lg">
+            <div className="flex items-center justify-center w-full max-w-[200px] mx-auto py-8">
+              <span className="text-[120px]">🍴</span>
             </div>
 
-            <h3 className="font-bold text-base text-foreground">
-              📱 30-Дневен Web Протокол
+            <h3 className="font-bold text-lg text-center text-foreground">
+              Smart App за Планиране на Хранителен Режим
             </h3>
 
-            <ul className="space-y-1 text-xs text-muted-foreground">
-              <li>✓ Ден-по-ден план за хранене</li>
-              <li>✓ Персонализирани тренировки</li>
-              <li>✓ График за добавки</li>
-              <li>✓ Progress tracker</li>
+            <ul className="space-y-2 text-sm text-foreground">
+              <li className="flex items-start gap-2">
+                <span className="text-primary font-bold">✓</span>
+                <span>Точно какво да ядеш и кога</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary font-bold">✓</span>
+                <span>Оптимизиран за тестостерон</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary font-bold">✓</span>
+                <span>Лесни рецепти</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-primary font-bold">✓</span>
+                <span>Shopping списък включен</span>
+              </li>
             </ul>
 
-            <div className="flex items-center justify-between pt-2 border-t">
-              <span className="text-base line-through text-muted-foreground">27 лв</span>
+            <div className="flex items-center justify-between pt-3 border-t border-border">
+              <span className="text-lg line-through text-muted-foreground font-semibold">28 лв</span>
               <div className="text-right">
-                <p className="text-xs text-muted-foreground">Само днес:</p>
-                <p className="text-xl font-bold text-primary">17 лв</p>
+                <p className="text-sm text-muted-foreground font-medium">Само днес:</p>
+                <p className="text-2xl font-black text-primary">19 лв</p>
               </div>
             </div>
           </div>
 
           {/* Buttons */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             <Button
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-sm"
-              size="default"
+              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-base py-6"
+              size="lg"
               asChild
             >
-              <a
-                href={addUTMToUrl("https://shop.testograph.eu", { tier: 'exit_offer', step: 8, content: 'exit_popup' })}
-                target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => trackCTAClick(8, 'exit_offer', 'https://shop.testograph.eu', { position: 'exit_popup' })}
-              >
+              <a href="https://shop.testograph.eu/products/meal-planner" target="_blank" rel="noopener noreferrer">
                 🎁 ВЗЕМИ ОФЕРТАТА - 19 ЛВ
               </a>
             </Button>
@@ -88,14 +94,14 @@ export const ExitPopupDialog = ({ open, onOpenChange, userData }: ExitPopupDialo
             <Button
               variant="ghost"
               size="sm"
-              className="w-full text-xs"
+              className="w-full text-sm text-muted-foreground hover:text-foreground"
               onClick={() => onOpenChange(false)}
             >
               Затвори
             </Button>
           </div>
 
-          <p className="text-[10px] text-center text-muted-foreground leading-tight">
+          <p className="text-xs text-center text-muted-foreground leading-tight">
             * Офертата е валидна само сега. След затваряне на този прозорец я губиш завинаги.
           </p>
         </div>

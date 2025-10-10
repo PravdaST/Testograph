@@ -10,7 +10,7 @@ export const ProtocolAppMockup = () => {
       <div className="bg-white dark:bg-slate-900 px-4 py-3 border-b border-slate-200 dark:border-slate-700">
         <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Meal Planner</h3>
+            <h3 className="text-lg font-bold text-slate-900 dark:text-white">Smart App за Планиране на Хранителен Режим</h3>
             <p className="text-xs text-slate-500">Вторник, 12 Ден</p>
           </div>
           <div className="w-10 h-10 rounded-full bg-gradient-to-r from-green-400 to-emerald-500 flex items-center justify-center text-white font-bold">

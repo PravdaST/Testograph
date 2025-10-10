@@ -34,25 +34,25 @@ export const TierComparisonTable = ({ currentTier }: TierComparisonTableProps) =
       premium: "Пълна"
     },
     {
-      name: "Meal Planner",
+      name: "Smart App за Планиране на Хранителен Режим",
       digital: false,
       regular: false,
       premium: true
     },
     {
-      name: "Sleep Protocol",
+      name: "Протокол за Сън",
       digital: false,
       regular: false,
       premium: true
     },
     {
-      name: "Exercise Guide",
+      name: "Ръководство за Упражнения",
       digital: false,
       regular: false,
       premium: true
     },
     {
-      name: "Lab Testing Guide",
+      name: "Ръководство за Лабораторни Изследвания",
       digital: false,
       regular: false,
       premium: true
