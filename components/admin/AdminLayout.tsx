@@ -18,7 +18,8 @@ import {
   ClipboardList,
   Mail,
   Database,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  TrendingUp
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -59,6 +60,11 @@ const navItems = [
     title: 'Funnel Analytics',
     href: '/admin/analytics',
     icon: BarChart3,
+  },
+  {
+    title: 'Business Analytics',
+    href: '/admin/business-analytics',
+    icon: TrendingUp,
   },
   {
     title: 'Access Control',
