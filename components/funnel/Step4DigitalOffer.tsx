@@ -10,7 +10,7 @@ import { WhatHappensNextTimeline } from "./WhatHappensNextTimeline";
 import { ValueStackVisual } from "./ValueStackVisual";
 import { QualificationSection } from "./QualificationSection";
 import { FAQSection } from "./FAQSection";
-import { trackButtonClick, trackOfferView } from "@/lib/analytics/funnel-tracker";
+import { trackButtonClick, trackOfferView, trackCTAClick, addUTMToUrl } from "@/lib/analytics/funnel-tracker";
 
 interface UserData {
   firstName?: string;
@@ -199,11 +199,14 @@ export const Step4DigitalOffer = ({ onDecline, onSkipToFree, userData }: Step4Di
             asChild
           >
             <a
-              href="https://shop.testograph.eu/cart/58678183657821:1?discount=LIMITEDOFFER"
+              href={addUTMToUrl("https://shop.testograph.eu/cart/58678183657821:1?discount=LIMITEDOFFER", { tier: 'digital', step: 8, content: 'top_cta' })}
               target="_blank"
               rel="noopener noreferrer"
               className="block"
-              onClick={() => trackButtonClick(8, 'CTA: Вземи го за 47 лв', { offerTier: 'digital', position: 'top' })}
+              onClick={() => {
+                trackButtonClick(8, 'CTA: Вземи го за 47 лв', { offerTier: 'digital', position: 'top' });
+                trackCTAClick(8, 'digital', 'https://shop.testograph.eu/cart/58678183657821:1', { position: 'top' });
+              }}
             >
               Вземи го за 47 лв
             </a>
@@ -273,11 +276,14 @@ export const Step4DigitalOffer = ({ onDecline, onSkipToFree, userData }: Step4Di
             asChild
           >
             <a
-              href="https://shop.testograph.eu/cart/58678183657821:1?discount=LIMITEDOFFER"
+              href={addUTMToUrl("https://shop.testograph.eu/cart/58678183657821:1?discount=LIMITEDOFFER", { tier: 'digital', step: 8, content: 'bottom_cta' })}
               target="_blank"
               rel="noopener noreferrer"
               className="block"
-              onClick={() => trackButtonClick(8, 'CTA: Вземи го за 47 лв', { offerTier: 'digital', position: 'bottom' })}
+              onClick={() => {
+                trackButtonClick(8, 'CTA: Вземи го за 47 лв', { offerTier: 'digital', position: 'bottom' });
+                trackCTAClick(8, 'digital', 'https://shop.testograph.eu/cart/58678183657821:1', { position: 'bottom' });
+              }}
             >
               Вземи го за 47 лв
             </a>

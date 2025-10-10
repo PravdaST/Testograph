@@ -390,3 +390,71 @@ export function clearFunnelSession(): void {
   sessionStorage.removeItem(SESSION_ID_KEY);
   console.log('🧹 Funnel session cleared');
 }
+
+/**
+ * Build UTM parameters for tracking
+ */
+export function buildUTMParams(params: {
+  tier?: string;
+  step?: number;
+  content?: string;
+}): string {
+  const sessionId = getSessionId();
+  const utmParams = new URLSearchParams({
+    utm_source: 'testograph',
+    utm_medium: 'funnel',
+    utm_campaign: 'waiting_room',
+    utm_content: params.content || params.tier || 'unknown',
+    utm_term: params.step ? `step${params.step}` : 'final',
+    session_id: sessionId,
+  });
+
+  return utmParams.toString();
+}
+
+/**
+ * Add UTM parameters to URL
+ */
+export function addUTMToUrl(url: string, params: {
+  tier?: string;
+  step?: number;
+  content?: string;
+}): string {
+  const utmString = buildUTMParams(params);
+  const separator = url.includes('?') ? '&' : '?';
+  return `${url}${separator}${utmString}`;
+}
+
+/**
+ * Track CTA click with URL
+ */
+export async function trackCTAClick(
+  stepNumber: number,
+  tier: string,
+  url: string,
+  metadata?: EventMetadata
+): Promise<void> {
+  if (typeof window === 'undefined') return;
+
+  try {
+    const sessionId = getSessionId();
+
+    const { error } = await supabase
+      .from('funnel_events')
+      .insert({
+        session_id: sessionId,
+        step_number: stepNumber,
+        event_type: 'button_clicked',
+        metadata: { ...metadata, tier, url, action: 'cta_click' },
+        timestamp: new Date().toISOString(),
+      });
+
+    if (error) {
+      console.error('Error tracking CTA click:', error);
+    } else {
+      console.log(`🔗 CTA clicked: ${tier} - ${url}`);
+    }
+  } catch (error) {
+    console.error('Exception tracking CTA click:', error);
+  }
+}

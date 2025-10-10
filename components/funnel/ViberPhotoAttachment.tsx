@@ -79,7 +79,7 @@ export const ViberPhotoAttachment = ({
           <div className="grid grid-cols-4 gap-1 text-[7px] mb-1 bg-red-50 px-1 py-0.5 rounded">
             <div className="col-span-1 font-medium">Тестостерон</div>
             <div className="font-bold text-red-600">
-              <AnimatedCounter from={0} to={labResults.before * 0.0347} duration={800} decimals={2} />
+              <AnimatedCounter from={0} to={labResults.before} duration={800} decimals={1} />
             </div>
             <div className="text-gray-600">nmol/L</div>
             <div className="text-gray-600">8.6 - 29</div>
@@ -92,7 +92,7 @@ export const ViberPhotoAttachment = ({
           <div className="grid grid-cols-4 gap-1 text-[7px] mb-1 bg-green-50 px-1 py-0.5 rounded">
             <div className="col-span-1 font-medium">Тестостерон</div>
             <div className="font-bold text-green-600">
-              <AnimatedCounter from={0} to={labResults.after * 0.0347} duration={1200} decimals={2} />
+              <AnimatedCounter from={0} to={labResults.after} duration={1200} decimals={1} />
             </div>
             <div className="text-gray-600">nmol/L</div>
             <div className="text-gray-600">8.6 - 29</div>

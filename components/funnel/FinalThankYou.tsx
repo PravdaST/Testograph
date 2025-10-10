@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { GlassCard } from "@/components/ui/glass-card";
 import { Mail, CheckCircle } from "lucide-react";
+import { addUTMToUrl, trackCTAClick } from "@/lib/analytics/funnel-tracker";
 
 interface UserData {
   firstName?: string;
@@ -82,10 +83,11 @@ export const FinalThankYou = ({ userData }: FinalThankYouProps) => {
             Промени ли си мнението? Офертата все още е налична за ограничено време.
           </p>
           <a
-            href="https://www.shop.testograph.eu"
+            href={addUTMToUrl("https://shop.testograph.eu", { tier: 'free_plan_upsell', step: 8, content: 'thank_you_page' })}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-block mt-3 text-primary hover:text-primary/80 font-semibold"
+            onClick={() => trackCTAClick(8, 'free_plan_upsell', 'https://shop.testograph.eu', { position: 'thank_you_page' })}
           >
             Виж офертите →
           </a>

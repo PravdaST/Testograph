@@ -1,5 +1,6 @@
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { addUTMToUrl, trackCTAClick } from "@/lib/analytics/funnel-tracker";
 
 interface TierFeature {
   name: string;
@@ -166,7 +167,12 @@ export const TierComparisonTable = ({ currentTier }: TierComparisonTableProps) =
                   className="w-full"
                   asChild
                 >
-                  <a href="https://shop.testograph.eu/collections/digitals" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={addUTMToUrl("https://shop.testograph.eu/collections/digitals", { tier: 'digital', step: 8, content: 'tier_table_desktop' })}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackCTAClick(8, 'digital', 'https://shop.testograph.eu/collections/digitals', { position: 'tier_table_desktop' })}
+                  >
                     {currentTier === "digital" ? "Избрахте това ✓" : "Избери Digital"}
                   </a>
                 </Button>
@@ -178,7 +184,12 @@ export const TierComparisonTable = ({ currentTier }: TierComparisonTableProps) =
                   className="w-full"
                   asChild
                 >
-                  <a href="https://shop.testograph.eu/collections/regular" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={addUTMToUrl("https://shop.testograph.eu/collections/regular", { tier: 'regular', step: 8, content: 'tier_table_desktop' })}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackCTAClick(8, 'regular', 'https://shop.testograph.eu/collections/regular', { position: 'tier_table_desktop' })}
+                  >
                     {currentTier === "regular" ? "Избрахте това ✓" : "Избери Regular"}
                   </a>
                 </Button>
@@ -190,7 +201,12 @@ export const TierComparisonTable = ({ currentTier }: TierComparisonTableProps) =
                   className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700"
                   asChild
                 >
-                  <a href="https://shop.testograph.eu/collections/bundles" target="_blank" rel="noopener noreferrer">
+                  <a
+                    href={addUTMToUrl("https://shop.testograph.eu/collections/bundles", { tier: 'premium', step: 8, content: 'tier_table_desktop' })}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => trackCTAClick(8, 'premium', 'https://shop.testograph.eu/collections/bundles', { position: 'tier_table_desktop' })}
+                  >
                     {currentTier === "premium" ? "Избрахте това ✓" : "Избери Premium"}
                   </a>
                 </Button>
@@ -226,7 +242,12 @@ export const TierComparisonTable = ({ currentTier }: TierComparisonTableProps) =
             className="w-full bg-white text-orange-600 hover:bg-gray-100 font-black"
             asChild
           >
-            <a href="https://www.shop.testograph.eu?tier=premium" target="_blank" rel="noopener noreferrer">
+            <a
+              href={addUTMToUrl("https://shop.testograph.eu?tier=premium", { tier: 'premium', step: 8, content: 'tier_table_mobile' })}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackCTAClick(8, 'premium', 'https://shop.testograph.eu', { position: 'tier_table_mobile' })}
+            >
               {currentTier === "premium" ? "Избрахте това ✓" : "Избери Premium"}
             </a>
           </Button>
@@ -246,7 +267,12 @@ export const TierComparisonTable = ({ currentTier }: TierComparisonTableProps) =
             className="w-full"
             asChild
           >
-            <a href="https://www.shop.testograph.eu?tier=single" target="_blank" rel="noopener noreferrer">
+            <a
+              href={addUTMToUrl("https://shop.testograph.eu?tier=single", { tier: 'regular', step: 8, content: 'tier_table_mobile' })}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackCTAClick(8, 'regular', 'https://shop.testograph.eu', { position: 'tier_table_mobile' })}
+            >
               {currentTier === "regular" ? "Избрахте това ✓" : "Избери Regular"}
             </a>
           </Button>
@@ -266,7 +292,12 @@ export const TierComparisonTable = ({ currentTier }: TierComparisonTableProps) =
             className="w-full"
             asChild
           >
-            <a href="https://www.shop.testograph.eu?tier=digital" target="_blank" rel="noopener noreferrer">
+            <a
+              href={addUTMToUrl("https://shop.testograph.eu?tier=digital", { tier: 'digital', step: 8, content: 'tier_table_mobile' })}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => trackCTAClick(8, 'digital', 'https://shop.testograph.eu', { position: 'tier_table_mobile' })}
+            >
               {currentTier === "digital" ? "Избрахте това ✓" : "Избери Digital"}
             </a>
           </Button>

@@ -10,7 +10,7 @@ import { WhatHappensNextTimeline } from "./WhatHappensNextTimeline";
 import { ValueStackVisual } from "./ValueStackVisual";
 import { QualificationSection } from "./QualificationSection";
 import { FAQSection } from "./FAQSection";
-import { trackButtonClick, trackOfferView } from "@/lib/analytics/funnel-tracker";
+import { trackButtonClick, trackOfferView, trackCTAClick, addUTMToUrl } from "@/lib/analytics/funnel-tracker";
 
 interface UserData {
   firstName?: string;
@@ -229,11 +229,14 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
             asChild
           >
             <a
-              href="https://shop.testograph.eu/cart/58692136730973:1"
+              href={addUTMToUrl("https://shop.testograph.eu/cart/58692136730973:1", { tier: 'premium', step: 8, content: 'top_cta' })}
               target="_blank"
               rel="noopener noreferrer"
               className="block"
-              onClick={() => trackButtonClick(8, 'CTA: Вземи го за 197 лв', { offerTier: 'premium', position: 'top' })}
+              onClick={() => {
+                trackButtonClick(8, 'CTA: Вземи го за 197 лв', { offerTier: 'premium', position: 'top' });
+                trackCTAClick(8, 'premium', 'https://shop.testograph.eu/cart/58692136730973:1', { position: 'top' });
+              }}
             >
               Вземи го за 197 лв
             </a>
@@ -361,11 +364,14 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
             asChild
           >
             <a
-              href="https://shop.testograph.eu/cart/58692136730973:1"
+              href={addUTMToUrl("https://shop.testograph.eu/cart/58692136730973:1", { tier: 'premium', step: 8, content: 'bottom_cta' })}
               target="_blank"
               rel="noopener noreferrer"
               className="block"
-              onClick={() => trackButtonClick(8, 'CTA: Вземи го за 197 лв', { offerTier: 'premium', position: 'bottom' })}
+              onClick={() => {
+                trackButtonClick(8, 'CTA: Вземи го за 197 лв', { offerTier: 'premium', position: 'bottom' });
+                trackCTAClick(8, 'premium', 'https://shop.testograph.eu/cart/58692136730973:1', { position: 'bottom' });
+              }}
             >
               Вземи го за 197 лв
             </a>

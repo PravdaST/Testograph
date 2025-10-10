@@ -8,6 +8,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { AlertTriangle } from "lucide-react";
 import { ProtocolAppMockup } from "./ProtocolAppMockup";
+import { addUTMToUrl, trackCTAClick } from "@/lib/analytics/funnel-tracker";
 
 interface UserData {
   firstName?: string;
@@ -74,7 +75,12 @@ export const ExitPopupDialog = ({ open, onOpenChange, userData }: ExitPopupDialo
               size="default"
               asChild
             >
-              <a href="https://www.shop.testograph.eu" target="_blank" rel="noopener noreferrer">
+              <a
+                href={addUTMToUrl("https://shop.testograph.eu", { tier: 'exit_offer', step: 8, content: 'exit_popup' })}
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => trackCTAClick(8, 'exit_offer', 'https://shop.testograph.eu', { position: 'exit_popup' })}
+              >
                 🎁 ВЗЕМИ ОФЕРТАТА - 19 ЛВ
               </a>
             </Button>

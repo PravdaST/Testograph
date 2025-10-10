@@ -10,7 +10,7 @@ import { WhatHappensNextTimeline } from "./WhatHappensNextTimeline";
 import { ValueStackVisual } from "./ValueStackVisual";
 import { QualificationSection } from "./QualificationSection";
 import { FAQSection } from "./FAQSection";
-import { trackButtonClick, trackOfferView } from "@/lib/analytics/funnel-tracker";
+import { trackButtonClick, trackOfferView, trackCTAClick, addUTMToUrl } from "@/lib/analytics/funnel-tracker";
 
 interface UserData {
   firstName?: string;
@@ -193,11 +193,14 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
             asChild
           >
             <a
-              href="https://shop.testograph.eu/products/testoup"
+              href={addUTMToUrl("https://shop.testograph.eu/products/testoup", { tier: 'regular', step: 8, content: 'top_cta' })}
               target="_blank"
               rel="noopener noreferrer"
               className="block"
-              onClick={() => trackButtonClick(8, 'CTA: Вземи го за 67 лв', { offerTier: 'regular', position: 'top' })}
+              onClick={() => {
+                trackButtonClick(8, 'CTA: Вземи го за 67 лв', { offerTier: 'regular', position: 'top' });
+                trackCTAClick(8, 'regular', 'https://shop.testograph.eu/products/testoup', { position: 'top' });
+              }}
             >
               Вземи го за 67 лв
             </a>
@@ -280,11 +283,14 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
             asChild
           >
             <a
-              href="https://shop.testograph.eu/products/testoup"
+              href={addUTMToUrl("https://shop.testograph.eu/products/testoup", { tier: 'regular', step: 8, content: 'bottom_cta' })}
               target="_blank"
               rel="noopener noreferrer"
               className="block"
-              onClick={() => trackButtonClick(8, 'CTA: Вземи го за 67 лв', { offerTier: 'regular', position: 'bottom' })}
+              onClick={() => {
+                trackButtonClick(8, 'CTA: Вземи го за 67 лв', { offerTier: 'regular', position: 'bottom' });
+                trackCTAClick(8, 'regular', 'https://shop.testograph.eu/products/testoup', { position: 'bottom' });
+              }}
             >
               Вземи го за 67 лв
             </a>

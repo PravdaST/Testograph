@@ -44,12 +44,41 @@ interface WaitingRoomFunnelProps {
 }
 
 export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
-  const [currentStep, setCurrentStep] = useState(1);
-  const [progress, setProgress] = useState(0);
+  // localStorage keys
+  const PROGRESS_KEY = 'testograph_funnel_progress';
+  const PROGRESS_EXPIRY = 24 * 60 * 60 * 1000; // 24 hours
+
+  // Load saved progress from localStorage
+  const loadSavedProgress = () => {
+    if (typeof window === 'undefined') return null;
+
+    try {
+      const saved = localStorage.getItem(PROGRESS_KEY);
+      if (!saved) return null;
+
+      const data = JSON.parse(saved);
+
+      // Check if expired (24h)
+      if (Date.now() - data.timestamp > PROGRESS_EXPIRY) {
+        localStorage.removeItem(PROGRESS_KEY);
+        return null;
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error loading saved progress:', error);
+      return null;
+    }
+  };
+
+  const savedProgress = loadSavedProgress();
+
+  const [currentStep, setCurrentStep] = useState(savedProgress?.currentStep || 1);
+  const [progress, setProgress] = useState(savedProgress?.progress || 0);
   const [canSkip, setCanSkip] = useState(false);
   const [showExitPopup, setShowExitPopup] = useState(false);
-  const [currentOfferTier, setCurrentOfferTier] = useState<OfferTier>('premium');
-  const [userChoice, setUserChoice] = useState<number | null>(null);
+  const [currentOfferTier, setCurrentOfferTier] = useState<OfferTier>(savedProgress?.currentOfferTier || 'premium');
+  const [userChoice, setUserChoice] = useState<number | null>(savedProgress?.userChoice || null);
 
   // Total micro-steps: 1(loading) + 2a,2b,2c + 3a,3b,3c + 4(offer) = 8 steps
   const totalSteps = 8;
@@ -57,9 +86,40 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
   // Tracking: Store entry time for each step to calculate time spent
   const stepEntryTimeRef = useRef<number>(Date.now());
 
+  // Save progress to localStorage
+  const saveProgress = () => {
+    if (typeof window === 'undefined') return;
+
+    try {
+      const progressData = {
+        currentStep,
+        progress,
+        currentOfferTier,
+        userChoice,
+        userData,
+        timestamp: Date.now(),
+      };
+
+      localStorage.setItem(PROGRESS_KEY, JSON.stringify(progressData));
+    } catch (error) {
+      console.error('Error saving progress:', error);
+    }
+  };
+
+  // Clear saved progress
+  const clearProgress = () => {
+    if (typeof window === 'undefined') return;
+    localStorage.removeItem(PROGRESS_KEY);
+  };
+
   // Initialize funnel session on mount
   useEffect(() => {
     initFunnelSession(userData);
+
+    // Show notification if progress was restored
+    if (savedProgress) {
+      console.log('✅ Funnel progress restored from localStorage');
+    }
   }, []);
 
   // Hide header when funnel is active
@@ -76,18 +136,21 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
     };
   }, []);
 
-  // Track step changes
+  // Track step changes and save progress
   useEffect(() => {
     // Track step entered
     trackStepEntered(currentStep);
     stepEntryTimeRef.current = Date.now();
+
+    // Save progress on step change
+    saveProgress();
 
     // Track step exited on cleanup
     return () => {
       const timeSpentSeconds = Math.floor((Date.now() - stepEntryTimeRef.current) / 1000);
       trackStepExited(currentStep, timeSpentSeconds);
     };
-  }, [currentStep]);
+  }, [currentStep, currentOfferTier, userChoice]);
 
   // Track offer tier changes (only when user first reaches step 8)
   useEffect(() => {
@@ -295,6 +358,9 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
     // Skip directly to free plan (final thank you)
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setCurrentOfferTier('rejected');
+
+    // Clear progress when funnel completes
+    clearProgress();
   };
 
   return (
