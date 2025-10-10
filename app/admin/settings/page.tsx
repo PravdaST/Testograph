@@ -61,7 +61,7 @@ const supabase = createClient(
 
 // Hardcoded admin credentials
 const ADMIN_ID = 'e4ea078b-30b2-4347-801f-6d26a87318b6';
-const ADMIN_EMAIL = 'admin@testograph.eu';
+const ADMIN_EMAIL = 'caspere63@gmail.com';
 
 interface Admin {
   id: string;

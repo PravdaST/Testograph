@@ -21,6 +21,8 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/hooks/use-toast';
 import {
   Select,
   SelectContent,
@@ -28,6 +30,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import {
   MessageSquare,
   TrendingUp,
@@ -51,6 +61,8 @@ import {
   Database,
   Server,
   Clock,
+  Trash2,
+  AlertTriangle,
 } from 'lucide-react';
 
 interface DashboardStats {
@@ -96,8 +108,13 @@ interface ActivityEvent {
   description: string;
 }
 
+// Hardcoded admin credentials
+const ADMIN_ID = 'e4ea078b-30b2-4347-801f-6d26a87318b6';
+const ADMIN_EMAIL = 'caspere63@gmail.com';
+
 export default function DashboardPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [activities, setActivities] = useState<ActivityEvent[]>([]);
   const [recentPurchases, setRecentPurchases] = useState<RecentPurchase[]>([]);
@@ -118,6 +135,12 @@ export default function DashboardPage() {
     activeSessions: 0,
   });
   const autoRefreshInterval = useRef<NodeJS.Timeout | null>(null);
+
+  // Clear test data states
+  const [clearDataModal, setClearDataModal] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [confirmChecked, setConfirmChecked] = useState(false);
+  const [isClearingData, setIsClearingData] = useState(false);
 
   useEffect(() => {
     fetchDashboardData();
@@ -248,6 +271,56 @@ export default function DashboardPage() {
       });
     } finally {
       setChartsLoading(false);
+    }
+  };
+
+  // Clear test data handler
+  const handleClearData = async () => {
+    if (confirmText !== 'DELETE ALL' || !confirmChecked) {
+      toast({
+        title: 'Грешка',
+        description: 'Моля, потвърдете действието',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsClearingData(true);
+    try {
+      const response = await fetch('/api/admin/clear-test-data', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          adminId: ADMIN_ID,
+          adminEmail: ADMIN_EMAIL,
+          confirmText,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: 'Успех',
+          description: `Изтрити ${data.stats.deletedUsers} потребители и всички техни данни`,
+        });
+        setClearDataModal(false);
+        setConfirmText('');
+        setConfirmChecked(false);
+        // Refresh dashboard data
+        fetchDashboardData();
+        fetchChartsData();
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Грешка',
+        description: error.message || 'Неуспешно изтриване на данни',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsClearingData(false);
     }
   };
 
@@ -535,6 +608,40 @@ export default function DashboardPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Danger Zone */}
+          <Card className="border-destructive">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+                Danger Zone
+              </CardTitle>
+              <CardDescription>Необратими действия - използвайте с повишено внимание</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="flex items-start gap-3 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
+                  <Trash2 className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-sm mb-1">Clear Test Data</h3>
+                    <p className="text-xs text-muted-foreground mb-3">
+                      Изтрива ВСИЧКИ потребители и техни данни от базата (purchases, chat sessions, funnel data, PRO entries).
+                      Admin user-ът ({ADMIN_EMAIL}) ще бъде запазен.
+                    </p>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => setClearDataModal(true)}
+                      className="w-full sm:w-auto"
+                    >
+                      <Trash2 className="h-4 w-4 mr-2" />
+                      Clear All Test Data
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Charts */}
@@ -814,6 +921,96 @@ export default function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Clear Test Data Dialog */}
+        <Dialog open={clearDataModal} onOpenChange={setClearDataModal}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2 text-destructive">
+                <AlertTriangle className="h-5 w-5" />
+                Внимание! Необратимо действие
+              </DialogTitle>
+              <DialogDescription>
+                Това действие ще изтрие ВСИЧКИ потребители и техните данни от базата данни. Това включва:
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4 py-4">
+              {/* Warning list */}
+              <div className="bg-destructive/10 p-3 rounded-lg border border-destructive/20">
+                <ul className="text-xs space-y-1 text-muted-foreground">
+                  <li>• Всички auth users (освен {ADMIN_EMAIL})</li>
+                  <li>• Profiles</li>
+                  <li>• Purchases</li>
+                  <li>• Chat sessions</li>
+                  <li>• Funnel sessions и events</li>
+                  <li>• PRO entries и measurements</li>
+                  <li>• User settings</li>
+                </ul>
+              </div>
+
+              {/* Confirmation checkbox */}
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="confirm-clear"
+                  checked={confirmChecked}
+                  onCheckedChange={(checked) => setConfirmChecked(checked as boolean)}
+                />
+                <label
+                  htmlFor="confirm-clear"
+                  className="text-sm text-muted-foreground cursor-pointer leading-tight"
+                >
+                  Разбирам че това ще изтрие ВСИЧКИ данни необратимо
+                </label>
+              </div>
+
+              {/* Confirmation text input */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  Напиши <code className="bg-muted px-1 py-0.5 rounded text-destructive">DELETE ALL</code> за потвърждение:
+                </label>
+                <Input
+                  type="text"
+                  value={confirmText}
+                  onChange={(e) => setConfirmText(e.target.value)}
+                  placeholder="DELETE ALL"
+                  className="font-mono"
+                />
+              </div>
+            </div>
+
+            <DialogFooter className="flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setClearDataModal(false);
+                  setConfirmText('');
+                  setConfirmChecked(false);
+                }}
+                disabled={isClearingData}
+              >
+                Откажи
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleClearData}
+                disabled={!confirmChecked || confirmText !== 'DELETE ALL' || isClearingData}
+              >
+                {isClearingData ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Изтриване...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Изтрий всички данни
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </AdminLayout>
   );

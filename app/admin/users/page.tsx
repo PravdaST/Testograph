@@ -73,7 +73,7 @@ interface UsersResponse {
 
 // Hardcoded admin credentials (should come from auth session in production)
 const ADMIN_ID = 'e4ea078b-30b2-4347-801f-6d26a87318b6';
-const ADMIN_EMAIL = 'admin@testograph.eu';
+const ADMIN_EMAIL = 'caspere63@gmail.com';
 
 export default function UsersPage() {
   const router = useRouter();
