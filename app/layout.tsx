@@ -83,7 +83,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{
             __html: JSON.stringify({
               '@context': 'https://schema.org',
-              '@type': 'MedicalWebPage',
+              '@type': 'WebPage',
               name: 'Testograph - Безплатен Тестостерон Анализ',
               description: 'Получете персонализиран доклад за нивата на тестостерон въз основа на факторите от начина на живот и здравните показатели.',
               url: 'https://testograph.eu/',

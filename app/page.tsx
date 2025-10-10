@@ -240,9 +240,9 @@ const Index = () => {
                   <img src="/testograph-logo.png" alt="Testograph Logo" className="h-11 w-auto max-w-11 rounded-xl object-contain" />
                 </div>
                 <div>
-                  <h1 className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  <p className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                     Testograph
-                  </h1>
+                  </p>
                   <p className="text-xs text-muted-foreground">Инструмент за оценка на тестостерон</p>
                 </div>
               </div>

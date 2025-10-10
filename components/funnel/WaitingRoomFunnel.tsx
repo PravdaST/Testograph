@@ -26,6 +26,7 @@ import {
   updateOfferTier,
   trackFunnelExit,
 } from "@/lib/analytics/funnel-tracker";
+import { trackViewContent, trackAddToCart, trackLead, fbqTrackCustom } from "@/lib/facebook-pixel";
 
 type OfferTier = 'premium' | 'single' | 'digital' | 'rejected' | null;
 
@@ -142,6 +143,22 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
     trackStepEntered(currentStep);
     stepEntryTimeRef.current = Date.now();
 
+    // Facebook Pixel: Track ViewContent for each funnel step
+    const stepNames: Record<number, string> = {
+      1: 'Funnel Step 1 - Data Analysis',
+      2: 'Funnel Step 2 - Dream State',
+      3: 'Funnel Step 3 - Villain/Problem',
+      4: 'Funnel Step 4 - Interactive Choice',
+      5: 'Funnel Step 5 - Social Proof',
+      6: 'Funnel Step 6 - Speed/Timeline',
+      7: 'Funnel Step 7 - Ease of Implementation',
+      8: 'Funnel Step 8 - Product Offer'
+    };
+
+    if (stepNames[currentStep]) {
+      trackViewContent(stepNames[currentStep], 'funnel_step');
+    }
+
     // Save progress on step change
     saveProgress();
 
@@ -154,8 +171,23 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
 
   // Track offer tier changes (only when user first reaches step 8)
   useEffect(() => {
-    if (currentStep === 8 && currentOfferTier === 'premium') {
-      updateOfferTier('premium');
+    if (currentStep === 8) {
+      // Track offer viewed in internal analytics
+      if (currentOfferTier === 'premium') {
+        updateOfferTier('premium');
+      }
+
+      // Facebook Pixel: Track AddToCart when viewing offers
+      const offerData: Record<string, { name: string; value: number }> = {
+        'premium': { name: 'Testograph PRO Premium Bundle', value: 69 },
+        'single': { name: 'Testograph PRO Single Bottle', value: 29 },
+        'digital': { name: 'Testograph Digital Guides', value: 19 }
+      };
+
+      if (currentOfferTier && currentOfferTier !== 'rejected' && offerData[currentOfferTier]) {
+        const offer = offerData[currentOfferTier];
+        trackAddToCart(offer.name, offer.value, 'BGN');
+      }
     }
   }, [currentStep, currentOfferTier]);
 
@@ -164,6 +196,13 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
     if (userChoice !== null) {
       import('@/lib/analytics/funnel-tracker').then(({ trackChoiceMade }) => {
         trackChoiceMade(4, userChoice);
+      });
+
+      // Facebook Pixel: Track custom choice event
+      fbqTrackCustom('FunnelChoiceMade', {
+        step: 4,
+        choice: userChoice,
+        choice_name: `Choice ${userChoice}`
       });
     }
   }, [userChoice]);
@@ -354,6 +393,9 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
       action: 'skip_to_free'
     });
     trackFunnelExit(currentStep, false);
+
+    // Facebook Pixel: Track Lead for free PDF (no purchase)
+    trackLead('Free PDF - Skipped Paid Offer', 0);
 
     // Skip directly to free plan (final thank you)
     window.scrollTo({ top: 0, behavior: 'smooth' });

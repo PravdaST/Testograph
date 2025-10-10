@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Loader2, Activity, Brain, Dumbbell, Bed, Mail, Gift, ChevronLeft, ChevronRight, User, Heart } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FormSelect, FormSelectContent, FormSelectItem, FormSelectTrigger, FormSelectValue } from "@/components/FormSelect";
+import { trackLead, trackViewContent } from "@/lib/facebook-pixel";
 
 interface TForecastFormProps {
   onResult: (result: any) => void;
@@ -190,7 +191,10 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
       });
       return;
     }
-    
+
+    // Track form completion - ViewContent before email popup
+    trackViewContent('Free Assessment Form Completed', 'lead_form');
+
     // Show email popup instead of submitting directly
     setShowEmailPopup(true);
   };
@@ -253,6 +257,10 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
         }
 
         console.log('✅ Webhook submission successful');
+
+        // Track Lead conversion in Facebook Pixel
+        trackLead('Testograph Free Assessment', 0);
+
         onResult({
           type: 'funnel',
           title: 'Благодарим! Вашата Testograph прогноза е в процес.',
