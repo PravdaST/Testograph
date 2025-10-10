@@ -45,7 +45,10 @@ import {
   ShoppingBag,
   Crown,
   User,
-  Clock
+  Clock,
+  Copy,
+  Plus,
+  Minus
 } from 'lucide-react';
 import { exportToCSV } from '@/lib/utils/exportToCSV';
 import { useToast } from '@/hooks/use-toast';
@@ -64,6 +67,16 @@ interface User {
   banned?: boolean;
   name?: string;
   avatar?: string;
+  // New fields from enhanced API
+  userCreatedAt?: string;
+  emailVerified?: boolean;
+  protocolStartDatePro?: string | null;
+  banInfo?: {
+    reason: string;
+    bannedAt: string;
+    bannedBy: string;
+  };
+  activeApps?: string[];
 }
 
 interface UsersResponse {
@@ -89,6 +102,8 @@ export default function UsersPage() {
   const [userPurchases, setUserPurchases] = useState<any[]>([]);
   const [loadingPurchases, setLoadingPurchases] = useState(false);
   const [grantProModal, setGrantProModal] = useState(false);
+  const [revokeProModal, setRevokeProModal] = useState(false);
+  const [addAppModal, setAddAppModal] = useState(false);
   const [resetPasswordModal, setResetPasswordModal] = useState(false);
   const [banUserModal, setBanUserModal] = useState(false);
   const [unbanUserModal, setUnbanUserModal] = useState(false);
@@ -97,6 +112,9 @@ export default function UsersPage() {
 
   // Form states
   const [proStartDate, setProStartDate] = useState('');
+  const [revokeProReason, setRevokeProReason] = useState('');
+  const [selectedApp, setSelectedApp] = useState('');
+  const [appAmount, setAppAmount] = useState('0');
   const [newPassword, setNewPassword] = useState('');
   const [banReason, setBanReason] = useState('');
   const [editName, setEditName] = useState('');
@@ -121,6 +139,22 @@ export default function UsersPage() {
 
       if (response.ok && data.purchases) {
         setUserPurchases(data.purchases);
+
+        // Update selectedUser with enhanced data from API
+        if (selectedUser) {
+          setSelectedUser({
+            ...selectedUser,
+            id: data.userId,
+            userCreatedAt: data.userCreatedAt,
+            emailVerified: data.emailVerified,
+            banned: data.banned,
+            banInfo: data.banInfo,
+            protocolStartDatePro: data.profile?.protocolStartDatePro,
+            name: data.profile?.name || selectedUser.name,
+            avatar: data.profile?.avatar || selectedUser.avatar,
+            activeApps: data.stats?.activeApps || [],
+          });
+        }
       }
     } catch (error) {
       console.error('Error fetching user purchases:', error);
@@ -204,6 +238,23 @@ export default function UsersPage() {
     return formatDate(dateString);
   };
 
+  const calculateProDays = (startDate: string) => {
+    const now = new Date();
+    const start = new Date(startDate);
+    const diffMs = now.getTime() - start.getTime();
+    const daysElapsed = Math.floor(diffMs / 86400000);
+    const daysRemaining = Math.max(0, 28 - daysElapsed);
+    return { daysElapsed, daysRemaining };
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: 'Копирано',
+      description: 'Текстът е копиран в клипборда',
+    });
+  };
+
   const handleSearch = (value: string) => {
     setSearch(value);
   };
@@ -253,6 +304,10 @@ export default function UsersPage() {
         });
         setGrantProModal(false);
         fetchUsers();
+        // Refresh user detail
+        if (selectedUser.email) {
+          fetchUserPurchases(selectedUser.email);
+        }
       } else {
         throw new Error(data.error);
       }
@@ -260,6 +315,108 @@ export default function UsersPage() {
       toast({
         title: 'Грешка',
         description: error.message || 'Неуспешно даване на PRO достъп',
+        variant: 'destructive',
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRevokePro = async () => {
+    if (!selectedUser?.id) return;
+
+    setActionLoading(true);
+    try {
+      const response = await fetch('/api/admin/access/revoke-pro', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          reason: revokeProReason,
+          adminId: ADMIN_ID,
+          adminEmail: ADMIN_EMAIL,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: 'Успех',
+          description: data.message,
+        });
+        setRevokeProModal(false);
+        setRevokeProReason('');
+        fetchUsers();
+        // Refresh user detail
+        if (selectedUser.email) {
+          fetchUserPurchases(selectedUser.email);
+        }
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Грешка',
+        description: error.message || 'Неуспешно премахване на PRO достъп',
+        variant: 'destructive',
+      });
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleAddAppAccess = async () => {
+    if (!selectedUser?.id || !selectedApp) return;
+
+    const appNames: Record<string, string> = {
+      'meal-planner': 'Meal Planner',
+      'sleep-protocol': 'Sleep Protocol',
+      'supplement-timing': 'Supplement Timing Guide',
+      'exercise-guide': 'Exercise Reference Guide',
+      'lab-testing': 'Lab Testing Guide',
+    };
+
+    setActionLoading(true);
+    try {
+      const response = await fetch('/api/admin/access/create-purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: selectedUser.id,
+          productName: appNames[selectedApp] || selectedApp,
+          productType: 'digital',
+          appsIncluded: [selectedApp],
+          amount: parseFloat(appAmount),
+          currency: 'BGN',
+          status: 'completed',
+          adminId: ADMIN_ID,
+          adminEmail: ADMIN_EMAIL,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: 'Успех',
+          description: data.message,
+        });
+        setAddAppModal(false);
+        setSelectedApp('');
+        setAppAmount('0');
+        fetchUsers();
+        // Refresh user detail
+        if (selectedUser.email) {
+          fetchUserPurchases(selectedUser.email);
+        }
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      toast({
+        title: 'Грешка',
+        description: error.message || 'Неуспешно добавяне на достъп до приложение',
         variant: 'destructive',
       });
     } finally {
@@ -734,6 +891,104 @@ export default function UsersPage() {
         </DialogContent>
       </Dialog>
 
+      {/* Revoke PRO Modal */}
+      <Dialog open={revokeProModal} onOpenChange={setRevokeProModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Премахни PRO Достъп</DialogTitle>
+            <DialogDescription>
+              Премахнете PRO достъпа на {selectedUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="revoke-pro-reason">Причина (опционално)</Label>
+              <Textarea
+                id="revoke-pro-reason"
+                value={revokeProReason}
+                onChange={(e) => setRevokeProReason(e.target.value)}
+                placeholder="Въведете причина за премахване на PRO достъп..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setRevokeProModal(false)}
+              disabled={actionLoading}
+            >
+              Отказ
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleRevokePro}
+              disabled={actionLoading}
+            >
+              {actionLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Премахни PRO
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add App Access Modal */}
+      <Dialog open={addAppModal} onOpenChange={setAddAppModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Добави App Достъп</DialogTitle>
+            <DialogDescription>
+              Добавете достъп до приложение за {selectedUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="app-select">Изберете Приложение</Label>
+              <select
+                id="app-select"
+                value={selectedApp}
+                onChange={(e) => setSelectedApp(e.target.value)}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+              >
+                <option value="">-- Изберете --</option>
+                <option value="meal-planner">Meal Planner</option>
+                <option value="sleep-protocol">Sleep Protocol</option>
+                <option value="supplement-timing">Supplement Timing Guide</option>
+                <option value="exercise-guide">Exercise Reference Guide</option>
+                <option value="lab-testing">Lab Testing Guide</option>
+              </select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="app-amount">Сума (BGN)</Label>
+              <Input
+                id="app-amount"
+                type="number"
+                min="0"
+                step="0.01"
+                value={appAmount}
+                onChange={(e) => setAppAmount(e.target.value)}
+                placeholder="0.00"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setAddAppModal(false)}
+              disabled={actionLoading}
+            >
+              Отказ
+            </Button>
+            <Button
+              onClick={handleAddAppAccess}
+              disabled={actionLoading || !selectedApp}
+            >
+              {actionLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              Добави Достъп
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Reset Password Modal */}
       <Dialog open={resetPasswordModal} onOpenChange={setResetPasswordModal}>
         <DialogContent>
@@ -1036,6 +1291,191 @@ export default function UsersPage() {
                   </p>
                 </div>
               </div>
+
+              {/* User Info Section */}
+              <div className="border-t pt-4">
+                <Label className="text-base font-semibold mb-3 block">Информация за потребителя</Label>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">User ID</Label>
+                    <div className="flex items-center gap-2">
+                      <code className="text-xs bg-muted px-2 py-1 rounded font-mono flex-1 truncate">
+                        {selectedUser.id || 'N/A'}
+                      </code>
+                      {selectedUser.id && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-7 w-7 p-0"
+                          onClick={() => copyToClipboard(selectedUser.id!)}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Създаден на</Label>
+                    <p className="text-sm">
+                      {selectedUser.userCreatedAt ? formatDate(selectedUser.userCreatedAt) : 'N/A'}
+                    </p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label className="text-xs text-muted-foreground">Email Verified</Label>
+                    <div>
+                      {selectedUser.emailVerified ? (
+                        <Badge variant="default" className="bg-green-600">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Verified
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline">
+                          <XCircle className="w-3 h-3 mr-1" />
+                          Not Verified
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* PRO Status Section */}
+              {selectedUser.protocolStartDatePro && (
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <Label className="text-base font-semibold">PRO Status</Label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setUserDetailModal(false);
+                        setRevokeProReason('');
+                        setRevokeProModal(true);
+                      }}
+                    >
+                      <Minus className="w-4 h-4 mr-2" />
+                      Премахни PRO
+                    </Button>
+                  </div>
+                  <Card className="border-yellow-500/30 bg-yellow-500/5">
+                    <CardContent className="pt-6">
+                      <div className="flex items-center gap-3 mb-4">
+                        <Crown className="w-8 h-8 text-yellow-500" />
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-1">
+                            <h4 className="font-semibold">Testograph PRO</h4>
+                            <Badge variant="default" className="bg-yellow-600">Active</Badge>
+                          </div>
+                          <p className="text-xs text-muted-foreground">
+                            28-дневна програма за оптимизация на тестостерона
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Започнат на</Label>
+                          <p className="text-sm font-medium">
+                            {new Date(selectedUser.protocolStartDatePro).toLocaleDateString('bg-BG')}
+                          </p>
+                        </div>
+
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Дни изминали</Label>
+                          <p className="text-sm font-medium text-primary">
+                            {calculateProDays(selectedUser.protocolStartDatePro).daysElapsed} дни
+                          </p>
+                        </div>
+
+                        <div className="space-y-1">
+                          <Label className="text-xs text-muted-foreground">Остават</Label>
+                          <p className="text-sm font-medium">
+                            {calculateProDays(selectedUser.protocolStartDatePro).daysRemaining} дни
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Apps Access Section */}
+              {selectedUser.activeApps && selectedUser.activeApps.length > 0 && (
+                <div className="border-t pt-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <Label className="text-base font-semibold">Достъп до приложения ({selectedUser.activeApps.length})</Label>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        setUserDetailModal(false);
+                        setSelectedApp('');
+                        setAppAmount('0');
+                        setAddAppModal(true);
+                      }}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Добави App
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    {selectedUser.activeApps.map((app) => (
+                      <Card key={app} className="border-green-500/30">
+                        <CardContent className="p-4">
+                          <div className="flex items-center gap-2">
+                            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                            <div className="flex-1 min-w-0">
+                              <p className="font-semibold text-sm truncate">
+                                {app === 'meal-planner' && 'Meal Planner'}
+                                {app === 'sleep-protocol' && 'Sleep Protocol'}
+                                {app === 'supplement-timing' && 'Supplement Timing'}
+                                {app === 'exercise-guide' && 'Exercise Guide'}
+                                {app === 'lab-testing' && 'Lab Testing'}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate">{app}</p>
+                            </div>
+                            <Badge variant="default" className="bg-green-600 flex-shrink-0">
+                              Active
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Ban Details Section */}
+              {selectedUser.banned && selectedUser.banInfo && (
+                <div className="border-t pt-4">
+                  <Label className="text-base font-semibold mb-3 block">Ban Information</Label>
+                  <Card className="border-red-500/30 bg-red-500/5">
+                    <CardContent className="p-4">
+                      <div className="flex items-start gap-3">
+                        <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
+                        <div className="flex-1 space-y-2">
+                          <div>
+                            <Label className="text-xs text-muted-foreground">Причина</Label>
+                            <p className="text-sm">{selectedUser.banInfo.reason}</p>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Блокиран на</Label>
+                              <p className="text-sm">{formatDate(selectedUser.banInfo.bannedAt)}</p>
+                            </div>
+                            <div>
+                              <Label className="text-xs text-muted-foreground">Блокиран от</Label>
+                              <p className="text-sm">{selectedUser.banInfo.bannedBy}</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
 
               {/* Purchases History */}
               {selectedUser.purchasesCount > 0 && (

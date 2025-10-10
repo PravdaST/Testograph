@@ -54,13 +54,16 @@ export async function GET(
       funnelEvents = events || [];
     }
 
-    // Get user's purchases
+    // Get user's purchases and profile data
     // First find user_id by email from auth
     const { data: authUsers } = await supabase.auth.admin.listUsers();
     const authUser = authUsers?.users.find((u) => u.email === email);
     let purchases: any[] = [];
+    let profile: any = null;
+    let banInfo: any = null;
 
     if (authUser) {
+      // Fetch purchases
       const { data: purchasesData, error: purchasesError } = await supabase
         .from('purchases')
         .select('*')
@@ -80,6 +83,50 @@ export async function GET(
         appsIncluded: p.apps_included,
         purchasedAt: p.purchased_at,
       })) || [];
+
+      // Fetch profile data
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', authUser.id)
+        .single();
+
+      if (!profileError && profileData) {
+        profile = {
+          name: profileData.name,
+          avatar: profileData.avatar,
+          protocolStartDatePro: profileData.protocol_start_date_pro,
+        };
+      }
+
+      // Fetch ban info from audit logs
+      const { data: banLog, error: banError } = await supabase
+        .from('admin_audit_logs')
+        .select('*')
+        .eq('target_user_id', authUser.id)
+        .eq('action_type', 'ban_user')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (!banError && banLog) {
+        // Check if user is still banned (no unban after this ban)
+        const { data: unbanLog } = await supabase
+          .from('admin_audit_logs')
+          .select('created_at')
+          .eq('target_user_id', authUser.id)
+          .eq('action_type', 'unban_user')
+          .gt('created_at', banLog.created_at)
+          .single();
+
+        if (!unbanLog) {
+          banInfo = {
+            reason: banLog.metadata?.reason || 'No reason provided',
+            bannedAt: banLog.created_at,
+            bannedBy: banLog.admin_email,
+          };
+        }
+      }
     }
 
     // Create timeline by merging all events
@@ -154,6 +201,12 @@ export async function GET(
 
     return NextResponse.json({
       email,
+      userId: authUser?.id || null,
+      userCreatedAt: authUser?.created_at || null,
+      emailVerified: authUser?.email_confirmed_at ? true : false,
+      profile: profile,
+      banned: banInfo !== null,
+      banInfo: banInfo,
       stats,
       timeline,
       chatSessions: chatSessions || [],
