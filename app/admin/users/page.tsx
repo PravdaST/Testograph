@@ -86,6 +86,8 @@ export default function UsersPage() {
   // Modal states
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userDetailModal, setUserDetailModal] = useState(false);
+  const [userPurchases, setUserPurchases] = useState<any[]>([]);
+  const [loadingPurchases, setLoadingPurchases] = useState(false);
   const [grantProModal, setGrantProModal] = useState(false);
   const [resetPasswordModal, setResetPasswordModal] = useState(false);
   const [banUserModal, setBanUserModal] = useState(false);
@@ -104,6 +106,33 @@ export default function UsersPage() {
   useEffect(() => {
     fetchUsers();
   }, [search]);
+
+  useEffect(() => {
+    if (userDetailModal && selectedUser) {
+      fetchUserPurchases(selectedUser.email);
+    }
+  }, [userDetailModal, selectedUser]);
+
+  const fetchUserPurchases = async (email: string) => {
+    setLoadingPurchases(true);
+    try {
+      const response = await fetch(`/api/admin/users/${encodeURIComponent(email)}`);
+      const data = await response.json();
+
+      if (response.ok && data.purchases) {
+        setUserPurchases(data.purchases);
+      }
+    } catch (error) {
+      console.error('Error fetching user purchases:', error);
+      toast({
+        title: 'Грешка',
+        description: 'Не успя да се заредят покупките',
+        variant: 'destructive',
+      });
+    } finally {
+      setLoadingPurchases(false);
+    }
+  };
 
   const fetchUsers = async () => {
     setIsLoading(true);
@@ -1007,6 +1036,71 @@ export default function UsersPage() {
                   </p>
                 </div>
               </div>
+
+              {/* Purchases History */}
+              {selectedUser.purchasesCount > 0 && (
+                <div className="border-t pt-4">
+                  <Label className="text-base font-semibold mb-3 block">
+                    История на покупките ({selectedUser.purchasesCount})
+                  </Label>
+
+                  {loadingPurchases ? (
+                    <div className="flex items-center justify-center py-8">
+                      <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                    </div>
+                  ) : userPurchases.length > 0 ? (
+                    <div className="space-y-3">
+                      {userPurchases.map((purchase) => (
+                        <Card key={purchase.id} className="border-l-4 border-l-green-500">
+                          <CardContent className="p-4">
+                            <div className="flex items-start justify-between">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <ShoppingBag className="w-4 h-4 text-green-600" />
+                                  <h4 className="font-semibold">{purchase.productName}</h4>
+                                  <Badge variant="secondary" className="text-xs">
+                                    {purchase.productType}
+                                  </Badge>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                  <div>
+                                    <span className="font-medium">Сума:</span>{' '}
+                                    <span className="text-green-600 font-semibold">
+                                      {purchase.amount} {purchase.currency}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Статус:</span>{' '}
+                                    <Badge
+                                      variant={purchase.status === 'completed' ? 'default' : 'outline'}
+                                      className={purchase.status === 'completed' ? 'bg-green-600' : ''}
+                                    >
+                                      {purchase.status}
+                                    </Badge>
+                                  </div>
+                                  {purchase.appsIncluded && purchase.appsIncluded.length > 0 && (
+                                    <div className="col-span-2">
+                                      <span className="font-medium">Apps:</span>{' '}
+                                      {purchase.appsIncluded.join(', ')}
+                                    </div>
+                                  )}
+                                  <div className="col-span-2">
+                                    <span className="font-medium">Дата:</span>{' '}
+                                    {formatDate(purchase.purchasedAt)}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground py-4">Няма данни за покупки</p>
+                  )}
+                </div>
+              )}
 
               {/* Admin Actions */}
               <div className="border-t pt-4">
