@@ -11,15 +11,24 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get('days') || '7');
+    const statusFilter = searchParams.get('status'); // 'completed' | 'incomplete' | null (all)
 
     const dateThreshold = new Date();
     dateThreshold.setDate(dateThreshold.getDate() - days);
 
-    // Total sessions
-    const { data: sessions, error: sessionsError } = await supabase
+    // Total sessions with optional status filter
+    let query = supabase
       .from('funnel_sessions')
       .select('*')
       .gte('entry_time', dateThreshold.toISOString());
+
+    if (statusFilter === 'completed') {
+      query = query.eq('completed', true);
+    } else if (statusFilter === 'incomplete') {
+      query = query.eq('completed', false);
+    }
+
+    const { data: sessions, error: sessionsError } = await query;
 
     if (sessionsError) throw sessionsError;
 
@@ -100,6 +109,68 @@ export async function GET(request: Request) {
         }, 0) / sessions.length / 1000 // seconds
       : 0;
 
+    // UTM Analytics
+    const utmBreakdown = {
+      sources: {} as Record<string, number>,
+      mediums: {} as Record<string, number>,
+      campaigns: {} as Record<string, number>,
+    };
+
+    sessions?.forEach((session) => {
+      const utmData = session.utm_data || {};
+
+      if (utmData.source) {
+        utmBreakdown.sources[utmData.source] = (utmBreakdown.sources[utmData.source] || 0) + 1;
+      }
+      if (utmData.medium) {
+        utmBreakdown.mediums[utmData.medium] = (utmBreakdown.mediums[utmData.medium] || 0) + 1;
+      }
+      if (utmData.campaign) {
+        utmBreakdown.campaigns[utmData.campaign] = (utmBreakdown.campaigns[utmData.campaign] || 0) + 1;
+      }
+    });
+
+    // Device/Browser Stats (from user_agent if available)
+    const deviceStats = {
+      mobile: 0,
+      desktop: 0,
+      tablet: 0,
+      unknown: 0,
+    };
+
+    sessions?.forEach((session) => {
+      const userAgent = session.user_agent?.toLowerCase() || '';
+      if (userAgent.includes('mobile') || userAgent.includes('android') || userAgent.includes('iphone')) {
+        deviceStats.mobile++;
+      } else if (userAgent.includes('tablet') || userAgent.includes('ipad')) {
+        deviceStats.tablet++;
+      } else if (userAgent) {
+        deviceStats.desktop++;
+      } else {
+        deviceStats.unknown++;
+      }
+    });
+
+    // Session List with details
+    const sessionsList = sessions?.map((session) => {
+      const userData = session.user_data || {};
+      return {
+        sessionId: session.session_id,
+        email: session.user_email || userData.email || null,
+        name: userData.name || null,
+        currentStep: session.current_step || 1,
+        maxStep: session.max_step_reached || 1,
+        completed: session.completed || false,
+        entryTime: session.entry_time,
+        lastActivity: session.last_activity,
+        offerTier: session.offer_tier || null,
+        utmSource: session.utm_data?.source || null,
+        utmMedium: session.utm_data?.medium || null,
+        utmCampaign: session.utm_data?.campaign || null,
+        exitStep: session.exit_step || null,
+      };
+    }) || [];
+
     // Overall stats
     const stats = {
       totalSessions: sessions?.length || 0,
@@ -120,6 +191,9 @@ export async function GET(request: Request) {
       conversionFunnel,
       offerPerformance: offerCounts,
       dropOffData,
+      utmBreakdown,
+      deviceStats,
+      sessionsList,
       dateRange: {
         from: dateThreshold.toISOString(),
         to: new Date().toISOString(),

@@ -22,6 +22,26 @@ import {
 import { RefreshCw, Download, TrendingUp, Users, Target, Clock } from 'lucide-react';
 import { HeatmapChart } from '@/components/analytics/HeatmapChart';
 import { TrendComparisonChart } from '@/components/analytics/TrendComparisonChart';
+import { UTMBreakdown } from '@/components/analytics/UTMBreakdown';
+import { SessionsTable } from '@/components/analytics/SessionsTable';
+import { SessionJourneyModal } from '@/components/analytics/SessionJourneyModal';
+import { Smartphone, Monitor, Tablet } from 'lucide-react';
+
+interface SessionData {
+  sessionId: string;
+  email: string | null;
+  name: string | null;
+  currentStep: number;
+  maxStep: number;
+  completed: boolean;
+  entryTime: string;
+  lastActivity: string;
+  offerTier: string | null;
+  utmSource: string | null;
+  utmMedium: string | null;
+  utmCampaign: string | null;
+  exitStep: number | null;
+}
 
 interface FunnelStats {
   stats: {
@@ -47,6 +67,18 @@ interface FunnelStats {
     exits: number;
     percentage: number;
   }>;
+  utmBreakdown: {
+    sources: Record<string, number>;
+    mediums: Record<string, number>;
+    campaigns: Record<string, number>;
+  };
+  deviceStats: {
+    mobile: number;
+    desktop: number;
+    tablet: number;
+    unknown: number;
+  };
+  sessionsList: SessionData[];
   dateRange: {
     from: string;
     to: string;
@@ -95,13 +127,22 @@ export default function AnalyticsDashboard() {
   const [trendsData, setTrendsData] = useState<TrendsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDays, setSelectedDays] = useState(7);
+  const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'incomplete'>('all');
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [isJourneyModalOpen, setIsJourneyModalOpen] = useState(false);
+
+  const handleSessionClick = (sessionId: string) => {
+    setSelectedSessionId(sessionId);
+    setIsJourneyModalOpen(true);
+  };
 
   const fetchData = async () => {
     setLoading(true);
     try {
       // Use absolute URLs to prevent any URL resolution issues
       const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const statsUrl = `${baseUrl}/api/analytics/funnel-stats?days=${selectedDays}`;
+      const statusParam = statusFilter !== 'all' ? `&status=${statusFilter}` : '';
+      const statsUrl = `${baseUrl}/api/analytics/funnel-stats?days=${selectedDays}${statusParam}`;
       const timeUrl = `${baseUrl}/api/analytics/time-spent?days=${selectedDays}`;
       const trendsUrl = `${baseUrl}/api/analytics/trends?days=${selectedDays}`;
 
@@ -153,7 +194,7 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => {
     fetchData();
-  }, [selectedDays]);
+  }, [selectedDays, statusFilter]);
 
   const formatTime = (seconds: number) => {
     if (seconds < 60) return `${seconds}s`;
@@ -232,7 +273,7 @@ export default function AnalyticsDashboard() {
             </p>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {/* Date Range Selector */}
             <div className="flex gap-1">
               {[7, 30, 90].map((days) => (
@@ -243,6 +284,20 @@ export default function AnalyticsDashboard() {
                   onClick={() => setSelectedDays(days)}
                 >
                   {days}д
+                </Button>
+              ))}
+            </div>
+
+            {/* Status Filter */}
+            <div className="flex gap-1 border-l pl-2">
+              {(['all', 'completed', 'incomplete'] as const).map((status) => (
+                <Button
+                  key={status}
+                  variant={statusFilter === status ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setStatusFilter(status)}
+                >
+                  {status === 'all' ? 'All' : status === 'completed' ? 'Completed' : 'In Progress'}
                 </Button>
               ))}
             </div>
@@ -323,6 +378,60 @@ export default function AnalyticsDashboard() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Device Stats Card */}
+        {funnelStats.deviceStats && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Smartphone className="w-5 h-5" />
+                Device Breakdown
+              </CardTitle>
+              <CardDescription>Where visitors are browsing from</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="flex items-center gap-3">
+                  <Monitor className="w-8 h-8 text-blue-500" />
+                  <div>
+                    <p className="text-2xl font-bold">{funnelStats.deviceStats.desktop}</p>
+                    <p className="text-xs text-muted-foreground">Desktop</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Smartphone className="w-8 h-8 text-green-500" />
+                  <div>
+                    <p className="text-2xl font-bold">{funnelStats.deviceStats.mobile}</p>
+                    <p className="text-xs text-muted-foreground">Mobile</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Tablet className="w-8 h-8 text-purple-500" />
+                  <div>
+                    <p className="text-2xl font-bold">{funnelStats.deviceStats.tablet}</p>
+                    <p className="text-xs text-muted-foreground">Tablet</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Target className="w-8 h-8 text-muted-foreground" />
+                  <div>
+                    <p className="text-2xl font-bold">{funnelStats.deviceStats.unknown}</p>
+                    <p className="text-xs text-muted-foreground">Unknown</p>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Sessions Table */}
+        <SessionsTable
+          sessions={funnelStats.sessionsList || []}
+          onSessionClick={handleSessionClick}
+        />
+
+        {/* UTM Breakdown */}
+        <UTMBreakdown utmBreakdown={funnelStats.utmBreakdown} />
 
         {/* Conversion Funnel Chart */}
         <Card>
@@ -497,6 +606,16 @@ export default function AnalyticsDashboard() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Session Journey Modal */}
+        <SessionJourneyModal
+          sessionId={selectedSessionId}
+          isOpen={isJourneyModalOpen}
+          onClose={() => {
+            setIsJourneyModalOpen(false);
+            setSelectedSessionId(null);
+          }}
+        />
       </div>
     </AdminLayout>
   );
