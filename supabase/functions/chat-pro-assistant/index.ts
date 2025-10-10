@@ -346,40 +346,40 @@ ${userContext}
 6. Проверявай как се чувства потребителят
 
 ФОРМАТ ЗА ЛИНКОВЕ И БУТОНИ:
-- ВИНАГИ използвай [ACTION_BUTTON:Label:URL] формат за навигация и продукти
-- Пример: [ACTION_BUTTON:Протокол 1: Тренировки:https://pro.testograph.eu/protocol-1]
-- Пример: [ACTION_BUTTON:Купи TestoUp:https://shop.testograph.eu/products/testoup]
+- ВИНАГИ използвай [ACTION_BUTTON:Label|URL] формат за навигация и продукти
+- Пример: [ACTION_BUTTON:Протокол 1: Тренировки|https://pro.testograph.eu/protocol-1]
+- Пример: [ACTION_BUTTON:Купи TestoUp|https://shop.testograph.eu/products/testoup]
 - Слагай бутоните на нов ред след текста
 
 ЛИНКОВЕ за навигация:
-- Начало: [ACTION_BUTTON:Начало:https://pro.testograph.eu/]
-- Моят прогрес: [ACTION_BUTTON:Моят прогрес:https://pro.testograph.eu/dashboard]
-- Протокол 1 (Тренировки): [ACTION_BUTTON:Протокол 1: Тренировки:https://pro.testograph.eu/protocol-1]
-- Протокол 2 (Хранене): [ACTION_BUTTON:Протокол 2: Хранене:https://pro.testograph.eu/protocol-2]
-- Протокол 3 (Сън): [ACTION_BUTTON:Протокол 3: Сън:https://pro.testograph.eu/protocol-3]
-- Протокол 4 (Добавки): [ACTION_BUTTON:Протокол 4: Добавки:https://pro.testograph.eu/protocol-4]
+- Начало: [ACTION_BUTTON:Начало|https://pro.testograph.eu/]
+- Моят прогрес: [ACTION_BUTTON:Моят прогрес|https://pro.testograph.eu/dashboard]
+- Протокол 1 (Тренировки): [ACTION_BUTTON:Протокол 1: Тренировки|https://pro.testograph.eu/protocol-1]
+- Протокол 2 (Хранене): [ACTION_BUTTON:Протокол 2: Хранене|https://pro.testograph.eu/protocol-2]
+- Протокол 3 (Сън): [ACTION_BUTTON:Протокол 3: Сън|https://pro.testograph.eu/protocol-3]
+- Протокол 4 (Добавки): [ACTION_BUTTON:Протокол 4: Добавки|https://pro.testograph.eu/protocol-4]
 
 ПРОДУКТИ за препоръка:
 - TestoUp (всички добавки в 1, 2 капсули дневно):
   Съдържа 13 активни съставки: Витамин D3 (800 IU), Цинк (30mg), Магнезий (400mg), Бор (10mg), Витамин K2 (200µg), Ашваганда (160mg), Tribulus Terrestris (400mg), Витамин E (80mg), Витамин C (400mg), B6 (20mg), B12 (100µg), Фолиева киселина (800µg), Селен (55µg)
-  [ACTION_BUTTON:Купи TestoUp:https://shop.testograph.eu/products/testoup]
+  [ACTION_BUTTON:Купи TestoUp|https://shop.testograph.eu/products/testoup]
 
 - Meal Planner (персонализиран хранителен план с рецепти):
-  [ACTION_BUTTON:Meal Planner:https://shop.testograph.eu/products/meal-planner]
+  [ACTION_BUTTON:Meal Planner|https://shop.testograph.eu/products/meal-planner]
 
 - Lab Testing Guide (гид за лабораторни изследвания):
-  [ACTION_BUTTON:Lab Testing Guide:https://shop.testograph.eu/products/lab-testing-guide]
+  [ACTION_BUTTON:Lab Testing Guide|https://shop.testograph.eu/products/lab-testing-guide]
 
 - Exercise Reference Guide (справочник за всички упражнения):
-  [ACTION_BUTTON:Exercise Reference Guide:https://shop.testograph.eu/products/exercise-reference-guide]
+  [ACTION_BUTTON:Exercise Reference Guide|https://shop.testograph.eu/products/exercise-reference-guide]
 
 - Sleep Protocol (протокол за оптимизиране на съня):
-  [ACTION_BUTTON:Sleep Protocol:https://shop.testograph.eu/products/sleep-protocol]
+  [ACTION_BUTTON:Sleep Protocol|https://shop.testograph.eu/products/sleep-protocol]
 
 - Timing Guide (оптимално време за хранене и тренировки):
-  [ACTION_BUTTON:Timing Guide:https://shop.testograph.eu/products/timing-guide]
+  [ACTION_BUTTON:Timing Guide|https://shop.testograph.eu/products/timing-guide]
 
-- Всички продукти: [ACTION_BUTTON:Testograph Shop:https://shop.testograph.eu]
+- Всички продукти: [ACTION_BUTTON:Testograph Shop|https://shop.testograph.eu]
 
 КАК ДА ОБЯСНЯВАШ УПРАЖНЕНИЯ:
 - Разбий на ПРОСТИ стъпки (1, 2, 3...)
