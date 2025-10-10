@@ -1209,6 +1209,9 @@ export default function UsersPage() {
                 </p>
               </div>
             </DialogTitle>
+            <DialogDescription>
+              Преглед на подробна информация за потребителя и управление на достъпа
+            </DialogDescription>
           </DialogHeader>
 
           {selectedUser && (
