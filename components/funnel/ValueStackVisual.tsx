@@ -208,7 +208,7 @@ export const ValueStackVisual = ({
           + 30-дневна гаранция за връщане на парите
         </p>
         <p className="text-sm text-muted-foreground mt-2">
-          Ако не проработи - връщаме ти всички {discountedPrice} лв без въпроси
+          ако тестостеронът ти не се повиши при следване на протокола
         </p>
       </div>
     </div>

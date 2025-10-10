@@ -3,14 +3,13 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock } from "lucide-react";
 import Image from "next/image";
 import { ProtocolDashboardMockup } from "./ProtocolDashboardMockup";
-import { OfferProgressBar } from "./OfferProgressBar";
 import { RealResultsStats } from "./RealResultsStats";
 import { SuccessMomentsViber } from "./SuccessMomentsViber";
 import { WhatHappensNextTimeline } from "./WhatHappensNextTimeline";
 import { ValueStackVisual } from "./ValueStackVisual";
 import { QualificationSection } from "./QualificationSection";
 import { FAQSection } from "./FAQSection";
-import { trackButtonClick, trackOfferView, trackCTAClick, addUTMToUrl } from "@/lib/analytics/funnel-tracker";
+import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
 
 interface UserData {
   firstName?: string;
@@ -30,11 +29,7 @@ interface Step4PremiumOfferProps {
 export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProps) => {
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [scrollProgress, setScrollProgress] = useState(0);
-
-  // Track offer view on mount
-  useEffect(() => {
-    trackOfferView(8, 'premium');
-  }, []);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Countdown timer
   useEffect(() => {
@@ -51,7 +46,7 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
     return () => clearInterval(timer);
   }, []);
 
-  // Scroll progress tracking
+  // Scroll progress tracking + sticky timer detection
   useEffect(() => {
     const handleScroll = () => {
       const windowHeight = window.innerHeight;
@@ -59,6 +54,9 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
       const scrollTop = window.scrollY;
       const scrollPercent = (scrollTop / (documentHeight - windowHeight)) * 100;
       setScrollProgress(Math.min(scrollPercent, 100));
+
+      // Show sticky timer after scrolling 200px
+      setIsScrolled(scrollTop > 200);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -75,7 +73,7 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
     {
       title: "3× TESTO UP бутилки",
       value: "201 лв",
-      description: "Най-силната естествена добавка на пазара. 3 месеца запас. Както мултивитамин на стероиди - всичко от което тялото ти се нуждае за да произвежда тестостерон бързо.",
+      description: "Най-силната естествена добавка на пазара. 3 месеца запас. Мултивитамин на стероиди - всичко от което тялото ти се нуждае за да произвежда тестостерон бързо.",
       isCoreProduct: true
     },
     {
@@ -91,31 +89,31 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
       isCoreProduct: true
     },
     {
-      title: "БОНУС: Meal Planner",
+      title: "БОНУС: Smart App за Планиране на Хранителен Режим",
       value: "28 лв",
       description: "Точно какво да ядеш и кога. Нищо сложно. Просто следваш.",
       isBonus: true
     },
     {
-      title: "БОНУС: Sleep Protocol",
+      title: "БОНУС: Протокол за Сън",
       value: "29 лв",
       description: "Как да спиш за максимално възстановяване и тестостерон.",
       isBonus: true
     },
     {
-      title: "БОНУС: Timing Guide",
+      title: "БОНУС: Времеви График",
       value: "24 лв",
       description: "Кога точно да вземеш какво за максимален ефект.",
       isBonus: true
     },
     {
-      title: "БОНУС: Exercise Reference Guide",
+      title: "БОНУС: Ръководство за Упражнения",
       value: "24 лв",
       description: "Упражненията които вдигат тестостерона. Без излишни неща.",
       isBonus: true
     },
     {
-      title: "БОНУС: Lab Testing Guide",
+      title: "БОНУС: Ръководство за Лабораторни Изследвания",
       value: "59 лв",
       description: "Как да тестваш хормоните си правилно. Да знаеш къде си.",
       isBonus: true
@@ -124,8 +122,26 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
 
   return (
     <>
-      {/* Progress Bar - Top */}
-      <OfferProgressBar price="197 лв" discount="65%" tier="premium" scrollProgress={scrollProgress} />
+      {/* Sticky Timer - Shows when scrolled */}
+      {isScrolled && (
+        <div className={`fixed top-0 left-0 right-0 z-[90] shadow-2xl transition-all duration-300 ${
+          timeLeft <= 60
+            ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse'
+            : 'bg-gradient-to-r from-red-400 to-orange-500'
+        }`}>
+          <div className="max-w-7xl mx-auto px-4 py-2 md:py-3">
+            <div className="flex items-center justify-center gap-2 md:gap-3">
+              <Clock className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              <p className="text-xs md:text-sm font-black text-white uppercase">
+                {timeLeft <= 60 ? '⚠️ ПОСЛЕДЕН ШАНС!' : '🔥 ОФЕРТАТА ИЗТИЧА!'}
+              </p>
+              <p className="text-xl md:text-2xl font-black text-white tabular-nums">
+                {formatTime(timeLeft)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="min-h-[80vh] px-4 py-12 md:py-16 pt-20 md:pt-12">
         <div className="max-w-4xl mx-auto space-y-8">
@@ -222,22 +238,16 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
           {/* Real Results Stats */}
           <RealResultsStats />
 
+          {/* Success Stories Carousel */}
+          <SuccessStoriesWall />
+
           {/* Main CTA */}
           <Button
             size="lg"
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a
-              href={addUTMToUrl("https://shop.testograph.eu/cart/58692136730973:1", { tier: 'premium', step: 8, content: 'top_cta' })}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-              onClick={() => {
-                trackButtonClick(8, 'CTA: Вземи го за 197 лв', { offerTier: 'premium', position: 'top' });
-                trackCTAClick(8, 'premium', 'https://shop.testograph.eu/cart/58692136730973:1', { position: 'top' });
-              }}
-            >
+            <a href="https://www.shop.testograph.eu?tier=premium" target="_blank" rel="noopener noreferrer" className="block">
               Вземи го за 197 лв
             </a>
           </Button>
@@ -270,7 +280,7 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
               {
                 name: "3× TESTO UP бутилки",
                 value: 201,
-                description: "Най-силната естествена добавка на пазара. 3 месеца запас. Както мултивитамин на стероиди - всичко от което тялото ти се нуждае за да произвежда тестостерон бързо.",
+                description: "Най-силната естествена добавка на пазара. 3 месеца запас. Мултивитамин на стероиди - всичко от което тялото ти се нуждае за да произвежда тестостерон бързо.",
                 icon: "💊",
                 highlight: true
               },
@@ -289,35 +299,35 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
                 highlight: true
               },
               {
-                name: "Meal Planner",
+                name: "Smart App за Планиране на Хранителен Режим",
                 value: 28,
                 description: "Точно какво да ядеш и кога. Нищо сложно. Просто следваш.",
                 icon: "🍴",
                 isBonus: true
               },
               {
-                name: "Sleep Protocol",
+                name: "Протокол за Сън",
                 value: 29,
                 description: "Как да спиш за максимално възстановяване и тестостерон.",
                 icon: "😴",
                 isBonus: true
               },
               {
-                name: "Timing Guide",
+                name: "Времеви График",
                 value: 24,
                 description: "Кога точно да вземеш какво за максимален ефект.",
                 icon: "⏰",
                 isBonus: true
               },
               {
-                name: "Exercise Reference Guide",
+                name: "Ръководство за Упражнения",
                 value: 24,
                 description: "Упражненията които вдигат тестостерона. Без излишни неща.",
                 icon: "💪",
                 isBonus: true
               },
               {
-                name: "Lab Testing Guide",
+                name: "Ръководство за Лабораторни Изследвания",
                 value: 59,
                 description: "Как да тестваш хормоните си правилно. Да знаеш къде си.",
                 icon: "🔬",
@@ -337,7 +347,7 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
               197 лв. Това е.
             </p>
             <p className="text-base md:text-lg text-muted-foreground">
-              Ако не проработи - връщам ти парите без въпроси.<br />
+              30-дневна гаранция при следване на протокола.<br />
               Гарантирам ти - ще проработи.
             </p>
             <p className="text-lg md:text-xl font-semibold text-primary">
@@ -363,16 +373,7 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a
-              href={addUTMToUrl("https://shop.testograph.eu/cart/58692136730973:1", { tier: 'premium', step: 8, content: 'bottom_cta' })}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-              onClick={() => {
-                trackButtonClick(8, 'CTA: Вземи го за 197 лв', { offerTier: 'premium', position: 'bottom' });
-                trackCTAClick(8, 'premium', 'https://shop.testograph.eu/cart/58692136730973:1', { position: 'bottom' });
-              }}
-            >
+            <a href="https://www.shop.testograph.eu?tier=premium" target="_blank" rel="noopener noreferrer" className="block">
               Вземи го за 197 лв
             </a>
           </Button>
@@ -384,10 +385,7 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
             </div>
             <h3 className="text-2xl md:text-3xl font-black text-gray-900">30-ДНЕВНА ГАРАНЦИЯ</h3>
             <p className="text-lg md:text-xl font-bold text-gray-800">
-              Не си доволен? Връщаме ти парите.
-            </p>
-            <p className="text-base font-semibold text-gray-700">
-              Без въпроси. Без оправдания. 100% връщане.
+              Ако тестостеронът ти не се повиши при следване на протокола - връщаме ти парите.
             </p>
           </div>
 
@@ -399,6 +397,16 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
             >
               Не, покажи ми по-евтина опция →
             </button>
+          </div>
+
+          {/* Medical Disclaimer */}
+          <div className="mt-8 pt-6 border-t border-border">
+            <p className="text-xs text-center text-muted-foreground leading-relaxed">
+              ⚠️ Тази информация не е предназначена като медицински съвет и не заменя консултация с лекар.
+              Продуктите не са лекарства и не са предназначени за диагностика, лечение или профилактика на заболявания.
+              При здравословни проблеми или прием на медикаменти, консултирайте се с Вашия лекар преди употреба.
+              Резултатите са индивидуални и могат да варират.
+            </p>
           </div>
         </div>
       </div>

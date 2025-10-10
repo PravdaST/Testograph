@@ -3,14 +3,13 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock } from "lucide-react";
 import Image from "next/image";
 import { ProtocolDashboardMockup } from "./ProtocolDashboardMockup";
-import { OfferProgressBar } from "./OfferProgressBar";
 import { RealResultsStats } from "./RealResultsStats";
 import { SuccessMomentsViber } from "./SuccessMomentsViber";
 import { WhatHappensNextTimeline } from "./WhatHappensNextTimeline";
 import { ValueStackVisual } from "./ValueStackVisual";
 import { QualificationSection } from "./QualificationSection";
 import { FAQSection } from "./FAQSection";
-import { trackButtonClick, trackOfferView, trackCTAClick, addUTMToUrl } from "@/lib/analytics/funnel-tracker";
+import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
 
 interface UserData {
   firstName?: string;
@@ -31,11 +30,7 @@ interface Step4TheOfferProps {
 export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOfferProps) => {
   const [timeLeft, setTimeLeft] = useState(300); // 5 minutes
   const [scrollProgress, setScrollProgress] = useState(0);
-
-  // Track offer view on mount
-  useEffect(() => {
-    trackOfferView(8, 'regular');
-  }, []);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   // Countdown timer
   useEffect(() => {
@@ -52,7 +47,7 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
     return () => clearInterval(timer);
   }, []);
 
-  // Scroll progress tracking
+  // Scroll progress tracking + sticky timer detection
   useEffect(() => {
     const handleScroll = () => {
       const windowHeight = window.innerHeight;
@@ -60,6 +55,9 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
       const scrollTop = window.scrollY;
       const scrollPercent = (scrollTop / (documentHeight - windowHeight)) * 100;
       setScrollProgress(Math.min(scrollPercent, 100));
+
+      // Show sticky timer after scrolling 200px
+      setIsScrolled(scrollTop > 200);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -92,8 +90,26 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
 
   return (
     <>
-      {/* Progress Bar - Top */}
-      <OfferProgressBar price="97 лв" discount="63%" tier="single" scrollProgress={scrollProgress} />
+      {/* Sticky Timer - Shows when scrolled */}
+      {isScrolled && (
+        <div className={`fixed top-0 left-0 right-0 z-[90] shadow-2xl transition-all duration-300 ${
+          timeLeft <= 60
+            ? 'bg-gradient-to-r from-red-500 to-red-600 animate-pulse'
+            : 'bg-gradient-to-r from-red-400 to-orange-500'
+        }`}>
+          <div className="max-w-7xl mx-auto px-4 py-2 md:py-3">
+            <div className="flex items-center justify-center gap-2 md:gap-3">
+              <Clock className="w-5 h-5 md:w-6 md:h-6 text-white" />
+              <p className="text-xs md:text-sm font-black text-white uppercase">
+                {timeLeft <= 60 ? '⚠️ ПОСЛЕДЕН ШАНС!' : '🔥 ОФЕРТАТА ИЗТИЧА!'}
+              </p>
+              <p className="text-xl md:text-2xl font-black text-white tabular-nums">
+                {formatTime(timeLeft)}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       <div className="min-h-[80vh] px-4 py-12 md:py-16 pt-20 md:pt-12">
         <div className="max-w-4xl mx-auto space-y-8">
@@ -186,23 +202,17 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
           {/* Real Results Stats */}
           <RealResultsStats />
 
+          {/* Success Stories Carousel */}
+          <SuccessStoriesWall />
+
           {/* Main CTA */}
           <Button
             size="lg"
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a
-              href={addUTMToUrl("https://shop.testograph.eu/products/testoup", { tier: 'regular', step: 8, content: 'top_cta' })}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-              onClick={() => {
-                trackButtonClick(8, 'CTA: Вземи го за 67 лв', { offerTier: 'regular', position: 'top' });
-                trackCTAClick(8, 'regular', 'https://shop.testograph.eu/products/testoup', { position: 'top' });
-              }}
-            >
-              Вземи го за 67 лв
+            <a href="https://www.shop.testograph.eu?tier=single" target="_blank" rel="noopener noreferrer" className="block">
+              Вземи го за 97 лв
             </a>
           </Button>
 
@@ -282,17 +292,8 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a
-              href={addUTMToUrl("https://shop.testograph.eu/products/testoup", { tier: 'regular', step: 8, content: 'bottom_cta' })}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block"
-              onClick={() => {
-                trackButtonClick(8, 'CTA: Вземи го за 67 лв', { offerTier: 'regular', position: 'bottom' });
-                trackCTAClick(8, 'regular', 'https://shop.testograph.eu/products/testoup', { position: 'bottom' });
-              }}
-            >
-              Вземи го за 67 лв
+            <a href="https://www.shop.testograph.eu?tier=single" target="_blank" rel="noopener noreferrer" className="block">
+              Вземи го за 97 лв
             </a>
           </Button>
 
@@ -303,10 +304,7 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
             </div>
             <h3 className="text-2xl md:text-3xl font-black text-gray-900">30-ДНЕВНА ГАРАНЦИЯ</h3>
             <p className="text-lg md:text-xl font-bold text-gray-800">
-              Не си доволен? Връщаме ти парите.
-            </p>
-            <p className="text-base font-semibold text-gray-700">
-              Без въпроси. Без оправдания. 100% връщане.
+              Ако тестостеронът ти не се повиши при следване на протокола - връщаме ти парите.
             </p>
           </div>
 
@@ -331,6 +329,16 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
                 </button>
               </p>
             )}
+          </div>
+
+          {/* Medical Disclaimer */}
+          <div className="mt-8 pt-6 border-t border-border">
+            <p className="text-xs text-center text-muted-foreground leading-relaxed">
+              ⚠️ Тази информация не е предназначена като медицински съвет и не заменя консултация с лекар.
+              Продуктите не са лекарства и не са предназначени за диагностика, лечение или профилактика на заболявания.
+              При здравословни проблеми или прием на медикаменти, консултирайте се с Вашия лекар преди употреба.
+              Резултатите са индивидуални и могат да варират.
+            </p>
           </div>
         </div>
       </div>
