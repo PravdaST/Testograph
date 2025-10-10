@@ -17,7 +17,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { WaitingRoomFunnel } from "@/components/funnel/WaitingRoomFunnel";
 import { LiveActivityNotifications } from "@/components/ui/LiveActivityNotifications";
 import { SpotCounter } from "@/components/ui/SpotCounter";
-import { CountdownTimer } from "@/components/ui/CountdownTimer";
 import { ViberProofGrid } from "@/components/ui/ViberProof";
 import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
 
@@ -720,16 +719,6 @@ const Index = () => {
 
             {/* Assessment Form - MOVED HERE - After Testimonials */}
             <section id="assessment-form" className="mb-20">
-              {/* Countdown Timer */}
-              <div className="flex justify-center mb-8">
-                <div className="bg-card/40 backdrop-blur-sm border border-destructive/30 rounded-xl px-6 py-3">
-                  <div className="flex items-center gap-3">
-                    <span className="text-sm text-muted-foreground">Офертата изтича след:</span>
-                    <CountdownTimer size="large" />
-                  </div>
-                </div>
-              </div>
-
               <div className="text-center mb-10">
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-success/10 rounded-full mb-3">
                   <FileText className="w-3.5 h-3.5 text-success" />

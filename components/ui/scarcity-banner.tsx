@@ -22,32 +22,39 @@ export const ScarcityBanner = () => {
     return () => clearInterval(timer);
   }, []);
 
-  // Initialize and decrease spots on each page load
+  // Initialize and sync with SpotCounter (uses same localStorage)
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    const STORAGE_KEY = 'testograph_spots_left';
-    const MIN_SPOTS = 15;
-    const MAX_SPOTS = 47;
+    const STORAGE_KEY = 'testograph_spots_remaining';
+    const STORAGE_DATE_KEY = 'testograph_spots_date';
 
-    // Get stored value
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const today = new Date().toDateString();
+    const storedDate = localStorage.getItem(STORAGE_DATE_KEY);
 
-    if (stored) {
-      const currentSpots = parseInt(stored);
-
-      // Decrease by 1-3 spots on each reload
-      const decrease = Math.floor(Math.random() * 3) + 1;
-      const newSpots = Math.max(MIN_SPOTS, currentSpots - decrease);
-
-      setSpotsLeft(newSpots);
-      localStorage.setItem(STORAGE_KEY, newSpots.toString());
+    // Check if we need to reset (new day) - same logic as SpotCounter
+    if (storedDate !== today) {
+      // Generate random starting number (18-27 spots remaining)
+      const randomSpots = Math.floor(Math.random() * 10) + 18;
+      localStorage.setItem(STORAGE_KEY, randomSpots.toString());
+      localStorage.setItem(STORAGE_DATE_KEY, today);
+      setSpotsLeft(randomSpots);
     } else {
-      // First visit - set random between 35-47
-      const initialSpots = Math.floor(Math.random() * 13) + 35;
-      setSpotsLeft(initialSpots);
-      localStorage.setItem(STORAGE_KEY, initialSpots.toString());
+      // Use stored value from SpotCounter
+      const stored = localStorage.getItem(STORAGE_KEY);
+      setSpotsLeft(stored ? parseInt(stored) : 23);
     }
+
+    // Listen for localStorage changes from SpotCounter
+    const handleStorageChange = () => {
+      const stored = localStorage.getItem(STORAGE_KEY);
+      if (stored) {
+        setSpotsLeft(parseInt(stored));
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   // Animate progress bar from 0 to actual percentage
@@ -90,25 +97,25 @@ export const ScarcityBanner = () => {
 
   return (
     <div className="w-full">
-      <div className="bg-gradient-to-r from-orange-600/95 via-red-600/95 to-orange-600/95 backdrop-blur-xl border-t border-orange-500/50 shadow-lg shadow-orange-500/20 px-3 py-2">
+      <div className="bg-gradient-to-r from-orange-600/95 via-red-600/95 to-orange-600/95 backdrop-blur-xl border-t border-orange-500/50 shadow-lg shadow-orange-500/20 px-2 py-1.5 md:px-3 md:py-2">
         <div className="container mx-auto max-w-[1200px]">
-          <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-1.5 md:gap-3">
             {/* Left: Scarcity Message */}
-            <div className="flex items-center gap-2">
-              <Flame className="w-4 h-4 text-white animate-pulse" />
+            <div className="flex items-center gap-1.5 md:gap-2">
+              <Flame className="w-3 h-3 md:w-4 md:h-4 text-white animate-pulse flex-shrink-0" />
               <div>
-                <p className="text-white font-bold text-xs md:text-sm">
-                  Остават само <span className="text-lg font-black tabular-nums">{displayedSpots}</span> безплатни анализа
+                <p className="text-white font-bold text-[11px] md:text-sm">
+                  Остават <span className="text-sm md:text-lg font-black tabular-nums">{displayedSpots}</span> безплатни анализа
                 </p>
-                <p className="text-orange-100 text-[10px]">
+                <p className="text-orange-100 text-[9px] md:text-[10px] hidden md:block">
                   След това цената става 47 лв
                 </p>
               </div>
             </div>
 
-            {/* Center: Progress Bar - Compact */}
-            <div className="flex-1 max-w-xs w-full">
-              <div className="bg-orange-900/50 rounded-full h-4 overflow-hidden border border-orange-400/30">
+            {/* Center: Progress Bar - Hidden on mobile */}
+            <div className="hidden md:flex flex-1 max-w-xs w-full">
+              <div className="bg-orange-900/50 rounded-full h-4 overflow-hidden border border-orange-400/30 w-full">
                 <div
                   className="h-full bg-gradient-to-r from-white via-orange-200 to-white flex items-center justify-center text-[10px] font-bold text-orange-900 transition-all duration-[2000ms] ease-out"
                   style={{ width: `${animatedPercentage}%` }}
@@ -119,11 +126,11 @@ export const ScarcityBanner = () => {
             </div>
 
             {/* Right: Countdown Timer - Compact */}
-            <div className="flex items-center gap-2 bg-black/30 px-3 py-1.5 rounded-lg border border-orange-400/30">
-              <Clock className="w-4 h-4 text-orange-200" />
+            <div className="flex items-center gap-1.5 bg-black/30 px-2 py-1 md:px-3 md:py-1.5 rounded-lg border border-orange-400/30">
+              <Clock className="w-3 h-3 md:w-4 md:h-4 text-orange-200 flex-shrink-0" />
               <div className="text-center">
-                <p className="text-[9px] text-orange-200">Изтича:</p>
-                <p className="text-base font-mono font-bold text-white tabular-nums leading-none">
+                <p className="text-[8px] md:text-[9px] text-orange-200 leading-none">Изтича:</p>
+                <p className="text-xs md:text-base font-mono font-bold text-white tabular-nums leading-none">
                   {formatTime(timeLeft)}
                 </p>
               </div>
