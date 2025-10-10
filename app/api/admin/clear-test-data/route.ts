@@ -111,18 +111,35 @@ export async function DELETE(request: NextRequest) {
     // Delete in correct order (respecting foreign key constraints)
 
     // 1. Delete funnel_events (depends on funnel_sessions)
-    const { error: eventsError } = await supabase
-      .from('funnel_events')
-      .delete()
-      .in('session_id',
-        supabase.from('funnel_sessions').select('session_id')
-      );
+    // First, get all funnel session IDs that belong to users we're deleting
+    const { data: funnelSessions, error: funnelSessionsQueryError } = await supabase
+      .from('funnel_sessions')
+      .select('session_id')
+      .in('user_email', userEmails);
 
-    if (!eventsError) {
-      const { count } = await supabase
+    if (funnelSessionsQueryError) {
+      console.error('❌ Error querying funnel_sessions:', funnelSessionsQueryError);
+    }
+
+    const sessionIds = funnelSessions?.map(s => s.session_id) || [];
+    console.log(`Found ${sessionIds.length} funnel sessions to delete`);
+
+    // Delete funnel_events only if we have session IDs
+    if (sessionIds.length > 0) {
+      const { error: eventsError, count: eventsCount } = await supabase
         .from('funnel_events')
-        .select('*', { count: 'exact', head: true });
-      stats.deletedFunnelEvents = count || 0;
+        .delete()
+        .in('session_id', sessionIds)
+        .select('*', { count: 'exact' });
+
+      if (eventsError) {
+        console.error('❌ Error deleting funnel_events:', eventsError);
+      } else {
+        stats.deletedFunnelEvents = eventsCount || 0;
+        console.log(`✅ Deleted ${eventsCount} funnel events`);
+      }
+    } else {
+      console.log('No funnel events to delete');
     }
 
     // 2. Delete funnel_sessions
@@ -132,8 +149,11 @@ export async function DELETE(request: NextRequest) {
       .in('user_email', userEmails)
       .select('*', { count: 'exact' });
 
-    if (!funnelError) {
+    if (funnelError) {
+      console.error('❌ Error deleting funnel_sessions:', funnelError);
+    } else {
       stats.deletedFunnelSessions = funnelCount || 0;
+      console.log(`✅ Deleted ${funnelCount} funnel sessions`);
     }
 
     // 3. Delete chat_sessions
@@ -143,8 +163,11 @@ export async function DELETE(request: NextRequest) {
       .in('email', userEmails)
       .select('*', { count: 'exact' });
 
-    if (!chatError) {
+    if (chatError) {
+      console.error('❌ Error deleting chat_sessions:', chatError);
+    } else {
       stats.deletedChatSessions = chatCount || 0;
+      console.log(`✅ Deleted ${chatCount} chat sessions`);
     }
 
     // 4. Delete purchases
@@ -154,8 +177,11 @@ export async function DELETE(request: NextRequest) {
       .in('user_id', userIds)
       .select('*', { count: 'exact' });
 
-    if (!purchasesError) {
+    if (purchasesError) {
+      console.error('❌ Error deleting purchases:', purchasesError);
+    } else {
       stats.deletedPurchases = purchasesCount || 0;
+      console.log(`✅ Deleted ${purchasesCount} purchases`);
     }
 
     // 5. Delete daily_entries_pro
@@ -165,8 +191,11 @@ export async function DELETE(request: NextRequest) {
       .in('user_id', userIds)
       .select('*', { count: 'exact' });
 
-    if (!entriesError) {
+    if (entriesError) {
+      console.error('❌ Error deleting daily_entries_pro:', entriesError);
+    } else {
       stats.deletedProEntries = entriesCount || 0;
+      console.log(`✅ Deleted ${entriesCount} PRO daily entries`);
     }
 
     // 6. Delete weekly_measurements_pro
@@ -176,19 +205,26 @@ export async function DELETE(request: NextRequest) {
       .in('user_id', userIds)
       .select('*', { count: 'exact' });
 
-    if (!measurementsError) {
+    if (measurementsError) {
+      console.error('❌ Error deleting weekly_measurements_pro:', measurementsError);
+    } else {
       stats.deletedProMeasurements = measurementsCount || 0;
+      console.log(`✅ Deleted ${measurementsCount} PRO measurements`);
     }
 
-    // 7. Delete user_settings
+    // 7. Delete user_settings (if table exists)
     const { error: settingsError, count: settingsCount } = await supabase
       .from('user_settings')
       .delete()
       .in('user_id', userIds)
       .select('*', { count: 'exact' });
 
-    if (!settingsError) {
+    if (settingsError) {
+      console.error('❌ Error deleting user_settings:', settingsError);
+      // Don't fail if table doesn't exist - it's optional
+    } else {
       stats.deletedUserSettings = settingsCount || 0;
+      console.log(`✅ Deleted ${settingsCount} user settings`);
     }
 
     // 8. Delete profiles
@@ -198,8 +234,11 @@ export async function DELETE(request: NextRequest) {
       .in('id', userIds)
       .select('*', { count: 'exact' });
 
-    if (!profilesError) {
+    if (profilesError) {
+      console.error('❌ Error deleting profiles:', profilesError);
+    } else {
       stats.deletedProfiles = profilesCount || 0;
+      console.log(`✅ Deleted ${profilesCount} profiles`);
     }
 
     // 9. Delete auth.users (CASCADE will handle remaining related data)
