@@ -1693,15 +1693,15 @@
               },
               {
                 "name": "score",
-                "value": "={{ $node['AI Agent'].json['output']['test'] ? $node['AI Agent'].json['output']['test'].toNumber() : 20 }}"
+                "value": "={{ $node['AI Agent1'].json['output']['test'] ? $node['AI Agent1'].json['output']['test'].toNumber() : 20 }}"
               },
               {
                 "name": "testosterone_level",
-                "value": "={{ $node['AI Agent'].json['output']['test'] ? $node['AI Agent'].json['output']['test'].toNumber() : 20 }}"
+                "value": "={{ $node['AI Agent1'].json['output']['test'] ? $node['AI Agent1'].json['output']['test'].toNumber() : 20 }}"
               },
               {
                 "name": "testosterone_category",
-                "value": "={{ $node['Switch'].json['Testosterone Level'] || 'normal' }}"
+                "value": "={{ $node['Switch1'].json['Testosterone Level'] || 'normal' }}"
               },
               {
                 "name": "risk_level",
