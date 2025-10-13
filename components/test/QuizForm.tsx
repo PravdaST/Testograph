@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,40 +36,85 @@ const sections = [
     fields: ['averageSleep', 'diet', 'alcohol', 'nicotine']
   },
   {
-    id: 'health',
-    title: "Здравни индикатори",
+    id: 'health-sexual',
+    title: "Сексуално здраве",
     icon: Heart,
-    description: "Как се чувствате и функционирате",
-    fields: ['libido', 'morningErection', 'morningEnergy', 'recovery', 'mood', 'email', 'firstName']
+    description: "Либидо и сексуални функции",
+    fields: ['libido', 'morningErection', 'morningEnergy']
+  },
+  {
+    id: 'health-physical',
+    title: "Физическо и психическо състояние",
+    icon: Heart,
+    description: "Възстановяване и настроение",
+    fields: ['recovery', 'mood']
+  },
+  {
+    id: 'contact',
+    title: "Получи резултата си",
+    icon: User,
+    description: "Изпратете анализа на вашия имейл",
+    fields: ['firstName', 'email']
   }
 ];
 
 export const QuizForm = ({ onComplete }: QuizFormProps) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState({
-    age: "",
-    height: "",
-    weight: "",
-    trainingFrequency: "",
-    trainingType: [] as string[],
-    supplements: "",
-    averageSleep: "",
-    diet: "",
-    alcohol: "",
-    nicotine: "",
-    libido: "",
-    morningErection: "",
-    morningEnergy: "",
-    recovery: "",
-    mood: "",
-    email: "",
-    firstName: ""
+
+  // Initialize form data with saved progress from localStorage
+  const [formData, setFormData] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('testograph_quiz_progress');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {
+          console.error('Failed to parse saved quiz data:', e);
+        }
+      }
+    }
+    return {
+      age: "",
+      height: "",
+      weight: "",
+      trainingFrequency: "",
+      trainingType: [] as string[],
+      supplements: "",
+      averageSleep: "",
+      diet: "",
+      alcohol: "",
+      nicotine: "",
+      libido: "",
+      morningErection: "",
+      morningEnergy: "",
+      recovery: "",
+      mood: "",
+      email: "",
+      firstName: ""
+    };
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Restore current step from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const savedStep = localStorage.getItem('testograph_quiz_step');
+      if (savedStep) {
+        setCurrentStep(parseInt(savedStep));
+      }
+    }
+  }, []);
+
+  // Save to localStorage on every change
   const handleInputChange = (field: string, value: string | string[]) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData(prev => {
+      const newData = { ...prev, [field]: value };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('testograph_quiz_progress', JSON.stringify(newData));
+      }
+      return newData;
+    });
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: "" }));
     }
@@ -91,14 +136,22 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
 
   const nextStep = () => {
     if (currentStep < sections.length - 1) {
-      setCurrentStep(currentStep + 1);
+      const newStep = currentStep + 1;
+      setCurrentStep(newStep);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('testograph_quiz_step', newStep.toString());
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   const prevStep = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      const newStep = currentStep - 1;
+      setCurrentStep(newStep);
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('testograph_quiz_step', newStep.toString());
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
@@ -159,6 +212,12 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
       email: formData.email,
       firstName: formData.firstName
     };
+
+    // Clear saved progress after successful submission
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('testograph_quiz_progress');
+      localStorage.removeItem('testograph_quiz_step');
+    }
 
     onComplete(quizData);
   };
@@ -374,9 +433,9 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
     </div>
   );
 
-  const renderHealthStep = () => (
+  const renderHealthSexualStep = () => (
     <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="space-y-6">
         <div>
           <Label htmlFor="libido">Ниво на либидо</Label>
           <FormSelect value={formData.libido} onValueChange={(value) => handleInputChange('libido', value)}>
@@ -422,6 +481,13 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
           </FormSelect>
           {errors.morningEnergy && <p className="text-sm text-destructive mt-1">{errors.morningEnergy}</p>}
         </div>
+      </div>
+    </div>
+  );
+
+  const renderHealthPhysicalStep = () => (
+    <div className="space-y-6">
+      <div className="space-y-6">
         <div>
           <Label htmlFor="recovery">Физическо възстановяване</Label>
           <FormSelect value={formData.recovery} onValueChange={(value) => handleInputChange('recovery', value)}>
@@ -454,40 +520,40 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
           {errors.mood && <p className="text-sm text-destructive mt-1">{errors.mood}</p>}
         </div>
       </div>
+    </div>
+  );
 
-      {/* Email & Name at the end */}
-      <div className="pt-6 border-t border-primary/20">
-        <h3 className="text-lg font-semibold mb-4 text-foreground">Получете вашия резултат</h3>
-        <div className="grid gap-6 lg:grid-cols-2">
-          <div>
-            <Label htmlFor="firstName">Име</Label>
-            <Input
-              id="firstName"
-              type="text"
-              value={formData.firstName}
-              onChange={e => handleInputChange('firstName', e.target.value)}
-              placeholder="Вашето име"
-              className="mt-2 h-12 text-base"
-            />
-            {errors.firstName && <p className="text-sm text-destructive mt-1">{errors.firstName}</p>}
-          </div>
-          <div>
-            <Label htmlFor="email">Имейл адрес</Label>
-            <Input
-              id="email"
-              type="email"
-              value={formData.email}
-              onChange={e => handleInputChange('email', e.target.value)}
-              placeholder="your@email.com"
-              className="mt-2 h-12 text-base"
-            />
-            {errors.email && <p className="text-sm text-destructive mt-1">{errors.email}</p>}
-          </div>
+  const renderContactStep = () => (
+    <div className="space-y-6">
+      <div className="space-y-6">
+        <div>
+          <Label htmlFor="firstName">Име</Label>
+          <Input
+            id="firstName"
+            type="text"
+            value={formData.firstName}
+            onChange={e => handleInputChange('firstName', e.target.value)}
+            placeholder="Вашето име"
+            className="mt-2 h-12 text-base"
+          />
+          {errors.firstName && <p className="text-sm text-destructive mt-1">{errors.firstName}</p>}
         </div>
-        <p className="text-xs text-muted-foreground mt-2">
-          Ще изпратим детайлния анализ на вашия имейл
-        </p>
+        <div>
+          <Label htmlFor="email">Имейл адрес</Label>
+          <Input
+            id="email"
+            type="email"
+            value={formData.email}
+            onChange={e => handleInputChange('email', e.target.value)}
+            placeholder="your@email.com"
+            className="mt-2 h-12 text-base"
+          />
+          {errors.email && <p className="text-sm text-destructive mt-1">{errors.email}</p>}
+        </div>
       </div>
+      <p className="text-xs text-muted-foreground mt-2">
+        Ще изпратим детайлния анализ на вашия имейл
+      </p>
     </div>
   );
 
@@ -495,7 +561,9 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
     renderDemographicsStep,
     renderTrainingStep,
     renderLifestyleStep,
-    renderHealthStep
+    renderHealthSexualStep,
+    renderHealthPhysicalStep,
+    renderContactStep
   ];
 
   const currentSection = sections[currentStep];
