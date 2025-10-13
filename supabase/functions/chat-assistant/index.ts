@@ -59,51 +59,16 @@ serve(async (req)=>{
       console.error('Error saving user message:', userMessageError);
       throw new Error('Failed to save user message');
     }
-    // Get PDF content from database if available
+
+    // STEP 1: Check for quiz_results from /test quiz (PRIORITY)
     let pdfAnalysisInfo = 'Още не са качени резултати. Моля, прикачете вашия PDF файл с резултатите от Testograph за да мога да ви дам персонализирани съвети.';
     let hasPdfContent = false;
-    // Keep PDF session data available beyond this block
     let sessionWithPdf: any = null;
-    if (session) {
-      const { data: sessionPdf, error: pdfError } = await supabase
-        .from('chat_sessions')
-        .select('pdf_filename, pdf_content')
-        .eq('id', session.id)
-        .single();
-      sessionWithPdf = sessionPdf;
-      if (pdfError) {
-        console.error('Error fetching PDF data:', pdfError);
-      }
-      if (sessionWithPdf && sessionWithPdf.pdf_content && sessionWithPdf.pdf_filename) {
-        hasPdfContent = true;
-        pdfAnalysisInfo = sessionWithPdf.pdf_content;
-        console.log('✅ PDF content found for session:', session.id);
-        console.log('📄 PDF filename:', sessionWithPdf.pdf_filename);
-        console.log('📊 PDF content length:', sessionWithPdf.pdf_content.length);
-        console.log('🔬 PDF content preview:', sessionWithPdf.pdf_content.substring(0, 200) + '...');
-        console.log('🤖 hasPdfContent flag:', hasPdfContent);
-      } else {
-        console.log('❌ No PDF content found for session:', session.id);
-        console.log('🔍 Debug - sessionWithPdf:', sessionWithPdf);
-      }
-    }
-    // Extract patient name from PDF content if available
     let patientName = '';
-    if (hasPdfContent && sessionWithPdf && sessionWithPdf.pdf_content) {
-      const nameMatch = sessionWithPdf.pdf_content.match(/за\s+([А-Яа-я]+)/i) ||
-                       sessionWithPdf.pdf_content.match(/([А-Яа-я]+),?\s+тези/i) ||
-                       sessionWithPdf.pdf_filename.match(/([A-Za-z]+)/i);
-      if (nameMatch) {
-        patientName = nameMatch[1];
-      }
-    }
-
-    // Dynamic extraction of ALL hormone data from user's PDF
     let extractedHormones: Record<string, string> = {};
     let keyFindings = '';
     let testosteroneValue = '';
 
-    // Critical alerts system
     interface Alert {
       hormone: string;
       value: string;
@@ -111,6 +76,179 @@ serve(async (req)=>{
       message: string;
     }
     const criticalAlerts: Alert[] = [];
+
+    console.log(`🔍 Checking quiz_results for email: ${email}`);
+
+    const { data: quizResult, error: quizError } = await supabase
+      .from('quiz_results')
+      .select('*')
+      .eq('email', email)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (quizResult && !quizError) {
+      // ✅ Found quiz results from /test quiz
+      hasPdfContent = true;
+      patientName = quizResult.first_name || email.split('@')[0];
+
+      console.log('✅ Quiz results found from /test quiz!');
+      console.log('📊 Testosterone:', quizResult.testosterone_level);
+      console.log('🎯 Score:', quizResult.score);
+      console.log('⚠️ Risk level:', quizResult.risk_level);
+
+      // Format quiz data as context for AI
+      pdfAnalysisInfo = `
+📋 ДАННИ ОТ /TEST QUIZ АНАЛИЗ:
+
+ЛИЧНА ИНФОРМАЦИЯ:
+- Име: ${quizResult.first_name}
+- Възраст: ${quizResult.age} години
+- Височина: ${quizResult.height} см
+- Тегло: ${quizResult.weight} кг
+
+ХОРМОНАЛНИ РЕЗУЛТАТИ:
+- Тестостерон: ${quizResult.testosterone_level} nmol/L (${quizResult.testosterone_category})
+- Общ резултат: ${quizResult.score}/100 точки
+- Ниво на риск: ${quizResult.risk_level}
+- Препоръчан план: ${quizResult.recommended_tier || 'стандартен'}
+
+НАЧИН НА ЖИВОТ:
+- Сън: ${quizResult.sleep} часа/нощ
+- Алкохол: ${quizResult.alcohol}
+- Никотин: ${quizResult.nicotine}
+- Диета: ${quizResult.diet}
+- Стрес: ${quizResult.stress || 'N/A'}/10
+
+ТРЕНИРОВКИ:
+- Честота: ${quizResult.training_frequency}
+- Тип: ${quizResult.training_type}
+- Възстановяване: ${quizResult.recovery}
+- Добавки: ${quizResult.supplements || 'няма'}
+
+СИМПТОМИ:
+- Либидо: ${quizResult.libido}/10
+- Сутрешна ерекция: ${quizResult.morning_erection}
+- Сутрешна енергия: ${quizResult.morning_energy}/10
+- Концентрация: ${quizResult.concentration || 'N/A'}/10
+- Настроение: ${quizResult.mood}
+- Мускулна маса: ${quizResult.muscle_mass || 'N/A'}
+
+ИЗТОЧНИК: ${quizResult.source}
+ДАТА: ${new Date(quizResult.created_at).toLocaleDateString('bg-BG')}
+      `.trim();
+
+      // Extract testosterone for display
+      testosteroneValue = `**${quizResult.testosterone_level} nmol/L**`;
+      extractedHormones['Тестостерон'] = `${quizResult.testosterone_level} nmol/L`;
+
+      // Check for critical testosterone levels (nmol/L scale)
+      const testLevel = parseFloat(quizResult.testosterone_level);
+      if (testLevel < 8) {
+        extractedHormones['Тестостерон'] += ` 🚨`;
+        criticalAlerts.push({
+          hormone: 'Тестостерон',
+          value: `${quizResult.testosterone_level} nmol/L`,
+          severity: 'critical',
+          message: 'КРИТИЧНО НИСКО! Спешно се нуждаеш от консултация с ендокринолог'
+        });
+      } else if (testLevel < 12) {
+        extractedHormones['Тестостерон'] += ` ⚠️`;
+        criticalAlerts.push({
+          hormone: 'Тестостерон',
+          value: `${quizResult.testosterone_level} nmol/L`,
+          severity: 'warning',
+          message: 'Тестостеронът ти е под оптималната норма - това може да причини умора и ниско либидо'
+        });
+      } else if (testLevel > 35) {
+        extractedHormones['Тестостерон'] += ` 🚨`;
+        criticalAlerts.push({
+          hormone: 'Тестостерон',
+          value: `${quizResult.testosterone_level} nmol/L`,
+          severity: 'critical',
+          message: 'КРИТИЧНО ВИСОКО! Провери за възможна хормонална терапия или тумор'
+        });
+      } else if (testLevel > 26) {
+        extractedHormones['Тестостерон'] += ` ⚠️`;
+        criticalAlerts.push({
+          hormone: 'Тестостерон',
+          value: `${quizResult.testosterone_level} nmol/L`,
+          severity: 'warning',
+          message: 'Тестостеронът ти е над нормата - провери SHBG и естрадиол'
+        });
+      } else {
+        criticalAlerts.push({
+          hormone: 'Тестостерон',
+          value: `${quizResult.testosterone_level} nmol/L`,
+          severity: 'info',
+          message: 'Тестостеронът е в нормални граници (12-26 nmol/L)'
+        });
+      }
+
+      // Add other symptom-based alerts
+      if (quizResult.libido && quizResult.libido < 4) {
+        criticalAlerts.push({
+          hormone: 'Либидо',
+          value: `${quizResult.libido}/10`,
+          severity: 'warning',
+          message: 'Ниско либидо - директно свързано с ниския тестостерон'
+        });
+      }
+
+      if (quizResult.morning_energy && quizResult.morning_energy < 4) {
+        criticalAlerts.push({
+          hormone: 'Енергия',
+          value: `${quizResult.morning_energy}/10`,
+          severity: 'warning',
+          message: 'Ниска сутрешна енергия - индикатор за хормонален дисбаланс'
+        });
+      }
+
+      keyFindings = `ИЗВЛЕЧЕНИ СТОЙНОСТИ: ${Object.entries(extractedHormones)
+        .map(([name, value]) => `${name}: ${value}`)
+        .join(', ')}`;
+
+      sessionWithPdf = { pdf_content: pdfAnalysisInfo };
+
+    } else {
+      // STEP 2: No quiz results, check for PDF upload
+      console.log('ℹ️ No quiz results found, checking for PDF...');
+
+      if (session) {
+        const { data: sessionPdf, error: pdfError } = await supabase
+          .from('chat_sessions')
+          .select('pdf_filename, pdf_content')
+          .eq('id', session.id)
+          .single();
+
+        sessionWithPdf = sessionPdf;
+
+        if (pdfError) {
+          console.log('Error fetching PDF data:', pdfError);
+        }
+
+        if (sessionWithPdf && sessionWithPdf.pdf_content && sessionWithPdf.pdf_filename) {
+          hasPdfContent = true;
+          pdfAnalysisInfo = sessionWithPdf.pdf_content;
+          console.log('✅ PDF content found for session:', session.id);
+          console.log('📄 PDF filename:', sessionWithPdf.pdf_filename);
+          console.log('📊 PDF content length:', sessionWithPdf.pdf_content.length);
+
+          // Extract patient name from PDF content
+          const nameMatch = sessionWithPdf.pdf_content.match(/за\s+([А-Яа-я]+)/i) ||
+                           sessionWithPdf.pdf_content.match(/([А-Яа-я]+),?\s+тези/i) ||
+                           sessionWithPdf.pdf_filename.match(/([A-Za-z]+)/i);
+          if (nameMatch) {
+            patientName = nameMatch[1];
+          }
+        } else {
+          console.log('❌ No PDF content found for session:', session.id);
+        }
+      }
+    }
+
+    // STEP 3: Extract hormone data from PDF content (if uploaded via homepage form)
+    // Note: Quiz results already have testosterone extracted above
 
     if (hasPdfContent && sessionWithPdf?.pdf_content) {
       const content = sessionWithPdf.pdf_content;
