@@ -715,14 +715,14 @@ export default function CommunicationPage() {
                     />
                   </div>
                   <Select
-                    value={logsFilters.status}
-                    onValueChange={(v) => setLogsFilters({ ...logsFilters, status: v })}
+                    value={logsFilters.status || 'all'}
+                    onValueChange={(v) => setLogsFilters({ ...logsFilters, status: v === 'all' ? '' : v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Статус" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Всички</SelectItem>
+                      <SelectItem value="all">Всички</SelectItem>
                       <SelectItem value="sent">Изпратени</SelectItem>
                       <SelectItem value="failed">Неуспешни</SelectItem>
                       <SelectItem value="pending">Pending</SelectItem>
