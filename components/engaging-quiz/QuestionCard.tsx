@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Question } from "./types";
@@ -22,6 +22,14 @@ export const QuestionCard = ({
     typeof value === 'number' ? value : question.min || 0
   );
 
+  // Sync slider value when question changes (fixes value carry-over bug)
+  useEffect(() => {
+    if (question.type === 'slider') {
+      const initialValue = typeof value === 'number' ? value : question.min || 0;
+      setSliderValue(initialValue);
+    }
+  }, [question.id, value, question.min, question.type]);
+
   const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = parseFloat(e.target.value);
     setSliderValue(newValue);
@@ -30,10 +38,8 @@ export const QuestionCard = ({
 
   const handleButtonClick = (optionValue: string) => {
     onChange(optionValue);
-    // Auto-advance after selection for buttons
-    setTimeout(() => {
-      if (canProceed) onNext();
-    }, 300);
+    // Auto-advance after selection for buttons (no canProceed check - button click satisfies requirement)
+    setTimeout(onNext, 300);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

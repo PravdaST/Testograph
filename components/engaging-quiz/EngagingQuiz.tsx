@@ -8,6 +8,7 @@ import { quizItems } from "./questions";
 import { QuizData, Question, InfoSlide as InfoSlideType } from "./types";
 import { calculateTestosteroneScore } from "@/lib/test/scoring";
 import { trackViewContent } from "@/lib/facebook-pixel";
+import { saveQuizResult } from "@/lib/supabase";
 
 export const EngagingQuiz = () => {
   const router = useRouter();
@@ -112,19 +113,95 @@ export const EngagingQuiz = () => {
       // Track event
       trackViewContent('Engaging Quiz Completed', 'engaging_quiz');
 
-      // Submit to webhook
-      await fetch('https://xtracts4u.app.n8n.cloud/webhook/testo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...answers,
-          source: 'engaging_quiz',
+      // Save to Supabase
+      try {
+        await saveQuizResult({
+          // Demographics
+          age: Number(answers.age),
+          height: Number(answers.height),
+          weight: Number(answers.weight),
+
+          // Lifestyle
+          sleep: Number(answers.sleep),
+          alcohol: String(answers.alcohol),
+          nicotine: String(answers.nicotine),
+          diet: String(answers.diet),
+          stress: Number(answers.stress),
+
+          // Training
+          training_frequency: String(answers['training-frequency']),
+          training_type: String(answers['training-type']),
+          recovery: String(answers.recovery),
+          supplements: String(answers.supplements) || null,
+
+          // Symptoms
+          libido: Number(answers.libido),
+          morning_erection: String(answers['morning-erection']),
+          morning_energy: Number(answers['morning-energy']),
+          concentration: Number(answers.concentration),
+          mood: String(answers.mood),
+          muscle_mass: String(answers['muscle-mass']),
+
+          // Contact
+          first_name: String(answers.firstName),
+          email: String(answers.email),
+
+          // Results
           score: result.totalScore,
-          level: result.level,
-          estimatedTestosterone: result.estimatedTestosterone.value,
-          recommendedTier: result.recommendedTier
-        })
-      });
+          testosterone_level: result.estimatedTestosterone.value,
+          testosterone_category: result.estimatedTestosterone.level,
+          risk_level: result.level,
+          recommended_tier: result.recommendedTier,
+
+          // Metadata
+          source: 'engaging_quiz',
+          user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
+          referrer: typeof window !== 'undefined' ? document.referrer : undefined
+        });
+        console.log('✅ Quiz result saved to Supabase');
+      } catch (supabaseError) {
+        console.error('Failed to save to Supabase:', supabaseError);
+        // Continue anyway - don't block the user flow
+      }
+
+      // Send result email
+      try {
+        await fetch('/api/quiz/send-result', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: String(answers.email),
+            firstName: String(answers.firstName),
+            score: result.totalScore,
+            testosterone: result.estimatedTestosterone.value,
+            testosteroneCategory: result.estimatedTestosterone.level,
+            riskLevel: result.level
+          })
+        });
+        console.log('✅ Quiz result email sent');
+      } catch (emailError) {
+        console.error('Failed to send email:', emailError);
+        // Continue anyway - don't block the user flow
+      }
+
+      // Submit to webhook (legacy)
+      try {
+        await fetch('https://xtracts4u.app.n8n.cloud/webhook/testo', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            ...answers,
+            source: 'engaging_quiz',
+            score: result.totalScore,
+            level: result.level,
+            estimatedTestosterone: result.estimatedTestosterone.value,
+            recommendedTier: result.recommendedTier
+          })
+        });
+      } catch (webhookError) {
+        console.error('Failed to send to webhook:', webhookError);
+        // Continue anyway
+      }
 
       // Clear saved progress
       if (typeof window !== 'undefined') {
@@ -132,7 +209,7 @@ export const EngagingQuiz = () => {
         localStorage.removeItem('engaging_quiz_index');
       }
 
-      // Navigate to result (we'll create a result page)
+      // Navigate to result
       router.push(`/test/result?score=${result.totalScore}&testosterone=${result.estimatedTestosterone.value}&level=${result.level}&name=${answers.firstName || 'там'}`);
     } catch (error) {
       console.error('Failed to submit quiz:', error);
