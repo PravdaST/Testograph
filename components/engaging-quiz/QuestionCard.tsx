@@ -21,6 +21,8 @@ export const QuestionCard = ({
   const [sliderValue, setSliderValue] = useState<number>(
     typeof value === 'number' ? value : question.min || 0
   );
+  const [isEditingValue, setIsEditingValue] = useState(false);
+  const [inputValue, setInputValue] = useState('');
 
   // Sync slider value when question changes (fixes value carry-over bug)
   useEffect(() => {
@@ -34,6 +36,37 @@ export const QuestionCard = ({
     const newValue = parseFloat(e.target.value);
     setSliderValue(newValue);
     onChange(newValue);
+  };
+
+  const handleValueClick = () => {
+    if (question.type === 'slider') {
+      setIsEditingValue(true);
+      setInputValue(sliderValue.toString());
+    }
+  };
+
+  const handleInputValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
+  };
+
+  const handleInputBlur = () => {
+    const parsedValue = parseFloat(inputValue);
+    if (!isNaN(parsedValue)) {
+      // Clamp value between min and max
+      const clampedValue = Math.max(
+        question.min || 0,
+        Math.min(question.max || 100, parsedValue)
+      );
+      setSliderValue(clampedValue);
+      onChange(clampedValue);
+    }
+    setIsEditingValue(false);
+  };
+
+  const handleInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      handleInputBlur();
+    }
   };
 
   const handleButtonClick = (optionValue: string) => {
@@ -71,16 +104,49 @@ export const QuestionCard = ({
         <div className="mb-8">
           {question.type === 'slider' && (
             <div className="space-y-6">
-              {/* Slider Value Display */}
+              {/* Slider Value Display (Editable) */}
               <div className="text-center">
-                <div className="text-6xl md:text-7xl font-black text-primary tabular-nums">
-                  {sliderValue}
-                  {question.unit && (
-                    <span className="text-4xl md:text-5xl text-muted-foreground ml-2">
-                      {question.unit}
+                {!isEditingValue ? (
+                  <div
+                    className="text-6xl md:text-7xl font-black text-primary tabular-nums cursor-pointer hover:scale-105 transition-all inline-block group"
+                    onClick={handleValueClick}
+                    title="Кликни за да редактираш"
+                  >
+                    {sliderValue}
+                    {question.unit && (
+                      <span className="text-4xl md:text-5xl text-muted-foreground ml-2">
+                        {question.unit}
+                      </span>
+                    )}
+                    <span className="ml-3 text-2xl text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                      ✏️
                     </span>
-                  )}
-                </div>
+                  </div>
+                ) : (
+                  <div className="inline-flex items-center gap-2">
+                    <Input
+                      type="number"
+                      value={inputValue}
+                      onChange={handleInputValueChange}
+                      onBlur={handleInputBlur}
+                      onKeyPress={handleInputKeyPress}
+                      min={question.min}
+                      max={question.max}
+                      step={question.step || 1}
+                      className="h-20 text-5xl md:text-6xl font-black text-primary text-center w-48 tabular-nums"
+                      autoFocus
+                    />
+                    {question.unit && (
+                      <span className="text-4xl md:text-5xl text-muted-foreground font-black">
+                        {question.unit}
+                      </span>
+                    )}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground mt-2">
+                  {!isEditingValue && 'Кликни на числото за да редактираш ръчно'}
+                  {isEditingValue && `Между ${question.min} и ${question.max}`}
+                </p>
               </div>
 
               {/* Slider */}

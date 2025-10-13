@@ -8,7 +8,6 @@ import { quizItems } from "./questions";
 import { QuizData, Question, InfoSlide as InfoSlideType } from "./types";
 import { calculateTestosteroneScore } from "@/lib/test/scoring";
 import { trackViewContent } from "@/lib/facebook-pixel";
-import { saveQuizResult } from "@/lib/supabase";
 
 export const EngagingQuiz = () => {
   const router = useRouter();
@@ -113,52 +112,62 @@ export const EngagingQuiz = () => {
       // Track event
       trackViewContent('Engaging Quiz Completed', 'engaging_quiz');
 
-      // Save to Supabase
+      // Save to Supabase via API (bypasses RLS)
       try {
-        await saveQuizResult({
-          // Demographics
-          age: Number(answers.age),
-          height: Number(answers.height),
-          weight: Number(answers.weight),
+        const saveResponse = await fetch('/api/quiz/save-result', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            // Demographics
+            age: Number(answers.age),
+            height: Number(answers.height),
+            weight: Number(answers.weight),
 
-          // Lifestyle
-          sleep: Number(answers.sleep),
-          alcohol: String(answers.alcohol),
-          nicotine: String(answers.nicotine),
-          diet: String(answers.diet),
-          stress: Number(answers.stress),
+            // Lifestyle
+            sleep: Number(answers.sleep),
+            alcohol: String(answers.alcohol),
+            nicotine: String(answers.nicotine),
+            diet: String(answers.diet),
+            stress: Number(answers.stress),
 
-          // Training
-          training_frequency: String(answers['training-frequency']),
-          training_type: String(answers['training-type']),
-          recovery: String(answers.recovery),
-          supplements: String(answers.supplements) || null,
+            // Training
+            training_frequency: String(answers['training-frequency']),
+            training_type: String(answers['training-type']),
+            recovery: String(answers.recovery),
+            supplements: String(answers.supplements) || null,
 
-          // Symptoms
-          libido: Number(answers.libido),
-          morning_erection: String(answers['morning-erection']),
-          morning_energy: Number(answers['morning-energy']),
-          concentration: Number(answers.concentration),
-          mood: String(answers.mood),
-          muscle_mass: String(answers['muscle-mass']),
+            // Symptoms
+            libido: Number(answers.libido),
+            morning_erection: String(answers['morning-erection']),
+            morning_energy: Number(answers['morning-energy']),
+            concentration: Number(answers.concentration),
+            mood: String(answers.mood),
+            muscle_mass: String(answers['muscle-mass']),
 
-          // Contact
-          first_name: String(answers.firstName),
-          email: String(answers.email),
+            // Contact
+            first_name: String(answers.firstName),
+            email: String(answers.email),
 
-          // Results
-          score: result.totalScore,
-          testosterone_level: result.estimatedTestosterone.value,
-          testosterone_category: result.estimatedTestosterone.level,
-          risk_level: result.level,
-          recommended_tier: result.recommendedTier,
+            // Results
+            score: result.totalScore,
+            testosterone_level: result.estimatedTestosterone.value,
+            testosterone_category: result.estimatedTestosterone.level,
+            risk_level: result.level,
+            recommended_tier: result.recommendedTier,
 
-          // Metadata
-          source: 'engaging_quiz',
-          user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
-          referrer: typeof window !== 'undefined' ? document.referrer : undefined
+            // Metadata
+            source: 'engaging_quiz',
+            user_agent: typeof window !== 'undefined' ? window.navigator.userAgent : undefined,
+            referrer: typeof window !== 'undefined' ? document.referrer : undefined
+          })
         });
-        console.log('✅ Quiz result saved to Supabase');
+
+        if (saveResponse.ok) {
+          console.log('✅ Quiz result saved to Supabase via API');
+        } else {
+          const errorData = await saveResponse.json();
+          console.error('Failed to save via API:', errorData);
+        }
       } catch (supabaseError) {
         console.error('Failed to save to Supabase:', supabaseError);
         // Continue anyway - don't block the user flow
