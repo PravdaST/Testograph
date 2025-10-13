@@ -165,7 +165,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
 
   const renderDemographicsStep = () => (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <div>
           <Label htmlFor="age">Възраст (години)</Label>
           <Input
@@ -176,7 +176,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
             placeholder="30"
             min="18"
             max="100"
-            className="mt-1"
+            className="mt-2 h-12 text-base"
           />
           {errors.age && <p className="text-sm text-destructive mt-1">{errors.age}</p>}
         </div>
@@ -190,7 +190,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
             placeholder="175"
             min="100"
             max="250"
-            className="mt-1"
+            className="mt-2 h-12 text-base"
           />
           {errors.height && <p className="text-sm text-destructive mt-1">{errors.height}</p>}
         </div>
@@ -204,7 +204,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
             placeholder="75"
             min="30"
             max="300"
-            className="mt-1"
+            className="mt-2 h-12 text-base"
           />
           {errors.weight && <p className="text-sm text-destructive mt-1">{errors.weight}</p>}
         </div>
@@ -214,11 +214,11 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
 
   const renderTrainingStep = () => (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <div>
           <Label htmlFor="trainingFrequency">Честота на тренировки</Label>
           <FormSelect value={formData.trainingFrequency} onValueChange={(value) => handleInputChange('trainingFrequency', value)}>
-            <FormSelectTrigger className="mt-1">
+            <FormSelectTrigger className="mt-2 h-12 text-base">
               <FormSelectValue placeholder="Изберете честота" />
             </FormSelectTrigger>
             <FormSelectContent>
@@ -278,7 +278,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
               onChange={e => handleInputChange('supplements', e.target.value)}
               placeholder="Протеин, Витамин Д, Креатин"
               disabled={formData.supplements === "Не приемам добавки"}
-              className="disabled:opacity-50"
+              className="h-12 text-base disabled:opacity-50"
             />
             <div className="flex items-center space-x-2">
               <input
@@ -307,7 +307,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
 
   const renderLifestyleStep = () => (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <div>
           <Label htmlFor="averageSleep">Среден сън (часове)</Label>
           <Input
@@ -319,14 +319,14 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
             placeholder="7.5"
             min="3"
             max="12"
-            className="mt-1"
+            className="mt-2 h-12 text-base"
           />
           {errors.averageSleep && <p className="text-sm text-destructive mt-1">{errors.averageSleep}</p>}
         </div>
         <div>
           <Label htmlFor="diet">Тип диета</Label>
           <FormSelect value={formData.diet} onValueChange={(value) => handleInputChange('diet', value)}>
-            <FormSelectTrigger className="mt-1">
+            <FormSelectTrigger className="mt-2 h-12 text-base">
               <FormSelectValue placeholder="Изберете тип диета" />
             </FormSelectTrigger>
             <FormSelectContent>
@@ -351,14 +351,14 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
             placeholder="3"
             min="0"
             max="50"
-            className="mt-1"
+            className="mt-2 h-12 text-base"
           />
           {errors.alcohol && <p className="text-sm text-destructive mt-1">{errors.alcohol}</p>}
         </div>
         <div>
           <Label htmlFor="nicotine">Употреба на никотин</Label>
           <FormSelect value={formData.nicotine} onValueChange={(value) => handleInputChange('nicotine', value)}>
-            <FormSelectTrigger className="mt-1">
+            <FormSelectTrigger className="mt-2 h-12 text-base">
               <FormSelectValue placeholder="Изберете употреба на никотин" />
             </FormSelectTrigger>
             <FormSelectContent>
@@ -376,11 +376,11 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
 
   const renderHealthStep = () => (
     <div className="space-y-6">
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-6 lg:grid-cols-2">
         <div>
           <Label htmlFor="libido">Ниво на либидо</Label>
           <FormSelect value={formData.libido} onValueChange={(value) => handleInputChange('libido', value)}>
-            <FormSelectTrigger className="mt-1">
+            <FormSelectTrigger className="mt-2 h-12 text-base">
               <FormSelectValue placeholder="Изберете ниво на либидо" />
             </FormSelectTrigger>
             <FormSelectContent>
@@ -395,7 +395,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
         <div>
           <Label htmlFor="morningErection">Сутрешна ерекция</Label>
           <FormSelect value={formData.morningErection} onValueChange={(value) => handleInputChange('morningErection', value)}>
-            <FormSelectTrigger className="mt-1">
+            <FormSelectTrigger className="mt-2 h-12 text-base">
               <FormSelectValue placeholder="Изберете честота" />
             </FormSelectTrigger>
             <FormSelectContent>
@@ -410,7 +410,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
         <div>
           <Label htmlFor="morningEnergy">Сутрешна енергия</Label>
           <FormSelect value={formData.morningEnergy} onValueChange={(value) => handleInputChange('morningEnergy', value)}>
-            <FormSelectTrigger className="mt-1">
+            <FormSelectTrigger className="mt-2 h-12 text-base">
               <FormSelectValue placeholder="Изберете ниво" />
             </FormSelectTrigger>
             <FormSelectContent>
@@ -425,7 +425,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
         <div>
           <Label htmlFor="recovery">Физическо възстановяване</Label>
           <FormSelect value={formData.recovery} onValueChange={(value) => handleInputChange('recovery', value)}>
-            <FormSelectTrigger className="mt-1">
+            <FormSelectTrigger className="mt-2 h-12 text-base">
               <FormSelectValue placeholder="Изберете темп" />
             </FormSelectTrigger>
             <FormSelectContent>
@@ -441,7 +441,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
         <div>
           <Label htmlFor="mood">Общо настроение</Label>
           <FormSelect value={formData.mood} onValueChange={(value) => handleInputChange('mood', value)}>
-            <FormSelectTrigger className="mt-1">
+            <FormSelectTrigger className="mt-2 h-12 text-base">
               <FormSelectValue placeholder="Изберете настроение" />
             </FormSelectTrigger>
             <FormSelectContent>
@@ -458,7 +458,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
       {/* Email & Name at the end */}
       <div className="pt-6 border-t border-primary/20">
         <h3 className="text-lg font-semibold mb-4 text-foreground">Получете вашия резултат</h3>
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-6 lg:grid-cols-2">
           <div>
             <Label htmlFor="firstName">Име</Label>
             <Input
@@ -467,7 +467,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
               value={formData.firstName}
               onChange={e => handleInputChange('firstName', e.target.value)}
               placeholder="Вашето име"
-              className="mt-1"
+              className="mt-2 h-12 text-base"
             />
             {errors.firstName && <p className="text-sm text-destructive mt-1">{errors.firstName}</p>}
           </div>
@@ -479,7 +479,7 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
               value={formData.email}
               onChange={e => handleInputChange('email', e.target.value)}
               placeholder="your@email.com"
-              className="mt-1"
+              className="mt-2 h-12 text-base"
             />
             {errors.email && <p className="text-sm text-destructive mt-1">{errors.email}</p>}
           </div>
@@ -548,9 +548,9 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
                 type="button"
                 variant="outline"
                 onClick={prevStep}
-                className="bg-muted/10 border-muted/30 backdrop-blur-sm hover:bg-muted/20 hover:border-primary/30 transition-all duration-300 text-sm px-5 py-2 h-auto"
+                className="bg-muted/10 border-muted/30 backdrop-blur-sm hover:bg-muted/20 hover:border-primary/30 transition-all duration-300 text-base px-6 py-3 h-12 min-w-[120px]"
               >
-                <ChevronLeft className="w-3.5 h-3.5 mr-1.5" />
+                <ChevronLeft className="w-4 h-4 mr-2" />
                 Назад
               </Button>
             )}
@@ -560,16 +560,16 @@ export const QuizForm = ({ onComplete }: QuizFormProps) => {
                 type="button"
                 onClick={nextStep}
                 disabled={!validateStep(currentStep)}
-                className="bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 text-sm px-6 py-2 h-auto font-semibold"
+                className="bg-gradient-to-r from-primary to-accent hover:shadow-lg hover:shadow-primary/30 transition-all duration-300 text-base px-6 py-3 h-12 min-w-[140px] font-semibold"
               >
                 Напред
-                <ChevronRight className="w-3.5 h-3.5 ml-1.5" />
+                <ChevronRight className="w-4 h-4 ml-2" />
               </Button>
             ) : (
               <Button
                 type="submit"
                 disabled={!validateStep(currentStep)}
-                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:shadow-lg hover:shadow-green-500/30 transition-all duration-300 text-sm px-6 py-2 h-auto font-semibold"
+                className="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 hover:shadow-lg hover:shadow-green-500/30 transition-all duration-300 text-base px-8 py-3 h-12 min-w-[180px] font-bold"
               >
                 Виж резултата
               </Button>

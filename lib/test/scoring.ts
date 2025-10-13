@@ -156,14 +156,15 @@ export function calculateTestosteroneScore(data: QuizData): ScoringResult {
 
   // Calculate estimated testosterone in nmol/L
   // Inverse relationship: higher risk score = lower testosterone
-  // Formula: 28 - (score * 0.2)
-  // Score 0 → ~28 nmol/L (high)
-  // Score 30 → ~22 nmol/L (normal)
-  // Score 60 → ~16 nmol/L (normal)
-  // Score 80 → ~12 nmol/L (borderline)
+  // Formula: 38 - (score * 0.3)
+  // Score 0 → ~38 nmol/L (high)
+  // Score 10 → ~35 nmol/L (high)
+  // Score 30 → ~29 nmol/L (high)
+  // Score 60 → ~20 nmol/L (normal)
+  // Score 80 → ~14 nmol/L (normal)
   // Score 100 → ~8 nmol/L (low)
   const cappedScore = Math.min(score, 100);
-  const estimatedValue = Math.round((28 - (cappedScore * 0.2)) * 10) / 10; // Round to 1 decimal
+  const estimatedValue = Math.round((38 - (cappedScore * 0.3)) * 10) / 10; // Round to 1 decimal
 
   let testosteroneLevel: 'low' | 'normal' | 'high';
   if (estimatedValue < 12) {
