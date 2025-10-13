@@ -173,27 +173,7 @@ export const EngagingQuiz = () => {
         // Continue anyway - don't block the user flow
       }
 
-      // Send result email
-      try {
-        await fetch('/api/quiz/send-result', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            email: String(answers.email),
-            firstName: String(answers.firstName),
-            score: result.totalScore,
-            testosterone: result.estimatedTestosterone.value,
-            testosteroneCategory: result.estimatedTestosterone.level,
-            riskLevel: result.level
-          })
-        });
-        console.log('✅ Quiz result email sent');
-      } catch (emailError) {
-        console.error('Failed to send email:', emailError);
-        // Continue anyway - don't block the user flow
-      }
-
-      // Submit to n8n webhook for AI PDF generation
+      // Submit to n8n webhook for AI PDF generation and email
       try {
         await fetch('https://xtracts4u.app.n8n.cloud/webhook/testo', {
           method: 'POST',
