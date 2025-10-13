@@ -193,23 +193,48 @@ export const EngagingQuiz = () => {
         // Continue anyway - don't block the user flow
       }
 
-      // Submit to webhook (legacy)
+      // Submit to n8n webhook for AI PDF generation
       try {
         await fetch('https://xtracts4u.app.n8n.cloud/webhook/testo', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            ...answers,
-            source: 'engaging_quiz',
-            score: result.totalScore,
-            level: result.level,
-            estimatedTestosterone: result.estimatedTestosterone.value,
-            recommendedTier: result.recommendedTier
+            // Contact
+            email: String(answers.email),
+            firstName: String(answers.firstName),
+            lastName: String(answers.lastName || ''),
+
+            // Demographics
+            age: Number(answers.age),
+            height: Number(answers.height),
+            weight: Number(answers.weight),
+
+            // Lifestyle
+            averageSleep: Number(answers.sleep),
+            alcohol: String(answers.alcohol),
+            nicotine: String(answers.nicotine),
+            diet: String(answers.diet),
+
+            // Training
+            trainingFrequency: String(answers['training-frequency']),
+            trainingType: [String(answers['training-type'])],
+            recovery: String(answers.recovery),
+            supplements: String(answers.supplements || ''),
+
+            // Symptoms
+            libido: String(answers.libido),
+            morningErection: String(answers['morning-erection']),
+            morningEnergy: String(answers['morning-energy']),
+            mood: String(answers.mood),
+
+            // Source tracking
+            source: 'engaging_quiz'
           })
         });
+        console.log('✅ n8n webhook called for AI PDF generation');
       } catch (webhookError) {
-        console.error('Failed to send to webhook:', webhookError);
-        // Continue anyway
+        console.error('Failed to send to n8n webhook:', webhookError);
+        // Continue anyway - don't block the user flow
       }
 
       // Clear saved progress
