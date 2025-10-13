@@ -27,7 +27,8 @@ coverage
 .nyc_output
 
 # Logs
-logs
+/logs
+!app/api/**/logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
