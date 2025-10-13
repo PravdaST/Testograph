@@ -267,16 +267,17 @@ const Index = () => {
 
                 {/* CTA Button - Always visible */}
                 {!showResults ? (
-                  <button
-                    onClick={() => setFormModalOpen(true)}
+                  <a
+                    href="https://shop.testograph.eu"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white rounded-full text-sm font-semibold transition-all duration-200 hover:scale-105 shadow-lg shadow-primary/30 hover:shadow-primary/50"
                   >
-                    <span className="hidden sm:inline">Започни безплатен анализ</span>
-                    <span className="sm:hidden">Анализ</span>
+                    <span>Магазин</span>
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                     </svg>
-                  </button>
+                  </a>
                 ) : (
                   <button
                     onClick={resetForm}
