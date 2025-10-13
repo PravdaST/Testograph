@@ -72,6 +72,18 @@ export default function CommunicationPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('single');
 
+  // Email logs state
+  const [emailLogs, setEmailLogs] = useState<any[]>([]);
+  const [emailStats, setEmailStats] = useState<any>({});
+  const [logsPage, setLogsPage] = useState(1);
+  const [logsPagination, setLogsPagination] = useState<any>({});
+  const [logsFilters, setLogsFilters] = useState({
+    status: '',
+    search: '',
+    startDate: '',
+    endDate: ''
+  });
+
   // Single email state
   const [singleTo, setSingleTo] = useState('');
   const [singleSubject, setSingleSubject] = useState('');
@@ -93,6 +105,12 @@ export default function CommunicationPage() {
     fetchUsers();
     fetchTemplates();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === 'history') {
+      fetchEmailLogs();
+    }
+  }, [activeTab, logsPage, logsFilters]);
 
   const checkAuth = async () => {
     const { data: { user } } = await supabase.auth.getUser();
@@ -125,6 +143,30 @@ export default function CommunicationPage() {
       }
     } catch (error) {
       console.error('Error fetching templates:', error);
+    }
+  };
+
+  const fetchEmailLogs = async () => {
+    try {
+      const params = new URLSearchParams({
+        page: logsPage.toString(),
+        limit: '20',
+        ...(logsFilters.status && { status: logsFilters.status }),
+        ...(logsFilters.search && { search: logsFilters.search }),
+        ...(logsFilters.startDate && { start_date: logsFilters.startDate }),
+        ...(logsFilters.endDate && { end_date: logsFilters.endDate }),
+      });
+
+      const response = await fetch(`/api/admin/communication/logs?${params}`);
+      const data = await response.json();
+
+      if (response.ok) {
+        setEmailLogs(data.logs || []);
+        setLogsPagination(data.pagination || {});
+        setEmailStats(data.stats || {});
+      }
+    } catch (error) {
+      console.error('Error fetching email logs:', error);
     }
   };
 
@@ -302,7 +344,7 @@ export default function CommunicationPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="single">
               <Mail className="h-4 w-4 mr-2" />
               Единичен Email
@@ -310,6 +352,10 @@ export default function CommunicationPage() {
             <TabsTrigger value="bulk">
               <Users className="h-4 w-4 mr-2" />
               Bulk Email
+            </TabsTrigger>
+            <TabsTrigger value="history">
+              <FileText className="h-4 w-4 mr-2" />
+              Email History
             </TabsTrigger>
           </TabsList>
 
@@ -594,6 +640,216 @@ export default function CommunicationPage() {
                     </TableBody>
                   </Table>
                 </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Email History Tab */}
+          <TabsContent value="history" className="space-y-4">
+            {/* Stats Cards */}
+            <div className="grid gap-4 md:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Изпратени</CardTitle>
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{emailStats.total_sent || 0}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Успешно изпратени emails
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Неуспешни</CardTitle>
+                  <AlertCircle className="h-4 w-4 text-red-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{emailStats.total_failed || 0}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Failed emails
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+                  <CheckCircle className="h-4 w-4 text-blue-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{emailStats.success_rate || 0}%</div>
+                  <p className="text-xs text-muted-foreground">
+                    Процент успех
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Общо</CardTitle>
+                  <Mail className="h-4 w-4 text-purple-600" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{(emailStats.total_sent || 0) + (emailStats.total_failed || 0)}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Общо изпратени
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Filters */}
+            <Card>
+              <CardContent className="pt-6">
+                <div className="grid gap-4 md:grid-cols-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Търси по email..."
+                      value={logsFilters.search}
+                      onChange={(e) => setLogsFilters({ ...logsFilters, search: e.target.value })}
+                      className="pl-10"
+                    />
+                  </div>
+                  <Select
+                    value={logsFilters.status}
+                    onValueChange={(v) => setLogsFilters({ ...logsFilters, status: v })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Статус" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Всички</SelectItem>
+                      <SelectItem value="sent">Изпратени</SelectItem>
+                      <SelectItem value="failed">Неуспешни</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="bounced">Bounced</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    type="date"
+                    value={logsFilters.startDate}
+                    onChange={(e) => setLogsFilters({ ...logsFilters, startDate: e.target.value })}
+                    placeholder="От дата"
+                  />
+                  <Input
+                    type="date"
+                    value={logsFilters.endDate}
+                    onChange={(e) => setLogsFilters({ ...logsFilters, endDate: e.target.value })}
+                    placeholder="До дата"
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Email Logs Table */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Email History ({logsPagination.total || 0})</CardTitle>
+                <CardDescription>
+                  История на всички изпратени emails
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-md border">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Получател</TableHead>
+                        <TableHead>Тема</TableHead>
+                        <TableHead>Template</TableHead>
+                        <TableHead>Статус</TableHead>
+                        <TableHead>Изпратено от</TableHead>
+                        <TableHead>Дата</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {emailLogs.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                            Няма намерени emails
+                          </TableCell>
+                        </TableRow>
+                      ) : (
+                        emailLogs.map((log) => (
+                          <TableRow key={log.id}>
+                            <TableCell className="font-medium">
+                              {log.recipient_email}
+                              {log.recipient_name && (
+                                <div className="text-xs text-muted-foreground">{log.recipient_name}</div>
+                              )}
+                            </TableCell>
+                            <TableCell className="max-w-xs truncate">{log.subject}</TableCell>
+                            <TableCell>
+                              {log.template_name ? (
+                                <Badge variant="outline">{log.template_name}</Badge>
+                              ) : (
+                                <span className="text-xs text-muted-foreground">—</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <Badge
+                                variant={
+                                  log.status === 'sent' ? 'default' :
+                                  log.status === 'failed' ? 'destructive' :
+                                  log.status === 'pending' ? 'secondary' :
+                                  'outline'
+                                }
+                                className={
+                                  log.status === 'sent' ? 'bg-green-600' :
+                                  log.status === 'failed' ? 'bg-red-600' :
+                                  ''
+                                }
+                              >
+                                {log.status === 'sent' ? 'Изпратен' :
+                                 log.status === 'failed' ? 'Неуспешен' :
+                                 log.status === 'pending' ? 'Pending' :
+                                 log.status}
+                              </Badge>
+                              {log.is_bulk && (
+                                <Badge variant="outline" className="ml-2 text-xs">Bulk</Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-sm">{log.sent_by_email}</TableCell>
+                            <TableCell className="text-sm">
+                              {new Date(log.created_at).toLocaleString('bg-BG')}
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination */}
+                {logsPagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4">
+                    <div className="text-sm text-muted-foreground">
+                      Страница {logsPagination.page} от {logsPagination.totalPages}
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setLogsPage(prev => Math.max(1, prev - 1))}
+                        disabled={logsPage === 1}
+                      >
+                        Предишна
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setLogsPage(prev => Math.min(logsPagination.totalPages, prev + 1))}
+                        disabled={logsPage === logsPagination.totalPages}
+                      >
+                        Следваща
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>

@@ -40,39 +40,119 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get template details if templateId provided
+    let templateName = null;
+    if (templateId) {
+      try {
+        const { data: template } = await supabase
+          .from('email_templates')
+          .select('name')
+          .eq('id', templateId)
+          .single();
+
+        if (template) {
+          templateName = template.name;
+        }
+      } catch (error) {
+        console.error('Error fetching template:', error);
+      }
+    }
+
+    // Generate bulk campaign ID if bulk send
+    const bulkCampaignId = isBulk ? crypto.randomUUID() : null;
+
     // Send emails
     const results = [];
     const errors = [];
+    const emailHtml = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <div style="background-color: #7c3aed; padding: 20px; text-align: center;">
+          <h1 style="color: white; margin: 0;">Testograph</h1>
+        </div>
+        <div style="padding: 30px; background-color: #f9fafb;">
+          ${message.split('\n').map(line => `<p style="color: #374151; line-height: 1.6;">${line}</p>`).join('')}
+        </div>
+        <div style="padding: 20px; text-align: center; background-color: #e5e7eb; font-size: 12px; color: #6b7280;">
+          <p>Това съобщение е изпратено от Testograph Admin Panel</p>
+          <p>За въпроси: <a href="mailto:support@testograph.eu" style="color: #7c3aed;">support@testograph.eu</a></p>
+        </div>
+      </div>
+    `;
 
     for (const recipient of recipients) {
+      // Create email log entry (pending status)
+      const { data: logEntry, error: logError } = await supabase
+        .from('email_logs')
+        .insert({
+          recipient_email: recipient,
+          subject: subject,
+          body: emailHtml,
+          template_id: templateId || null,
+          template_name: templateName,
+          status: 'pending',
+          sent_by: adminId,
+          sent_by_email: adminEmail,
+          is_bulk: isBulk,
+          bulk_campaign_id: bulkCampaignId,
+        })
+        .select()
+        .single();
+
+      if (logError) {
+        console.error('Error creating email log:', logError);
+        // Continue anyway - don't block email sending
+      }
+
       try {
         const { data, error } = await resend.emails.send({
           from: 'Testograph Admin <admin@shop.testograph.eu>',
           to: recipient,
           subject: subject,
-          html: `
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-              <div style="background-color: #7c3aed; padding: 20px; text-align: center;">
-                <h1 style="color: white; margin: 0;">Testograph</h1>
-              </div>
-              <div style="padding: 30px; background-color: #f9fafb;">
-                ${message.split('\n').map(line => `<p style="color: #374151; line-height: 1.6;">${line}</p>`).join('')}
-              </div>
-              <div style="padding: 20px; text-align: center; background-color: #e5e7eb; font-size: 12px; color: #6b7280;">
-                <p>Това съобщение е изпратено от Testograph Admin Panel</p>
-                <p>За въпроси: <a href="mailto:support@testograph.eu" style="color: #7c3aed;">support@testograph.eu</a></p>
-              </div>
-            </div>
-          `,
+          html: emailHtml,
         });
 
         if (error) {
           errors.push({ recipient, error: error.message });
+
+          // Update log status to failed
+          if (logEntry) {
+            await supabase
+              .from('email_logs')
+              .update({
+                status: 'failed',
+                error_message: error.message,
+                sent_at: new Date().toISOString()
+              })
+              .eq('id', logEntry.id);
+          }
         } else {
           results.push({ recipient, id: data?.id, success: true });
+
+          // Update log status to sent
+          if (logEntry) {
+            await supabase
+              .from('email_logs')
+              .update({
+                status: 'sent',
+                sent_at: new Date().toISOString()
+              })
+              .eq('id', logEntry.id);
+          }
         }
       } catch (err: any) {
         errors.push({ recipient, error: err.message });
+
+        // Update log status to failed
+        if (logEntry) {
+          await supabase
+            .from('email_logs')
+            .update({
+              status: 'failed',
+              error_message: err.message,
+              sent_at: new Date().toISOString()
+            })
+            .eq('id', logEntry.id);
+        }
       }
     }
 

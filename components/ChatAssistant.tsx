@@ -4,9 +4,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { GlassCard } from '@/components/ui/glass-card';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { MessageCircle, Upload, Send, X, CheckCircle, FileText, AlertCircle, ExternalLink, User } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import TForecastFormMultiStep from './TForecastFormMultiStep';
 
 interface Message {
   id: string;
@@ -42,6 +44,7 @@ const ChatAssistant = () => {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [pdfUploaded, setPdfUploaded] = useState(false);
+  const [formModalOpen, setFormModalOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
@@ -542,9 +545,20 @@ const ChatAssistant = () => {
                                   variant="outline"
                                   size="sm"
                                   className="text-xs bg-primary/10 hover:bg-primary/20 border-primary/30"
-                                  onClick={() => window.open(button.url, '_blank')}
+                                  onClick={() => {
+                                    // Special handling for #open-quiz-form
+                                    if (button.url === '#open-quiz-form') {
+                                      setFormModalOpen(true);
+                                    } else {
+                                      window.open(button.url, '_blank');
+                                    }
+                                  }}
                                 >
-                                  <ExternalLink className="w-3 h-3 mr-1" />
+                                  {button.url === '#open-quiz-form' ? (
+                                    <FileText className="w-3 h-3 mr-1" />
+                                  ) : (
+                                    <ExternalLink className="w-3 h-3 mr-1" />
+                                  )}
                                   {button.label}
                                 </Button>
                               ))}
@@ -602,6 +616,38 @@ const ChatAssistant = () => {
           )}
         </div>
       </GlassCard>
+
+      {/* Quiz Form Modal */}
+      <Dialog open={formModalOpen} onOpenChange={setFormModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-bold text-center">
+              Безплатен тестостерон анализ - 4 въпроса
+            </DialogTitle>
+          </DialogHeader>
+          <TForecastFormMultiStep
+            onResult={(result) => {
+              // Close the modal
+              setFormModalOpen(false);
+
+              // Show success toast
+              toast({
+                title: "Анализът завърши успешно!",
+                description: "Вашата Testograph прогноза беше изпратена на вашия имейл.",
+              });
+
+              // Add a message to the chat
+              const resultMessage: Message = {
+                id: Date.now().toString(),
+                role: 'assistant',
+                content: `✅ Успешно попълнихте анализа! Вашата Testograph прогноза беше изпратена на вашия имейл.\n\nСега можете да качите PDF файла, който получихте, за да продължим с персонализираната консултация.`,
+                timestamp: new Date().toISOString()
+              };
+              setMessages(prev => [...prev, resultMessage]);
+            }}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
