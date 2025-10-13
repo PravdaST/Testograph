@@ -19,7 +19,8 @@ import {
   Mail,
   Database,
   Settings as SettingsIcon,
-  TrendingUp
+  TrendingUp,
+  ClipboardCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -70,6 +71,11 @@ const navItems = [
     title: 'App Data',
     href: '/admin/app-data',
     icon: Database,
+  },
+  {
+    title: 'Quiz Резултати',
+    href: '/admin/quiz-results',
+    icon: ClipboardCheck,
   },
   {
     title: 'Комуникация',
