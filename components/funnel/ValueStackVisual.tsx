@@ -163,11 +163,16 @@ export const ValueStackVisual = ({
                     {discountedPrice} лв
                   </p>
                 </div>
-                <div className="inline-block bg-gradient-to-r from-green-500 to-emerald-500 text-white px-6 py-3 rounded-full shadow-lg">
+                <a
+                  href="https://shop.testograph.eu/checkouts/cn/hWN3Q1yfpjjupsnJGMBAxnM3/bg-bg?cart_link_id=icc4dvos&discount=LIMITEDOFFER"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-6 py-3 rounded-full shadow-lg transition-all duration-300 hover:scale-105 cursor-pointer"
+                >
                   <p className="text-xl md:text-2xl font-black">
                     СПЕСТЯВАШ {savings} лв ({Math.round((savings / totalValue) * 100)}%)
                   </p>
-                </div>
+                </a>
               </div>
 
               {/* Per day breakdown */}

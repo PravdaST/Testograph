@@ -29,6 +29,11 @@ export interface ScoringResult {
   riskFactors: string[];
   topIssues: string[];
   recommendedTier: 'premium' | 'regular' | 'digital';
+  estimatedTestosterone: {
+    value: number; // nmol/L
+    level: 'low' | 'normal' | 'high';
+    unit: 'nmol/L';
+  };
 }
 
 /**
@@ -149,12 +154,37 @@ export function calculateTestosteroneScore(data: QuizData): ScoringResult {
     recommendedTier = 'digital'; // Good just needs maintenance plan
   }
 
+  // Calculate estimated testosterone in nmol/L
+  // Inverse relationship: higher risk score = lower testosterone
+  // Formula: 28 - (score * 0.2)
+  // Score 0 → ~28 nmol/L (high)
+  // Score 30 → ~22 nmol/L (normal)
+  // Score 60 → ~16 nmol/L (normal)
+  // Score 80 → ~12 nmol/L (borderline)
+  // Score 100 → ~8 nmol/L (low)
+  const cappedScore = Math.min(score, 100);
+  const estimatedValue = Math.round((28 - (cappedScore * 0.2)) * 10) / 10; // Round to 1 decimal
+
+  let testosteroneLevel: 'low' | 'normal' | 'high';
+  if (estimatedValue < 12) {
+    testosteroneLevel = 'low';
+  } else if (estimatedValue > 26) {
+    testosteroneLevel = 'high';
+  } else {
+    testosteroneLevel = 'normal';
+  }
+
   return {
     totalScore: Math.min(score, 100), // Cap at 100
     level,
     riskFactors,
     topIssues: topIssues.slice(0, 3), // Top 3 only
-    recommendedTier
+    recommendedTier,
+    estimatedTestosterone: {
+      value: estimatedValue,
+      level: testosteroneLevel,
+      unit: 'nmol/L'
+    }
   };
 }
 

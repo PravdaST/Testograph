@@ -68,6 +68,49 @@ export const TestosteroneResult = ({ result, userName, onContinue }: Testosteron
         </div>
       </div>
 
+      {/* Testosterone Level in nmol/L */}
+      <div className="bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-xl p-6 md:p-8 border-2 border-blue-500/30">
+        <div className="text-center space-y-4">
+          <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+            Изчислено ниво на тестостерон
+          </h2>
+          <div className="flex items-center justify-center gap-3">
+            <div className={`text-5xl md:text-6xl font-black tabular-nums ${
+              result.estimatedTestosterone.level === 'low' ? 'text-red-500' :
+              result.estimatedTestosterone.level === 'high' ? 'text-green-500' :
+              'text-yellow-500'
+            }`}>
+              {result.estimatedTestosterone.value}
+            </div>
+            <div className="text-left">
+              <div className="text-2xl font-bold text-muted-foreground">
+                {result.estimatedTestosterone.unit}
+              </div>
+            </div>
+          </div>
+          <div className={`inline-flex items-center gap-2 px-6 py-3 rounded-full font-bold text-lg border-2 ${
+            result.estimatedTestosterone.level === 'low' ? 'text-red-500 bg-red-500/10 border-red-500' :
+            result.estimatedTestosterone.level === 'high' ? 'text-green-500 bg-green-500/10 border-green-500' :
+            'text-yellow-500 bg-yellow-500/10 border-yellow-500'
+          }`}>
+            {result.estimatedTestosterone.level === 'low' && '⚠️ Ниско'}
+            {result.estimatedTestosterone.level === 'normal' && '✓ Нормално'}
+            {result.estimatedTestosterone.level === 'high' && '⭐ Високо'}
+          </div>
+          <div className="pt-4 space-y-2 text-sm text-muted-foreground">
+            <p>
+              <strong className="text-red-500">Под 12 nmol/L:</strong> Ниско ниво - изисква внимание
+            </p>
+            <p>
+              <strong className="text-yellow-500">12-26 nmol/L:</strong> Нормално ниво
+            </p>
+            <p>
+              <strong className="text-green-500">Над 26 nmol/L:</strong> Високо/оптимално ниво
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Level Description */}
       <div className="bg-gradient-to-br from-primary/5 to-accent/5 rounded-xl p-6 md:p-8 border border-primary/20">
         <h2 className="text-xl md:text-2xl font-bold text-foreground mb-4">
