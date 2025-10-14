@@ -211,7 +211,7 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://shop.testograph.eu?tier=single" target="_blank" rel="noopener noreferrer" className="block">
+            <a href="https://shop.testograph.eu/products/testoup" target="_blank" rel="noopener noreferrer" className="block">
               Вземи го за 97 лв
             </a>
           </Button>
@@ -292,7 +292,7 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://shop.testograph.eu?tier=single" target="_blank" rel="noopener noreferrer" className="block">
+            <a href="https://shop.testograph.eu/products/testoup" target="_blank" rel="noopener noreferrer" className="block">
               Вземи го за 97 лв
             </a>
           </Button>
