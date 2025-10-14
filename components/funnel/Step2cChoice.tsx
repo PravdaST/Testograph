@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { AutoAdvanceIndicator } from "./AutoAdvanceIndicator";
 
@@ -9,18 +9,6 @@ interface Step2cChoiceProps {
 
 export const Step2cChoice = ({ onProceed, userData }: Step2cChoiceProps) => {
   const [selected, setSelected] = useState<number | null>(null);
-
-  // Auto-forward after 10 seconds if user doesn't select (longer for interactive step)
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (selected === null) {
-        // Default to first choice if no selection made
-        onProceed(0);
-      }
-    }, 10000);
-
-    return () => clearTimeout(timer);
-  }, [selected, onProceed]);
 
   const choices = [
     {
@@ -107,7 +95,7 @@ export const Step2cChoice = ({ onProceed, userData }: Step2cChoiceProps) => {
             </div>
           </div>
         ) : (
-          <AutoAdvanceIndicator totalSeconds={10} className="pt-4" />
+          <AutoAdvanceIndicator totalSeconds={10} className="pt-4" onComplete={() => onProceed(0)} />
         )}
       </div>
     </div>

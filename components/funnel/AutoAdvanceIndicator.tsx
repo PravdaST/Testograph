@@ -1,19 +1,30 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 interface AutoAdvanceIndicatorProps {
   totalSeconds: number;
   className?: string;
+  onComplete?: () => void;
 }
 
-export const AutoAdvanceIndicator = ({ totalSeconds, className }: AutoAdvanceIndicatorProps) => {
+export const AutoAdvanceIndicator = ({ totalSeconds, className, onComplete }: AutoAdvanceIndicatorProps) => {
   const [secondsLeft, setSecondsLeft] = useState(totalSeconds);
+  const onCompleteRef = useRef(onComplete);
+
+  // Keep ref up to date
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   useEffect(() => {
     const interval = setInterval(() => {
       setSecondsLeft((prev) => {
         if (prev <= 1) {
           clearInterval(interval);
+          // Call onComplete callback when countdown finishes
+          if (onCompleteRef.current) {
+            onCompleteRef.current();
+          }
           return 0;
         }
         return prev - 1;

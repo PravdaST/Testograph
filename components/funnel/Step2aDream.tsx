@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AutoAdvanceIndicator } from "./AutoAdvanceIndicator";
 import { FlashStat } from "./FlashStat";
@@ -9,14 +8,6 @@ interface Step2aDreamProps {
 }
 
 export const Step2aDream = ({ onProceed, userData }: Step2aDreamProps) => {
-  // Auto-forward after 10 seconds if user doesn't click
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onProceed();
-    }, 10000);
-
-    return () => clearTimeout(timer);
-  }, [onProceed]);
 
   return (
     <div className="min-h-[100vh] flex items-center justify-center px-4 py-8">
@@ -67,7 +58,7 @@ export const Step2aDream = ({ onProceed, userData }: Step2aDreamProps) => {
             ДА. ИСКАМ.
           </Button>
 
-          <AutoAdvanceIndicator totalSeconds={10} className="pt-2" />
+          <AutoAdvanceIndicator totalSeconds={10} className="pt-2" onComplete={onProceed} />
         </div>
       </div>
     </div>

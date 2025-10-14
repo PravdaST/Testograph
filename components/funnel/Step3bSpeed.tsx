@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock } from "lucide-react";
 import { AutoAdvanceIndicator } from "./AutoAdvanceIndicator";
@@ -10,14 +9,6 @@ interface Step3bSpeedProps {
 }
 
 export const Step3bSpeed = ({ onProceed, userData }: Step3bSpeedProps) => {
-  // Auto-forward after 12 seconds if user doesn't click
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onProceed();
-    }, 12000);
-
-    return () => clearTimeout(timer);
-  }, [onProceed]);
 
   return (
     <div className="min-h-[100vh] flex items-center justify-center px-4 py-8">
@@ -86,7 +77,7 @@ export const Step3bSpeed = ({ onProceed, userData }: Step3bSpeedProps) => {
             (Започни още утре сутрин)
           </p>
 
-          <AutoAdvanceIndicator totalSeconds={12} />
+          <AutoAdvanceIndicator totalSeconds={12} onComplete={onProceed} />
         </div>
       </div>
     </div>

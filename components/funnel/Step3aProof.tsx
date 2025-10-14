@@ -78,15 +78,6 @@ export const Step3aProof = ({ onProceed, userData }: Step3aProofProps) => {
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
 
-  // Auto-forward after 12 seconds if user doesn't click
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onProceed();
-    }, 12000);
-
-    return () => clearTimeout(timer);
-  }, [onProceed]);
-
   // Auto-rotate every 20 seconds
   useEffect(() => {
     if (!autoRotate) return;
@@ -204,7 +195,7 @@ export const Step3aProof = ({ onProceed, userData }: Step3aProofProps) => {
             Искам същото
           </Button>
 
-          <AutoAdvanceIndicator totalSeconds={12} />
+          <AutoAdvanceIndicator totalSeconds={12} onComplete={onProceed} />
         </div>
       </div>
     </div>

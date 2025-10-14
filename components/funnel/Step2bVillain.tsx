@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { AutoAdvanceIndicator } from "./AutoAdvanceIndicator";
 
@@ -8,14 +7,6 @@ interface Step2bVillainProps {
 }
 
 export const Step2bVillain = ({ onProceed, userData }: Step2bVillainProps) => {
-  // Auto-forward after 10 seconds if user doesn't click
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      onProceed();
-    }, 10000);
-
-    return () => clearTimeout(timer);
-  }, [onProceed]);
   // Determine the #1 villain based on user data
   const getVillain = () => {
     if (userData?.libido === "low") {
@@ -124,7 +115,7 @@ export const Step2bVillain = ({ onProceed, userData }: Step2bVillainProps) => {
             Как го СПИРАМ?
           </Button>
 
-          <AutoAdvanceIndicator totalSeconds={10} />
+          <AutoAdvanceIndicator totalSeconds={10} onComplete={onProceed} />
         </div>
       </div>
     </div>
