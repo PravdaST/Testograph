@@ -30,7 +30,7 @@ const chatProofs: ChatProof[] = [
     age: 34,
     avatar: "/funnel/emil-avatar.jpg",
     messages: [
-      { text: "Бате резултатите дойдоха", time: "14:23", date: "вчера", isOutgoing: false, showAvatar: true },
+      { text: "Резултатите дойдоха", time: "14:23", date: "вчера", isOutgoing: false, showAvatar: true },
       { text: "27.5 nmol/L показа!!!! 😱", time: "14:23", date: "вчера", isOutgoing: false },
       { text: "Преди месец бях на 10.0...", time: "14:24", date: "вчера", isOutgoing: false },
       { text: "Не вярвам как се случи това", time: "14:25", date: "вчера", isOutgoing: false },
