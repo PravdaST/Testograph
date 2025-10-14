@@ -183,7 +183,7 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
                 </li>
               </ul>
               <p className="text-base md:text-lg text-foreground pt-4 border-t border-border">
-                Само 97 лв - толкова струва.
+                Само 67 лв - толкова струва.
               </p>
               <p className="text-sm md:text-base text-muted-foreground">
                 Повече от достатъчно, за да видиш че наистина работи.
@@ -212,7 +212,7 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
             asChild
           >
             <a href="https://shop.testograph.eu/products/testoup" target="_blank" rel="noopener noreferrer" className="block">
-              Вземи го за 97 лв
+              Вземи го за 67 лв
             </a>
           </Button>
 
@@ -264,8 +264,8 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
               }
             ]}
             totalValue={264}
-            discountedPrice={97}
-            savings={167}
+            discountedPrice={67}
+            savings={197}
             spotsLeft={15}
             tier="regular"
           />
@@ -273,7 +273,7 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
           {/* Final Message */}
           <div className="text-center space-y-4 max-w-2xl mx-auto">
             <p className="text-xl md:text-2xl font-bold text-foreground">
-              97 лв. Пробвай.
+              67 лв. Пробвай.
             </p>
           </div>
 
@@ -293,7 +293,7 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
             asChild
           >
             <a href="https://shop.testograph.eu/products/testoup" target="_blank" rel="noopener noreferrer" className="block">
-              Вземи го за 97 лв
+              Вземи го за 67 лв
             </a>
           </Button>
 
