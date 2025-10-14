@@ -61,7 +61,7 @@ const TestimonialsCarousel = () => {
       age: 37,
       city: "Бургас, Предприемач",
       avatarUrl: "/funnel/dimitar-avatar.jpg",
-      quote: "Бизнесът ми отиваше добре, но аз бях мъртъв отвътре. Нулева енергия, нулева мотивация. PDF-ът ми показа че имам дефицит на витамин D и ниски нива на цинк. 2 месеца - съм друг човек.",
+      quote: "Бизнесът ми вървеше добре, но аз се чувствах като труп. Нулева енергия, нулева мотивация. PDF-ът ми показа че имам дефицит на витамин D и ниски нива на цинк. 2 месеца - съм друг човек.",
       beforeStat: "4/10",
       afterStat: "9/10",
       statLabel: "Енергия"
@@ -81,7 +81,7 @@ const TestimonialsCarousel = () => {
       age: 52,
       city: "Варна, Лекар",
       avatarUrl: "/funnel/petar-avatar.jpg",
-      quote: "Иронията - аз съм лекар, но никога не си проверих хормоните. Тест показа ниски нива. Започнах протокола от PDF-а. За 3 месеца загубих 8кг мазнини и спечелих 4кг мускули. На 52 години!",
+      quote: "Но никога не съм си проверявал хормоните. Тест показа ниски нива. Започнах протокола от PDF-а. За 3 месеца загубих 8кг мазнини и спечелих 4кг мускули. На 52 години!",
       beforeStat: "24%",
       afterStat: "16%",
       statLabel: "Телесни мазнини"
@@ -114,6 +114,7 @@ const TestimonialsCarousel = () => {
                 name={testimonial.name}
                 age={testimonial.age}
                 city={testimonial.city}
+                avatarUrl={testimonial.avatarUrl}
                 quote={testimonial.quote}
                 beforeStat={testimonial.beforeStat}
                 afterStat={testimonial.afterStat}
@@ -535,7 +536,7 @@ const Index = () => {
                     <span className="text-primary">безплатно</span>?
                   </h2>
                   <p className="text-lg text-muted-foreground">
-                    Само 4 въпроса. PDF на имейл. Готово за 2 минути.
+                  Персонализиран 7-дневен план за повишаване на тестостерона на имейл. Само 2 минути.
                   </p>
                 </div>
 
@@ -549,11 +550,11 @@ const Index = () => {
                         </svg>
                       </div>
                       <h3 className="text-base font-bold text-foreground">
-                        PDF доклад
+                      Безплатен хормонален анализ
                       </h3>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                      Оценка на тестостерон + персонален анализ
+                    Персонализиран тестостеронов профил
                     </p>
                     <div className="flex items-center gap-2 text-xs text-primary font-medium">
                       <Clock className="w-3.5 h-3.5" />
@@ -570,11 +571,11 @@ const Index = () => {
                         </svg>
                       </div>
                       <h3 className="text-base font-bold text-foreground">
-                        AI Чат Асистент
+                      Хормонален Експерт
                       </h3>
                     </div>
                     <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                      Експерт 24/7 - питай каквото искаш
+                    AI асистент 24/7 - питай каквото искаш
                     </p>
                     <div className="flex items-center gap-2 text-xs text-accent font-medium">
                       <Sparkles className="w-3.5 h-3.5" />
@@ -650,7 +651,7 @@ const Index = () => {
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
                   Реални резултати.{' '}
-                  <span className="text-primary">Не маркетинг приказки.</span>
+                
                 </h2>
                 <p className="text-muted-foreground text-lg">
                   Вижте какво се случва когато следваш протокола
@@ -668,7 +669,7 @@ const Index = () => {
                   maxValue={35}
                 />
                 <StatComparison
-                  label="Либидо скор"
+                  label="Покачване на либидо"
                   beforeValue={2}
                   afterValue={9}
                   unit="/10"
@@ -684,7 +685,6 @@ const Index = () => {
               <div className="text-center mb-12">
                 <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
                   Реални трансформации.{' '}
-                  <span className="text-primary">Реални резултати.</span>
                 </h2>
                 <p className="text-muted-foreground text-lg">
                   Естествени промени. Без химия. Само протокол.
@@ -701,7 +701,7 @@ const Index = () => {
                   <span className="text-primary">Ето доказателствата.</span>
                 </h2>
                 <p className="text-muted-foreground text-lg">
-                  Реални хора. Реални резултати. Реални истории.
+                Истински хора. Доказани резултати. Лични истории.
                 </p>
               </div>
 
@@ -730,7 +730,7 @@ const Index = () => {
                 <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-success/10 rounded-full mb-3">
                   <FileText className="w-3.5 h-3.5 text-success" />
                   <span className="text-xs font-semibold text-success uppercase tracking-wide">
-                    Безплатен PDF
+                    Безплатен анализ
                   </span>
                 </div>
 
@@ -742,7 +742,7 @@ const Index = () => {
                 </h2>
 
                 <p className="text-base text-muted-foreground mb-5">
-                  Получи анализ на имейл + достъп до AI асистент
+                Достъп до 24/7 хормонален експерт
                 </p>
 
                 <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
@@ -762,7 +762,7 @@ const Index = () => {
                     <div className="w-6 h-6 bg-accent/10 rounded-full flex items-center justify-center">
                       <Mail className="w-3.5 h-3.5 text-accent" />
                     </div>
-                    <span className="text-muted-foreground">PDF веднага</span>
+                    <span className="text-muted-foreground">Персонализиран анализ</span>
                   </div>
                 </div>
               </div>
@@ -873,7 +873,7 @@ const Index = () => {
                   </button>
 
                   <p className="mt-6 text-sm text-muted-foreground">
-                    ✓ 100% Безплатно • ✓ Само 2 минути • ✓ PDF на имейл веднага
+                    ✓ 100% Безплатно • ✓ Само 2 минути • ✓ Персонален анализ
                   </p>
                 </div>
             </section>
