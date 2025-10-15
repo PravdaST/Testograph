@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import * as nodemailer from 'nodemailer';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
