@@ -28,7 +28,7 @@ export class SmtpClient {
       secure: false, // STARTTLS
       auth: {
         user: 'contact@testograph.eu',
-        pass: 'C0ntact1Test0!', // Use App Password if 2FA is enabled
+        pass: 'Test0graph!Petio', // Updated password
       },
       tls: {
         rejectUnauthorized: false,
