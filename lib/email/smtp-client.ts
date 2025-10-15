@@ -1,4 +1,3 @@
-import * as nodemailer from 'nodemailer';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -22,7 +21,9 @@ export class SmtpClient {
   private transporter: any;
 
   constructor() {
-    this.transporter = (nodemailer.default || nodemailer).createTransporter({
+    // Use require for nodemailer to avoid Webpack issues
+    const nodemailer = require('nodemailer');
+    this.transporter = nodemailer.createTransporter({
       host: 'smtp.gmail.com',
       port: 587,
       secure: false, // STARTTLS
