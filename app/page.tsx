@@ -398,7 +398,7 @@ const Index = () => {
                     </div>
                     <div className="text-center">
                       <p className="text-2xl font-bold text-success">2 мин</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Хормонален анализ</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">Безплатен анализ</p>
                     </div>
                     <SpotCounter totalSpots={50} />
                   </div>
