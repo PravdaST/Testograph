@@ -56,6 +56,9 @@ interface SessionJourneyData {
   totalEvents: number;
 }
 
+// Total steps in WaitingRoomFunnel (must match value in WaitingRoomFunnel.tsx)
+const TOTAL_FUNNEL_STEPS = 8;
+
 export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourneyModalProps) {
   const [loading, setLoading] = useState(false);
   const [data, setData] = useState<SessionJourneyData | null>(null);
@@ -163,7 +166,7 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
                     Progress
                   </span>
                   <span className="font-medium">
-                    Step {data.session.currentStep} / 12
+                    Step {data.session.currentStep} / {TOTAL_FUNNEL_STEPS}
                   </span>
                 </div>
 

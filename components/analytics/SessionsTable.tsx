@@ -27,6 +27,9 @@ interface SessionsTableProps {
   onSessionClick?: (sessionId: string) => void;
 }
 
+// Total steps in WaitingRoomFunnel (must match value in WaitingRoomFunnel.tsx)
+const TOTAL_FUNNEL_STEPS = 8;
+
 export function SessionsTable({ sessions, onSessionClick }: SessionsTableProps) {
   if (sessions.length === 0) {
     return (
@@ -76,7 +79,7 @@ export function SessionsTable({ sessions, onSessionClick }: SessionsTableProps) 
             </TableHeader>
             <TableBody>
               {sessions.map((session) => {
-                const progress = Math.round((session.maxStep / 12) * 100);
+                const progress = Math.round((session.maxStep / TOTAL_FUNNEL_STEPS) * 100);
                 const timeAgo = formatDistanceToNow(new Date(session.lastActivity), {
                   addSuffix: true,
                   locale: bg,
@@ -98,7 +101,7 @@ export function SessionsTable({ sessions, onSessionClick }: SessionsTableProps) 
                       <div className="space-y-1">
                         <div className="flex items-center gap-2 text-sm">
                           <span className="text-muted-foreground">
-                            Step {session.currentStep} / 12
+                            Step {session.currentStep} / {TOTAL_FUNNEL_STEPS}
                           </span>
                           <span className="font-semibold">{progress}%</span>
                         </div>
