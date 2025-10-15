@@ -36,12 +36,9 @@ import {
   Search,
   FileText,
   Download,
-  Inbox
 } from 'lucide-react';
 import { createClient } from '@supabase/supabase-js';
 import { useToast } from '@/hooks/use-toast';
-import { EmailInbox } from '@/components/admin/EmailInbox';
-import { EmailDetailModal } from '@/components/admin/EmailDetailModal';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -102,10 +99,6 @@ export default function CommunicationPage() {
   // Template state
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
-
-  // Inbox state
-  const [selectedEmail, setSelectedEmail] = useState<any>(null);
-  const [showEmailDetail, setShowEmailDetail] = useState(false);
 
   useEffect(() => {
     checkAuth();
@@ -351,11 +344,7 @@ export default function CommunicationPage() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="inbox">
-              <Inbox className="h-4 w-4 mr-2" />
-              Inbox
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="single">
               <Mail className="h-4 w-4 mr-2" />
               Единичен Email
@@ -369,26 +358,6 @@ export default function CommunicationPage() {
               Email History
             </TabsTrigger>
           </TabsList>
-
-          {/* Inbox Tab */}
-          <TabsContent value="inbox">
-            <Card>
-              <CardHeader>
-                <CardTitle>Email Inbox - contact@testograph.eu</CardTitle>
-                <CardDescription>
-                  Получени emails от вашия Hestia email server
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <EmailInbox
-                  onSelectEmail={(email) => {
-                    setSelectedEmail(email);
-                    setShowEmailDetail(true);
-                  }}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
 
           {/* Single Email Tab */}
           <TabsContent value="single">
@@ -902,20 +871,6 @@ export default function CommunicationPage() {
             <p>• Проверете историята на изпратени emails в Audit Logs таба</p>
           </CardContent>
         </Card>
-
-        {/* Email Detail Modal */}
-        <EmailDetailModal
-          email={selectedEmail}
-          isOpen={showEmailDetail}
-          onClose={() => {
-            setShowEmailDetail(false);
-            setSelectedEmail(null);
-          }}
-          onReplySuccess={() => {
-            // Refresh inbox after successful reply
-            setShowEmailDetail(false);
-          }}
-        />
       </div>
     </AdminLayout>
   );
