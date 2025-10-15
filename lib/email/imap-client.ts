@@ -179,7 +179,7 @@ export class ImapClient {
           cc: email.cc?.map(c => c.email) || null,
           reply_to: email.replyTo || null,
           in_reply_to: email.inReplyTo || null,
-          references: email.references || null,
+          email_references: email.references || null,
           body_text: email.bodyText || null,
           body_html: email.bodyHtml || null,
           attachments: email.attachments,

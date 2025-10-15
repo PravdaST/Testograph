@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS public.received_emails_cache (
   bcc TEXT[],
   reply_to TEXT,
   in_reply_to TEXT, -- For threading
-  references TEXT[], -- For threading
+  email_references TEXT[], -- For threading (renamed from 'references' which is a reserved word)
   body_text TEXT,
   body_html TEXT,
   attachments JSONB DEFAULT '[]'::jsonb, -- Array of {filename, contentType, size, id}
