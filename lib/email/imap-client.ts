@@ -42,7 +42,7 @@ export class ImapClient {
   constructor() {
     this.config = {
       user: 'contact@testograph.eu',
-      password: 'Test0graph!Petio', // Updated password
+      password: 'C0ntact1Test0!Test0graph!Petio', // Updated password
       host: 'imap.gmail.com',
       port: 993,
       tls: true,
