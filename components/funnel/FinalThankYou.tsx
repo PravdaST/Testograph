@@ -38,7 +38,7 @@ export const FinalThankYou = ({ userData }: FinalThankYouProps) => {
 
           <div className="space-y-3">
             <h1 className="text-2xl md:text-4xl font-bold text-foreground break-words">
-              Тест, {userData?.firstName && `${userData.firstName}, `}разбрахме!
+              {userData?.firstName ? `Браво, ${userData.firstName}!` : 'Браво!'}
             </h1>
             <p className="text-xl md:text-2xl font-semibold text-primary">
               Проверете имейла си
@@ -47,7 +47,7 @@ export const FinalThankYou = ({ userData }: FinalThankYouProps) => {
 
           <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg p-4 md:p-6 space-y-4 border-2 border-primary/20">
             <p className="text-sm md:text-lg text-foreground leading-relaxed break-words">
-              Изпратих ти <strong className="text-primary">Безплатния 7-дневен Стартов План + Дневник</strong> на имейла който предостави.
+              Изпратих ти <strong className="text-primary">Персонализиран 7-дневен анализ</strong> на имейла който предостави.
             </p>
             <p className="text-xs md:text-base text-muted-foreground break-words">
               Това е добро начало - ще усетиш първата разлика. Но ако искаш ИСТИНСКИ резултати като тези които видя, трябва ти пълният план.

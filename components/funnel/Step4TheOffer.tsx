@@ -155,7 +155,7 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
           {/* Header - NEW COPY */}
           <div className="text-center space-y-6 max-w-3xl mx-auto">
             <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground leading-tight">
-              Колко дълго още<br />ще се правиш че всичко е наред?
+              Колко дълго още<br />ще се правиш, че всичко е наред?
             </h1>
 
             <div className="text-lg md:text-xl text-muted-foreground space-y-4 text-left">
@@ -211,8 +211,8 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://shop.testograph.eu/products/testoup" target="_blank" rel="noopener noreferrer" className="block">
-              Вземи го за 67 лв
+            <a href="https://shop.testograph.eu/cart/58692129620317:1" target="_blank" rel="noopener noreferrer" className="block">
+              Вземи го за 97 лв.
             </a>
           </Button>
 
@@ -264,8 +264,8 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
               }
             ]}
             totalValue={264}
-            discountedPrice={67}
-            savings={197}
+            discountedPrice={97}
+            savings={167}
             spotsLeft={15}
             tier="regular"
           />
@@ -273,7 +273,7 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
           {/* Final Message */}
           <div className="text-center space-y-4 max-w-2xl mx-auto">
             <p className="text-xl md:text-2xl font-bold text-foreground">
-              67 лв. Пробвай.
+              97 лв. Пробвай.
             </p>
           </div>
 
@@ -292,8 +292,8 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://shop.testograph.eu/products/testoup" target="_blank" rel="noopener noreferrer" className="block">
-              Вземи го за 67 лв
+            <a href="https://shop.testograph.eu/cart/58692129620317:1" target="_blank" rel="noopener noreferrer" className="block">
+              Вземи го за 97 лв
             </a>
           </Button>
 

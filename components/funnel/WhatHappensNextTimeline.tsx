@@ -14,14 +14,14 @@ export const WhatHappensNextTimeline = ({ tier }: WhatHappensNextTimelineProps) 
       color: "from-orange-500 to-red-500"
     },
     ...(hasPhysicalProduct ? [{
-      time: "След 3-5 дни",
+      time: "Утре",
       icon: "📦",
       title: tier === "premium" ? "3 бутилки при теб" : "Бутилката при теб",
       description: "Безплатна доставка до врата",
       color: "from-blue-500 to-cyan-500"
     }] : []),
     {
-      time: "След 14-21 дни",
+      time: "След 7 дни",
       icon: "💪",
       title: "ПЪРВАТА промяна",
       description: "Усещаш силата да се връща",

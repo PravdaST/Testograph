@@ -42,7 +42,7 @@ export const ProtocolDashboardMockup = () => {
           </div>
           <div className="bg-black/30 rounded-lg p-2 border border-white/10">
             <div className="text-orange-400 text-xl font-bold">89%</div>
-            <div className="text-white/60 text-xs">Compliance</div>
+            <div className="text-white/60 text-xs">Спазване</div>
           </div>
         </div>
 

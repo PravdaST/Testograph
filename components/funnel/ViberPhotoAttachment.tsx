@@ -24,7 +24,7 @@ export const ViberPhotoAttachment = ({
           <div className="space-y-2">
             <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
               <span className="text-lg">📷</span>
-              <p className="text-xs font-semibold text-gray-700">Progress Photo</p>
+              <p className="text-xs font-semibold text-gray-700">Снимка напредък</p>
             </div>
             <div className="w-48 h-32 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center">
               <p className="text-4xl">💪</p>
