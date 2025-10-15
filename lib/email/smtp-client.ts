@@ -41,6 +41,14 @@ export class SmtpClient {
    */
   async sendEmail(options: SendEmailOptions): Promise<{ success: boolean; messageId?: string; error?: string }> {
     try {
+      // Validate SMTP connection first
+      try {
+        await this.transporter.verify();
+      } catch (verifyError: any) {
+        console.error('SMTP connection verification failed:', verifyError);
+        throw new Error(`SMTP Authentication Failed: ${verifyError.message}. Please check email credentials or use App Password if 2FA is enabled.`);
+      }
+
       const mailOptions: nodemailer.SendMailOptions = {
         from: 'Testograph <contact@testograph.eu>',
         to: options.to,
