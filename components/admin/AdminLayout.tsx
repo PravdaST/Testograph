@@ -78,9 +78,14 @@ const navItems = [
     icon: ClipboardCheck,
   },
   {
+    title: 'Emails',
+    href: '/admin/emails',
+    icon: Mail,
+  },
+  {
     title: 'Комуникация',
     href: '/admin/communication',
-    icon: Mail,
+    icon: MessageSquare,
   },
   {
     title: 'Audit Logs',
