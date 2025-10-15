@@ -183,7 +183,7 @@ export const Step4TheOffer = ({ onDecline, onSkipToFree, userData }: Step4TheOff
                 </li>
               </ul>
               <p className="text-base md:text-lg text-foreground pt-4 border-t border-border">
-                Само 67 лв - толкова струва.
+                Само 97 лв - толкова струва.
               </p>
               <p className="text-sm md:text-base text-muted-foreground">
                 Повече от достатъчно, за да видиш че наистина работи.
