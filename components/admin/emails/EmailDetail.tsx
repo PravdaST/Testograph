@@ -173,7 +173,7 @@ export function EmailDetail({ emailId, onClose, showCompose = false, onCloseComp
         body: JSON.stringify({
           to: composeTo,
           subject: composeSubject,
-          text: composeMessage,
+          message: composeMessage,
         }),
       });
 

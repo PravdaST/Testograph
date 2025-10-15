@@ -57,7 +57,7 @@ export function EmailList({
   const fetchEmails = async (refresh = false) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/admin/email/inbox?refresh=${refresh}&limit=50`);
+      const response = await fetch(`/api/admin/email/inbox?refresh=${refresh}&limit=50&folder=${folder}`);
       const data = await response.json();
 
       if (response.ok) {
