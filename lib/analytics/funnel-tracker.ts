@@ -73,12 +73,27 @@ export async function initFunnelSession(userData?: UserData): Promise<string | n
   try {
     const sessionId = getSessionId();
 
+    // Capture UTM parameters from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const utmData = {
+      source: urlParams.get('utm_source'),
+      medium: urlParams.get('utm_medium'),
+      campaign: urlParams.get('utm_campaign'),
+      content: urlParams.get('utm_content'),
+      term: urlParams.get('utm_term'),
+    };
+
+    // Get user agent for device tracking
+    const userAgent = navigator.userAgent;
+
     const { error } = await supabase
       .from('funnel_sessions')
       .insert({
         session_id: sessionId,
         user_email: userData?.email || null,
         user_data: userData || {},
+        utm_data: utmData,
+        user_agent: userAgent,
         entry_time: new Date().toISOString(),
         last_activity: new Date().toISOString(),
       });
@@ -89,6 +104,8 @@ export async function initFunnelSession(userData?: UserData): Promise<string | n
     }
 
     console.log('✅ Funnel session initialized:', sessionId);
+    console.log('📍 UTM Data:', utmData);
+    console.log('📱 Device:', userAgent.includes('Mobile') ? 'Mobile' : userAgent.includes('Tablet') ? 'Tablet' : 'Desktop');
     return sessionId;
   } catch (error) {
     console.error('Exception initializing funnel session:', error);
@@ -108,7 +125,8 @@ export async function trackStepEntered(
   try {
     const sessionId = getSessionId();
 
-    const { error } = await supabase
+    // Insert event into funnel_events
+    const { error: eventError } = await supabase
       .from('funnel_events')
       .insert({
         session_id: sessionId,
@@ -118,10 +136,40 @@ export async function trackStepEntered(
         timestamp: new Date().toISOString(),
       });
 
-    if (error) {
-      console.error('Error tracking step entered:', error);
+    if (eventError) {
+      console.error('Error tracking step entered event:', eventError);
+    }
+
+    // Update session with current step and max step reached
+    // First, get the current max_step_reached
+    const { data: sessionData, error: fetchError } = await supabase
+      .from('funnel_sessions')
+      .select('max_step_reached')
+      .eq('session_id', sessionId)
+      .single();
+
+    if (fetchError) {
+      console.error('Error fetching session for step update:', fetchError);
+      return;
+    }
+
+    const currentMax = sessionData?.max_step_reached || 0;
+    const newMax = Math.max(currentMax, stepNumber);
+
+    // Update session with current_step and max_step_reached
+    const { error: updateError } = await supabase
+      .from('funnel_sessions')
+      .update({
+        current_step: stepNumber,
+        max_step_reached: newMax,
+        last_activity: new Date().toISOString(),
+      })
+      .eq('session_id', sessionId);
+
+    if (updateError) {
+      console.error('Error updating session step:', updateError);
     } else {
-      console.log(`📊 Step ${stepNumber} entered`);
+      console.log(`📊 Step ${stepNumber} entered (max: ${newMax})`);
     }
   } catch (error) {
     console.error('Exception tracking step entered:', error);
