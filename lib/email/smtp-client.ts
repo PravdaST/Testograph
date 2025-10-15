@@ -19,10 +19,10 @@ interface SendEmailOptions {
 }
 
 export class SmtpClient {
-  private transporter: nodemailer.Transporter;
+  private transporter: any;
 
   constructor() {
-    this.transporter = nodemailer.createTransporter({
+    this.transporter = (nodemailer.default || nodemailer).createTransporter({
       host: 'smtp.gmail.com',
       port: 587,
       secure: false, // STARTTLS
@@ -49,7 +49,7 @@ export class SmtpClient {
         throw new Error(`SMTP Authentication Failed: ${verifyError.message}. Please check email credentials or use App Password if 2FA is enabled.`);
       }
 
-      const mailOptions: nodemailer.SendMailOptions = {
+      const mailOptions: any = {
         from: 'Testograph <contact@testograph.eu>',
         to: options.to,
         subject: options.subject,
