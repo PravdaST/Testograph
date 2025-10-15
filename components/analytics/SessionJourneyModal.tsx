@@ -48,10 +48,12 @@ interface SessionJourneyData {
   timeline: TimelineEvent[];
   eventCounts: {
     step_entered: number;
+    step_exited: number;
     button_clicked: number;
-    input_changed: number;
-    video_interaction: number;
-    form_submitted: number;
+    skip_used: number;
+    offer_viewed: number;
+    choice_made: number;
+    exit_intent: number;
   };
   totalEvents: number;
 }
@@ -104,14 +106,18 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
     switch (eventType) {
       case 'step_entered':
         return '📍';
+      case 'step_exited':
+        return '👋';
       case 'button_clicked':
-        return '👆';
-      case 'input_changed':
-        return '✏️';
-      case 'video_interaction':
-        return '🎥';
-      case 'form_submitted':
-        return '📝';
+        return '🖱️';
+      case 'skip_used':
+        return '⏭️';
+      case 'offer_viewed':
+        return '👁️';
+      case 'choice_made':
+        return '✅';
+      case 'exit_intent':
+        return '🚪';
       case 'session_started':
         return '🚀';
       case 'session_completed':
@@ -232,26 +238,34 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
               {/* Event Stats */}
               <div className="bg-muted/50 rounded-lg p-3">
                 <p className="text-sm font-semibold mb-2">Event Summary</p>
-                <div className="grid grid-cols-3 md:grid-cols-5 gap-2 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Steps: </span>
-                    <span className="font-medium">{data.eventCounts.step_entered}</span>
+                <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 text-sm">
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground text-xs">📍 Entered</span>
+                    <span className="font-medium text-base">{data.eventCounts.step_entered}</span>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Clicks: </span>
-                    <span className="font-medium">{data.eventCounts.button_clicked}</span>
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground text-xs">👋 Exited</span>
+                    <span className="font-medium text-base">{data.eventCounts.step_exited}</span>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Inputs: </span>
-                    <span className="font-medium">{data.eventCounts.input_changed}</span>
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground text-xs">🖱️ Clicks</span>
+                    <span className="font-medium text-base">{data.eventCounts.button_clicked}</span>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Video: </span>
-                    <span className="font-medium">{data.eventCounts.video_interaction}</span>
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground text-xs">⏭️ Skips</span>
+                    <span className="font-medium text-base">{data.eventCounts.skip_used}</span>
                   </div>
-                  <div>
-                    <span className="text-muted-foreground">Forms: </span>
-                    <span className="font-medium">{data.eventCounts.form_submitted}</span>
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground text-xs">👁️ Offers</span>
+                    <span className="font-medium text-base">{data.eventCounts.offer_viewed}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground text-xs">✅ Choices</span>
+                    <span className="font-medium text-base">{data.eventCounts.choice_made}</span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-muted-foreground text-xs">🚪 Exit Intent</span>
+                    <span className="font-medium text-base">{data.eventCounts.exit_intent}</span>
                   </div>
                 </div>
               </div>

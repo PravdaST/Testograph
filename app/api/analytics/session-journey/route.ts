@@ -68,13 +68,15 @@ export async function GET(request: Request) {
     const lastActivity = new Date(session.last_activity).getTime();
     const totalTimeSeconds = Math.round((lastActivity - entryTime) / 1000);
 
-    // Count events by type
+    // Count events by type (actual event types we track in funnel)
     const eventCounts = {
       step_entered: events?.filter((e) => e.event_type === 'step_entered').length || 0,
+      step_exited: events?.filter((e) => e.event_type === 'step_exited').length || 0,
       button_clicked: events?.filter((e) => e.event_type === 'button_clicked').length || 0,
-      input_changed: events?.filter((e) => e.event_type === 'input_changed').length || 0,
-      video_interaction: events?.filter((e) => e.event_type === 'video_interaction').length || 0,
-      form_submitted: events?.filter((e) => e.event_type === 'form_submitted').length || 0,
+      skip_used: events?.filter((e) => e.event_type === 'skip_used').length || 0,
+      offer_viewed: events?.filter((e) => e.event_type === 'offer_viewed').length || 0,
+      choice_made: events?.filter((e) => e.event_type === 'choice_made').length || 0,
+      exit_intent: events?.filter((e) => e.event_type === 'exit_intent').length || 0,
     };
 
     return NextResponse.json({
@@ -112,21 +114,41 @@ export async function GET(request: Request) {
 function getEventDescription(eventType: string, stepNumber: number | null, metadata: any): string {
   switch (eventType) {
     case 'step_entered':
-      return `Reached Step ${stepNumber}`;
+      return `📍 Entered Step ${stepNumber}`;
+
+    case 'step_exited':
+      const timeSpent = metadata.timeSpentSeconds;
+      const timeText = timeSpent ? ` (spent ${timeSpent}s)` : '';
+      return `👋 Left Step ${stepNumber}${timeText}`;
+
     case 'button_clicked':
-      return `Clicked: ${metadata.buttonText || 'Button'}`;
-    case 'input_changed':
-      return `Input changed: ${metadata.inputName || 'field'}`;
-    case 'video_interaction':
-      return `Video: ${metadata.action || 'interaction'}`;
-    case 'form_submitted':
-      return `Form submitted on Step ${stepNumber}`;
+      const buttonText = metadata.buttonText || metadata.action || 'Button';
+      return `🖱️ Clicked: "${buttonText}"`;
+
+    case 'skip_used':
+      return `⏭️ Skipped Step ${stepNumber}`;
+
+    case 'offer_viewed':
+      const offerTier = metadata.offerTier || 'unknown';
+      const capitalizedTier = offerTier.charAt(0).toUpperCase() + offerTier.slice(1);
+      return `👁️ Viewed ${capitalizedTier} offer`;
+
+    case 'choice_made':
+      const choiceValue = metadata.choiceValue;
+      return `✅ Made choice: Option ${choiceValue}`;
+
+    case 'exit_intent':
+      return `🚪 Exit intent detected on Step ${stepNumber}`;
+
     case 'session_started':
-      return `Session started`;
+      return `🚀 Session started`;
+
     case 'session_completed':
       return `✅ Funnel completed`;
+
     case 'session_exited':
       return `❌ Exited at Step ${stepNumber}`;
+
     default:
       return eventType;
   }
