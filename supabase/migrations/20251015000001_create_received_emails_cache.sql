@@ -35,15 +35,14 @@ CREATE INDEX IF NOT EXISTS idx_received_emails_in_reply_to ON public.received_em
 -- Enable RLS
 ALTER TABLE public.received_emails_cache ENABLE ROW LEVEL SECURITY;
 
--- RLS Policies - только админи могат да четат
+-- RLS Policies - only admins can access
 CREATE POLICY "Admins can view received emails"
   ON public.received_emails_cache
   FOR SELECT
   USING (
     EXISTS (
       SELECT 1 FROM public.admin_users
-      WHERE admin_users.user_id = auth.uid()
-      AND admin_users.is_active = true
+      WHERE admin_users.id = auth.uid()
     )
   );
 
@@ -53,8 +52,7 @@ CREATE POLICY "Admins can insert received emails"
   WITH CHECK (
     EXISTS (
       SELECT 1 FROM public.admin_users
-      WHERE admin_users.user_id = auth.uid()
-      AND admin_users.is_active = true
+      WHERE admin_users.id = auth.uid()
     )
   );
 
@@ -64,8 +62,7 @@ CREATE POLICY "Admins can update received emails"
   USING (
     EXISTS (
       SELECT 1 FROM public.admin_users
-      WHERE admin_users.user_id = auth.uid()
-      AND admin_users.is_active = true
+      WHERE admin_users.id = auth.uid()
     )
   );
 
