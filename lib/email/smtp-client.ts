@@ -28,7 +28,7 @@ export class SmtpClient {
       secure: false, // STARTTLS
       auth: {
         user: 'contact@testograph.eu',
-        pass: 'ixzmgzpzshahhtln', // Gmail App Password (remove spaces)
+        pass: 'ixzm gzpz shah htln', // Gmail App Password with spaces as provided
       },
       tls: {
         rejectUnauthorized: false,

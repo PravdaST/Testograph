@@ -42,7 +42,7 @@ export class ImapClient {
   constructor() {
     this.config = {
       user: 'contact@testograph.eu',
-      password: 'ixzmgzpzshahhtln', // Gmail App Password (remove spaces)
+      password: 'ixzm gzpz shah htln', // Gmail App Password with spaces as provided
       host: 'imap.gmail.com',
       port: 993,
       tls: true,
