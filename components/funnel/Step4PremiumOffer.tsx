@@ -10,6 +10,7 @@ import { ValueStackVisual } from "./ValueStackVisual";
 import { QualificationSection } from "./QualificationSection";
 import { FAQSection } from "./FAQSection";
 import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
+import { trackCTAClick, trackFunnelExit } from "@/lib/analytics/funnel-tracker";
 
 interface UserData {
   firstName?: string;
@@ -67,6 +68,12 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleCTAClick = () => {
+    const premiumUrl = 'https://shop.testograph.eu/cart/58692136730973:1';
+    trackCTAClick(8, 'premium', premiumUrl);
+    trackFunnelExit(8, true); // Mark as completed
   };
 
   const features = [
@@ -247,7 +254,13 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://shop.testograph.eu/cart/58692136730973:1" target="_blank" rel="noopener noreferrer" className="block">
+            <a
+              href="https://shop.testograph.eu/cart/58692136730973:1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+              onClick={handleCTAClick}
+            >
               Вземи го за 197 лв
             </a>
           </Button>
@@ -373,7 +386,13 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://shop.testograph.eu/cart/58692136730973:1" target="_blank" rel="noopener noreferrer" className="block">
+            <a
+              href="https://shop.testograph.eu/cart/58692136730973:1"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+              onClick={handleCTAClick}
+            >
               Вземи го за 197 лв
             </a>
           </Button>

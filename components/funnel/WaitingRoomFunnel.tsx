@@ -392,7 +392,7 @@ export const WaitingRoomFunnel = ({ userData }: WaitingRoomFunnelProps) => {
       previousTier: currentOfferTier,
       action: 'skip_to_free'
     });
-    trackFunnelExit(currentStep, false);
+    trackFunnelExit(currentStep, true); // Mark as completed - user chose free plan
 
     // Facebook Pixel: Track Lead for free PDF (no purchase)
     trackLead('Free PDF - Skipped Paid Offer', 0);

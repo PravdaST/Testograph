@@ -10,6 +10,7 @@ import { ValueStackVisual } from "./ValueStackVisual";
 import { QualificationSection } from "./QualificationSection";
 import { FAQSection } from "./FAQSection";
 import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
+import { trackCTAClick, trackFunnelExit } from "@/lib/analytics/funnel-tracker";
 
 interface UserData {
   firstName?: string;
@@ -69,6 +70,12 @@ export const Step4DigitalOffer = ({ onDecline, onSkipToFree, userData }: Step4Di
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleCTAClick = () => {
+    const digitalUrl = 'https://shop.testograph.eu/cart/58678183657821:1?discount=LIMITEDOFFER';
+    trackCTAClick(8, 'digital', digitalUrl);
+    trackFunnelExit(8, true); // Mark as completed
   };
 
   const features = [
@@ -217,7 +224,13 @@ export const Step4DigitalOffer = ({ onDecline, onSkipToFree, userData }: Step4Di
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://shop.testograph.eu/cart/58678183657821:1?discount=LIMITEDOFFER" target="_blank" rel="noopener noreferrer" className="block">
+            <a
+              href="https://shop.testograph.eu/cart/58678183657821:1?discount=LIMITEDOFFER"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+              onClick={handleCTAClick}
+            >
               Вземи го за 47 лв
             </a>
           </Button>
@@ -285,7 +298,13 @@ export const Step4DigitalOffer = ({ onDecline, onSkipToFree, userData }: Step4Di
             className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90 text-white font-bold shadow-2xl transition-all"
             asChild
           >
-            <a href="https://shop.testograph.eu/cart/58678183657821:1?discount=LIMITEDOFFER" target="_blank" rel="noopener noreferrer" className="block">
+            <a
+              href="https://shop.testograph.eu/cart/58678183657821:1?discount=LIMITEDOFFER"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block"
+              onClick={handleCTAClick}
+            >
               Вземи го за 47 лв
             </a>
           </Button>
