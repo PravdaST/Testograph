@@ -174,44 +174,57 @@ export function ValueStackGrid({
             </div>
           </div>
 
-          {/* Right: Quick Benefits */}
+          {/* Right: Package Contents Preview */}
           <div
             className={`space-y-4 transition-all duration-700 delay-400 ${
               isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
             }`}
           >
+            {/* TestoUP Product */}
             <div className="bg-card/50 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 hover:border-primary/60 transition-all hover:scale-105">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Check className="w-6 h-6 text-white" />
+                <div className="w-20 h-20 relative flex-shrink-0">
+                  <Image
+                    src="/product/testoup-bottle_v1.webp"
+                    alt="TestoUP"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
-                <div>
-                  <h4 className="font-bold text-lg mb-1">Клинични дозировки</h4>
-                  <p className="text-sm text-muted-foreground">Всяка съставка в доказана ефективна доза</p>
+                <div className="flex-1">
+                  <h4 className="font-bold text-lg mb-1">TestoUP бутилка</h4>
+                  <p className="text-sm text-muted-foreground">60 капсули за 30 дни</p>
                 </div>
               </div>
             </div>
 
+            {/* TestographPRO Protocol */}
             <div className="bg-card/50 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 hover:border-primary/60 transition-all hover:scale-105">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Check className="w-6 h-6 text-white" />
+                <div className="w-20 h-20 relative flex-shrink-0">
+                  <Image
+                    src="/product/STARTER - TestographPRO.webp"
+                    alt="TestographPRO"
+                    fill
+                    className="object-contain"
+                  />
                 </div>
-                <div>
-                  <h4 className="font-bold text-lg mb-1">Произведено в ЕС</h4>
-                  <p className="text-sm text-muted-foreground">GMP сертифициран производител</p>
+                <div className="flex-1">
+                  <h4 className="font-bold text-lg mb-1">TestographPRO протокол</h4>
+                  <p className="text-sm text-muted-foreground">30-дневен план за резултати</p>
                 </div>
               </div>
             </div>
 
+            {/* 24/7 Expert Support */}
             <div className="bg-card/50 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 hover:border-primary/60 transition-all hover:scale-105">
               <div className="flex items-start gap-4">
-                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
-                  <Check className="w-6 h-6 text-white" />
+                <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Sparkles className="w-10 h-10 text-white" />
                 </div>
-                <div>
-                  <h4 className="font-bold text-lg mb-1">Без скрити смеси</h4>
-                  <p className="text-sm text-muted-foreground">100% прозрачност на всички съставки</p>
+                <div className="flex-1">
+                  <h4 className="font-bold text-lg mb-1">24/7 Хормонален Експерт</h4>
+                  <p className="text-sm text-muted-foreground">Винаги до теб с отговори</p>
                 </div>
               </div>
             </div>
