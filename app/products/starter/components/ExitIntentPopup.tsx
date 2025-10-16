@@ -19,6 +19,7 @@ export function ExitIntentPopup() {
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
+  // Exit intent (mouse leave)
   useEffect(() => {
     const handleMouseLeave = (e: MouseEvent) => {
       if (e.clientY < 10 && !hasShown) {
@@ -32,6 +33,18 @@ export function ExitIntentPopup() {
     return () => {
       document.removeEventListener("mouseleave", handleMouseLeave);
     };
+  }, [hasShown]);
+
+  // Timer - показва popup след 45 секунди престой
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!hasShown) {
+        setIsOpen(true);
+        setHasShown(true);
+      }
+    }, 45000); // 45 секунди
+
+    return () => clearTimeout(timer);
   }, [hasShown]);
 
   const handleSubmit = async (e: React.FormEvent) => {

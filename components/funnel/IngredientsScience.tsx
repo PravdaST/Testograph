@@ -1,34 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Beaker, TrendingUp, Shield, Zap, Heart, ChevronDown, ChevronUp, Users, Award, CheckCircle, MapPin, Microscope, Leaf, ShieldCheck, Hand } from "lucide-react";
 import Image from "next/image";
 
-interface TopIngredient {
+interface Ingredient {
   id: number;
   ingredient: string;
   dosage: string;
-  icon: React.ReactNode;
-  scientificName: string;
-  researchFindings: string[];
-  clinicalDose: string;
-  ourDose: string;
-  studies: string;
+  icon?: React.ReactNode;
+  scientificName?: string;
+  researchFindings?: string[];
+  clinicalDose?: string;
+  ourDose?: string;
+  studies?: string;
   keyBenefit: string;
   accentColor: string;
   color: string;
-}
-
-interface CompactIngredient {
-  name: string;
-  amount: string;
   rda?: string;
-  benefit: string;
+  isTopIngredient?: boolean;
 }
 
-const topIngredients: TopIngredient[] = [
+const allIngredients: Ingredient[] = [
+  // TOP 5 with full details
   {
     id: 1,
     ingredient: "Ашваганда",
@@ -45,7 +41,8 @@ const topIngredients: TopIngredient[] = [
     studies: "43+ клинични изследвания",
     keyBenefit: "Адаптоген #1 за тестостерон и стрес",
     accentColor: "border-green-500",
-    color: "green"
+    color: "green",
+    isTopIngredient: true
   },
   {
     id: 2,
@@ -63,7 +60,8 @@ const topIngredients: TopIngredient[] = [
     studies: "100+ клинични изследвания",
     keyBenefit: "Хормонален фундамент",
     accentColor: "border-orange-500",
-    color: "orange"
+    color: "orange",
+    isTopIngredient: true
   },
   {
     id: 3,
@@ -81,7 +79,8 @@ const topIngredients: TopIngredient[] = [
     studies: "80+ клинични изследвания",
     keyBenefit: "Критичен за мъжко репродуктивно здраве",
     accentColor: "border-blue-500",
-    color: "blue"
+    color: "blue",
+    isTopIngredient: true
   },
   {
     id: 4,
@@ -99,7 +98,8 @@ const topIngredients: TopIngredient[] = [
     studies: "50+ клинични изследвания",
     keyBenefit: "Фертилност и антиоксидантна защита",
     accentColor: "border-purple-500",
-    color: "purple"
+    color: "purple",
+    isTopIngredient: true
   },
   {
     id: 5,
@@ -117,63 +117,245 @@ const topIngredients: TopIngredient[] = [
     studies: "200+ клинични изследвания",
     keyBenefit: "Експлозивна енергия и възстановяване",
     accentColor: "border-red-500",
-    color: "red"
-  }
-];
-
-const compactIngredients: CompactIngredient[] = [
+    color: "red",
+    isTopIngredient: true
+  },
+  // Additional 7 ingredients
   {
-    name: "Витамин E",
-    amount: "270mg",
+    id: 6,
+    ingredient: "Витамин E",
+    dosage: "270mg",
     rda: "2250%",
-    benefit: "Мощен антиоксидант за защита на тестикуларните клетки"
+    keyBenefit: "Мощен антиоксидант за защита на тестикуларните клетки",
+    accentColor: "border-amber-500",
+    color: "amber",
+    isTopIngredient: false
   },
   {
-    name: "Tribulus Terrestris",
-    amount: "600mg",
-    rda: undefined,
-    benefit: "Традиционна билка за либидо и сексуална функция"
+    id: 7,
+    ingredient: "Tribulus Terrestris",
+    dosage: "600mg",
+    keyBenefit: "Традиционна билка за либидо и сексуална функция",
+    accentColor: "border-lime-500",
+    color: "lime",
+    isTopIngredient: false
   },
   {
-    name: "Магнезий Бисглицинат",
-    amount: "44mg",
+    id: 8,
+    ingredient: "Магнезий Бисглицинат",
+    dosage: "44mg",
     rda: "11.7%",
-    benefit: "Повишава свободен тестостерон и подобрява сън"
+    keyBenefit: "Повишава свободен тестостерон и подобрява сън",
+    accentColor: "border-cyan-500",
+    color: "cyan",
+    isTopIngredient: false
   },
   {
-    name: "Витамин K2 (MK-7)",
-    amount: "100mcg",
-    rda: undefined,
-    benefit: "Насочва калций към костите, подкрепя cardiovascular здраве"
+    id: 9,
+    ingredient: "Витамин K2 (MK-7)",
+    dosage: "100mcg",
+    keyBenefit: "Насочва калций към костите, подкрепа за cardiovascular здраве",
+    accentColor: "border-indigo-500",
+    color: "indigo",
+    isTopIngredient: false
   },
   {
-    name: "Витамин B6",
-    amount: "10mg",
+    id: 10,
+    ingredient: "Витамин B6",
+    dosage: "10mg",
     rda: "714%",
-    benefit: "Регулира хормонална активност и намалява умора"
+    keyBenefit: "Регулира хормонална активност и намалява умора",
+    accentColor: "border-pink-500",
+    color: "pink",
+    isTopIngredient: false
   },
   {
-    name: "Витамин B9 (5-MTHF)",
-    amount: "400mcg",
+    id: 11,
+    ingredient: "Витамин B9 (5-MTHF)",
+    dosage: "400mcg",
     rda: "200%",
-    benefit: "Активната форма на фолат за сперматогенеза"
+    keyBenefit: "Активната форма на фолат за сперматогенеза",
+    accentColor: "border-rose-500",
+    color: "rose",
+    isTopIngredient: false
   },
   {
-    name: "Витамин C",
-    amount: "200mg",
+    id: 12,
+    ingredient: "Витамин C",
+    dosage: "200mg",
     rda: "250%",
-    benefit: "Антиоксидант, намалява кортизол, подобрява имунитет"
+    keyBenefit: "Антиоксидант, намалява кортизол, подобрява имунитет",
+    accentColor: "border-yellow-500",
+    color: "yellow",
+    isTopIngredient: false
   }
 ];
 
 export function IngredientsScience() {
   const [showSupplementFacts, setShowSupplementFacts] = useState(false);
-  const [activeIngredient, setActiveIngredient] = useState<number | null>(null);
-  const [showHint, setShowHint] = useState(true);
+  const [activeIngredient, setActiveIngredient] = useState<number | null>(1);
+  const [showHint, setShowHint] = useState(false);
+  const [mobileActiveIndex, setMobileActiveIndex] = useState(0);
+  const [badgeScrollIndex, setBadgeScrollIndex] = useState(0);
+
+  // Auto-advance on mobile
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (window.innerWidth < 768) {
+        setMobileActiveIndex((prev) => (prev + 1) % allIngredients.length);
+      }
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Auto-advance on desktop - sequential 1-12
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (window.innerWidth >= 768) {
+        setActiveIngredient((prev) => {
+          const nextId = (prev || 0) + 1;
+          return nextId > allIngredients.length ? 1 : nextId;
+        });
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Auto-scroll badges on mobile
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (window.innerWidth < 768) {
+        setBadgeScrollIndex((prev) => (prev + 1) % 7);
+        const container = document.getElementById('badge-scroll-container');
+        if (container) {
+          const cardWidth = container.scrollWidth / 7;
+          container.scrollTo({
+            left: cardWidth * ((badgeScrollIndex + 1) % 7),
+            behavior: 'smooth'
+          });
+        }
+      }
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [badgeScrollIndex]);
 
   return (
-    <section className="py-8 md:py-12 px-4">
-      <div className="max-w-6xl mx-auto">
+    <section className="py-8 md:py-12 px-4 relative overflow-hidden">
+      <style dangerouslySetInnerHTML={{__html: `
+        @keyframes ingredients-drift {
+          0%, 100% { transform: translateX(0) translateY(0); }
+          50% { transform: translateX(-25px) translateY(20px); }
+        }
+        @keyframes ingredients-drift-reverse {
+          0%, 100% { transform: translateX(0) translateY(0); }
+          50% { transform: translateX(25px) translateY(-20px); }
+        }
+        @keyframes ingredients-drift-vertical {
+          0%, 100% { transform: translateY(0); }
+          50% { transform: translateY(-25px); }
+        }
+        .animate-ingredients-drift { animation: ingredients-drift 18s ease-in-out infinite; }
+        .animate-ingredients-drift-reverse { animation: ingredients-drift-reverse 22s ease-in-out infinite; }
+        .animate-ingredients-drift-vertical { animation: ingredients-drift-vertical 20s ease-in-out infinite; }
+        .animate-ingredients-drift-16 { animation: ingredients-drift 16s ease-in-out infinite; }
+
+        /* Hide scrollbar */
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+      `}} />
+
+      {/* Animated SVG Background Lines - Different pattern from Benefits */}
+      <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-25" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="ing-gradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stopColor="rgb(59, 130, 246)" stopOpacity="0.4" />
+            <stop offset="100%" stopColor="rgb(99, 102, 241)" stopOpacity="0.2" />
+          </linearGradient>
+          <linearGradient id="ing-gradient2" x1="100%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stopColor="rgb(168, 85, 247)" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="rgb(59, 130, 246)" stopOpacity="0.2" />
+          </linearGradient>
+          <linearGradient id="ing-gradient3" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="rgb(99, 102, 241)" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="rgb(168, 85, 247)" stopOpacity="0.1" />
+          </linearGradient>
+        </defs>
+
+        {/* Curved line 1 - Top right flowing */}
+        <path
+          d="M 1400 50 Q 1000 150, 700 100 T 200 200"
+          stroke="url(#ing-gradient1)"
+          strokeWidth="2"
+          fill="none"
+          className="animate-ingredients-drift"
+        />
+
+        {/* Curved line 2 - Middle cross */}
+        <path
+          d="M -100 300 Q 300 250, 600 350 T 1300 400"
+          stroke="url(#ing-gradient2)"
+          strokeWidth="3"
+          fill="none"
+          className="animate-ingredients-drift-reverse"
+        />
+
+        {/* Curved line 3 - Bottom wave */}
+        <path
+          d="M 1500 650 Q 1100 700, 700 600 T -50 750"
+          stroke="url(#ing-gradient1)"
+          strokeWidth="2"
+          fill="none"
+          className="animate-ingredients-drift-16"
+        />
+
+        {/* Circle accent 1 */}
+        <circle
+          cx="900"
+          cy="200"
+          r="100"
+          stroke="url(#ing-gradient3)"
+          strokeWidth="1"
+          fill="none"
+          className="animate-pulse"
+        />
+
+        {/* Circle accent 2 */}
+        <circle
+          cx="300"
+          cy="550"
+          r="130"
+          stroke="url(#ing-gradient2)"
+          strokeWidth="1"
+          fill="none"
+          className="animate-pulse"
+        />
+
+        {/* Curved line 4 - Vertical wave */}
+        <path
+          d="M 500 -50 Q 450 250, 550 500 T 500 850"
+          stroke="url(#ing-gradient3)"
+          strokeWidth="2"
+          fill="none"
+          className="animate-ingredients-drift-vertical"
+        />
+
+        {/* Additional wave for complexity */}
+        <path
+          d="M 200 150 Q 400 200, 600 150 Q 800 100, 1000 150"
+          stroke="url(#ing-gradient2)"
+          strokeWidth="1.5"
+          fill="none"
+          className="animate-ingredients-drift-reverse"
+          opacity="0.6"
+        />
+      </svg>
+
+      <div className="max-w-6xl mx-auto relative z-10">
         {/* Header */}
         <div className="text-center mb-12">
           <Badge variant="secondary" className="mb-4 text-sm">
@@ -209,259 +391,320 @@ export function IngredientsScience() {
           </p>
         </div>
 
-        {/* Interactive Product Split Section */}
-        <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center mb-16">
-          {/* Left: Product Image with Hotspots */}
-          <div className="relative flex justify-center">
-            <div className="relative w-80 h-80 md:w-96 md:h-96">
-              {/* Product Image */}
-              <div className="relative w-full h-full">
-                <Image
-                  src="/product/testoup-bottle_v1.webp"
-                  alt="TestoUP бутилка"
-                  fill
-                  className="object-contain drop-shadow-2xl"
-                  priority
-                />
+        {/* Compact Bubble Interface - Desktop & Mobile Optimized */}
+        <div className="relative">
+          {/* Desktop: Product with Vertical Numbers - Sequential 1-12 */}
+          <div className="hidden md:block">
+            <div className="relative flex items-center justify-center max-w-7xl mx-auto min-h-[800px] gap-8">
+              {/* Left Column: Odd numbers 1,3,5,7,9,11 */}
+              <div className="w-96 flex flex-col gap-4">
+                {allIngredients.filter((_, index) => index % 2 === 0).map((ingredient) => {
+                  const isActive = activeIngredient === ingredient.id;
+                  return (
+                    <div key={ingredient.id} className="relative flex items-center gap-4 justify-end min-h-[44px]">
+                      {/* Expandable Bubble - Left Side */}
+                      <div className={`absolute right-14 transition-all duration-500 ${
+                        isActive ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+                      }`}>
+                        {isActive && (
+                          <Card className={`p-3 w-72 shadow-xl border-2 border-${ingredient.color}-500 bg-card/95 backdrop-blur-sm`}>
+                            <div className="flex items-start gap-2 mb-2">
+                              <div className={`w-8 h-8 rounded-full bg-${ingredient.color}-500 flex items-center justify-center text-white font-black flex-shrink-0 text-xs`}>
+                                {ingredient.id}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-bold text-sm mb-0.5">{ingredient.ingredient}</h4>
+                                <Badge variant="outline" className="text-xs">{ingredient.dosage}</Badge>
+                              </div>
+                            </div>
+                            <p className="text-xs font-semibold text-primary">{ingredient.keyBenefit}</p>
+                          </Card>
+                        )}
+                      </div>
 
-                {/* Glow Effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 blur-3xl opacity-40 animate-pulse -z-10" />
+                      {/* Connecting Line */}
+                      {isActive && (
+                        <div className="absolute right-10 w-12 h-0.5 bg-gradient-to-r from-transparent to-primary" />
+                      )}
+
+                      {/* Number Button - Fixed position */}
+                      <button
+                        onClick={() => setActiveIngredient(isActive ? null : ingredient.id)}
+                        className={`w-10 h-10 rounded-full border-2 transition-all duration-300 flex items-center justify-center flex-shrink-0 ${
+                          isActive
+                            ? `bg-${ingredient.color}-500 scale-110 shadow-xl ring-4 ring-${ingredient.color}-300/50 border-${ingredient.color}-400`
+                            : "bg-primary/20 border-primary/40 hover:scale-105 hover:bg-primary/30"
+                        }`}
+                      >
+                        <span className="text-xs font-black text-white">{ingredient.id}</span>
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
 
-              {/* Pulsing Hint Bubble */}
-              {showHint && !activeIngredient && (
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-accent text-white px-4 py-2 rounded-full text-sm font-bold shadow-2xl animate-bounce flex items-center gap-2">
-                  <Hand className="w-4 h-4" />
-                  Натисни съставките →
+              {/* Center: Product - Larger */}
+              <div className="relative w-[500px] h-[500px] flex-shrink-0">
+                {/* Purple glow effect - vibrant */}
+                <div className="absolute inset-0 -z-10">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 via-violet-500/30 to-fuchsia-500/30 blur-[80px] rounded-full animate-pulse" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-purple-600/20 via-transparent to-transparent blur-3xl" />
                 </div>
-              )}
+                {/* Product backdrop with purple tint */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-fuchsia-500/5 rounded-3xl backdrop-blur-sm border border-purple-500/20 -z-5" />
 
-              {/* Interactive Hotspots */}
-              <div className="absolute inset-0">
-                {topIngredients.map((ingredient, index) => {
-                  const positions = [
-                    { top: "15%", left: "20%" },   // Top-left
-                    { top: "30%", right: "15%" },  // Top-right
-                    { top: "50%", left: "10%" },   // Middle-left
-                    { top: "65%", right: "20%" },  // Middle-right
-                    { bottom: "15%", left: "25%" } // Bottom
-                  ];
+                <Image
+                  src="/product/testoup-bottle_v1.webp"
+                  alt="TestoUP - 12 активни съставки"
+                  fill
+                  className="object-contain drop-shadow-2xl relative z-10"
+                  priority
+                />
+              </div>
 
+              {/* Right Column: Even numbers 2,4,6,8,10,12 */}
+              <div className="w-96 flex flex-col gap-4">
+                {allIngredients.filter((_, index) => index % 2 === 1).map((ingredient) => {
                   const isActive = activeIngredient === ingredient.id;
-
                   return (
-                    <button
-                      key={ingredient.id}
-                      onClick={() => {
-                        setActiveIngredient(ingredient.id);
-                        setShowHint(false);
-                      }}
-                      className={`absolute w-8 h-8 rounded-full border-4 transition-all duration-300 cursor-pointer group ${
-                        isActive
-                          ? `bg-${ingredient.color}-500 border-${ingredient.color}-400 scale-125 shadow-lg`
-                          : "bg-primary/20 border-primary/40 hover:scale-110 hover:bg-primary/40"
-                      } ${!activeIngredient ? "animate-pulse" : ""}`}
-                      style={positions[index]}
-                    >
-                      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-black text-white">
-                        {index + 1}
-                      </span>
+                    <div key={ingredient.id} className="relative flex items-center gap-4 min-h-[44px]">
+                      {/* Number Button - Fixed position */}
+                      <button
+                        onClick={() => setActiveIngredient(isActive ? null : ingredient.id)}
+                        className={`w-10 h-10 rounded-full border-2 transition-all duration-300 flex items-center justify-center flex-shrink-0 ${
+                          isActive
+                            ? `bg-${ingredient.color}-500 scale-110 shadow-xl ring-4 ring-${ingredient.color}-300/50 border-${ingredient.color}-400`
+                            : "bg-primary/20 border-primary/40 hover:scale-105 hover:bg-primary/30"
+                        }`}
+                      >
+                        <span className="text-xs font-black text-white">{ingredient.id}</span>
+                      </button>
 
-                      {/* Tooltip on Hover */}
-                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
-                        <div className="bg-black/90 text-white text-xs px-3 py-1.5 rounded-lg font-semibold">
-                          {ingredient.ingredient}
-                        </div>
+                      {/* Connecting Line */}
+                      {isActive && (
+                        <div className="absolute left-10 w-12 h-0.5 bg-gradient-to-l from-transparent to-primary" />
+                      )}
+
+                      {/* Expandable Bubble - Right Side */}
+                      <div className={`absolute left-14 transition-all duration-500 ${
+                        isActive ? "opacity-100 scale-100" : "opacity-0 scale-95 pointer-events-none"
+                      }`}>
+                        {isActive && (
+                          <Card className={`p-3 w-72 shadow-xl border-2 border-${ingredient.color}-500 bg-card/95 backdrop-blur-sm`}>
+                            <div className="flex items-start gap-2 mb-2">
+                              <div className={`w-8 h-8 rounded-full bg-${ingredient.color}-500 flex items-center justify-center text-white font-black flex-shrink-0 text-xs`}>
+                                {ingredient.id}
+                              </div>
+                              <div className="flex-1">
+                                <h4 className="font-bold text-sm mb-0.5">{ingredient.ingredient}</h4>
+                                <Badge variant="outline" className="text-xs">{ingredient.dosage}</Badge>
+                              </div>
+                            </div>
+                            <p className="text-xs font-semibold text-primary">{ingredient.keyBenefit}</p>
+                          </Card>
+                        )}
                       </div>
-                    </button>
+                    </div>
                   );
                 })}
               </div>
             </div>
           </div>
 
-          {/* Right: Ingredients List */}
-          <div className="space-y-4">
-            <h3 className="text-2xl font-bold mb-6">Топ 5 активни съставки:</h3>
+          {/* Mobile: Product + All 12 Numbers + Centered Bubble OVERLAY */}
+          <div className="md:hidden">
+            <div className="relative flex flex-col items-center">
+              {/* Product with 12 numbers around it AND bubble overlay in center */}
+              <div className="relative w-72 h-72 mb-8 sm:w-80 sm:h-80">
+                {/* Purple glow effect - vibrant */}
+                <div className="absolute inset-0 -z-10">
+                  <div className="absolute inset-0 bg-gradient-to-br from-purple-500/30 via-violet-500/30 to-fuchsia-500/30 blur-[60px] rounded-full animate-pulse" />
+                </div>
+                {/* Product backdrop with purple tint */}
+                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-fuchsia-500/5 rounded-3xl backdrop-blur-sm border border-purple-500/20 -z-5" />
 
-            {topIngredients.map((ingredient, index) => {
-              const isActive = activeIngredient === ingredient.id;
+                <Image
+                  src="/product/testoup-bottle_v1.webp"
+                  alt="TestoUP - 12 активни съставки"
+                  fill
+                  className="object-contain drop-shadow-2xl relative z-10"
+                  priority
+                />
 
-              return (
-                <button
-                  key={ingredient.id}
-                  onClick={() => {
-                    setActiveIngredient(ingredient.id);
-                    setShowHint(false);
-                  }}
-                  className={`w-full text-left transition-all duration-300 ${
-                    isActive
-                      ? `bg-${ingredient.color}-500/10 border-${ingredient.color}-500 scale-105 shadow-xl`
-                      : "bg-card/50 border-border/50 hover:border-primary/50"
-                  } border-2 rounded-xl p-4 cursor-pointer`}
-                >
-                  <div className="flex items-start gap-4">
-                    {/* Number Badge */}
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-black flex-shrink-0 ${
-                      isActive ? `bg-${ingredient.color}-500` : "bg-muted"
-                    }`}>
-                      {index + 1}
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <h4 className="font-bold text-lg">{ingredient.ingredient}</h4>
-                        <Badge variant="outline" className="text-xs font-semibold flex-shrink-0">
-                          {ingredient.dosage}
-                        </Badge>
-                      </div>
-                      <p className="text-xs text-muted-foreground italic mb-2">
-                        {ingredient.scientificName}
-                      </p>
-
-                      {/* Expanded Details */}
-                      {isActive && (
-                        <div className="mt-3 pt-3 border-t border-border/50 space-y-2 animate-in fade-in duration-300">
-                          <p className="text-sm font-semibold text-primary">
-                            {ingredient.keyBenefit}
-                          </p>
-                          <ul className="space-y-1">
-                            {ingredient.researchFindings.map((finding, idx) => (
-                              <li key={idx} className="text-xs text-muted-foreground flex items-start gap-2">
-                                <span className="text-primary mt-0.5">✓</span>
-                                <span>{finding}</span>
-                              </li>
-                            ))}
-                          </ul>
-                          <div className="flex items-center gap-2 mt-2">
-                            <Badge variant="secondary" className="text-xs">
-                              <Beaker className="w-3 h-3 mr-1" />
-                              {ingredient.studies}
-                            </Badge>
-                          </div>
+                {/* Centered Bubble Card OVERLAY - Above product, below numbers */}
+                <div className="absolute inset-0 flex items-center justify-center z-20 px-4">
+                  {allIngredients.map((ingredient, index) => (
+                    <Card
+                      key={ingredient.id}
+                      className={`p-3 sm:p-4 w-full max-w-[240px] sm:max-w-[260px] transition-all duration-500 ${
+                        index === mobileActiveIndex
+                          ? `opacity-100 scale-100 border-2 border-${ingredient.color}-500 shadow-2xl`
+                          : "opacity-0 scale-90 absolute inset-0 pointer-events-none"
+                      } bg-card/95 backdrop-blur-md`}
+                    >
+                      <div className="flex items-start gap-2 mb-2">
+                        <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-${ingredient.color}-500 flex items-center justify-center text-white font-black flex-shrink-0 text-sm`}>
+                          {index + 1}
                         </div>
+                        <div className="flex-1 min-w-0">
+                          <h4 className="font-bold text-sm sm:text-base mb-1 leading-tight">{ingredient.ingredient}</h4>
+                          <Badge variant="outline" className="text-[10px] sm:text-xs">{ingredient.dosage}</Badge>
+                        </div>
+                      </div>
+
+                      {ingredient.scientificName && (
+                        <p className="text-[10px] sm:text-xs text-muted-foreground italic mb-1.5">{ingredient.scientificName}</p>
                       )}
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
+
+                      <p className="text-xs sm:text-sm font-semibold text-primary mb-2 leading-snug">{ingredient.keyBenefit}</p>
+
+                      {ingredient.rda && (
+                        <p className="text-[10px] sm:text-xs font-bold text-primary mb-1.5">{ingredient.rda} РДА</p>
+                      )}
+
+                      {ingredient.researchFindings && (
+                        <ul className="space-y-1 text-[10px] sm:text-xs text-muted-foreground mb-2">
+                          {ingredient.researchFindings.slice(0, 2).map((finding, idx) => (
+                            <li key={idx} className="flex gap-1.5">
+                              <CheckCircle className="w-3 h-3 text-primary flex-shrink-0 mt-0.5" />
+                              <span className="leading-tight">{finding}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+
+                      {ingredient.studies && (
+                        <Badge variant="secondary" className="text-[10px] sm:text-xs">
+                          <Beaker className="w-3 h-3 mr-1" />
+                          {ingredient.studies}
+                        </Badge>
+                      )}
+                    </Card>
+                  ))}
+                </div>
+
+                {/* All 12 numbers around product - Higher z-index to be above bubble */}
+                {allIngredients.map((ingredient, index) => {
+                  // Vertical alignment in two columns (left and right) - outside the frame
+                  const positions = [
+                    { top: "5%", left: "-15%" },    // 1 - left
+                    { top: "5%", right: "-15%" },   // 2 - right
+                    { top: "20%", left: "-15%" },   // 3 - left
+                    { top: "20%", right: "-15%" },  // 4 - right
+                    { top: "35%", left: "-15%" },   // 5 - left
+                    { top: "35%", right: "-15%" },  // 6 - right
+                    { top: "50%", left: "-15%" },   // 7 - left
+                    { top: "50%", right: "-15%" },  // 8 - right
+                    { top: "65%", left: "-15%" },   // 9 - left
+                    { top: "65%", right: "-15%" },  // 10 - right
+                    { top: "80%", left: "-15%" },   // 11 - left
+                    { top: "80%", right: "-15%" }   // 12 - right
+                  ];
+                  const isActive = index === mobileActiveIndex;
+
+                  return (
+                    <button
+                      key={ingredient.id}
+                      onClick={() => setMobileActiveIndex(index)}
+                      className={`absolute w-8 h-8 sm:w-9 sm:h-9 rounded-full border-2 transition-all duration-300 flex items-center justify-center z-30 ${
+                        isActive
+                          ? `bg-${ingredient.color}-500 scale-125 shadow-xl ring-2 ring-${ingredient.color}-300/50 border-${ingredient.color}-400`
+                          : "bg-primary/30 border-primary/50 hover:scale-110"
+                      }`}
+                      style={positions[index]}
+                    >
+                      <span className="text-xs font-black text-white">{index + 1}</span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Progress Dots - Below product */}
+              <div className="flex justify-center gap-2">
+                {allIngredients.map((_, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setMobileActiveIndex(index)}
+                    className={`w-2 h-2 rounded-full transition-all ${
+                      index === mobileActiveIndex ? "bg-primary w-6" : "bg-muted"
+                    }`}
+                  />
+                ))}
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Ingredients Table - Compact Format */}
-        <div className="mb-10">
-          <Card className="overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="border-b-2 bg-muted/50">
-                    <th className="text-left p-4 text-sm font-bold">Съставка</th>
-                    <th className="text-left p-4 text-sm font-bold">Доза</th>
-                    <th className="text-left p-4 text-sm font-bold hidden md:table-cell">% РДА</th>
-                    <th className="text-left p-4 text-sm font-bold">Ключов Ефект</th>
-                    <th className="text-center p-4 text-sm font-bold hidden lg:table-cell">Проучвания</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* TOP 5 Ingredients */}
-                  {topIngredients.map((item, idx) => (
-                    <tr
-                      key={item.id}
-                      className={`border-b hover:bg-muted/30 transition-colors border-l-4 ${item.accentColor}`}
-                    >
-                      <td className="p-4">
-                        <div className="flex items-center gap-3">
-                          <div className="text-primary hidden sm:block">
-                            {item.icon}
-                          </div>
-                          <div>
-                            <p className="font-bold text-sm">{item.ingredient}</p>
-                            <p className="text-xs text-muted-foreground italic">{item.scientificName}</p>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant="outline" className="text-xs font-semibold">
-                          {item.dosage}
-                        </Badge>
-                      </td>
-                      <td className="p-4 hidden md:table-cell">
-                        <span className="text-sm font-semibold text-primary">
-                          {item.ourDose.match(/\d+%/)?.[0] || "—"}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <p className="text-xs leading-relaxed">{item.keyBenefit}</p>
-                      </td>
-                      <td className="p-4 text-center hidden lg:table-cell">
-                        <Badge variant="secondary" className="text-xs">
-                          <Beaker className="w-3 h-3 mr-1" />
-                          {item.studies.replace("+ клинични изследвания", "")}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-
-                  {/* Additional 7 Ingredients */}
-                  {compactIngredients.map((item, idx) => (
-                    <tr
-                      key={idx}
-                      className="border-b hover:bg-muted/30 transition-colors"
-                    >
-                      <td className="p-4">
-                        <p className="font-bold text-sm">{item.name}</p>
-                      </td>
-                      <td className="p-4">
-                        <Badge variant="outline" className="text-xs font-semibold">
-                          {item.amount}
-                        </Badge>
-                      </td>
-                      <td className="p-4 hidden md:table-cell">
-                        <span className="text-sm font-semibold text-primary">
-                          {item.rda || "—"}
-                        </span>
-                      </td>
-                      <td className="p-4">
-                        <p className="text-xs leading-relaxed">{item.benefit}</p>
-                      </td>
-                      <td className="p-4 text-center hidden lg:table-cell">
-                        <span className="text-xs text-muted-foreground">✓</span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </Card>
-        </div>
-
-        {/* Why Dosages Matter */}
-        <div className="bg-muted/30 border-l-4 border-primary rounded-xl p-8 text-center mb-8">
-          <div className="max-w-3xl mx-auto">
-            <h3 className="text-2xl font-bold mb-4">
+        {/* Why Dosages Matter - Modern Compact */}
+        <div className="mb-8">
+          <div className="text-center mb-6">
+            <h3 className="text-xl md:text-2xl font-bold mb-2">
               Защо дозировките имат значение?
             </h3>
-            <p className="text-muted-foreground mb-6">
-              Повечето добавки на пазара използват <strong>безполезни дозировки</strong> -
-              прашец от съставка, недостатъчен за ефект. TestoUP използва <strong>клинично
-              валидирани дози</strong> от всяка съставка. Затова работи.
+            <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
+              TestoUP използва <strong>клинично валидирани дози</strong> от всяка съставка. Затова работи.
             </p>
-            <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">✓</span>
-                <span className="font-semibold">Рецензирани изследвания</span>
+          </div>
+
+          {/* Mobile: Horizontal Auto-Scroll | Desktop: Grid Layout */}
+          <div
+            id="badge-scroll-container"
+            className="flex md:grid overflow-x-auto md:overflow-visible gap-3 md:gap-4 md:grid-cols-4 lg:grid-cols-7 snap-x snap-mandatory scroll-smooth hide-scrollbar"
+          >
+            {/* Dosage Features */}
+            <Card className="p-4 text-center border-primary/30 bg-gradient-to-br from-primary/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-2">
+                <Beaker className="w-5 h-5 text-white" />
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">✓</span>
-                <span className="font-semibold">Клинични дозировки</span>
+              <p className="text-xs font-bold">Рецензирани изследвания</p>
+            </Card>
+
+            <Card className="p-4 text-center border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-2">
+                <Award className="w-5 h-5 text-white" />
               </div>
-              <div className="flex items-center gap-2">
-                <span className="text-2xl">✓</span>
-                <span className="font-semibold">Пълна прозрачност</span>
+              <p className="text-xs font-bold">Клинични дозировки</p>
+            </Card>
+
+            <Card className="p-4 text-center border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-2">
+                <CheckCircle className="w-5 h-5 text-white" />
               </div>
-            </div>
+              <p className="text-xs font-bold">Пълна прозрачност</p>
+            </Card>
+
+            {/* Certification Features */}
+            <Card className="p-4 text-center border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-2">
+                <MapPin className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-xs font-bold">Произведено в ЕС</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">GMP</p>
+            </Card>
+
+            <Card className="p-4 text-center border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-2">
+                <Microscope className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-xs font-bold">Тествано</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Лаб</p>
+            </Card>
+
+            <Card className="p-4 text-center border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-2">
+                <Leaf className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-xs font-bold">100% природни</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Без химия</p>
+            </Card>
+
+            <Card className="p-4 text-center border-orange-500/30 bg-gradient-to-br from-orange-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center mx-auto mb-2">
+                <ShieldCheck className="w-5 h-5 text-white" />
+              </div>
+              <p className="text-xs font-bold">Гаранция</p>
+              <p className="text-[10px] text-muted-foreground mt-0.5">Честност</p>
+            </Card>
           </div>
         </div>
 
@@ -546,41 +789,6 @@ export function IngredientsScience() {
               </div>
             </Card>
           )}
-        </div>
-
-        {/* Certifications */}
-        <div className="mt-10 flex flex-wrap items-center justify-center gap-8">
-          <div className="text-center">
-            <div className="bg-green-100 dark:bg-green-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
-              <MapPin className="w-7 h-7 text-green-700 dark:text-green-400" />
-            </div>
-            <p className="text-sm font-semibold">Произведено в ЕС</p>
-            <p className="text-xs text-muted-foreground">Сертифицирано GMP</p>
-          </div>
-
-          <div className="text-center">
-            <div className="bg-blue-100 dark:bg-blue-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
-              <Microscope className="w-7 h-7 text-blue-700 dark:text-blue-400" />
-            </div>
-            <p className="text-sm font-semibold">Лабораторно тествано</p>
-            <p className="text-xs text-muted-foreground">Всяка партида</p>
-          </div>
-
-          <div className="text-center">
-            <div className="bg-purple-100 dark:bg-purple-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
-              <Leaf className="w-7 h-7 text-purple-700 dark:text-purple-400" />
-            </div>
-            <p className="text-sm font-semibold">100% природни</p>
-            <p className="text-xs text-muted-foreground">Без химия</p>
-          </div>
-
-          <div className="text-center">
-            <div className="bg-orange-100 dark:bg-orange-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
-              <ShieldCheck className="w-7 h-7 text-orange-700 dark:text-orange-400" />
-            </div>
-            <p className="text-sm font-semibold">Гаранция за честност</p>
-            <p className="text-xs text-muted-foreground">Без скрити смеси</p>
-          </div>
         </div>
       </div>
     </section>

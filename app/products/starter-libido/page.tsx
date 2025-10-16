@@ -8,7 +8,7 @@ import { DividerTransition } from "../starter/components/shared/SectionTransitio
 import { SolutionTimeline } from "../starter/components/SolutionTimeline";
 import { HowItWorks } from "../starter/components/HowItWorks";
 import { IngredientsScience } from "@/components/funnel/IngredientsScience";
-import { TestographProSection } from "@/components/funnel/TestographProSection";
+import { BenefitsSection } from "@/components/funnel/BenefitsSection";
 import { FAQSection } from "@/components/funnel/FAQSection";
 import { GuaranteeSection } from "../starter/components/GuaranteeSection";
 import { FinalCTA } from "../starter/components/FinalCTA";
@@ -50,8 +50,11 @@ export default function StarterLibidoPage() {
       {/* Ingredients Science - Moved before offer for better conversion */}
       <IngredientsScience />
 
-      {/* TestographPRO Protocol Section */}
-      <TestographProSection />
+      {/* Benefits Section - 6 Key Benefits */}
+      <BenefitsSection />
+
+      {/* How It Works - 3 Simple Steps */}
+      <HowItWorks />
 
       {/* New Value Stack Grid */}
       <ValueStackGrid
@@ -102,29 +105,16 @@ export default function StarterLibidoPage() {
       {/* Video Testimonials */}
       <VideoTestimonialGrid />
 
-      {/* How It Works */}
-      <HowItWorks />
-
-      {/* FAQ */}
-      <section className="py-12 md:py-16 px-4">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Често Задавани Въпроси
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Отговори на всички твои въпроси
-            </p>
-          </div>
-          <FAQSection tier="regular" />
-        </div>
-      </section>
-
-      {/* Guarantee */}
-      <GuaranteeSection />
-
       {/* Final CTA */}
       <FinalCTA />
+
+      {/* Guarantee - Above FAQ */}
+      <GuaranteeSection />
+
+      {/* FAQ - At Bottom */}
+      <section className="py-8 px-4 bg-muted/30">
+        <FAQSection tier="regular" />
+      </section>
 
       {/* Floating CTA Button (appears on scroll) */}
       <FloatingCTA />

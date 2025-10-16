@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { ShoppingCart, ChevronUp, Clock, Sparkles } from "lucide-react";
+import { useCountdownTimer } from "@/lib/useCountdownTimer";
 
 export function FloatingCTA() {
   const [isVisible, setIsVisible] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(3600); // 1 hour countdown
+  const timeLeft = useCountdownTimer();
 
   useEffect(() => {
     // Show after user scrolls past hero (800px)
@@ -17,22 +18,13 @@ export function FloatingCTA() {
     window.addEventListener("scroll", handleScroll);
     handleScroll(); // Check initial position
 
-    // Countdown timer
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => (prev > 0 ? prev - 1 : 0));
-    }, 1000);
-
     return () => {
       window.removeEventListener("scroll", handleScroll);
-      clearInterval(timer);
     };
   }, []);
 
-  const formatTime = (seconds: number) => {
-    const h = Math.floor(seconds / 3600);
-    const m = Math.floor((seconds % 3600) / 60);
-    const s = seconds % 60;
-    return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  const formatTime = (hours: number, minutes: number, seconds: number) => {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
   const scrollToElement = (selector: string) => {
@@ -42,7 +34,9 @@ export function FloatingCTA() {
     }
   };
 
-  const isUrgent = timeLeft <= 600; // Last 10 minutes
+  const totalSeconds = timeLeft.hours * 3600 + timeLeft.minutes * 60 + timeLeft.seconds;
+  const isUrgent = totalSeconds <= 600; // Last 10 minutes
+  const totalDuration = 24 * 3600; // 24 hours in seconds
 
   return (
     <>
@@ -64,7 +58,7 @@ export function FloatingCTA() {
             <span className={`font-mono font-bold tabular-nums ${
               isUrgent ? "text-red-500 text-lg animate-pulse" : "text-foreground"
             }`}>
-              {formatTime(timeLeft)}
+              {formatTime(timeLeft.hours, timeLeft.minutes, timeLeft.seconds)}
             </span>
           </div>
 
@@ -92,7 +86,7 @@ export function FloatingCTA() {
             className={`h-full bg-gradient-to-r ${
               isUrgent ? "from-red-500 to-orange-500" : "from-primary to-accent"
             } transition-all duration-1000`}
-            style={{ width: `${((3600 - timeLeft) / 3600) * 100}%` }}
+            style={{ width: `${((totalDuration - totalSeconds) / totalDuration) * 100}%` }}
           />
         </div>
       </div>
@@ -127,7 +121,7 @@ export function FloatingCTA() {
           >
             <div className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
-              <span className="tabular-nums">{formatTime(timeLeft)}</span>
+              <span className="tabular-nums">{formatTime(timeLeft.hours, timeLeft.minutes, timeLeft.seconds)}</span>
             </div>
           </div>
 

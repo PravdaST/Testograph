@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Play, Quote } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -48,45 +48,50 @@ const testimonials: VideoTestimonial[] = [
     keyQuote: "От 78кг на 86кг. Треньорът ми не вярваше на очите си.",
     thumbnail: "/api/placeholder/400/300",
     duration: "1:34"
-  },
-  {
-    id: 4,
-    name: "Атанас П.",
-    age: 39,
-    problem: "Фертилност",
-    badge: "След 4 месеца",
-    keyQuote: "След 3 години опити... жена ми е бременна. Това е чудо.",
-    thumbnail: "/api/placeholder/400/300",
-    duration: "2:03"
-  },
-  {
-    id: 5,
-    name: "Валентин Н.",
-    age: 44,
-    problem: "Самочувствие",
-    badge: "След 6 седмици",
-    keyQuote: "Изгубих мъжествеността си. TestoUP ми я върна.",
-    thumbnail: "/api/placeholder/400/300",
-    duration: "1:28"
-  },
-  {
-    id: 6,
-    name: "Ивайло С.",
-    age: 35,
-    problem: "Сън и Възстановяване",
-    badge: "След 3 седмици",
-    keyQuote: "Заспивам за 5 минути. Будя се зареден. Първи път от години.",
-    thumbnail: "/api/placeholder/400/300",
-    duration: "0:53"
   }
 ];
 
 export function VideoTestimonialGrid() {
   const [selectedVideo, setSelectedVideo] = useState<VideoTestimonial | null>(null);
+  const [activeIndex, setActiveIndex] = useState(0);
+
+  // Auto-advance carousel
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => {
+        const nextIndex = (prev + 1) % testimonials.length;
+
+        // Auto scroll on mobile
+        if (window.innerWidth < 768) {
+          const container = document.getElementById('video-scroll-container');
+          if (container) {
+            const cardWidth = container.scrollWidth / testimonials.length;
+            container.scrollTo({
+              left: cardWidth * nextIndex,
+              behavior: 'smooth'
+            });
+          }
+        }
+
+        return nextIndex;
+      });
+    }, 5000); // Change every 5 seconds
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <>
       <section className="py-12 md:py-16 px-4 bg-muted/30">
+        <style dangerouslySetInnerHTML={{__html: `
+          /* Hide scrollbar */
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+          .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}} />
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="text-center mb-12">
@@ -102,57 +107,87 @@ export function VideoTestimonialGrid() {
             </p>
           </div>
 
-          {/* Video Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {testimonials.map((testimonial) => (
-              <Card
-                key={testimonial.id}
-                className="group overflow-hidden hover:shadow-2xl transition-all duration-300 cursor-pointer"
-                onClick={() => setSelectedVideo(testimonial)}
-              >
-                {/* Video Thumbnail */}
-                <div className="relative aspect-video bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
-                  {/* Placeholder for actual video thumbnail */}
-                  <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/30 transition-colors">
-                    <div className="bg-white/90 dark:bg-black/90 rounded-full p-4 group-hover:scale-110 transition-transform">
-                      <Play className="w-8 h-8 text-primary fill-primary" />
+          {/* Video Carousel - 9:16 format */}
+          <div className="relative">
+            {/* Mobile: Horizontal Slider | Desktop: Grid */}
+            <div
+              id="video-scroll-container"
+              className="flex md:grid overflow-x-auto md:overflow-visible gap-6 md:grid-cols-3 max-w-5xl mx-auto snap-x snap-mandatory scroll-smooth hide-scrollbar px-4 md:px-0"
+            >
+              {testimonials.map((testimonial, index) => (
+                <Card
+                  key={testimonial.id}
+                  className={`group overflow-hidden hover:shadow-2xl transition-all duration-500 cursor-pointer min-w-[85vw] md:min-w-0 snap-center ${
+                    index === activeIndex ? 'ring-2 ring-primary md:scale-105' : 'md:opacity-70 md:scale-95'
+                  }`}
+                  onClick={() => setSelectedVideo(testimonial)}
+                >
+                  {/* Video Thumbnail - 9:16 vertical format */}
+                  <div className="relative aspect-[9/16] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
+                    {/* Placeholder for actual video thumbnail */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/30 transition-colors">
+                      <div className="bg-white/90 dark:bg-black/90 rounded-full p-4 group-hover:scale-110 transition-transform">
+                        <Play className="w-8 h-8 text-primary fill-primary" />
+                      </div>
                     </div>
+
+                    {/* Duration Badge */}
+                    <Badge className="absolute bottom-2 right-2 bg-black/80 text-white">
+                      {testimonial.duration}
+                    </Badge>
+
+                    {/* When Badge */}
+                    <Badge variant="secondary" className="absolute top-2 left-2">
+                      {testimonial.badge}
+                    </Badge>
                   </div>
 
-                  {/* Duration Badge */}
-                  <Badge className="absolute bottom-2 right-2 bg-black/80 text-white">
-                    {testimonial.duration}
-                  </Badge>
-
-                  {/* When Badge */}
-                  <Badge variant="secondary" className="absolute top-2 left-2">
-                    {testimonial.badge}
-                  </Badge>
-                </div>
-
-                {/* Content */}
-                <div className="p-5">
-                  <div className="flex items-start justify-between mb-3">
-                    <div>
-                      <h3 className="font-bold text-lg">
+                  {/* Content */}
+                  <div className="p-4">
+                    <div className="mb-2">
+                      <h3 className="font-bold text-base">
                         {testimonial.name}, {testimonial.age}г
                       </h3>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-xs text-muted-foreground">
                         Проблем: {testimonial.problem}
                       </p>
                     </div>
-                  </div>
 
-                  {/* Key Quote */}
-                  <div className="bg-muted/50 rounded-lg p-3 relative">
-                    <Quote className="w-4 h-4 text-primary/40 absolute top-2 left-2" />
-                    <p className="text-sm italic pl-5">
-                      "{testimonial.keyQuote}"
-                    </p>
+                    {/* Key Quote */}
+                    <div className="bg-muted/50 rounded-lg p-2 relative">
+                      <Quote className="w-3 h-3 text-primary/40 absolute top-1.5 left-1.5" />
+                      <p className="text-xs italic pl-4">
+                        "{testimonial.keyQuote}"
+                      </p>
+                    </div>
                   </div>
-                </div>
-              </Card>
-            ))}
+                </Card>
+              ))}
+            </div>
+
+            {/* Progress Dots */}
+            <div className="flex justify-center gap-2 mt-8">
+              {testimonials.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => {
+                    setActiveIndex(index);
+                    // Auto scroll on mobile
+                    const container = document.getElementById('video-scroll-container');
+                    if (container && window.innerWidth < 768) {
+                      const cardWidth = container.scrollWidth / testimonials.length;
+                      container.scrollTo({
+                        left: cardWidth * index,
+                        behavior: 'smooth'
+                      });
+                    }
+                  }}
+                  className={`w-2 h-2 rounded-full transition-all ${
+                    index === activeIndex ? "bg-primary w-8" : "bg-muted-foreground/30"
+                  }`}
+                />
+              ))}
+            </div>
           </div>
 
           {/* Bottom Note */}
