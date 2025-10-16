@@ -4,21 +4,21 @@ import { EnergyHero } from "./components/EnergyHero";
 import { EnergyProblemAgitationCards } from "./components/EnergyProblemAgitationCards";
 import { FloatingCTA } from "../starter/components/shared/FloatingCTA";
 import { ValueStackGrid } from "../starter/components/shared/ValueStackGrid";
-import { WaveTransition, DividerTransition, GradientTransition } from "../starter/components/shared/SectionTransition";
+import { WaveTransition, DividerTransition } from "../starter/components/shared/SectionTransition";
 import { SolutionTimeline } from "../starter/components/SolutionTimeline";
 import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
 import { HowItWorks } from "../starter/components/HowItWorks";
-import { IngredientTable } from "../starter/components/IngredientTable";
+import { IngredientsScience } from "@/components/funnel/IngredientsScience";
+import { TestographProSection } from "@/components/funnel/TestographProSection";
 import { FAQSection } from "@/components/funnel/FAQSection";
 import { GuaranteeSection } from "../starter/components/GuaranteeSection";
 import { FinalCTA } from "../starter/components/FinalCTA";
 import { ExitIntentPopup } from "../starter/components/ExitIntentPopup";
 import { SocialProofBanner } from "../starter/components/SocialProofBanner";
-import { CommunityChatsGrid } from "@/components/funnel/CommunityChatsGrid";
+import { CommunityChatsCarousel } from "@/components/funnel/CommunityChatsCarousel";
 import { VideoTestimonialGrid } from "@/components/funnel/VideoTestimonialGrid";
 import { DetailedTestimonialCards } from "@/components/funnel/DetailedTestimonialCards";
-import { ScienceSection } from "@/components/funnel/ScienceSection";
-import { SupplementFacts } from "@/components/funnel/SupplementFacts";
+import { Package, FileText, Headphones, Users, Zap } from "lucide-react";
 
 export default function StarterEnergyPage() {
   return (
@@ -43,8 +43,6 @@ export default function StarterEnergyPage() {
       {/* Social Proof Banner */}
       <SocialProofBanner />
 
-      {/* Gradient Transition */}
-      <GradientTransition color="muted" />
 
       {/* New Problem Agitation Cards */}
       <EnergyProblemAgitationCards />
@@ -55,11 +53,17 @@ export default function StarterEnergyPage() {
       {/* Wave Transition */}
       <WaveTransition color="primary" flip />
 
-      {/* Community Chat Proof */}
-      <CommunityChatsGrid />
+      {/* Detailed Testimonials - ENERGY SPECIFIC */}
+      <DetailedTestimonialCards angle="energy" limit={2} />
 
       {/* Divider Transition */}
       <DividerTransition />
+
+      {/* Community Chat Proof */}
+      <CommunityChatsCarousel />
+
+      {/* Wave Transition */}
+      <WaveTransition color="accent" />
 
       {/* New Value Stack Grid */}
       <ValueStackGrid
@@ -68,35 +72,35 @@ export default function StarterEnergyPage() {
             name: "TestoUP бутилка (60 капсули)",
             value: 67,
             description: "24000% РДА B12 + 700% РДА D3 = Експлозивна енергия.",
-            icon: "💊",
+            icon: <Package className="w-8 h-8" />,
             highlight: true
           },
           {
             name: "TestographPRO 30-дневен протокол",
             value: 197,
             description: "Сън. Храна. Добавки. Всичко за максимална енергия.",
-            icon: "📋",
+            icon: <FileText className="w-8 h-8" />,
             highlight: true
           },
           {
             name: "24/7 Хормонален Експерт поддръжка",
             value: "Включена",
             description: "Питай за умора. Питай за сън. Винаги на линия.",
-            icon: "🤝",
+            icon: <Headphones className="w-8 h-8" />,
             highlight: true
           },
           {
             name: "VIP Telegram общност",
             value: 29,
             description: "Мъже които се събудиха. Споделят как.",
-            icon: "👥",
+            icon: <Users className="w-8 h-8" />,
             isBonus: true
           },
           {
             name: "БОНУС: 7-дневен план за бърз старт",
             value: 49,
             description: "Почувствай разликата в първата седмица.",
-            icon: "🚀",
+            icon: <Zap className="w-8 h-8" />,
             isBonus: true
           }
         ]}
@@ -125,8 +129,6 @@ export default function StarterEnergyPage() {
         </div>
       </section>
 
-      {/* Gradient Transition */}
-      <GradientTransition color="muted" position="top" />
 
       {/* Video Testimonials */}
       <VideoTestimonialGrid />
@@ -137,32 +139,15 @@ export default function StarterEnergyPage() {
       {/* How It Works */}
       <HowItWorks />
 
-      {/* Gradient Transition */}
-      <GradientTransition color="accent" />
 
-      {/* Science Section */}
-      <ScienceSection />
+      {/* Ingredients Science - Consolidated Section */}
+      <IngredientsScience />
 
-      {/* Divider Transition */}
-      <DividerTransition />
-
-      {/* Ingredient Transparency */}
-      <IngredientTable />
+      {/* TestographPRO Protocol Section */}
+      <TestographProSection />
 
       {/* Wave Transition */}
       <WaveTransition color="muted" flip />
-
-      {/* Detailed Testimonials */}
-      <DetailedTestimonialCards />
-
-      {/* Gradient Transition */}
-      <GradientTransition color="muted" />
-
-      {/* Supplement Facts */}
-      <SupplementFacts />
-
-      {/* Divider Transition */}
-      <DividerTransition />
 
       {/* FAQ */}
       <section className="py-12 md:py-16 px-4">
@@ -185,8 +170,6 @@ export default function StarterEnergyPage() {
       {/* Guarantee */}
       <GuaranteeSection />
 
-      {/* Gradient Transition */}
-      <GradientTransition color="accent" position="top" />
 
       {/* Final CTA */}
       <FinalCTA />

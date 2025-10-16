@@ -4,10 +4,11 @@ import { LibidoHero } from "./components/LibidoHero";
 import { ProblemAgitationCards } from "./components/ProblemAgitationCards";
 import { FloatingCTA } from "../starter/components/shared/FloatingCTA";
 import { ValueStackGrid } from "../starter/components/shared/ValueStackGrid";
-import { DividerTransition, GradientTransition } from "../starter/components/shared/SectionTransition";
+import { DividerTransition } from "../starter/components/shared/SectionTransition";
 import { SolutionTimeline } from "../starter/components/SolutionTimeline";
 import { HowItWorks } from "../starter/components/HowItWorks";
 import { IngredientsScience } from "@/components/funnel/IngredientsScience";
+import { TestographProSection } from "@/components/funnel/TestographProSection";
 import { FAQSection } from "@/components/funnel/FAQSection";
 import { GuaranteeSection } from "../starter/components/GuaranteeSection";
 import { FinalCTA } from "../starter/components/FinalCTA";
@@ -37,9 +38,6 @@ export default function StarterLibidoPage() {
       {/* Social Proof Banner */}
       <SocialProofBanner />
 
-      {/* Gradient Transition */}
-      <GradientTransition color="muted" />
-
       {/* New Problem Agitation Cards */}
       <ProblemAgitationCards />
 
@@ -49,11 +47,11 @@ export default function StarterLibidoPage() {
       {/* Community Chat Proof */}
       <CommunityChatsCarousel />
 
-      {/* Gradient Transition */}
-      <GradientTransition color="accent" />
-
       {/* Ingredients Science - Moved before offer for better conversion */}
       <IngredientsScience />
+
+      {/* TestographPRO Protocol Section */}
+      <TestographProSection />
 
       {/* New Value Stack Grid */}
       <ValueStackGrid
@@ -124,9 +122,6 @@ export default function StarterLibidoPage() {
 
       {/* Guarantee */}
       <GuaranteeSection />
-
-      {/* Gradient Transition */}
-      <GradientTransition color="accent" position="top" />
 
       {/* Final CTA */}
       <FinalCTA />
