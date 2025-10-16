@@ -343,3 +343,47 @@ button, .btn {
 .animate-slide-down {
   animation: slide-down 0.5s ease-out;
 }
+
+/* Gradient Animation for Value Stack */
+@keyframes gradient {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient 15s ease infinite;
+}
+
+/* Accessibility: Reduce Motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Focus Visible States for Keyboard Navigation */
+*:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+}
+
+button:focus-visible,
+a:focus-visible,
+[role="button"]:focus-visible {
+  @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+}
+
+/* Skip Links for Accessibility */
+.skip-link {
+  @apply absolute -top-full left-0 z-[100] bg-primary text-primary-foreground px-6 py-3 rounded-br-lg font-bold;
+  @apply focus:top-0;
+  transition: top 0.3s;
+}
