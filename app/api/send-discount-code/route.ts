@@ -2,11 +2,30 @@ import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
 import { createClient } from '@supabase/supabase-js';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-);
+// Lazy initialization to avoid build-time errors
+let resend: Resend;
+let supabase: ReturnType<typeof createClient>;
+
+function getResend() {
+  if (!resend) {
+    resend = new Resend(process.env.RESEND_API_KEY);
+  }
+  return resend;
+}
+
+function getSupabase() {
+  if (!supabase) {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      throw new Error('Supabase environment variables are not configured');
+    }
+
+    supabase = createClient(supabaseUrl, supabaseKey);
+  }
+  return supabase;
+}
 
 interface DiscountCodeEmail {
   email: string;
@@ -179,7 +198,8 @@ export async function POST(request: Request) {
 
     // Save email to database (mailing list)
     try {
-      const { error: dbError } = await supabase
+      const supabaseClient = getSupabase();
+      const { error: dbError } = await supabaseClient
         .from('email_subscribers')
         .upsert({
           email: email.toLowerCase(),
@@ -209,7 +229,8 @@ export async function POST(request: Request) {
     );
 
     // Send email
-    const { data, error } = await resend.emails.send({
+    const resendClient = getResend();
+    const { data, error } = await resendClient.emails.send({
       from: 'Testograph <offers@shop.testograph.eu>',
       to: email,
       subject: `🎁 Твоят ${discountCode} промокод за ${packageName}`,
