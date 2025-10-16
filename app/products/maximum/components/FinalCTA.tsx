@@ -61,8 +61,8 @@ export function FinalCTA() {
             {/* Product Image */}
             <div className="relative">
               <Image
-                src="/funnel/premium-offer-hero.webp"
-                alt="МАКС пакет"
+                src="https://shop.testograph.eu/cdn/shop/files/maximum-bundle.webp?v=1759850657"
+                alt="МАКС пакет - 4x TestoUP бутилки"
                 width={400}
                 height={400}
                 className="object-contain mx-auto drop-shadow-2xl"

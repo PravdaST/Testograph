@@ -136,7 +136,7 @@ export function HeroSection() {
             <div className="absolute inset-0 bg-gradient-to-br from-orange-500/20 via-transparent to-red-500/20 blur-3xl" />
             <div className="relative">
               <Image
-                src="/funnel/premium-offer-hero.webp"
+                src="https://shop.testograph.eu/cdn/shop/files/maximum-bundle.webp?v=1759850657"
                 alt="Testograph МАКС Пакет - 4x TestoUP бутилки"
                 width={600}
                 height={600}

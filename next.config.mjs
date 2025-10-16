@@ -11,6 +11,13 @@ const nextConfig = {
   },
   images: {
     domains: ['storage.googleapis.com'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'shop.testograph.eu',
+        pathname: '/cdn/shop/files/**',
+      },
+    ],
   },
   // Enable React Server Components
   experimental: {
