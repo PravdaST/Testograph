@@ -18,7 +18,7 @@ export function ComparisonTable() {
         bonuses: 0,
       },
       color: "border-gray-300",
-      url: "/products/digital",
+      url: "https://shop.testograph.eu/cart/58678183657821:1?discount=LIMITEDOFFER",
     },
     {
       name: "СТАРТ",
@@ -35,7 +35,7 @@ export function ComparisonTable() {
       url: "#final-cta",
     },
     {
-      name: "ПРЕМИУМ",
+      name: "ВИП",
       price: 197,
       popular: false,
       features: {
@@ -49,7 +49,7 @@ export function ComparisonTable() {
       url: "/products/premium",
     },
     {
-      name: "МАКСИМУМ",
+      name: "МАКС",
       price: 267,
       popular: false,
       features: {

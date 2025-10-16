@@ -27,8 +27,8 @@ export function FinalCTA() {
   };
 
   const handleCTAClick = () => {
-    // Premium package cart URL - 3 bottles
-    window.location.href = "https://shop.testograph.eu/cart/58692136730973:3";
+    // Premium package cart URL - 1 unit
+    window.location.href = "https://shop.testograph.eu/cart/58692136730973:1";
   };
 
   return (
@@ -50,7 +50,7 @@ export function FinalCTA() {
           {/* Headline */}
           <div className="text-center mb-8">
             <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
-              Готов си? Вземи ПРЕМИУМ пакета сега и започни утре
+              Готов си? Вземи ВИП пакета сега и започни утре
             </h2>
             <p className="text-lg md:text-xl text-muted-foreground">
               Най-популярният избор - 67% избират този пакет
@@ -62,7 +62,7 @@ export function FinalCTA() {
             <div className="relative">
               <Image
                 src="/funnel/premium-offer-hero.webp"
-                alt="ПРЕМИУМ пакет"
+                alt="ВИП пакет"
                 width={400}
                 height={400}
                 className="object-contain mx-auto drop-shadow-2xl"
@@ -106,7 +106,7 @@ export function FinalCTA() {
                 onClick={handleCTAClick}
                 className="w-full text-lg md:text-xl py-6 md:py-8 bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700 text-white font-bold shadow-2xl transition-all hover:scale-105"
               >
-                Поръчай ПРЕМИУМ пакет за 197 лв →
+                Поръчай ВИП пакет за 197 лв →
               </Button>
 
               {/* Trust Badges */}

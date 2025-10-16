@@ -47,9 +47,10 @@ export function ExitIntentPopup() {
         body: JSON.stringify({
           email,
           discountCode: 'PREMIUM10',
-          packageName: 'ПРЕМИУМ Пакет',
+          packageName: 'ВИП Пакет',
           originalPrice: 197,
           discountedPrice: 187,
+          shopifyUrl: 'https://shop.testograph.eu/cart/58692136730973:1',
         }),
       });
 

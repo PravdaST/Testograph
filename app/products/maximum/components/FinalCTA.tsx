@@ -27,8 +27,8 @@ export function FinalCTA() {
   };
 
   const handleCTAClick = () => {
-    // Maximum package cart URL - 4 bottles
-    window.location.href = "https://shop.testograph.eu/cart/58692136730973:4";
+    // Maximum package product page URL
+    window.location.href = "https://shop.testograph.eu/products/maximum";
   };
 
   return (

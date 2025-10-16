@@ -50,6 +50,7 @@ export function ExitIntentPopup() {
           packageName: 'СТАРТ Пакет',
           originalPrice: 97,
           discountedPrice: 87,
+          shopifyUrl: 'https://shop.testograph.eu/products/starter',
         }),
       });
 

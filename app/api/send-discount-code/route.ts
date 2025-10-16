@@ -33,14 +33,23 @@ interface DiscountCodeEmail {
   packageName: string;
   originalPrice: number;
   discountedPrice: number;
+  shopifyUrl: string;
 }
+
+// Mapping discount codes to Shopify product URLs
+const PRODUCT_URLS: Record<string, string> = {
+  'FIRST10': 'https://shop.testograph.eu/products/starter',
+  'MAX10': 'https://shop.testograph.eu/products/maximum',
+  'PREMIUM10': 'https://shop.testograph.eu/cart/58692136730973:1',
+};
 
 // Email template for discount code
 const generateDiscountEmailHTML = (
   discountCode: string,
   packageName: string,
   originalPrice: number,
-  discountedPrice: number
+  discountedPrice: number,
+  productUrl: string
 ) => {
   const packageColors = {
     FIRST10: { gradient: 'linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%)', emoji: '🚀' },
@@ -120,7 +129,7 @@ const generateDiscountEmailHTML = (
 
       <!-- CTA Button -->
       <div style="text-align: center; margin: 40px 0;">
-        <a href="https://shop.testograph.eu/products/${packageName.toLowerCase().replace(' ', '-')}"
+        <a href="${productUrl}"
            style="display: inline-block; background: ${colors.gradient}; color: white; text-decoration: none; padding: 18px 45px; border-radius: 12px; font-weight: bold; font-size: 18px; box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);">
           🛒 Поръчай сега с ${discountCode} →
         </a>
@@ -177,7 +186,7 @@ const generateDiscountEmailHTML = (
 export async function POST(request: Request) {
   try {
     const body: DiscountCodeEmail = await request.json();
-    const { email, discountCode, packageName, originalPrice, discountedPrice } = body;
+    const { email, discountCode, packageName, originalPrice, discountedPrice, shopifyUrl } = body;
 
     // Validation
     if (!email || !discountCode || !packageName || !originalPrice || !discountedPrice) {
@@ -196,10 +205,13 @@ export async function POST(request: Request) {
       );
     }
 
+    // Get product URL from mapping or use provided shopifyUrl
+    const productUrl = shopifyUrl || PRODUCT_URLS[discountCode];
+
     // Save email to database (mailing list)
     try {
       const supabaseClient = getSupabase();
-      const { error: dbError } = await supabaseClient
+      const { data: insertData, error: dbError } = await supabaseClient
         .from('email_subscribers')
         .upsert({
           email: email.toLowerCase(),
@@ -209,14 +221,22 @@ export async function POST(request: Request) {
           tags: ['exit_intent', discountCode.toLowerCase(), packageName.toLowerCase()]
         }, {
           onConflict: 'email'
-        });
+        })
+        .select();
 
       if (dbError) {
-        console.error('Error saving email to database:', dbError);
+        console.error('❌ Database error details:', {
+          message: dbError.message,
+          details: dbError.details,
+          hint: dbError.hint,
+          code: dbError.code
+        });
         // Continue anyway - email is more important than DB storage
+      } else {
+        console.log('✅ Email saved to database:', email, insertData);
       }
-    } catch (dbError) {
-      console.error('Database error:', dbError);
+    } catch (dbError: any) {
+      console.error('❌ Database exception:', dbError.message || dbError);
       // Continue anyway
     }
 
@@ -225,7 +245,8 @@ export async function POST(request: Request) {
       discountCode,
       packageName,
       originalPrice,
-      discountedPrice
+      discountedPrice,
+      productUrl
     );
 
     // Send email

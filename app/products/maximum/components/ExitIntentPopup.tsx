@@ -50,6 +50,7 @@ export function ExitIntentPopup() {
           packageName: 'МАКС Пакет',
           originalPrice: 267,
           discountedPrice: 257,
+          shopifyUrl: 'https://shop.testograph.eu/products/maximum',
         }),
       });
 
