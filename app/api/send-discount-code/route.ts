@@ -209,7 +209,16 @@ export async function POST(request: Request) {
     const productUrl = shopifyUrl || PRODUCT_URLS[discountCode];
 
     // Save email to database (mailing list)
+    let dbSuccess = false;
+    let dbErrorDetails = null;
+
     try {
+      console.log('🔍 Attempting to save email to database:', {
+        email: email.toLowerCase(),
+        discountCode,
+        packageName
+      });
+
       const supabaseClient = getSupabase();
       const { data: insertData, error: dbError } = await supabaseClient
         .from('email_subscribers')
@@ -225,19 +234,23 @@ export async function POST(request: Request) {
         .select();
 
       if (dbError) {
-        console.error('❌ Database error details:', {
+        dbErrorDetails = {
           message: dbError.message,
           details: dbError.details,
           hint: dbError.hint,
           code: dbError.code
-        });
-        // Continue anyway - email is more important than DB storage
+        };
+        console.error('❌ Database error:', dbErrorDetails);
       } else {
-        console.log('✅ Email saved to database:', email, insertData);
+        dbSuccess = true;
+        console.log('✅ Email saved to database successfully:', email, insertData);
       }
     } catch (dbError: any) {
-      console.error('❌ Database exception:', dbError.message || dbError);
-      // Continue anyway
+      dbErrorDetails = {
+        message: dbError.message || 'Unknown database exception',
+        stack: dbError.stack
+      };
+      console.error('❌ Database exception caught:', dbErrorDetails);
     }
 
     // Generate email HTML
@@ -272,7 +285,11 @@ export async function POST(request: Request) {
       success: true,
       message: 'Email sent successfully',
       emailId: data?.id,
-      discountCode
+      discountCode,
+      database: {
+        saved: dbSuccess,
+        error: dbErrorDetails
+      }
     });
 
   } catch (error: any) {

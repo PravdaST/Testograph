@@ -55,6 +55,13 @@ export function ExitIntentPopup() {
       });
 
       if (response.ok) {
+        const result = await response.json();
+        console.log('✅ API Response:', result);
+
+        if (!result.database?.saved && result.database?.error) {
+          console.error('⚠️ Email sent but database save failed:', result.database.error);
+        }
+
         setIsSuccess(true);
         setTimeout(() => {
           setIsOpen(false);
