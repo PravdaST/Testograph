@@ -144,7 +144,7 @@ const generateDiscountEmailHTML = (
           <li>Промокодът е валиден за <strong style="color: #ffffff;">30 дни</strong></li>
           <li>Може да се използва <strong style="color: #ffffff;">само веднъж</strong></li>
           <li>Важи само за <strong style="color: #ffffff;">${packageName}</strong></li>
-          <li>Безплатна доставка при поръчка над 50 лв</li>
+          <li>Безплатна доставка при поръчка над 100 лв</li>
         </ul>
       </div>
 
