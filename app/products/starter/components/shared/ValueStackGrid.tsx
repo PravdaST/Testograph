@@ -52,7 +52,6 @@ export function ValueStackGrid({
     };
   }, []);
 
-  const coreItems = items.filter((item) => !item.isBonus);
   const bonusItems = items.filter((item) => item.isBonus);
 
   const scrollToCheckout = () => {
@@ -181,7 +180,10 @@ export function ValueStackGrid({
             }`}
           >
             {/* TestoUP Product */}
-            <div className="bg-card/50 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 hover:border-primary/60 transition-all hover:scale-105">
+            <div className="relative bg-card/50 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 hover:border-primary/60 transition-all hover:scale-105">
+              <div className="absolute -top-3 -right-3 bg-gradient-to-r from-primary to-accent text-white text-xs font-black px-4 py-2 rounded-full shadow-lg">
+                ВКЛЮЧЕНО
+              </div>
               <div className="flex items-start gap-4">
                 <div className="w-20 h-20 relative flex-shrink-0">
                   <Image
@@ -199,7 +201,10 @@ export function ValueStackGrid({
             </div>
 
             {/* TestographPRO Protocol */}
-            <div className="bg-card/50 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 hover:border-primary/60 transition-all hover:scale-105">
+            <div className="relative bg-card/50 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 hover:border-primary/60 transition-all hover:scale-105">
+              <div className="absolute -top-3 -right-3 bg-gradient-to-r from-primary to-accent text-white text-xs font-black px-4 py-2 rounded-full shadow-lg">
+                ВКЛЮЧЕНО
+              </div>
               <div className="flex items-start gap-4">
                 <div className="w-20 h-20 relative flex-shrink-0">
                   <Image
@@ -217,7 +222,10 @@ export function ValueStackGrid({
             </div>
 
             {/* 24/7 Expert Support */}
-            <div className="bg-card/50 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 hover:border-primary/60 transition-all hover:scale-105">
+            <div className="relative bg-card/50 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 hover:border-primary/60 transition-all hover:scale-105">
+              <div className="absolute -top-3 -right-3 bg-gradient-to-r from-primary to-accent text-white text-xs font-black px-4 py-2 rounded-full shadow-lg">
+                ВКЛЮЧЕНО
+              </div>
               <div className="flex items-start gap-4">
                 <div className="w-20 h-20 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Sparkles className="w-10 h-10 text-white" />
@@ -229,93 +237,6 @@ export function ValueStackGrid({
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Core Items Grid */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
-          {coreItems.map((item, index) => {
-            // First and second items get special product visualization
-            const isFirstItem = index === 0;
-            const isSecondItem = index === 1;
-
-            return (
-              <div
-                key={index}
-                className={`group relative bg-card/50 backdrop-blur-sm border-2 ${
-                  isFirstItem || isSecondItem ? 'border-primary/50 bg-gradient-to-br from-primary/5 to-accent/5' : 'border-border/50'
-                } rounded-2xl p-6 hover:border-primary/50 hover:bg-card/80 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-primary/20 ${
-                  isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-                }`}
-                style={{ transitionDelay: `${300 + index * 100}ms` }}
-              >
-                {/* Highlight Badge */}
-                {item.highlight && (
-                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-primary to-accent text-white text-xs font-black px-4 py-2 rounded-full shadow-lg rotate-6 group-hover:rotate-0 transition-transform">
-                    ВКЛЮЧЕНО
-                  </div>
-                )}
-
-                {/* Special treatment for first item (product bottle) */}
-                {isFirstItem ? (
-                  <div className="relative mb-4">
-                    <div className="w-full h-32 relative">
-                      <Image
-                        src="/product/testoup-bottle_v1.webp"
-                        alt="TestoUP"
-                        fill
-                        className="object-contain group-hover:scale-110 transition-transform duration-500"
-                      />
-                    </div>
-                  </div>
-                ) : isSecondItem ? (
-                  /* Special treatment for second item (TestographPRO protocol) */
-                  <div className="relative mb-4">
-                    <div className="w-full h-32 relative">
-                      <Image
-                        src="/product/STARTER - TestographPRO.webp"
-                        alt="TestographPRO протокол"
-                        fill
-                        className="object-contain group-hover:scale-110 transition-transform duration-500"
-                      />
-                    </div>
-                  </div>
-                ) : (
-                  /* Icon for other items */
-                  <div className="w-16 h-16 mb-4 text-5xl flex items-center justify-center bg-primary/10 rounded-xl group-hover:scale-110 transition-transform">
-                    {item.icon}
-                  </div>
-                )}
-
-                {/* Title */}
-                <h3 className="text-xl font-bold mb-2 leading-tight">
-                  {item.name}
-                </h3>
-
-                {/* Value */}
-                <div className="mb-3">
-                  {typeof item.value === "number" ? (
-                    <span className="text-2xl font-black text-primary">
-                      {item.value} лв
-                    </span>
-                  ) : (
-                    <span className="text-lg font-bold text-green-500">
-                      {item.value}
-                    </span>
-                  )}
-                </div>
-
-                {/* Description */}
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {item.description}
-                </p>
-
-                {/* Checkmark */}
-                <div className="absolute bottom-6 right-6 w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center group-hover:bg-green-500 transition-colors">
-                  <Check className="w-5 h-5 text-green-500 group-hover:text-white transition-colors" />
-                </div>
-              </div>
-            );
-          })}
         </div>
 
         {/* Bonus Section */}
