@@ -1,7 +1,5 @@
 "use client";
 
-import Image from "next/image";
-
 export function HowItWorks() {
   const steps = [
     {
@@ -46,18 +44,6 @@ export function HowItWorks() {
               <div className="absolute -top-6 left-6 w-12 h-12 rounded-full bg-gradient-to-br from-primary to-violet-600 flex items-center justify-center shadow-xl">
                 <span className="text-2xl font-black text-white">{step.number}</span>
               </div>
-
-              {/* Product Image for Step 1 */}
-              {step.number === "1" && (
-                <div className="relative w-full h-40 mb-4 mt-6">
-                  <Image
-                    src="/product/STARTER .webp"
-                    alt="СТАРТ пакет"
-                    fill
-                    className="object-contain drop-shadow-lg"
-                  />
-                </div>
-              )}
 
               {/* Content */}
               <h3 className="text-2xl font-bold mb-3 mt-6">{step.title}</h3>
