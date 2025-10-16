@@ -217,7 +217,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
 
       // Debug: Log the request payload
       console.log('🚀 Submitting webhook request:', {
-        url: 'https://xtracts4u.app.n8n.cloud/webhook-test/testo', 
+        url: 'https://xtracts4u.app.n8n.cloud/webhook/testo', 
         payload: payload,
         timestamp: new Date().toISOString()
       });
@@ -226,7 +226,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
-      const response = await fetch('https://xtracts4u.app.n8n.cloud/webhook-test/testo', {
+      const response = await fetch('https://xtracts4u.app.n8n.cloud/webhook/testo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
