@@ -12,11 +12,10 @@ import { FAQSection } from "@/components/funnel/FAQSection";
 import { GuaranteeSection } from "./components/GuaranteeSection";
 import { FinalCTA } from "./components/FinalCTA";
 import { ExitIntentPopup } from "./components/ExitIntentPopup";
-import { CommunityChatsGrid } from "@/components/funnel/CommunityChatsGrid";
+import { CommunityChatsCarousel } from "@/components/funnel/CommunityChatsCarousel";
 import { VideoTestimonialGrid } from "@/components/funnel/VideoTestimonialGrid";
 import { DetailedTestimonialCards } from "@/components/funnel/DetailedTestimonialCards";
-import { ScienceSection } from "@/components/funnel/ScienceSection";
-import { SupplementFacts } from "@/components/funnel/SupplementFacts";
+import { IngredientsScience } from "@/components/funnel/IngredientsScience";
 
 export default function MaximumProductPage() {
   return (
@@ -34,7 +33,7 @@ export default function MaximumProductPage() {
       <SolutionTimeline />
 
       {/* Community Chat Proof - Authentic Conversations */}
-      <CommunityChatsGrid />
+      <CommunityChatsCarousel />
 
       {/* Value Stack - Hormozi Style */}
       <section className="py-12 md:py-16 px-4">
@@ -114,17 +113,14 @@ export default function MaximumProductPage() {
       {/* How It Works */}
       <HowItWorks />
 
-      {/* Science Behind TestoUP */}
-      <ScienceSection />
+      {/* Science Behind TestoUP & Ingredient Transparency */}
+      <IngredientsScience />
 
       {/* Ingredient Transparency */}
       <IngredientTable />
 
       {/* Detailed Success Stories - Gary Halbert Formula */}
       <DetailedTestimonialCards />
-
-      {/* Supplement Facts Label */}
-      <SupplementFacts />
 
       {/* FAQ - Objection Handling */}
       <section className="py-12 md:py-16 px-4">

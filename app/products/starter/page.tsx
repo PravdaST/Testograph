@@ -6,17 +6,15 @@ import { SolutionTimeline } from "./components/SolutionTimeline";
 import { ValueStackVisual } from "@/components/funnel/ValueStackVisual";
 import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
 import { HowItWorks } from "./components/HowItWorks";
-import { IngredientTable } from "./components/IngredientTable";
 import { FAQSection } from "@/components/funnel/FAQSection";
 import { GuaranteeSection } from "./components/GuaranteeSection";
 import { FinalCTA } from "./components/FinalCTA";
 import { ExitIntentPopup } from "./components/ExitIntentPopup";
 import { SocialProofBanner } from "./components/SocialProofBanner";
-import { CommunityChatsGrid } from "@/components/funnel/CommunityChatsGrid";
+import { CommunityChatsCarousel } from "@/components/funnel/CommunityChatsCarousel";
 import { VideoTestimonialGrid } from "@/components/funnel/VideoTestimonialGrid";
 import { DetailedTestimonialCards } from "@/components/funnel/DetailedTestimonialCards";
-import { ScienceSection } from "@/components/funnel/ScienceSection";
-import { SupplementFacts } from "@/components/funnel/SupplementFacts";
+import { IngredientsScience } from "@/components/funnel/IngredientsScience";
 
 export default function StarterProductPage() {
   return (
@@ -34,7 +32,7 @@ export default function StarterProductPage() {
       <SolutionTimeline />
 
       {/* Community Chat Proof - Authentic Conversations */}
-      <CommunityChatsGrid />
+      <CommunityChatsCarousel />
 
       {/* Value Stack - Hormozi Style */}
       <section className="py-12 md:py-16 px-4">
@@ -107,17 +105,11 @@ export default function StarterProductPage() {
       {/* How It Works */}
       <HowItWorks />
 
-      {/* Science Behind TestoUP */}
-      <ScienceSection />
-
-      {/* Ingredient Transparency */}
-      <IngredientTable />
+      {/* Science Behind TestoUP & Ingredient Transparency */}
+      <IngredientsScience />
 
       {/* Detailed Success Stories - Gary Halbert Formula */}
       <DetailedTestimonialCards />
-
-      {/* Supplement Facts Label */}
-      <SupplementFacts />
 
       {/* FAQ - Objection Handling */}
       <section className="py-12 md:py-16 px-4">
