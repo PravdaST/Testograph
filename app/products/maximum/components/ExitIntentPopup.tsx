@@ -46,10 +46,10 @@ export function ExitIntentPopup() {
         },
         body: JSON.stringify({
           email,
-          discountCode: 'FIRST10',
-          packageName: 'СТАРТ Пакет',
-          originalPrice: 97,
-          discountedPrice: 87,
+          discountCode: 'MAX10',
+          packageName: 'МАКС Пакет',
+          originalPrice: 267,
+          discountedPrice: 257,
         }),
       });
 
@@ -78,7 +78,7 @@ export function ExitIntentPopup() {
             Чакай! Преди да напуснеш...
           </DialogTitle>
           <DialogDescription className="text-center text-base">
-            Вземи допълнителни 10% отстъпка за първа поръчка
+            Вземи допълнителни 10 лв отстъпка за първа поръчка
           </DialogDescription>
         </DialogHeader>
 
@@ -86,10 +86,10 @@ export function ExitIntentPopup() {
           {isSuccess ? (
             /* Success State */
             <div className="text-center py-8">
-              <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
+              <CheckCircle2 className="w-16 h-16 text-orange-500 mx-auto mb-4" />
               <h3 className="text-2xl font-bold mb-2">Успешно! 🎉</h3>
               <p className="text-muted-foreground mb-4">
-                Изпратихме ти промокода <strong>FIRST10</strong> на имейл.
+                Изпратихме ти промокода <strong>MAX10</strong> на имейл.
               </p>
               <p className="text-sm text-muted-foreground">
                 Провери входящите си съобщения (и SPAM папката) 📧
@@ -98,10 +98,10 @@ export function ExitIntentPopup() {
           ) : (
             <>
               {/* Offer */}
-              <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-xl p-6 text-white text-center">
+              <div className="bg-gradient-to-r from-orange-600 to-red-600 rounded-xl p-6 text-white text-center">
                 <Mail className="w-12 h-12 mx-auto mb-3 opacity-90" />
-                <p className="text-4xl font-black mb-2">87 лв</p>
-                <p className="text-sm opacity-90">вместо 97 лв</p>
+                <p className="text-4xl font-black mb-2">257 лв</p>
+                <p className="text-sm opacity-90">вместо 267 лв</p>
                 <p className="text-base font-semibold mt-3">
                   Получи промокода на имейл!
                 </p>
@@ -127,7 +127,7 @@ export function ExitIntentPopup() {
                 <Button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold"
+                  className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-white font-bold"
                 >
                   {isLoading ? (
                     <>

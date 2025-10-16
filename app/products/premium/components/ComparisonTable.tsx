@@ -23,7 +23,7 @@ export function ComparisonTable() {
     {
       name: "СТАРТ",
       price: 97,
-      popular: true,
+      popular: false,
       features: {
         testoUpBottles: 1,
         protocolDays: 30,
@@ -32,12 +32,12 @@ export function ComparisonTable() {
         bonuses: 1,
       },
       color: "border-primary",
-      url: "#final-cta",
+      url: "/products/starter",
     },
     {
       name: "ПРЕМИУМ",
       price: 197,
-      popular: false,
+      popular: true,
       features: {
         testoUpBottles: 3,
         protocolDays: 90,
@@ -46,7 +46,7 @@ export function ComparisonTable() {
         bonuses: 2,
       },
       color: "border-violet-600",
-      url: "/products/premium",
+      url: "#final-cta",
     },
     {
       name: "МАКСИМУМ",
@@ -80,20 +80,20 @@ export function ComparisonTable() {
           {tiers.map((tier, index) => (
             <div
               key={index}
-              className={`relative bg-background rounded-xl p-6 md:p-8 shadow-xl border-4 ${tier.color} ${
+              className={`relative bg-background rounded-xl p-6 shadow-xl border-4 ${tier.color} ${
                 tier.popular ? "scale-105 md:scale-110" : ""
               } transition-all`}
             >
               {tier.popular && (
-                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-violet-600 text-white px-4 py-1 font-bold">
-                  ПРЕПОРЪЧАН
+                <Badge className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-violet-600 to-purple-600 text-white px-4 py-1 font-bold">
+                  НАЙ-ПОПУЛЯРЕН
                 </Badge>
               )}
 
               <div className="text-center mb-6">
-                <h3 className="text-2xl font-bold mb-2">{tier.name}</h3>
+                <h3 className="text-xl font-bold mb-2">{tier.name}</h3>
                 <div className="flex items-baseline justify-center gap-2">
-                  <span className="text-4xl md:text-5xl font-black">{tier.price}</span>
+                  <span className="text-3xl md:text-4xl font-black">{tier.price}</span>
                   <span className="text-lg text-muted-foreground">лв</span>
                 </div>
               </div>
@@ -132,7 +132,7 @@ export function ComparisonTable() {
               </div>
 
               <Button
-                className={`w-full ${tier.popular ? "bg-gradient-to-r from-primary to-violet-600 hover:from-primary/90 hover:to-violet-600/90" : ""}`}
+                className={`w-full ${tier.popular ? "bg-gradient-to-r from-violet-600 to-purple-600 hover:from-violet-700 hover:to-purple-700" : ""}`}
                 variant={tier.popular ? "default" : "outline"}
                 onClick={() => {
                   if (tier.url.startsWith("#")) {
@@ -143,7 +143,7 @@ export function ComparisonTable() {
                   }
                 }}
               >
-                {tier.popular ? "Вземи СТАРТ пакета" : `Виж ${tier.name} пакет`}
+                {tier.popular ? "Вземи ПРЕМИУМ пакета" : `Виж ${tier.name} пакет`}
               </Button>
             </div>
           ))}
