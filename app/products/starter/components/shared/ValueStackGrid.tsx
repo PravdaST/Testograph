@@ -140,80 +140,159 @@ export function ValueStackGrid({
           </h2>
         </div>
 
-        {/* Product Visualization */}
-        <div className="flex justify-center mb-12">
+        {/* Product Hero Section with Split Layout */}
+        <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
+          {/* Left: Product Visualization */}
+          <div className="flex justify-center md:justify-end">
+            <div
+              className={`relative transition-all duration-700 delay-200 ${
+                isVisible ? "opacity-100 scale-100 rotate-0" : "opacity-0 scale-90 -rotate-6"
+              }`}
+            >
+              {/* Glow Effect Background */}
+              <div className="absolute inset-0 bg-gradient-to-r from-primary/30 via-accent/30 to-primary/30 blur-3xl opacity-50 animate-pulse" />
+
+              {/* Product Image */}
+              <div className="relative w-72 h-72 md:w-96 md:h-96 lg:w-[450px] lg:h-[450px] z-10">
+                <Image
+                  src="/product/testoup-bottle_v2.webp"
+                  alt="TestoUP бутилка - 60 капсули"
+                  fill
+                  className="object-contain drop-shadow-2xl filter hover:scale-105 transition-transform duration-500"
+                  priority
+                />
+              </div>
+
+              {/* Floating Badges */}
+              <div className="absolute -top-6 -right-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-5 py-3 rounded-2xl text-sm font-black shadow-2xl animate-bounce z-20">
+                <div className="text-center">
+                  <div className="text-2xl font-black">60</div>
+                  <div className="text-xs uppercase">Капсули</div>
+                </div>
+              </div>
+
+              <div className="absolute -bottom-4 -left-4 bg-gradient-to-r from-orange-500 to-red-500 text-white px-5 py-3 rounded-2xl text-xs font-black shadow-2xl z-20">
+                30-дневен запас
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Quick Benefits */}
           <div
-            className={`relative transition-all duration-700 delay-200 ${
-              isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
+            className={`space-y-4 transition-all duration-700 delay-400 ${
+              isVisible ? "opacity-100 translate-x-0" : "opacity-0 translate-x-8"
             }`}
           >
-            <div className="relative w-64 h-64 md:w-80 md:h-80">
-              <Image
-                src="/product/testoup-bottle.webp"
-                alt="TestoUP бутилка - 60 капсули"
-                fill
-                className="object-contain drop-shadow-2xl"
-                priority
-              />
+            <div className="bg-card/50 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 hover:border-primary/60 transition-all hover:scale-105">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Check className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-lg mb-1">Клинични дозировки</h4>
+                  <p className="text-sm text-muted-foreground">Всяка съставка в доказана ефективна доза</p>
+                </div>
+              </div>
             </div>
-            {/* Floating Badge */}
-            <div className="absolute -top-4 -right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-black shadow-lg animate-pulse">
-              60 капсули
+
+            <div className="bg-card/50 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 hover:border-primary/60 transition-all hover:scale-105">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Check className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-lg mb-1">Произведено в ЕС</h4>
+                  <p className="text-sm text-muted-foreground">GMP сертифициран производител</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card/50 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 hover:border-primary/60 transition-all hover:scale-105">
+              <div className="flex items-start gap-4">
+                <div className="w-12 h-12 bg-gradient-to-br from-purple-500 to-pink-500 rounded-xl flex items-center justify-center flex-shrink-0">
+                  <Check className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-lg mb-1">Без скрити смеси</h4>
+                  <p className="text-sm text-muted-foreground">100% прозрачност на всички съставки</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* Core Items Grid */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
-          {coreItems.map((item, index) => (
-            <div
-              key={index}
-              className={`group relative bg-card/50 backdrop-blur-sm border-2 border-border/50 rounded-2xl p-6 hover:border-primary/50 hover:bg-card/80 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-primary/20 ${
-                isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-              }`}
-              style={{ transitionDelay: `${300 + index * 100}ms` }}
-            >
-              {/* Highlight Badge */}
-              {item.highlight && (
-                <div className="absolute -top-3 -right-3 bg-gradient-to-r from-primary to-accent text-white text-xs font-black px-4 py-2 rounded-full shadow-lg rotate-6 group-hover:rotate-0 transition-transform">
-                  ВКЛЮЧЕНО
-                </div>
-              )}
+          {coreItems.map((item, index) => {
+            // First item gets special product visualization
+            const isFirstItem = index === 0;
 
-              {/* Icon */}
-              <div className="w-16 h-16 mb-4 text-5xl flex items-center justify-center bg-primary/10 rounded-xl group-hover:scale-110 transition-transform">
-                {item.icon}
-              </div>
-
-              {/* Title */}
-              <h3 className="text-xl font-bold mb-2 leading-tight">
-                {item.name}
-              </h3>
-
-              {/* Value */}
-              <div className="mb-3">
-                {typeof item.value === "number" ? (
-                  <span className="text-2xl font-black text-primary">
-                    {item.value} лв
-                  </span>
-                ) : (
-                  <span className="text-lg font-bold text-green-500">
-                    {item.value}
-                  </span>
+            return (
+              <div
+                key={index}
+                className={`group relative bg-card/50 backdrop-blur-sm border-2 ${
+                  isFirstItem ? 'border-primary/50 bg-gradient-to-br from-primary/5 to-accent/5' : 'border-border/50'
+                } rounded-2xl p-6 hover:border-primary/50 hover:bg-card/80 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-primary/20 ${
+                  isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+                }`}
+                style={{ transitionDelay: `${300 + index * 100}ms` }}
+              >
+                {/* Highlight Badge */}
+                {item.highlight && (
+                  <div className="absolute -top-3 -right-3 bg-gradient-to-r from-primary to-accent text-white text-xs font-black px-4 py-2 rounded-full shadow-lg rotate-6 group-hover:rotate-0 transition-transform">
+                    ВКЛЮЧЕНО
+                  </div>
                 )}
-              </div>
 
-              {/* Description */}
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                {item.description}
-              </p>
+                {/* Special treatment for first item (product) */}
+                {isFirstItem ? (
+                  <div className="relative mb-4">
+                    <div className="w-full h-32 relative">
+                      <Image
+                        src="/product/testoup-bottle_v1.webp"
+                        alt="TestoUP"
+                        fill
+                        className="object-contain group-hover:scale-110 transition-transform duration-500"
+                      />
+                    </div>
+                  </div>
+                ) : (
+                  /* Icon for other items */
+                  <div className="w-16 h-16 mb-4 text-5xl flex items-center justify-center bg-primary/10 rounded-xl group-hover:scale-110 transition-transform">
+                    {item.icon}
+                  </div>
+                )}
 
-              {/* Checkmark */}
-              <div className="absolute bottom-6 right-6 w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center group-hover:bg-green-500 transition-colors">
-                <Check className="w-5 h-5 text-green-500 group-hover:text-white transition-colors" />
+                {/* Title */}
+                <h3 className="text-xl font-bold mb-2 leading-tight">
+                  {item.name}
+                </h3>
+
+                {/* Value */}
+                <div className="mb-3">
+                  {typeof item.value === "number" ? (
+                    <span className="text-2xl font-black text-primary">
+                      {item.value} лв
+                    </span>
+                  ) : (
+                    <span className="text-lg font-bold text-green-500">
+                      {item.value}
+                    </span>
+                  )}
+                </div>
+
+                {/* Description */}
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {item.description}
+                </p>
+
+                {/* Checkmark */}
+                <div className="absolute bottom-6 right-6 w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center group-hover:bg-green-500 transition-colors">
+                  <Check className="w-5 h-5 text-green-500 group-hover:text-white transition-colors" />
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Bonus Section */}
@@ -330,17 +409,29 @@ export function ValueStackGrid({
               </div>
             </div>
 
-            {/* CTA Button */}
-            <button
-              onClick={scrollToCheckout}
-              className="group relative w-full md:w-auto px-12 py-6 bg-gradient-to-r from-primary via-accent to-primary text-white rounded-2xl font-black text-xl shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:scale-105 overflow-hidden"
-            >
-              <span className="relative z-10 flex items-center justify-center gap-3">
-                Вземи СТАРТ пакета за {discountedPrice} лв
-                <Sparkles className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-              </span>
-              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-            </button>
+            {/* CTA Button with Product */}
+            <div className="flex flex-col md:flex-row items-center justify-center gap-6">
+              {/* Small product image next to CTA */}
+              <div className="relative w-32 h-32 md:w-40 md:h-40 flex-shrink-0 hidden md:block">
+                <Image
+                  src="/product/testoup-bottle.webp"
+                  alt="TestoUP"
+                  fill
+                  className="object-contain drop-shadow-2xl animate-float"
+                />
+              </div>
+
+              <button
+                onClick={scrollToCheckout}
+                className="group relative w-full md:w-auto px-12 py-6 bg-gradient-to-r from-primary via-accent to-primary text-white rounded-2xl font-black text-xl shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:scale-105 overflow-hidden"
+              >
+                <span className="relative z-10 flex items-center justify-center gap-3">
+                  Вземи СТАРТ пакета за {discountedPrice} лв
+                  <Sparkles className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+                </span>
+                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+              </button>
+            </div>
 
             {/* Trust Badges - Redesigned */}
             <div className="mt-6 space-y-3">
