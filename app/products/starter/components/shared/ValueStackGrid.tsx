@@ -2,12 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { Check, Sparkles, Clock, TrendingUp, Zap } from "lucide-react";
+import { useCountdownTimer } from "@/lib/useCountdownTimer";
+import Image from "next/image";
 
 interface ValueStackItem {
   name: string;
   value: number | string;
   description: string;
-  icon: string;
+  icon: React.ReactNode;
   highlight?: boolean;
   isBonus?: boolean;
 }
@@ -31,6 +33,7 @@ export function ValueStackGrid({
 }: ValueStackGridProps) {
   const [isVisible, setIsVisible] = useState(false);
   const [priceRevealed, setPriceRevealed] = useState(false);
+  const timeLeft = useCountdownTimer();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -71,6 +74,47 @@ export function ValueStackGrid({
       <div className="absolute inset-0 bg-gradient-to-b from-muted/30 via-background to-muted/30 pointer-events-none" />
 
       <div className="max-w-6xl mx-auto relative z-10">
+        {/* Countdown Timer - Urgent */}
+        <div className="mb-8">
+          <div className="relative bg-gradient-to-r from-red-600 via-orange-500 to-red-600 text-white p-6 md:p-8 rounded-2xl border-4 border-red-400/50 shadow-2xl overflow-hidden">
+            {/* Animated background pulse */}
+            <div className="absolute inset-0 bg-white/10 animate-pulse" style={{ animationDuration: '2s' }} />
+
+            <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-4 md:gap-6">
+              <div className="flex items-center gap-2 md:gap-3">
+                <Clock className="w-6 h-6 md:w-8 md:h-8 animate-bounce" />
+                <span className="text-lg md:text-2xl font-black uppercase tracking-tight">
+                  Офертата изтича след:
+                </span>
+              </div>
+
+              {/* Countdown boxes */}
+              <div className="flex gap-2 md:gap-3">
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 md:p-3 min-w-[56px] md:min-w-[70px] text-center border-2 border-white/30">
+                  <div className="text-2xl md:text-4xl lg:text-5xl font-black tabular-nums">
+                    {String(timeLeft.hours).padStart(2, '0')}
+                  </div>
+                  <div className="text-[10px] md:text-xs uppercase font-bold mt-1">Часа</div>
+                </div>
+                <span className="text-2xl md:text-4xl font-black self-center">:</span>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 md:p-3 min-w-[56px] md:min-w-[70px] text-center border-2 border-white/30">
+                  <div className="text-2xl md:text-4xl lg:text-5xl font-black tabular-nums">
+                    {String(timeLeft.minutes).padStart(2, '0')}
+                  </div>
+                  <div className="text-[10px] md:text-xs uppercase font-bold mt-1">Мин</div>
+                </div>
+                <span className="text-2xl md:text-4xl font-black self-center">:</span>
+                <div className="bg-white/20 backdrop-blur-sm rounded-xl p-2 md:p-3 min-w-[56px] md:min-w-[70px] text-center border-2 border-white/30">
+                  <div className="text-2xl md:text-4xl lg:text-5xl font-black tabular-nums">
+                    {String(timeLeft.seconds).padStart(2, '0')}
+                  </div>
+                  <div className="text-[10px] md:text-xs uppercase font-bold mt-1">Сек</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Header */}
         <div className="text-center mb-12">
           <div
@@ -85,7 +129,7 @@ export function ValueStackGrid({
           </div>
 
           <h2
-            className={`text-3xl md:text-4xl lg:text-5xl font-black mb-4 transition-all duration-700 delay-100 ${
+            className={`text-3xl md:text-4xl lg:text-5xl font-black transition-all duration-700 delay-100 ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
             }`}
           >
@@ -94,14 +138,29 @@ export function ValueStackGrid({
               СТАРТ пакета?
             </span>
           </h2>
+        </div>
 
-          <p
-            className={`text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto transition-all duration-700 delay-200 ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
+        {/* Product Visualization */}
+        <div className="flex justify-center mb-12">
+          <div
+            className={`relative transition-all duration-700 delay-200 ${
+              isVisible ? "opacity-100 scale-100" : "opacity-0 scale-90"
             }`}
           >
-            Всичко което ти трябва за да върнеш либидото си за 30 дни.
-          </p>
+            <div className="relative w-64 h-64 md:w-80 md:h-80">
+              <Image
+                src="/product/testoup-bottle.webp"
+                alt="TestoUP бутилка - 60 капсули"
+                fill
+                className="object-contain drop-shadow-2xl"
+                priority
+              />
+            </div>
+            {/* Floating Badge */}
+            <div className="absolute -top-4 -right-4 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-4 py-2 rounded-full text-sm font-black shadow-lg animate-pulse">
+              60 капсули
+            </div>
+          </div>
         </div>
 
         {/* Core Items Grid */}
@@ -283,27 +342,23 @@ export function ValueStackGrid({
               <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
             </button>
 
-            {/* Trust Line */}
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground">
-              {[
-                "Безплатна доставка над 100 лв",
-                "30-дневна гаранция",
-                "Експертна поддръжка 24/7",
-              ].map((item, i) => (
-                <div key={i} className="flex items-center gap-2">
-                  <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
-                    <Check className="w-3 h-3 text-green-500" />
+            {/* Trust Badges - Redesigned */}
+            <div className="mt-6 space-y-3">
+              <div className="flex flex-wrap items-center justify-center gap-4">
+                {[
+                  "Безплатна доставка над 100 лв",
+                  "Експертна поддръжка 24/7",
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                      <Check className="w-3 h-3 text-green-500" />
+                    </div>
+                    <span className="text-sm font-medium">{item}</span>
                   </div>
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-
-            {/* Urgency Footer */}
-            <div className="mt-8 pt-6 border-t border-border/50">
-              <p className="text-sm text-muted-foreground">
-                <Clock className="inline w-4 h-4 mr-2 text-orange-500" />
-                Само <span className="font-bold text-orange-500">{spotsLeft} места</span> останаха на тази цена днес
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                * 30-дневна гаранция при следване на протокола
               </p>
             </div>
           </div>

@@ -196,7 +196,7 @@ export function IngredientsScience() {
             Кои съставки работят (и защо)
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Без BS. Без pixie dust. Само съставки с доказан ефект в клинични дозировки.
+            Без излъгвания. Без безполезен прашец. Само съставки с доказан ефект в клинични дозировки.
           </p>
         </div>
 
@@ -294,14 +294,14 @@ export function IngredientsScience() {
               Защо дозировките имат значение?
             </h3>
             <p className="text-muted-foreground mb-6">
-              Повечето добавки на пазара използват <strong>"pixie dust" дозировки</strong> -
+              Повечето добавки на пазара използват <strong>безполезни дозировки</strong> -
               прашец от съставка, недостатъчен за ефект. TestoUP използва <strong>клинично
               валидирани дози</strong> от всяка съставка. Затова работи.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
               <div className="flex items-center gap-2">
                 <span className="text-2xl">✓</span>
-                <span className="font-semibold">Peer-reviewed изследвания</span>
+                <span className="font-semibold">Рецензирани изследвания</span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-2xl">✓</span>
@@ -324,7 +324,7 @@ export function IngredientsScience() {
             <div className="flex items-center gap-3">
               <Beaker className="w-6 h-6 text-primary" />
               <div className="text-left">
-                <h3 className="font-bold text-lg">Supplement Facts (Официален Етикет)</h3>
+                <h3 className="font-bold text-lg">Хранителни Факти (Официален Етикет)</h3>
                 <p className="text-sm text-muted-foreground">Виж точните количества на всяка съставка</p>
               </div>
             </div>
@@ -340,7 +340,7 @@ export function IngredientsScience() {
               <div className="bg-white dark:bg-black text-black dark:text-white p-6 font-mono">
                 {/* Header */}
                 <div className="border-b-8 border-black dark:border-white pb-2 mb-4">
-                  <h3 className="text-3xl font-black">Supplement Facts</h3>
+                  <h3 className="text-3xl font-black">Хранителни Факти</h3>
                 </div>
 
                 {/* Serving Info */}
@@ -428,8 +428,8 @@ export function IngredientsScience() {
             <div className="bg-orange-100 dark:bg-orange-900/30 rounded-full w-16 h-16 flex items-center justify-center mx-auto mb-2">
               <ShieldCheck className="w-7 h-7 text-orange-700 dark:text-orange-400" />
             </div>
-            <p className="text-sm font-semibold">No BS Guarantee</p>
-            <p className="text-xs text-muted-foreground">Без proprietary blends</p>
+            <p className="text-sm font-semibold">Гаранция за честност</p>
+            <p className="text-xs text-muted-foreground">Без скрити смеси</p>
           </div>
         </div>
       </div>
