@@ -102,13 +102,17 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
     return `${mins}m ${secs}s`;
   };
 
-  const getEventIcon = (eventType: string) => {
+  const getEventIcon = (eventType: string, metadata?: any) => {
     switch (eventType) {
       case 'step_entered':
         return '📍';
       case 'step_exited':
         return '👋';
       case 'button_clicked':
+        // Different icons for different button actions
+        if (metadata?.action === 'cta_click') return '✅';
+        if (metadata?.action === 'skip_to_free') return '📄';
+        if (metadata?.action === 'decline_offer') return '👎';
         return '🖱️';
       case 'skip_used':
         return '⏭️';
@@ -235,6 +239,56 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
                 </div>
               )}
 
+              {/* Final Action - Prominent */}
+              {data.session.completed && (() => {
+                // Find the final action from timeline (CTA click or Skip to Free)
+                const finalAction = data.timeline
+                  .slice()
+                  .reverse()
+                  .find((e) => e.eventType === 'button_clicked' &&
+                    (e.metadata?.action === 'cta_click' || e.metadata?.action === 'skip_to_free'));
+
+                if (finalAction?.metadata?.action === 'cta_click') {
+                  const tierInfo: Record<string, { name: string; price: string; color: string }> = {
+                    premium: { name: 'Premium пакет', price: '197 лв', color: 'from-orange-500 to-red-600' },
+                    regular: { name: 'Single бутилка', price: '97 лв', color: 'from-primary to-violet-600' },
+                    digital: { name: 'Digital план', price: '47 лв', color: 'from-primary to-accent' }
+                  };
+                  const info = tierInfo[finalAction.metadata.tier] || { name: 'Оферта', price: '?', color: 'from-primary to-accent' };
+
+                  return (
+                    <div className={`bg-gradient-to-r ${info.color} rounded-xl p-4 text-white shadow-xl border-2 border-white/20`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl">
+                          ✅
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold opacity-90">Финално Действие</p>
+                          <p className="text-lg font-bold">Избра {info.name}</p>
+                          <p className="text-sm font-semibold mt-1">💰 {info.price}</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                } else if (finalAction?.metadata?.action === 'skip_to_free') {
+                  return (
+                    <div className="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl p-4 text-white shadow-xl border-2 border-white/20">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center text-2xl">
+                          📄
+                        </div>
+                        <div className="flex-1">
+                          <p className="text-sm font-semibold opacity-90">Финално Действие</p>
+                          <p className="text-lg font-bold">Избра безплатния 7-дневен план</p>
+                          <p className="text-sm font-semibold mt-1">🎁 Безплатно</p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
               {/* Event Stats */}
               <div className="bg-muted/50 rounded-lg p-3">
                 <p className="text-sm font-semibold mb-2">Обобщение на Събитията</p>
@@ -286,7 +340,7 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
                     {/* Timeline dot */}
                     <div className="flex flex-col items-center">
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-sm">
-                        {getEventIcon(event.eventType)}
+                        {getEventIcon(event.eventType, event.metadata)}
                       </div>
                       {index < data.timeline.length - 1 && (
                         <div className="w-0.5 h-full min-h-[20px] bg-border" />
