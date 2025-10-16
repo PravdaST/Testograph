@@ -15,7 +15,7 @@ import { ExitIntentPopup } from "../starter/components/ExitIntentPopup";
 import { SocialProofBanner } from "../starter/components/SocialProofBanner";
 import { CommunityChatsCarousel } from "@/components/funnel/CommunityChatsCarousel";
 import { VideoTestimonialGrid } from "@/components/funnel/VideoTestimonialGrid";
-import { Package, FileText, Headphones, Users, Zap } from "lucide-react";
+import { Package, FileText, MessageCircle, Users, Zap } from "lucide-react";
 
 export default function StarterLibidoPage() {
   return (
@@ -76,7 +76,7 @@ export default function StarterLibidoPage() {
             name: "24/7 Хормонален Експерт поддръжка",
             value: "Включена",
             description: "Винаги до теб. Питай каквото искаш. Никога не си сам.",
-            icon: <Headphones className="w-8 h-8" />,
+            icon: <MessageCircle className="w-8 h-8" />,
             highlight: true
           },
           {

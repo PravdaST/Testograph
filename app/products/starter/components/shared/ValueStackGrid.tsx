@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Check, Sparkles, Clock, TrendingUp, Zap } from "lucide-react";
+import { Check, Sparkles, Clock, Zap } from "lucide-react";
 import { useCountdownTimer } from "@/lib/useCountdownTimer";
 import Image from "next/image";
 
@@ -32,7 +32,6 @@ export function ValueStackGrid({
   tier = "regular"
 }: ValueStackGridProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [priceRevealed, setPriceRevealed] = useState(false);
   const timeLeft = useCountdownTimer();
 
   useEffect(() => {
@@ -40,7 +39,6 @@ export function ValueStackGrid({
       (entries) => {
         if (entries[0].isIntersecting) {
           setIsVisible(true);
-          setTimeout(() => setPriceRevealed(true), 800);
         }
       },
       { threshold: 0.2 }
@@ -56,7 +54,6 @@ export function ValueStackGrid({
 
   const coreItems = items.filter((item) => !item.isBonus);
   const bonusItems = items.filter((item) => item.isBonus);
-  const perDayCost = (discountedPrice / 30).toFixed(2);
 
   const scrollToCheckout = () => {
     const element = document.getElementById("final-cta");
@@ -224,14 +221,15 @@ export function ValueStackGrid({
         {/* Core Items Grid */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           {coreItems.map((item, index) => {
-            // First item gets special product visualization
+            // First and second items get special product visualization
             const isFirstItem = index === 0;
+            const isSecondItem = index === 1;
 
             return (
               <div
                 key={index}
                 className={`group relative bg-card/50 backdrop-blur-sm border-2 ${
-                  isFirstItem ? 'border-primary/50 bg-gradient-to-br from-primary/5 to-accent/5' : 'border-border/50'
+                  isFirstItem || isSecondItem ? 'border-primary/50 bg-gradient-to-br from-primary/5 to-accent/5' : 'border-border/50'
                 } rounded-2xl p-6 hover:border-primary/50 hover:bg-card/80 transition-all duration-500 hover:scale-105 hover:shadow-2xl hover:shadow-primary/20 ${
                   isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
                 }`}
@@ -244,13 +242,25 @@ export function ValueStackGrid({
                   </div>
                 )}
 
-                {/* Special treatment for first item (product) */}
+                {/* Special treatment for first item (product bottle) */}
                 {isFirstItem ? (
                   <div className="relative mb-4">
                     <div className="w-full h-32 relative">
                       <Image
                         src="/product/testoup-bottle_v1.webp"
                         alt="TestoUP"
+                        fill
+                        className="object-contain group-hover:scale-110 transition-transform duration-500"
+                      />
+                    </div>
+                  </div>
+                ) : isSecondItem ? (
+                  /* Special treatment for second item (TestographPRO protocol) */
+                  <div className="relative mb-4">
+                    <div className="w-full h-32 relative">
+                      <Image
+                        src="/product/STARTER - TestographPRO.webp"
+                        alt="TestographPRO протокол"
                         fill
                         className="object-contain group-hover:scale-110 transition-transform duration-500"
                       />
@@ -298,7 +308,7 @@ export function ValueStackGrid({
         {/* Bonus Section */}
         {bonusItems.length > 0 && (
           <div
-            className={`relative bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-red-500/10 border-2 border-yellow-500/30 rounded-3xl p-8 mb-8 overflow-hidden transition-all duration-700 delay-700 ${
+            className={`relative bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-red-500/10 border-2 border-yellow-500/30 rounded-3xl p-8 mb-12 overflow-hidden transition-all duration-700 delay-700 ${
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
             }`}
           >
@@ -346,113 +356,37 @@ export function ValueStackGrid({
           </div>
         )}
 
-        {/* Price Reveal Section */}
-        <div
-          className={`relative bg-gradient-to-br from-primary/5 via-accent/5 to-primary/5 border-2 border-primary/30 rounded-3xl p-8 md:p-12 text-center overflow-hidden transition-all duration-700 delay-900 ${
-            isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
-          }`}
-        >
-          {/* Animated Background */}
-          <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10 animate-gradient" />
+        {/* CTA Section */}
+        <div className="text-center">
+          <button
+            onClick={scrollToCheckout}
+            className="group relative w-full md:w-auto px-12 py-6 bg-gradient-to-r from-primary via-accent to-primary text-white rounded-2xl font-black text-xl md:text-2xl shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:scale-105 overflow-hidden"
+          >
+            <span className="relative z-10 flex items-center justify-center gap-3">
+              Вземи СТАРТ пакета за {discountedPrice} лв
+              <Sparkles className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+            </span>
+            <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+          </button>
 
-          <div className="relative z-10">
-            {/* Total Value */}
-            <div className="mb-6">
-              <p className="text-sm text-muted-foreground uppercase tracking-wide mb-2">
-                Обща стойност на всичко
-              </p>
-              <div className="text-4xl md:text-5xl font-black text-muted-foreground line-through decoration-red-500 decoration-4">
-                {totalValue} лв
+          {/* Trust Badges */}
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                <Check className="w-3 h-3 text-green-500" />
               </div>
+              <span className="text-sm font-medium">Безплатна доставка над 100 лв</span>
             </div>
-
-            {/* Divider */}
-            <div className="flex items-center justify-center gap-4 my-8">
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
-              <TrendingUp className="w-6 h-6 text-primary" />
-              <div className="h-px flex-1 bg-gradient-to-r from-transparent via-border to-transparent" />
-            </div>
-
-            {/* Special Price */}
-            <div className="mb-6">
-              <p className="text-lg md:text-xl text-muted-foreground mb-3">
-                Твоята цена днес:
-              </p>
-              <div
-                className={`transition-all duration-1000 ${
-                  priceRevealed
-                    ? "opacity-100 scale-100"
-                    : "opacity-0 scale-50"
-                }`}
-              >
-                <div className="text-6xl md:text-7xl lg:text-8xl font-black text-transparent bg-clip-text bg-gradient-to-r from-primary via-accent to-primary mb-4">
-                  {discountedPrice} лв
-                </div>
-                <div className="inline-flex items-center gap-2 bg-red-500/10 border-2 border-red-500/30 rounded-full px-6 py-3 mb-4">
-                  <span className="text-xl md:text-2xl font-black text-red-500">
-                    Спестяваш {savings} лв
-                  </span>
-                </div>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
+                <Check className="w-3 h-3 text-green-500" />
               </div>
-            </div>
-
-            {/* Per Day Cost */}
-            <div className="mb-8">
-              <p className="text-sm text-muted-foreground mb-2">
-                Това са само:
-              </p>
-              <div className="text-2xl md:text-3xl font-bold">
-                {perDayCost} лв на ден
-                <span className="text-muted-foreground ml-2">
-                  (цената на едно кафе)
-                </span>
-              </div>
-            </div>
-
-            {/* CTA Button with Product */}
-            <div className="flex flex-col md:flex-row items-center justify-center gap-6">
-              {/* Small product image next to CTA */}
-              <div className="relative w-32 h-32 md:w-40 md:h-40 flex-shrink-0 hidden md:block">
-                <Image
-                  src="/product/testoup-bottle.webp"
-                  alt="TestoUP"
-                  fill
-                  className="object-contain drop-shadow-2xl animate-float"
-                />
-              </div>
-
-              <button
-                onClick={scrollToCheckout}
-                className="group relative w-full md:w-auto px-12 py-6 bg-gradient-to-r from-primary via-accent to-primary text-white rounded-2xl font-black text-xl shadow-2xl hover:shadow-primary/50 transition-all duration-300 hover:scale-105 overflow-hidden"
-              >
-                <span className="relative z-10 flex items-center justify-center gap-3">
-                  Вземи СТАРТ пакета за {discountedPrice} лв
-                  <Sparkles className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-                </span>
-                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
-              </button>
-            </div>
-
-            {/* Trust Badges - Redesigned */}
-            <div className="mt-6 space-y-3">
-              <div className="flex flex-wrap items-center justify-center gap-4">
-                {[
-                  "Безплатна доставка над 100 лв",
-                  "Експертна поддръжка 24/7",
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-green-500/20 flex items-center justify-center">
-                      <Check className="w-3 h-3 text-green-500" />
-                    </div>
-                    <span className="text-sm font-medium">{item}</span>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground text-center">
-                * 30-дневна гаранция при следване на протокола
-              </p>
+              <span className="text-sm font-medium">Експертна поддръжка 24/7</span>
             </div>
           </div>
+          <p className="text-xs text-muted-foreground mt-3">
+            * 30-дневна гаранция при следване на протокола
+          </p>
         </div>
       </div>
     </section>
