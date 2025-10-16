@@ -8,7 +8,6 @@ import { ValueStackVisual } from "@/components/funnel/ValueStackVisual";
 import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
 import { HowItWorks } from "./components/HowItWorks";
 import { IngredientTable } from "./components/IngredientTable";
-import { ComparisonTable } from "./components/ComparisonTable";
 import { FAQSection } from "@/components/funnel/FAQSection";
 import { GuaranteeSection } from "./components/GuaranteeSection";
 import { FinalCTA } from "./components/FinalCTA";
@@ -106,9 +105,6 @@ export default function MaximumProductPage() {
 
       {/* Ingredient Transparency */}
       <IngredientTable />
-
-      {/* Comparison Table - Show МАКС as recommended */}
-      <ComparisonTable />
 
       {/* FAQ - Objection Handling */}
       <section className="py-12 md:py-16 px-4">
