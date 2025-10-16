@@ -12,6 +12,11 @@ import { GuaranteeSection } from "./components/GuaranteeSection";
 import { FinalCTA } from "./components/FinalCTA";
 import { ExitIntentPopup } from "./components/ExitIntentPopup";
 import { SocialProofBanner } from "./components/SocialProofBanner";
+import { CommunityChatsGrid } from "@/components/funnel/CommunityChatsGrid";
+import { VideoTestimonialGrid } from "@/components/funnel/VideoTestimonialGrid";
+import { DetailedTestimonialCards } from "@/components/funnel/DetailedTestimonialCards";
+import { ScienceSection } from "@/components/funnel/ScienceSection";
+import { SupplementFacts } from "@/components/funnel/SupplementFacts";
 
 export default function StarterProductPage() {
   return (
@@ -27,6 +32,9 @@ export default function StarterProductPage() {
 
       {/* Solution Timeline */}
       <SolutionTimeline />
+
+      {/* Community Chat Proof - Authentic Conversations */}
+      <CommunityChatsGrid />
 
       {/* Value Stack - Hormozi Style */}
       <section className="py-12 md:py-16 px-4">
@@ -93,11 +101,23 @@ export default function StarterProductPage() {
         </div>
       </section>
 
+      {/* Video Testimonials - UGC Content */}
+      <VideoTestimonialGrid />
+
       {/* How It Works */}
       <HowItWorks />
 
+      {/* Science Behind TestoUP */}
+      <ScienceSection />
+
       {/* Ingredient Transparency */}
       <IngredientTable />
+
+      {/* Detailed Success Stories - Gary Halbert Formula */}
+      <DetailedTestimonialCards />
+
+      {/* Supplement Facts Label */}
+      <SupplementFacts />
 
       {/* FAQ - Objection Handling */}
       <section className="py-12 md:py-16 px-4">
