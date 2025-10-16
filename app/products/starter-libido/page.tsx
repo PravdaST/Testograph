@@ -6,7 +6,6 @@ import { FloatingCTA } from "../starter/components/shared/FloatingCTA";
 import { ValueStackGrid } from "../starter/components/shared/ValueStackGrid";
 import { DividerTransition, GradientTransition } from "../starter/components/shared/SectionTransition";
 import { SolutionTimeline } from "../starter/components/SolutionTimeline";
-import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
 import { HowItWorks } from "../starter/components/HowItWorks";
 import { IngredientsScience } from "@/components/funnel/IngredientsScience";
 import { FAQSection } from "@/components/funnel/FAQSection";
@@ -16,7 +15,6 @@ import { ExitIntentPopup } from "../starter/components/ExitIntentPopup";
 import { SocialProofBanner } from "../starter/components/SocialProofBanner";
 import { CommunityChatsCarousel } from "@/components/funnel/CommunityChatsCarousel";
 import { VideoTestimonialGrid } from "@/components/funnel/VideoTestimonialGrid";
-import { DetailedTestimonialCards } from "@/components/funnel/DetailedTestimonialCards";
 import { Package, FileText, Headphones, Users, Zap } from "lucide-react";
 
 export default function StarterLibidoPage() {
@@ -47,12 +45,6 @@ export default function StarterLibidoPage() {
 
       {/* Solution Timeline */}
       <SolutionTimeline />
-
-      {/* Detailed Testimonials - LIBIDO SPECIFIC (moved before offer) */}
-      <DetailedTestimonialCards angle="libido" limit={3} />
-
-      {/* Divider Transition */}
-      <DividerTransition />
 
       {/* Community Chat Proof */}
       <CommunityChatsCarousel />
@@ -108,24 +100,6 @@ export default function StarterLibidoPage() {
         spotsLeft={12}
         tier="regular"
       />
-
-      {/* Success Stories - ЛИБИДО FOCUS */}
-      <section id="testimonials" className="py-12 md:py-16 px-4 bg-muted/30">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Мъже Които Върнаха Либидото Си
-            </h2>
-            <p className="text-lg text-muted-foreground">
-              Точно като теб. Загубили желание. Върнали го за седмици.
-            </p>
-          </div>
-          <SuccessStoriesWall />
-        </div>
-      </section>
-
-      {/* Gradient Transition */}
-      <GradientTransition color="muted" position="top" />
 
       {/* Video Testimonials */}
       <VideoTestimonialGrid />
