@@ -239,56 +239,6 @@ export function ValueStackGrid({
           </div>
         </div>
 
-        {/* Bonus Section */}
-        {bonusItems.length > 0 && (
-          <div
-            className={`relative bg-gradient-to-br from-yellow-500/10 via-orange-500/10 to-red-500/10 border-2 border-yellow-500/30 rounded-3xl p-8 mb-12 overflow-hidden transition-all duration-700 delay-700 ${
-              isVisible ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            }`}
-          >
-            {/* Sparkle Animation */}
-            <div className="absolute top-6 right-6">
-              <Sparkles className="w-8 h-8 text-yellow-500 animate-pulse" />
-            </div>
-
-            <div className="mb-6">
-              <div className="inline-flex items-center gap-2 bg-yellow-500/20 border border-yellow-500/50 rounded-full px-4 py-2 mb-3">
-                <Zap className="w-4 h-4 text-yellow-500" />
-                <span className="text-sm font-black text-yellow-600 uppercase tracking-wide">
-                  Специални бонуси
-                </span>
-              </div>
-              <h3 className="text-2xl md:text-3xl font-black">
-                + Получаваш безплатно:
-              </h3>
-            </div>
-
-            <div className="grid md:grid-cols-2 gap-4">
-              {bonusItems.map((item, index) => (
-                <div
-                  key={index}
-                  className="flex items-start gap-4 bg-card/50 backdrop-blur-sm rounded-xl p-4 border border-border/30 hover:border-yellow-500/50 transition-all hover:scale-105"
-                >
-                  <div className="text-3xl flex-shrink-0">{item.icon}</div>
-                  <div className="flex-1">
-                    <h4 className="font-bold mb-1 text-sm">{item.name}</h4>
-                    <p className="text-xs text-muted-foreground mb-2">
-                      {item.description}
-                    </p>
-                    {typeof item.value === "number" && (
-                      <span className="text-sm font-black text-yellow-600">
-                        Стойност: {item.value} лв
-                      </span>
-                    )}
-                  </div>
-                  <div className="w-6 h-6 bg-yellow-500/20 rounded-full flex items-center justify-center flex-shrink-0">
-                    <Check className="w-4 h-4 text-yellow-600" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* CTA Section */}
         <div className="text-center">
