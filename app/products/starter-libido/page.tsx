@@ -4,21 +4,20 @@ import { LibidoHero } from "./components/LibidoHero";
 import { ProblemAgitationCards } from "./components/ProblemAgitationCards";
 import { FloatingCTA } from "../starter/components/shared/FloatingCTA";
 import { ValueStackGrid } from "../starter/components/shared/ValueStackGrid";
-import { WaveTransition, DividerTransition, GradientTransition } from "../starter/components/shared/SectionTransition";
+import { DividerTransition, GradientTransition } from "../starter/components/shared/SectionTransition";
 import { SolutionTimeline } from "../starter/components/SolutionTimeline";
 import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
 import { HowItWorks } from "../starter/components/HowItWorks";
-import { IngredientTable } from "../starter/components/IngredientTable";
+import { IngredientsScience } from "@/components/funnel/IngredientsScience";
 import { FAQSection } from "@/components/funnel/FAQSection";
 import { GuaranteeSection } from "../starter/components/GuaranteeSection";
 import { FinalCTA } from "../starter/components/FinalCTA";
 import { ExitIntentPopup } from "../starter/components/ExitIntentPopup";
 import { SocialProofBanner } from "../starter/components/SocialProofBanner";
-import { CommunityChatsGrid } from "@/components/funnel/CommunityChatsGrid";
+import { CommunityChatsCarousel } from "@/components/funnel/CommunityChatsCarousel";
 import { VideoTestimonialGrid } from "@/components/funnel/VideoTestimonialGrid";
 import { DetailedTestimonialCards } from "@/components/funnel/DetailedTestimonialCards";
-import { ScienceSection } from "@/components/funnel/ScienceSection";
-import { SupplementFacts } from "@/components/funnel/SupplementFacts";
+import { Package, FileText, Headphones, Users, Zap } from "lucide-react";
 
 export default function StarterLibidoPage() {
   return (
@@ -37,9 +36,6 @@ export default function StarterLibidoPage() {
       {/* New Modern Hero */}
       <LibidoHero />
 
-      {/* Wave Transition */}
-      <WaveTransition color="muted" />
-
       {/* Social Proof Banner */}
       <SocialProofBanner />
 
@@ -52,14 +48,20 @@ export default function StarterLibidoPage() {
       {/* Solution Timeline */}
       <SolutionTimeline />
 
-      {/* Wave Transition */}
-      <WaveTransition color="primary" flip />
-
-      {/* Community Chat Proof */}
-      <CommunityChatsGrid />
+      {/* Detailed Testimonials - LIBIDO SPECIFIC (moved before offer) */}
+      <DetailedTestimonialCards angle="libido" limit={3} />
 
       {/* Divider Transition */}
       <DividerTransition />
+
+      {/* Community Chat Proof */}
+      <CommunityChatsCarousel />
+
+      {/* Gradient Transition */}
+      <GradientTransition color="accent" />
+
+      {/* Ingredients Science - Moved before offer for better conversion */}
+      <IngredientsScience />
 
       {/* New Value Stack Grid */}
       <ValueStackGrid
@@ -68,35 +70,35 @@ export default function StarterLibidoPage() {
             name: "TestoUP бутилка (60 капсули)",
             value: 67,
             description: "Най-силната естествена добавка на пазара. 30-дневен запас за видими резултати.",
-            icon: "💊",
+            icon: <Package className="w-8 h-8" />,
             highlight: true
           },
           {
             name: "TestographPRO 30-дневен протокол",
             value: 197,
             description: "Точно какво да правиш всеки ден. Храна. Тренировки. Сън. Всичко.",
-            icon: "📋",
+            icon: <FileText className="w-8 h-8" />,
             highlight: true
           },
           {
             name: "24/7 Хормонален Експерт поддръжка",
             value: "Включена",
             description: "Винаги до теб. Питай каквото искаш. Никога не си сам.",
-            icon: "🤝",
+            icon: <Headphones className="w-8 h-8" />,
             highlight: true
           },
           {
             name: "VIP Telegram общност",
             value: 29,
             description: "Свържи се с хиляди мъже на същия път. Споделяй. Учи. Расти.",
-            icon: "👥",
+            icon: <Users className="w-8 h-8" />,
             isBonus: true
           },
           {
             name: "БОНУС: 7-дневен план за бърз старт",
             value: 49,
             description: "Започни веднага с готов 7-дневен план. Никакво чакане.",
-            icon: "🚀",
+            icon: <Zap className="w-8 h-8" />,
             isBonus: true
           }
         ]}
@@ -106,9 +108,6 @@ export default function StarterLibidoPage() {
         spotsLeft={12}
         tier="regular"
       />
-
-      {/* Wave Transition */}
-      <WaveTransition color="accent" />
 
       {/* Success Stories - ЛИБИДО FOCUS */}
       <section id="testimonials" className="py-12 md:py-16 px-4 bg-muted/30">
@@ -131,38 +130,8 @@ export default function StarterLibidoPage() {
       {/* Video Testimonials */}
       <VideoTestimonialGrid />
 
-      {/* Wave Transition */}
-      <WaveTransition color="primary" />
-
       {/* How It Works */}
       <HowItWorks />
-
-      {/* Gradient Transition */}
-      <GradientTransition color="accent" />
-
-      {/* Science Section */}
-      <ScienceSection />
-
-      {/* Divider Transition */}
-      <DividerTransition />
-
-      {/* Ingredient Transparency */}
-      <IngredientTable />
-
-      {/* Wave Transition */}
-      <WaveTransition color="muted" flip />
-
-      {/* Detailed Testimonials */}
-      <DetailedTestimonialCards />
-
-      {/* Gradient Transition */}
-      <GradientTransition color="muted" />
-
-      {/* Supplement Facts */}
-      <SupplementFacts />
-
-      {/* Divider Transition */}
-      <DividerTransition />
 
       {/* FAQ */}
       <section className="py-12 md:py-16 px-4">
@@ -178,9 +147,6 @@ export default function StarterLibidoPage() {
           <FAQSection tier="regular" />
         </div>
       </section>
-
-      {/* Wave Transition */}
-      <WaveTransition color="primary" />
 
       {/* Guarantee */}
       <GuaranteeSection />
