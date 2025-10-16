@@ -36,13 +36,13 @@ export function UTMBreakdown({ utmBreakdown }: UTMBreakdownProps) {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Target className="w-5 h-5" />
-            UTM Tracking
+            UTM Проследяване
           </CardTitle>
-          <CardDescription>Traffic source breakdown</CardDescription>
+          <CardDescription>Разбивка на източниците на трафик</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center py-8 text-muted-foreground">
-            <p>No UTM data available. Add UTM parameters to your marketing links.</p>
+            <p>Няма UTM данни. Добавете UTM параметри към вашите маркетинг линкове.</p>
           </div>
         </CardContent>
       </Card>
@@ -57,9 +57,9 @@ export function UTMBreakdown({ utmBreakdown }: UTMBreakdownProps) {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <ExternalLink className="w-5 h-5" />
-              Traffic Sources
+              Източници на Трафик
             </CardTitle>
-            <CardDescription>Where your visitors are coming from (utm_source)</CardDescription>
+            <CardDescription>Откъде идват вашите посетители (utm_source)</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -73,7 +73,7 @@ export function UTMBreakdown({ utmBreakdown }: UTMBreakdownProps) {
                       return (
                         <div className="bg-background border rounded-lg p-3 shadow-lg">
                           <p className="font-semibold">{payload[0].payload.name}</p>
-                          <p className="text-sm">{payload[0].payload.value} sessions</p>
+                          <p className="text-sm">{payload[0].payload.value} сесии</p>
                         </div>
                       );
                     }
@@ -92,8 +92,8 @@ export function UTMBreakdown({ utmBreakdown }: UTMBreakdownProps) {
         {mediumsData.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Traffic Medium</CardTitle>
-              <CardDescription>How visitors reached you (utm_medium)</CardDescription>
+              <CardTitle>Медия на Трафика</CardTitle>
+              <CardDescription>Как посетителите са ви достигнали (utm_medium)</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -123,8 +123,8 @@ export function UTMBreakdown({ utmBreakdown }: UTMBreakdownProps) {
         {campaignsData.length > 0 && (
           <Card>
             <CardHeader>
-              <CardTitle>Campaigns</CardTitle>
-              <CardDescription>Top performing campaigns (utm_campaign)</CardDescription>
+              <CardTitle>Кампании</CardTitle>
+              <CardDescription>Най-добре представящи се кампании (utm_campaign)</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">

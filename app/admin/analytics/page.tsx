@@ -267,7 +267,7 @@ export default function AnalyticsDashboard() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground">Funnel Analytics</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground">Фунел Анализи</h1>
             <p className="text-muted-foreground mt-1">
               Последните {selectedDays} дни • {funnelStats.stats.totalSessions} сесии
             </p>
@@ -297,19 +297,19 @@ export default function AnalyticsDashboard() {
                   size="sm"
                   onClick={() => setStatusFilter(status)}
                 >
-                  {status === 'all' ? 'All' : status === 'completed' ? 'Completed' : 'In Progress'}
+                  {status === 'all' ? 'Всички' : status === 'completed' ? 'Завършени' : 'В процес'}
                 </Button>
               ))}
             </div>
 
             <Button variant="outline" size="sm" onClick={fetchData}>
               <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
+              Обнови
             </Button>
 
             <Button variant="outline" size="sm" onClick={exportToCSV}>
               <Download className="w-4 h-4 mr-2" />
-              Export
+              Експорт
             </Button>
           </div>
         </div>
@@ -385,9 +385,9 @@ export default function AnalyticsDashboard() {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Smartphone className="w-5 h-5" />
-                Device Breakdown
+                Устройства
               </CardTitle>
-              <CardDescription>Where visitors are browsing from</CardDescription>
+              <CardDescription>От къде разглеждат потребителите</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -395,28 +395,28 @@ export default function AnalyticsDashboard() {
                   <Monitor className="w-8 h-8 text-blue-500" />
                   <div>
                     <p className="text-2xl font-bold">{funnelStats.deviceStats.desktop}</p>
-                    <p className="text-xs text-muted-foreground">Desktop</p>
+                    <p className="text-xs text-muted-foreground">Десктоп</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Smartphone className="w-8 h-8 text-green-500" />
                   <div>
                     <p className="text-2xl font-bold">{funnelStats.deviceStats.mobile}</p>
-                    <p className="text-xs text-muted-foreground">Mobile</p>
+                    <p className="text-xs text-muted-foreground">Мобилен</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Tablet className="w-8 h-8 text-purple-500" />
                   <div>
                     <p className="text-2xl font-bold">{funnelStats.deviceStats.tablet}</p>
-                    <p className="text-xs text-muted-foreground">Tablet</p>
+                    <p className="text-xs text-muted-foreground">Таблет</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Target className="w-8 h-8 text-muted-foreground" />
                   <div>
                     <p className="text-2xl font-bold">{funnelStats.deviceStats.unknown}</p>
-                    <p className="text-xs text-muted-foreground">Unknown</p>
+                    <p className="text-xs text-muted-foreground">Неизвестно</p>
                   </div>
                 </div>
               </div>
@@ -471,7 +471,7 @@ export default function AnalyticsDashboard() {
           {/* Drop-off Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>Drop-off по Стъпки</CardTitle>
+              <CardTitle>Напускане по Стъпки</CardTitle>
               <CardDescription>Къде напускат най-много потребители</CardDescription>
             </CardHeader>
             <CardContent>
@@ -503,7 +503,7 @@ export default function AnalyticsDashboard() {
           {/* Offer Performance */}
           <Card>
             <CardHeader>
-              <CardTitle>Offer Performance</CardTitle>
+              <CardTitle>Перформанс на Оферти</CardTitle>
               <CardDescription>Разпределение на tier-овете</CardDescription>
             </CardHeader>
             <CardContent>
@@ -581,7 +581,7 @@ export default function AnalyticsDashboard() {
         {/* Key Insights */}
         <Card>
           <CardHeader>
-            <CardTitle>Key Insights</CardTitle>
+            <CardTitle>Ключови Прозрения</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             {funnelStats.stats.mostCommonExitStep && (
@@ -591,7 +591,7 @@ export default function AnalyticsDashboard() {
             )}
             {funnelStats.conversionFunnel.length > 1 && (
               <p className="text-sm">
-                📉 <strong>Най-голям drop-off:</strong> От Step{' '}
+                📉 <strong>Най-голямо намаление:</strong> От Стъпка{' '}
                 {funnelStats.conversionFunnel.reduce((prev, curr) =>
                   (prev.conversionRate - (funnelStats.conversionFunnel[funnelStats.conversionFunnel.indexOf(prev) + 1]?.conversionRate || 0)) >
                   (curr.conversionRate - (funnelStats.conversionFunnel[funnelStats.conversionFunnel.indexOf(curr) + 1]?.conversionRate || 0))

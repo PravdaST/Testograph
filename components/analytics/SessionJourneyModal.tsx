@@ -133,9 +133,9 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Session Journey</DialogTitle>
+          <DialogTitle>Път на Сесията</DialogTitle>
           <DialogDescription>
-            {sessionId ? `Session ID: ${sessionId.slice(0, 8)}...` : 'Loading...'}
+            {sessionId ? `Session ID: ${sessionId.slice(0, 8)}...` : 'Зареждане...'}
           </DialogDescription>
         </DialogHeader>
 
@@ -159,27 +159,27 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
                 <div className="flex flex-col">
                   <span className="text-sm text-muted-foreground flex items-center gap-1">
                     <User className="w-3 h-3" />
-                    User
+                    Потребител
                   </span>
                   <span className="font-medium">
-                    {data.session.userData?.name || data.session.email || 'Anonymous'}
+                    {data.session.userData?.name || data.session.email || 'Анонимен'}
                   </span>
                 </div>
 
                 <div className="flex flex-col">
                   <span className="text-sm text-muted-foreground flex items-center gap-1">
                     <MapPin className="w-3 h-3" />
-                    Progress
+                    Прогрес
                   </span>
                   <span className="font-medium">
-                    Step {data.session.currentStep} / {TOTAL_FUNNEL_STEPS}
+                    Стъпка {data.session.currentStep} / {TOTAL_FUNNEL_STEPS}
                   </span>
                 </div>
 
                 <div className="flex flex-col">
                   <span className="text-sm text-muted-foreground flex items-center gap-1">
                     <Clock className="w-3 h-3" />
-                    Time
+                    Време
                   </span>
                   <span className="font-medium">{formatTime(data.session.totalTimeSeconds)}</span>
                 </div>
@@ -187,19 +187,19 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
                 <div className="flex flex-col">
                   <span className="text-sm text-muted-foreground flex items-center gap-1">
                     <Target className="w-3 h-3" />
-                    Status
+                    Статус
                   </span>
                   {data.session.completed ? (
                     <Badge variant="default" className="bg-green-500 w-fit">
-                      Completed
+                      Завършено
                     </Badge>
                   ) : data.session.exitStep ? (
                     <Badge variant="destructive" className="w-fit">
-                      Exited
+                      Напуснал
                     </Badge>
                   ) : (
                     <Badge variant="secondary" className="w-fit">
-                      Active
+                      Активен
                     </Badge>
                   )}
                 </div>
@@ -210,24 +210,24 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
                 <div className="bg-muted/50 rounded-lg p-3">
                   <p className="text-sm font-semibold mb-2 flex items-center gap-1">
                     <TrendingUp className="w-4 h-4" />
-                    UTM Parameters
+                    UTM Параметри
                   </p>
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     {data.session.utmData.source && (
                       <div>
-                        <span className="text-muted-foreground">Source: </span>
+                        <span className="text-muted-foreground">Източник: </span>
                         <span className="font-medium">{data.session.utmData.source}</span>
                       </div>
                     )}
                     {data.session.utmData.medium && (
                       <div>
-                        <span className="text-muted-foreground">Medium: </span>
+                        <span className="text-muted-foreground">Медия: </span>
                         <span className="font-medium">{data.session.utmData.medium}</span>
                       </div>
                     )}
                     {data.session.utmData.campaign && (
                       <div>
-                        <span className="text-muted-foreground">Campaign: </span>
+                        <span className="text-muted-foreground">Кампания: </span>
                         <span className="font-medium">{data.session.utmData.campaign}</span>
                       </div>
                     )}
@@ -237,30 +237,30 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
 
               {/* Event Stats */}
               <div className="bg-muted/50 rounded-lg p-3">
-                <p className="text-sm font-semibold mb-2">Event Summary</p>
+                <p className="text-sm font-semibold mb-2">Обобщение на Събитията</p>
                 <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-7 gap-3 text-sm">
                   <div className="flex flex-col">
-                    <span className="text-muted-foreground text-xs">📍 Entered</span>
+                    <span className="text-muted-foreground text-xs">📍 Влизания</span>
                     <span className="font-medium text-base">{data.eventCounts.step_entered}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-muted-foreground text-xs">👋 Exited</span>
+                    <span className="text-muted-foreground text-xs">👋 Излизания</span>
                     <span className="font-medium text-base">{data.eventCounts.step_exited}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-muted-foreground text-xs">🖱️ Clicks</span>
+                    <span className="text-muted-foreground text-xs">🖱️ Кликове</span>
                     <span className="font-medium text-base">{data.eventCounts.button_clicked}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-muted-foreground text-xs">⏭️ Skips</span>
+                    <span className="text-muted-foreground text-xs">⏭️ Пропускания</span>
                     <span className="font-medium text-base">{data.eventCounts.skip_used}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-muted-foreground text-xs">👁️ Offers</span>
+                    <span className="text-muted-foreground text-xs">👁️ Оферти</span>
                     <span className="font-medium text-base">{data.eventCounts.offer_viewed}</span>
                   </div>
                   <div className="flex flex-col">
-                    <span className="text-muted-foreground text-xs">✅ Choices</span>
+                    <span className="text-muted-foreground text-xs">✅ Избори</span>
                     <span className="font-medium text-base">{data.eventCounts.choice_made}</span>
                   </div>
                   <div className="flex flex-col">
@@ -273,7 +273,7 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
 
             {/* Timeline */}
             <div className="space-y-2">
-              <h3 className="font-semibold text-lg mb-4">Event Timeline ({data.totalEvents} events)</h3>
+              <h3 className="font-semibold text-lg mb-4">Времева Линия ({data.totalEvents} събития)</h3>
 
               {data.timeline.map((event, index) => {
                 const timeAgo = formatDistanceToNow(new Date(event.timestamp), {
@@ -311,7 +311,7 @@ export function SessionJourneyModal({ sessionId, isOpen, onClose }: SessionJourn
                       {event.metadata && Object.keys(event.metadata).length > 0 && (
                         <details className="mt-2 text-xs">
                           <summary className="cursor-pointer text-muted-foreground hover:text-foreground">
-                            Metadata
+                            Метаданни
                           </summary>
                           <pre className="mt-1 p-2 bg-muted rounded text-xs overflow-x-auto">
                             {JSON.stringify(event.metadata, null, 2)}

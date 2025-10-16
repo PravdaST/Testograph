@@ -37,16 +37,16 @@ export function SessionsTable({ sessions, onSessionClick }: SessionsTableProps) 
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="w-5 h-5" />
-            Active Sessions
+            Активни Сесии
           </CardTitle>
-          <CardDescription>Individual funnel sessions</CardDescription>
+          <CardDescription>Индивидуални фунел сесии</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Users className="w-16 h-16 text-muted-foreground mb-4 opacity-20" />
-            <p className="text-muted-foreground">No sessions found</p>
+            <p className="text-muted-foreground">Няма намерени сесии</p>
             <p className="text-sm text-muted-foreground mt-2">
-              Sessions will appear here when visitors enter the funnel
+              Сесиите ще се появят тук когато посетителите влязат във фунела
             </p>
           </div>
         </CardContent>
@@ -59,22 +59,22 @@ export function SessionsTable({ sessions, onSessionClick }: SessionsTableProps) 
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Users className="w-5 h-5" />
-          Active Sessions ({sessions.length})
+          Активни Сесии ({sessions.length})
         </CardTitle>
-        <CardDescription>Click on a session to view full journey</CardDescription>
+        <CardDescription>Кликнете на сесия за да видите пълния път</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="rounded-md border overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Offer</TableHead>
-                <TableHead>UTM Source</TableHead>
-                <TableHead>Last Activity</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead>Потребител</TableHead>
+                <TableHead>Прогрес</TableHead>
+                <TableHead>Статус</TableHead>
+                <TableHead>Оферта</TableHead>
+                <TableHead>UTM Източник</TableHead>
+                <TableHead>Последна Активност</TableHead>
+                <TableHead className="text-right">Действия</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -90,7 +90,7 @@ export function SessionsTable({ sessions, onSessionClick }: SessionsTableProps) 
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="font-medium">
-                          {session.name || session.email || 'Anonymous'}
+                          {session.name || session.email || 'Анонимен'}
                         </span>
                         {session.email && session.name && (
                           <span className="text-xs text-muted-foreground">{session.email}</span>
@@ -116,14 +116,14 @@ export function SessionsTable({ sessions, onSessionClick }: SessionsTableProps) 
                     <TableCell>
                       {session.completed ? (
                         <Badge variant="default" className="bg-green-500">
-                          ✓ Completed
+                          ✓ Завършено
                         </Badge>
                       ) : session.exitStep ? (
                         <Badge variant="destructive">
-                          Exited at {session.exitStep}
+                          Напуснал на {session.exitStep}
                         </Badge>
                       ) : (
-                        <Badge variant="secondary">In Progress</Badge>
+                        <Badge variant="secondary">В процес</Badge>
                       )}
                     </TableCell>
                     <TableCell>
@@ -150,12 +150,12 @@ export function SessionsTable({ sessions, onSessionClick }: SessionsTableProps) 
                           <span>{session.utmSource}</span>
                           {session.utmMedium && (
                             <span className="text-xs text-muted-foreground">
-                              via {session.utmMedium}
+                              през {session.utmMedium}
                             </span>
                           )}
                         </div>
                       ) : (
-                        <span className="text-muted-foreground text-sm">Direct</span>
+                        <span className="text-muted-foreground text-sm">Директен</span>
                       )}
                     </TableCell>
                     <TableCell>
@@ -172,7 +172,7 @@ export function SessionsTable({ sessions, onSessionClick }: SessionsTableProps) 
                           onClick={() => onSessionClick(session.sessionId)}
                         >
                           <Eye className="w-4 h-4 mr-1" />
-                          View
+                          Виж
                         </Button>
                       )}
                     </TableCell>
