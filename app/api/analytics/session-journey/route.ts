@@ -114,40 +114,73 @@ export async function GET(request: Request) {
 function getEventDescription(eventType: string, stepNumber: number | null, metadata: any): string {
   switch (eventType) {
     case 'step_entered':
-      return `📍 Entered Step ${stepNumber}`;
+      return `📍 Влезе на Стъпка ${stepNumber}`;
 
     case 'step_exited':
       const timeSpent = metadata.timeSpentSeconds;
-      const timeText = timeSpent ? ` (spent ${timeSpent}s)` : '';
-      return `👋 Left Step ${stepNumber}${timeText}`;
+      const timeText = timeSpent ? ` (прекара ${timeSpent}s)` : '';
+      return `👋 Напусна Стъпка ${stepNumber}${timeText}`;
 
     case 'button_clicked':
+      // Check if this is a CTA click (purchase attempt)
+      if (metadata.action === 'cta_click' && metadata.tier) {
+        const tierNames: Record<string, string> = {
+          premium: 'Premium оферта (197 лв)',
+          regular: 'Single оферта (97 лв)',
+          digital: 'Digital план (47 лв)'
+        };
+        const tierName = tierNames[metadata.tier] || metadata.tier;
+        return `✅ Избра ${tierName}`;
+      }
+
+      // Check if this is Skip to Free
+      if (metadata.action === 'skip_to_free') {
+        return `📄 Избра безплатния 7-дневен план`;
+      }
+
+      // Check if this is a Decline button
+      if (metadata.action === 'decline_offer') {
+        const fromTier = metadata.previousTier || 'unknown';
+        const tierNames: Record<string, string> = {
+          premium: 'Premium',
+          single: 'Single',
+          digital: 'Digital'
+        };
+        return `👎 Отказа ${tierNames[fromTier] || fromTier} оферта`;
+      }
+
+      // Regular button clicks
       const buttonText = metadata.buttonText || metadata.action || 'Button';
       return `🖱️ Clicked: "${buttonText}"`;
 
     case 'skip_used':
-      return `⏭️ Skipped Step ${stepNumber}`;
+      return `⏭️ Прескочи Стъпка ${stepNumber}`;
 
     case 'offer_viewed':
       const offerTier = metadata.offerTier || 'unknown';
-      const capitalizedTier = offerTier.charAt(0).toUpperCase() + offerTier.slice(1);
-      return `👁️ Viewed ${capitalizedTier} offer`;
+      const offerNames: Record<string, string> = {
+        premium: 'Premium оферта',
+        regular: 'Single оферта',
+        digital: 'Digital оферта',
+        single: 'Single оферта'
+      };
+      return `👁️ Видя ${offerNames[offerTier] || offerTier}`;
 
     case 'choice_made':
       const choiceValue = metadata.choiceValue;
-      return `✅ Made choice: Option ${choiceValue}`;
+      return `✅ Направи избор: Опция ${choiceValue}`;
 
     case 'exit_intent':
-      return `🚪 Exit intent detected on Step ${stepNumber}`;
+      return `🚪 Exit intent на Стъпка ${stepNumber}`;
 
     case 'session_started':
-      return `🚀 Session started`;
+      return `🚀 Сесията започна`;
 
     case 'session_completed':
-      return `✅ Funnel completed`;
+      return `✅ Фунелът завършен`;
 
     case 'session_exited':
-      return `❌ Exited at Step ${stepNumber}`;
+      return `❌ Напусна на Стъпка ${stepNumber}`;
 
     default:
       return eventType;
