@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 export function HowItWorks() {
   const steps = [
     {
@@ -7,21 +9,18 @@ export function HowItWorks() {
       title: "Поръчваш сега",
       description: "Кликваш бутона, попълваш детайли, избираш начин на плащане.",
       detail: "Пакетът пристига за 2-3 работни дни",
-      icon: "🛒",
     },
     {
       number: "2",
       title: "Следваш протокола",
       description: "Всеки ден получаваш точни инструкции какво да правиш.",
       detail: "Храна, тренировки, добавки - всичко е планирано",
-      icon: "📋",
     },
     {
       number: "3",
       title: "Виждаш резултати",
       description: "След 14-30 дни усещаш промяната - повече енергия, сила, либидо.",
       detail: "Това е само началото",
-      icon: "✨",
     },
   ];
 
@@ -48,11 +47,20 @@ export function HowItWorks() {
                 <span className="text-2xl font-black text-white">{step.number}</span>
               </div>
 
-              {/* Icon */}
-              <div className="text-5xl mb-4 mt-6">{step.icon}</div>
+              {/* Product Image for Step 1 */}
+              {step.number === "1" && (
+                <div className="relative w-full h-40 mb-4 mt-6">
+                  <Image
+                    src="/product/STARTER .webp"
+                    alt="СТАРТ пакет"
+                    fill
+                    className="object-contain drop-shadow-lg"
+                  />
+                </div>
+              )}
 
               {/* Content */}
-              <h3 className="text-2xl font-bold mb-3">{step.title}</h3>
+              <h3 className="text-2xl font-bold mb-3 mt-6">{step.title}</h3>
               <p className="text-muted-foreground mb-3 leading-relaxed">
                 {step.description}
               </p>

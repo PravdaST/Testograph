@@ -142,7 +142,7 @@ export function ValueStackGrid({
 
         {/* Product Hero Section with Split Layout */}
         <div className="grid md:grid-cols-2 gap-12 items-center mb-16">
-          {/* Left: Product Visualization */}
+          {/* Left: Product Visualization - Full STARTER Pack */}
           <div className="flex justify-center md:justify-end">
             <div
               className={`relative transition-all duration-700 delay-200 ${
@@ -152,11 +152,11 @@ export function ValueStackGrid({
               {/* Glow Effect Background */}
               <div className="absolute inset-0 bg-gradient-to-r from-primary/30 via-accent/30 to-primary/30 blur-3xl opacity-50 animate-pulse" />
 
-              {/* Product Image */}
+              {/* STARTER Pack Image */}
               <div className="relative w-72 h-72 md:w-96 md:h-96 lg:w-[450px] lg:h-[450px] z-10">
                 <Image
-                  src="/product/testoup-bottle_v2.webp"
-                  alt="TestoUP бутилка - 60 капсули"
+                  src="/product/STARTER .webp"
+                  alt="СТАРТ пакет - Пълен комплект"
                   fill
                   className="object-contain drop-shadow-2xl filter hover:scale-105 transition-transform duration-500"
                   priority
@@ -166,13 +166,13 @@ export function ValueStackGrid({
               {/* Floating Badges */}
               <div className="absolute -top-6 -right-6 bg-gradient-to-r from-green-500 to-emerald-500 text-white px-5 py-3 rounded-2xl text-sm font-black shadow-2xl animate-bounce z-20">
                 <div className="text-center">
-                  <div className="text-2xl font-black">60</div>
-                  <div className="text-xs uppercase">Капсули</div>
+                  <div className="text-2xl font-black">СТАРТ</div>
+                  <div className="text-xs uppercase">Пакет</div>
                 </div>
               </div>
 
               <div className="absolute -bottom-4 -left-4 bg-gradient-to-r from-orange-500 to-red-500 text-white px-5 py-3 rounded-2xl text-xs font-black shadow-2xl z-20">
-                30-дневен запас
+                Всичко в едно
               </div>
             </div>
           </div>
