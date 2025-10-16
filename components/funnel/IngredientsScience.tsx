@@ -3,7 +3,8 @@
 import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Beaker, TrendingUp, Shield, Zap, Heart, ChevronDown, ChevronUp, Users, Award, CheckCircle, MapPin, Microscope, Leaf, ShieldCheck } from "lucide-react";
+import { Beaker, TrendingUp, Shield, Zap, Heart, ChevronDown, ChevronUp, Users, Award, CheckCircle, MapPin, Microscope, Leaf, ShieldCheck, Hand } from "lucide-react";
+import Image from "next/image";
 
 interface TopIngredient {
   id: number;
@@ -17,6 +18,7 @@ interface TopIngredient {
   studies: string;
   keyBenefit: string;
   accentColor: string;
+  color: string;
 }
 
 interface CompactIngredient {
@@ -42,7 +44,8 @@ const topIngredients: TopIngredient[] = [
     ourDose: "400mg (оптимална клинична доза)",
     studies: "43+ клинични изследвания",
     keyBenefit: "Адаптоген #1 за тестостерон и стрес",
-    accentColor: "border-green-500"
+    accentColor: "border-green-500",
+    color: "green"
   },
   {
     id: 2,
@@ -59,7 +62,8 @@ const topIngredients: TopIngredient[] = [
     ourDose: "2400 IU (700% РДА)",
     studies: "100+ клинични изследвания",
     keyBenefit: "Хормонален фундамент",
-    accentColor: "border-orange-500"
+    accentColor: "border-orange-500",
+    color: "orange"
   },
   {
     id: 3,
@@ -76,7 +80,8 @@ const topIngredients: TopIngredient[] = [
     ourDose: "15mg елементарен цинк (150% РДА)",
     studies: "80+ клинични изследвания",
     keyBenefit: "Критичен за мъжко репродуктивно здраве",
-    accentColor: "border-blue-500"
+    accentColor: "border-blue-500",
+    color: "blue"
   },
   {
     id: 4,
@@ -93,7 +98,8 @@ const topIngredients: TopIngredient[] = [
     ourDose: "200mcg (364% РДА - терапевтична доза)",
     studies: "50+ клинични изследвания",
     keyBenefit: "Фертилност и антиоксидантна защита",
-    accentColor: "border-purple-500"
+    accentColor: "border-purple-500",
+    color: "purple"
   },
   {
     id: 5,
@@ -110,7 +116,8 @@ const topIngredients: TopIngredient[] = [
     ourDose: "600mcg (24000% РДА - мега доза за енергия)",
     studies: "200+ клинични изследвания",
     keyBenefit: "Експлозивна енергия и възстановяване",
-    accentColor: "border-red-500"
+    accentColor: "border-red-500",
+    color: "red"
   }
 ];
 
@@ -161,6 +168,8 @@ const compactIngredients: CompactIngredient[] = [
 
 export function IngredientsScience() {
   const [showSupplementFacts, setShowSupplementFacts] = useState(false);
+  const [activeIngredient, setActiveIngredient] = useState<number | null>(null);
+  const [showHint, setShowHint] = useState(true);
 
   return (
     <section className="py-8 md:py-12 px-4">
@@ -198,6 +207,147 @@ export function IngredientsScience() {
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Без излъгвания. Без безполезен прашец. Само съставки с доказан ефект в клинични дозировки.
           </p>
+        </div>
+
+        {/* Interactive Product Split Section */}
+        <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center mb-16">
+          {/* Left: Product Image with Hotspots */}
+          <div className="relative flex justify-center">
+            <div className="relative w-80 h-80 md:w-96 md:h-96">
+              {/* Product Image */}
+              <div className="relative w-full h-full">
+                <Image
+                  src="/product/testoup-bottle_v1.webp"
+                  alt="TestoUP бутилка"
+                  fill
+                  className="object-contain drop-shadow-2xl"
+                  priority
+                />
+
+                {/* Glow Effect */}
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-accent/20 to-primary/20 blur-3xl opacity-40 animate-pulse -z-10" />
+              </div>
+
+              {/* Pulsing Hint Bubble */}
+              {showHint && !activeIngredient && (
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-gradient-to-r from-primary to-accent text-white px-4 py-2 rounded-full text-sm font-bold shadow-2xl animate-bounce flex items-center gap-2">
+                  <Hand className="w-4 h-4" />
+                  Натисни съставките →
+                </div>
+              )}
+
+              {/* Interactive Hotspots */}
+              <div className="absolute inset-0">
+                {topIngredients.map((ingredient, index) => {
+                  const positions = [
+                    { top: "15%", left: "20%" },   // Top-left
+                    { top: "30%", right: "15%" },  // Top-right
+                    { top: "50%", left: "10%" },   // Middle-left
+                    { top: "65%", right: "20%" },  // Middle-right
+                    { bottom: "15%", left: "25%" } // Bottom
+                  ];
+
+                  const isActive = activeIngredient === ingredient.id;
+
+                  return (
+                    <button
+                      key={ingredient.id}
+                      onClick={() => {
+                        setActiveIngredient(ingredient.id);
+                        setShowHint(false);
+                      }}
+                      className={`absolute w-8 h-8 rounded-full border-4 transition-all duration-300 cursor-pointer group ${
+                        isActive
+                          ? `bg-${ingredient.color}-500 border-${ingredient.color}-400 scale-125 shadow-lg`
+                          : "bg-primary/20 border-primary/40 hover:scale-110 hover:bg-primary/40"
+                      } ${!activeIngredient ? "animate-pulse" : ""}`}
+                      style={positions[index]}
+                    >
+                      <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-xs font-black text-white">
+                        {index + 1}
+                      </span>
+
+                      {/* Tooltip on Hover */}
+                      <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">
+                        <div className="bg-black/90 text-white text-xs px-3 py-1.5 rounded-lg font-semibold">
+                          {ingredient.ingredient}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          </div>
+
+          {/* Right: Ingredients List */}
+          <div className="space-y-4">
+            <h3 className="text-2xl font-bold mb-6">Топ 5 активни съставки:</h3>
+
+            {topIngredients.map((ingredient, index) => {
+              const isActive = activeIngredient === ingredient.id;
+
+              return (
+                <button
+                  key={ingredient.id}
+                  onClick={() => {
+                    setActiveIngredient(ingredient.id);
+                    setShowHint(false);
+                  }}
+                  className={`w-full text-left transition-all duration-300 ${
+                    isActive
+                      ? `bg-${ingredient.color}-500/10 border-${ingredient.color}-500 scale-105 shadow-xl`
+                      : "bg-card/50 border-border/50 hover:border-primary/50"
+                  } border-2 rounded-xl p-4 cursor-pointer`}
+                >
+                  <div className="flex items-start gap-4">
+                    {/* Number Badge */}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-black flex-shrink-0 ${
+                      isActive ? `bg-${ingredient.color}-500` : "bg-muted"
+                    }`}>
+                      {index + 1}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-2 mb-1">
+                        <h4 className="font-bold text-lg">{ingredient.ingredient}</h4>
+                        <Badge variant="outline" className="text-xs font-semibold flex-shrink-0">
+                          {ingredient.dosage}
+                        </Badge>
+                      </div>
+                      <p className="text-xs text-muted-foreground italic mb-2">
+                        {ingredient.scientificName}
+                      </p>
+
+                      {/* Expanded Details */}
+                      {isActive && (
+                        <div className="mt-3 pt-3 border-t border-border/50 space-y-2 animate-in fade-in duration-300">
+                          <p className="text-sm font-semibold text-primary">
+                            {ingredient.keyBenefit}
+                          </p>
+                          <ul className="space-y-1">
+                            {ingredient.researchFindings.map((finding, idx) => (
+                              <li key={idx} className="text-xs text-muted-foreground flex items-start gap-2">
+                                <span className="text-primary mt-0.5">✓</span>
+                                <span>{finding}</span>
+                              </li>
+                            ))}
+                          </ul>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="secondary" className="text-xs">
+                              <Beaker className="w-3 h-3 mr-1" />
+                              {ingredient.studies}
+                            </Badge>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {/* Ingredients Table - Compact Format */}
