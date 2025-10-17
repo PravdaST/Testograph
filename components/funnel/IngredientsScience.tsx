@@ -196,7 +196,6 @@ export function IngredientsScience() {
   const [activeIngredient, setActiveIngredient] = useState<number | null>(1);
   const [showHint, setShowHint] = useState(false);
   const [mobileActiveIndex, setMobileActiveIndex] = useState(0);
-  const [badgeScrollIndex, setBadgeScrollIndex] = useState(0);
 
   // Auto-advance on mobile
   useEffect(() => {
@@ -221,23 +220,7 @@ export function IngredientsScience() {
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-scroll badges on mobile
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (window.innerWidth < 768) {
-        setBadgeScrollIndex((prev) => (prev + 1) % 7);
-        const container = document.getElementById('badge-scroll-container');
-        if (container) {
-          const cardWidth = container.scrollWidth / 7;
-          container.scrollTo({
-            left: cardWidth * ((badgeScrollIndex + 1) % 7),
-            behavior: 'smooth'
-          });
-        }
-      }
-    }, 3000);
-    return () => clearInterval(interval);
-  }, [badgeScrollIndex]);
+  // Removed manual badge scroll - using CSS animation instead
 
   return (
     <section className="py-8 md:py-12 px-4 relative overflow-hidden">
@@ -258,6 +241,18 @@ export function IngredientsScience() {
         .animate-ingredients-drift-reverse { animation: ingredients-drift-reverse 22s ease-in-out infinite; }
         .animate-ingredients-drift-vertical { animation: ingredients-drift-vertical 20s ease-in-out infinite; }
         .animate-ingredients-drift-16 { animation: ingredients-drift 16s ease-in-out infinite; }
+
+        /* Infinite horizontal scroll animation */
+        @keyframes scroll-left {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
+        }
+        .animate-scroll-left {
+          animation: scroll-left 20s linear infinite;
+        }
+        .animate-scroll-left:hover {
+          animation-play-state: paused;
+        }
 
         /* Hide scrollbar */
         .hide-scrollbar::-webkit-scrollbar {
@@ -646,65 +641,124 @@ export function IngredientsScience() {
             </p>
           </div>
 
-          {/* Mobile: Horizontal Auto-Scroll | Desktop: Grid Layout */}
-          <div
-            id="badge-scroll-container"
-            className="flex md:grid overflow-x-auto md:overflow-visible gap-3 md:gap-4 md:grid-cols-4 lg:grid-cols-7 snap-x snap-mandatory scroll-smooth hide-scrollbar"
-          >
-            {/* Dosage Features */}
-            <Card className="p-4 text-center border-primary/30 bg-gradient-to-br from-primary/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-2">
-                <Beaker className="w-5 h-5 text-white" />
-              </div>
-              <p className="text-xs font-bold">Рецензирани изследвания</p>
-            </Card>
+          {/* Infinite Auto-Scroll with Gradient Fades */}
+          <div className="relative overflow-hidden">
+            {/* Left Gradient Fade */}
+            <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-background to-transparent z-10 pointer-events-none" />
 
-            <Card className="p-4 text-center border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-2">
-                <Award className="w-5 h-5 text-white" />
-              </div>
-              <p className="text-xs font-bold">Клинични дозировки</p>
-            </Card>
+            {/* Right Gradient Fade */}
+            <div className="absolute right-0 top-0 bottom-0 w-24 bg-gradient-to-l from-background to-transparent z-10 pointer-events-none" />
 
-            <Card className="p-4 text-center border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-2">
-                <CheckCircle className="w-5 h-5 text-white" />
-              </div>
-              <p className="text-xs font-bold">Пълна прозрачност</p>
-            </Card>
+            {/* Scrolling Container */}
+            <div className="flex gap-3 md:gap-4 animate-scroll-left">
+              {/* First Set of Badges */}
+              <Card className="p-4 text-center border-primary/30 bg-gradient-to-br from-primary/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-2">
+                  <Beaker className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">Рецензирани изследвания</p>
+              </Card>
 
-            {/* Certification Features */}
-            <Card className="p-4 text-center border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-2">
-                <MapPin className="w-5 h-5 text-white" />
-              </div>
-              <p className="text-xs font-bold">Произведено в ЕС</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">GMP</p>
-            </Card>
+              <Card className="p-4 text-center border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-2">
+                  <Award className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">Клинични дозировки</p>
+              </Card>
 
-            <Card className="p-4 text-center border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-2">
-                <Microscope className="w-5 h-5 text-white" />
-              </div>
-              <p className="text-xs font-bold">Тествано</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Лаб</p>
-            </Card>
+              <Card className="p-4 text-center border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-2">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">Пълна прозрачност</p>
+              </Card>
 
-            <Card className="p-4 text-center border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-2">
-                <Leaf className="w-5 h-5 text-white" />
-              </div>
-              <p className="text-xs font-bold">100% природни</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Без химия</p>
-            </Card>
+              <Card className="p-4 text-center border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-2">
+                  <MapPin className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">Произведено в ЕС</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">GMP</p>
+              </Card>
 
-            <Card className="p-4 text-center border-orange-500/30 bg-gradient-to-br from-orange-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] md:min-w-0 snap-center">
-              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center mx-auto mb-2">
-                <ShieldCheck className="w-5 h-5 text-white" />
-              </div>
-              <p className="text-xs font-bold">Гаранция</p>
-              <p className="text-[10px] text-muted-foreground mt-0.5">Честност</p>
-            </Card>
+              <Card className="p-4 text-center border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-2">
+                  <Microscope className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">Тествано</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Лаб</p>
+              </Card>
+
+              <Card className="p-4 text-center border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-2">
+                  <Leaf className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">100% природни</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Без химия</p>
+              </Card>
+
+              <Card className="p-4 text-center border-orange-500/30 bg-gradient-to-br from-orange-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center mx-auto mb-2">
+                  <ShieldCheck className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">Гаранция</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Честност</p>
+              </Card>
+
+              {/* Duplicate Set for Seamless Loop */}
+              <Card className="p-4 text-center border-primary/30 bg-gradient-to-br from-primary/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-2">
+                  <Beaker className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">Рецензирани изследвания</p>
+              </Card>
+
+              <Card className="p-4 text-center border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-2">
+                  <Award className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">Клинични дозировки</p>
+              </Card>
+
+              <Card className="p-4 text-center border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-2">
+                  <CheckCircle className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">Пълна прозрачност</p>
+              </Card>
+
+              <Card className="p-4 text-center border-green-500/30 bg-gradient-to-br from-green-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-500 to-green-600 flex items-center justify-center mx-auto mb-2">
+                  <MapPin className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">Произведено в ЕС</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">GMP</p>
+              </Card>
+
+              <Card className="p-4 text-center border-blue-500/30 bg-gradient-to-br from-blue-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center mx-auto mb-2">
+                  <Microscope className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">Тествано</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Лаб</p>
+              </Card>
+
+              <Card className="p-4 text-center border-purple-500/30 bg-gradient-to-br from-purple-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-600 flex items-center justify-center mx-auto mb-2">
+                  <Leaf className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">100% природни</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Без химия</p>
+              </Card>
+
+              <Card className="p-4 text-center border-orange-500/30 bg-gradient-to-br from-orange-500/5 to-transparent hover:shadow-lg transition-all min-w-[140px] flex-shrink-0">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-orange-500 to-orange-600 flex items-center justify-center mx-auto mb-2">
+                  <ShieldCheck className="w-5 h-5 text-white" />
+                </div>
+                <p className="text-xs font-bold">Гаранция</p>
+                <p className="text-[10px] text-muted-foreground mt-0.5">Честност</p>
+              </Card>
+            </div>
           </div>
         </div>
 
