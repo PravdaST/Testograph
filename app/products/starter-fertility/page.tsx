@@ -15,6 +15,7 @@ import { ExitIntentPopup } from "../starter/components/ExitIntentPopup";
 import { SocialProofBanner } from "../starter/components/SocialProofBanner";
 import { CommunityChatsCarousel } from "@/components/funnel/CommunityChatsCarousel";
 import { VideoTestimonialGrid } from "@/components/funnel/VideoTestimonialGrid";
+import { fertilityTestimonials } from "@/components/funnel/testimonials-data";
 import { Package, FileText, MessageCircle, Users, Zap } from "lucide-react";
 
 export default function StarterFertilityPage() {
@@ -99,7 +100,7 @@ export default function StarterFertilityPage() {
       <CommunityChatsCarousel />
 
       {/* Video Testimonials */}
-      <VideoTestimonialGrid />
+      <VideoTestimonialGrid testimonials={fertilityTestimonials} />
 
       {/* Final CTA */}
       <FinalCTA />

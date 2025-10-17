@@ -6,19 +6,20 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 
-interface VideoTestimonial {
+export interface VideoTestimonial {
   id: number;
   name: string;
   age: number;
   problem: string;
   badge: string;
   keyQuote: string;
-  thumbnail: string;
-  videoUrl?: string; // Optional - for when actual videos are uploaded
+  thumbnail?: string;
+  videoUrl?: string;
   duration: string;
 }
 
-const testimonials: VideoTestimonial[] = [
+// Default testimonials (fallback)
+const defaultTestimonials: VideoTestimonial[] = [
   {
     id: 1,
     name: "Димитър К.",
@@ -26,7 +27,6 @@ const testimonials: VideoTestimonial[] = [
     problem: "Либидо",
     badge: "След 3 седмици",
     keyQuote: "Жена ми ме попита 'Какво взе? Искам и аз такова!' 😅",
-    thumbnail: "/api/placeholder/400/300",
     duration: "0:47"
   },
   {
@@ -36,7 +36,6 @@ const testimonials: VideoTestimonial[] = [
     problem: "Енергия",
     badge: "След 2 седмици",
     keyQuote: "Преди заспивах на бюрото до обяд. Сега тичам 5км преди работа.",
-    thumbnail: "/api/placeholder/400/300",
     duration: "1:12"
   },
   {
@@ -46,12 +45,15 @@ const testimonials: VideoTestimonial[] = [
     problem: "Мускулна маса",
     badge: "След 8 седмици",
     keyQuote: "От 78кг на 86кг. Треньорът ми не вярваше на очите си.",
-    thumbnail: "/api/placeholder/400/300",
     duration: "1:34"
   }
 ];
 
-export function VideoTestimonialGrid() {
+interface VideoTestimonialGridProps {
+  testimonials?: VideoTestimonial[];
+}
+
+export function VideoTestimonialGrid({ testimonials = defaultTestimonials }: VideoTestimonialGridProps) {
   const [selectedVideo, setSelectedVideo] = useState<VideoTestimonial | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -124,7 +126,18 @@ export function VideoTestimonialGrid() {
                 >
                   {/* Video Thumbnail - 9:16 vertical format */}
                   <div className="relative aspect-[9/16] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900 overflow-hidden">
-                    {/* Placeholder for actual video thumbnail */}
+                    {/* Video thumbnail or poster */}
+                    {testimonial.videoUrl && (
+                      <video
+                        className="absolute inset-0 w-full h-full object-cover"
+                        poster={testimonial.thumbnail}
+                        preload="metadata"
+                      >
+                        <source src={testimonial.videoUrl} type="video/mp4" />
+                      </video>
+                    )}
+
+                    {/* Play button overlay */}
                     <div className="absolute inset-0 flex items-center justify-center bg-black/40 group-hover:bg-black/30 transition-colors">
                       <div className="bg-white/90 dark:bg-black/90 rounded-full p-4 group-hover:scale-110 transition-transform">
                         <Play className="w-8 h-8 text-primary fill-primary" />
@@ -211,19 +224,28 @@ export function VideoTestimonialGrid() {
                 <Badge variant="secondary">{selectedVideo.badge}</Badge>
               </div>
 
-              {/* Video Placeholder */}
-              <div className="aspect-video bg-black rounded-lg flex items-center justify-center">
-                <div className="text-center text-white">
-                  <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
-                  <p className="text-sm opacity-75">
-                    Видеото ще бъде добавено скоро
-                  </p>
-                  {selectedVideo.videoUrl && (
-                    <p className="text-xs mt-2">
-                      URL: {selectedVideo.videoUrl}
-                    </p>
-                  )}
-                </div>
+              {/* Video Player */}
+              <div className="aspect-video bg-black rounded-lg overflow-hidden">
+                {selectedVideo.videoUrl ? (
+                  <video
+                    controls
+                    autoPlay
+                    className="w-full h-full"
+                    poster={selectedVideo.thumbnail}
+                  >
+                    <source src={selectedVideo.videoUrl} type="video/mp4" />
+                    Браузърът не поддържа видео.
+                  </video>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-white">
+                    <div className="text-center">
+                      <Play className="w-16 h-16 mx-auto mb-4 opacity-50" />
+                      <p className="text-sm opacity-75">
+                        Видеото ще бъде добавено скоро
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Quote */}

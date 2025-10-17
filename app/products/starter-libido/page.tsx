@@ -15,6 +15,7 @@ import { ExitIntentPopup } from "../starter/components/ExitIntentPopup";
 import { SocialProofBanner } from "../starter/components/SocialProofBanner";
 import { CommunityChatsCarousel } from "@/components/funnel/CommunityChatsCarousel";
 import { VideoTestimonialGrid } from "@/components/funnel/VideoTestimonialGrid";
+import { libidoTestimonials } from "@/components/funnel/testimonials-data";
 import { Package, FileText, MessageCircle, Users, Zap } from "lucide-react";
 
 export default function StarterLibidoPage() {
@@ -99,7 +100,7 @@ export default function StarterLibidoPage() {
       <CommunityChatsCarousel />
 
       {/* Video Testimonials */}
-      <VideoTestimonialGrid />
+      <VideoTestimonialGrid testimonials={libidoTestimonials} />
 
       {/* Final CTA */}
       <FinalCTA />
