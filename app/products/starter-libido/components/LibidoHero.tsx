@@ -175,7 +175,7 @@ export function LibidoHero() {
                 className="group relative px-6 sm:px-8 py-4 sm:py-5 bg-gradient-to-r from-primary via-accent to-primary text-white rounded-xl sm:rounded-2xl font-bold text-base sm:text-lg shadow-2xl hover:shadow-primary/50 transition-all duration-300 active:scale-95 sm:hover:scale-105 overflow-hidden"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
-                  Виж СТАРТ пакета →
+                  Виж СТАРТ пакета
                   <ArrowDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
                 </span>
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
