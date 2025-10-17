@@ -117,7 +117,7 @@ export const ScarcityBanner = () => {
             <div className="hidden md:flex flex-1 max-w-xs w-full">
               <div className="bg-orange-900/50 rounded-full h-4 overflow-hidden border border-orange-400/30 w-full">
                 <div
-                  className="h-full bg-gradient-to-r from-white via-orange-200 to-white flex items-center justify-center text-[10px] font-bold text-orange-900 transition-all duration-[2000ms] ease-out"
+                  className="h-full bg-gradient-to-r from-white via-orange-200 to-white flex items-center justify-center text-[10px] font-bold text-orange-900 transition-all duration-\[2000ms\] ease-out"
                   style={{ width: `${animatedPercentage}%` }}
                 >
                   <span className="tabular-nums">{Math.round(animatedPercentage)}%</span>

@@ -6,7 +6,6 @@ import { FloatingCTA } from "../starter/components/shared/FloatingCTA";
 import { ValueStackGrid } from "../starter/components/shared/ValueStackGrid";
 import { DividerTransition } from "../starter/components/shared/SectionTransition";
 import { SolutionTimeline } from "../starter/components/SolutionTimeline";
-import { HowItWorks } from "../starter/components/HowItWorks";
 import { IngredientsScience } from "@/components/funnel/IngredientsScience";
 import { BenefitsSection } from "@/components/funnel/BenefitsSection";
 import { FAQSection } from "@/components/funnel/FAQSection";
@@ -44,19 +43,7 @@ export default function StarterFertilityPage() {
       {/* Solution Timeline */}
       <SolutionTimeline />
 
-      {/* Community Chat Proof */}
-      <CommunityChatsCarousel />
-
-      {/* Ingredients Science - Moved before offer for better conversion */}
-      <IngredientsScience />
-
-      {/* Benefits Section - 6 Key Benefits */}
-      <BenefitsSection />
-
-      {/* How It Works - 3 Simple Steps */}
-      <HowItWorks />
-
-      {/* New Value Stack Grid */}
+      {/* New Value Stack Grid - FIRST PURCHASE MOMENT */}
       <ValueStackGrid
         items={[
           {
@@ -101,6 +88,15 @@ export default function StarterFertilityPage() {
         spotsLeft={12}
         tier="regular"
       />
+
+      {/* Ingredients Science - After the offer */}
+      <IngredientsScience />
+
+      {/* Benefits Section - 6 Key Benefits */}
+      <BenefitsSection />
+
+      {/* Community Chat Proof - Social proof reinforcement */}
+      <CommunityChatsCarousel />
 
       {/* Video Testimonials */}
       <VideoTestimonialGrid />

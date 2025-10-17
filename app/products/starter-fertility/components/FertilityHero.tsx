@@ -66,7 +66,7 @@ export function FertilityHero() {
                 className="group relative px-8 py-5 bg-gradient-to-r from-blue-500 via-pink-500 to-blue-500 text-white rounded-2xl font-bold text-lg shadow-2xl hover:shadow-blue-500/50 transition-all duration-300 hover:scale-105 overflow-hidden"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
-                  Виж как работи
+                  Виж 30-дневния план →
                   <ArrowDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
                 </span>
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
@@ -76,7 +76,7 @@ export function FertilityHero() {
                 onClick={() => scrollToSection('testimonials')}
                 className="px-8 py-5 border-2 border-blue-500/30 rounded-2xl font-semibold text-lg hover:bg-blue-500/5 hover:border-blue-500/50 transition-all duration-300 backdrop-blur-sm"
               >
-                Прочети истории
+                Реални резултати (800 мъже)
               </button>
             </div>
 

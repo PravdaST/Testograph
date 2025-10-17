@@ -10,14 +10,18 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ['storage.googleapis.com'],
     remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'storage.googleapis.com',
+      },
       {
         protocol: 'https',
         hostname: 'shop.testograph.eu',
         pathname: '/cdn/shop/files/**',
       },
     ],
+    qualities: [75, 90, 100],
   },
   // Enable React Server Components
   experimental: {

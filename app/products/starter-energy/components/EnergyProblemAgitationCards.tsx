@@ -195,6 +195,39 @@ export function EnergyProblemAgitationCards() {
                 1,450+ мъже се събудиха от "енергийния кошмар" за 2 седмици
               </span>
             </div>
+
+            {/* New CTA Button - Conversion Moment */}
+            <div className="mt-8 sm:mt-10 md:mt-12 text-center space-y-4">
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground font-semibold">
+                Готов да промениш това за 30 дни?
+              </p>
+              <button
+                onClick={() => {
+                  const element = document.getElementById('value-stack');
+                  element?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }}
+                className="px-8 sm:px-10 py-4 sm:py-5 bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-500
+                           text-white rounded-xl sm:rounded-2xl font-bold text-base sm:text-lg md:text-xl
+                           hover:scale-105 active:scale-95 transition-all shadow-2xl
+                           hover:shadow-yellow-500/50 inline-flex items-center gap-2"
+              >
+                Виж СТАРТ пакета (Спести 245 лв) →
+              </button>
+              <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  Безплатна доставка
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  30-дневна гаранция
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <div className="w-1.5 h-1.5 rounded-full bg-green-500" />
+                  Без рецепта
+                </span>
+              </div>
+            </div>
           </div>
         </div>
       </div>

@@ -145,11 +145,11 @@ export function LibidoHero() {
 
             {/* Headline - Enhanced & Mobile Optimized */}
             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black leading-[1.1] tracking-tight">
-              Либидото ти не е загубено.
+              От 0 желание за секс
               <br />
               <span className="relative inline-block mt-1 sm:mt-2">
                 <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 animate-hero-pulse-glow">
-                  Просто заспало.
+                  до спонтанно либидо за 30 дни
                 </span>
                 <div className="absolute -bottom-1 sm:-bottom-2 left-0 right-0 h-1 sm:h-1.5 bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 rounded-full shadow-lg blur-sm animate-pulse" />
                 {/* Secondary underline for depth */}
@@ -160,11 +160,11 @@ export function LibidoHero() {
             {/* Subheadline - Mobile Optimized */}
             <div className="space-y-3 md:space-y-4">
               <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground leading-relaxed">
-                Гледаш я. Нищо. Като да гледаш добър филм без емоции.
-                Може би си остарял? Може би тя не е същата?
+                Тя излиза от банята. Красива. Преди 3 години се случваше автоматично.
+                Сега? Мозъкът казва "да". Тялото казва "не".
               </p>
               <p className="text-lg sm:text-xl md:text-2xl font-bold text-foreground">
-                Не. Хормоните ти са на дъното.
+                Проблемът не е в главата. Проблемът е тестостеронът ти - спаднал с 40%.
               </p>
             </div>
 
@@ -175,7 +175,7 @@ export function LibidoHero() {
                 className="group relative px-6 sm:px-8 py-4 sm:py-5 bg-gradient-to-r from-primary via-accent to-primary text-white rounded-xl sm:rounded-2xl font-bold text-base sm:text-lg shadow-2xl hover:shadow-primary/50 transition-all duration-300 active:scale-95 sm:hover:scale-105 overflow-hidden"
               >
                 <span className="relative z-10 flex items-center justify-center gap-2">
-                  Виж как работи
+                  Виж 30-дневния план →
                   <ArrowDown className="w-5 h-5 group-hover:translate-y-1 transition-transform" />
                 </span>
                 <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
@@ -185,7 +185,7 @@ export function LibidoHero() {
                 onClick={() => scrollToSection('testimonials')}
                 className="px-6 sm:px-8 py-4 sm:py-5 border-2 border-primary/30 rounded-xl sm:rounded-2xl font-semibold text-base sm:text-lg hover:bg-primary/5 hover:border-primary/50 transition-all duration-300 backdrop-blur-sm active:scale-95"
               >
-                Прочети истории
+                Реални резултати (3,247 мъже)
               </button>
             </div>
 

@@ -6,7 +6,6 @@ import { FloatingCTA } from "../starter/components/shared/FloatingCTA";
 import { ValueStackGrid } from "../starter/components/shared/ValueStackGrid";
 import { DividerTransition } from "../starter/components/shared/SectionTransition";
 import { SolutionTimeline } from "../starter/components/SolutionTimeline";
-import { HowItWorks } from "../starter/components/HowItWorks";
 import { IngredientsScience } from "@/components/funnel/IngredientsScience";
 import { BenefitsSection } from "@/components/funnel/BenefitsSection";
 import { FAQSection } from "@/components/funnel/FAQSection";
@@ -44,25 +43,13 @@ export default function StarterEnergyPage() {
       {/* Solution Timeline */}
       <SolutionTimeline />
 
-      {/* Community Chat Proof */}
-      <CommunityChatsCarousel />
-
-      {/* Ingredients Science - Moved before offer for better conversion */}
-      <IngredientsScience />
-
-      {/* Benefits Section - 6 Key Benefits */}
-      <BenefitsSection />
-
-      {/* How It Works - 3 Simple Steps */}
-      <HowItWorks />
-
-      {/* New Value Stack Grid */}
+      {/* New Value Stack Grid - FIRST PURCHASE MOMENT */}
       <ValueStackGrid
         items={[
           {
             name: "TestoUP бутилка (60 капсули)",
             value: 67,
-            description: "24000% РДА B12 + 700% РДА D3 = Експлозивна енергия.",
+            description: "B12 прави енергия в клетките + D3 намалява умората. Почувствай разликата за 7-14 дни.",
             icon: <Package className="w-8 h-8" />,
             highlight: true
           },
@@ -101,6 +88,15 @@ export default function StarterEnergyPage() {
         spotsLeft={12}
         tier="regular"
       />
+
+      {/* Ingredients Science - After the offer */}
+      <IngredientsScience />
+
+      {/* Benefits Section - 6 Key Benefits */}
+      <BenefitsSection />
+
+      {/* Community Chat Proof - Social proof reinforcement */}
+      <CommunityChatsCarousel />
 
       {/* Video Testimonials */}
       <VideoTestimonialGrid />
