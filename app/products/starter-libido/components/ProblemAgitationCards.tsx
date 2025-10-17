@@ -39,7 +39,7 @@ export function ProblemAgitationCards() {
       emoji: "😶",
       title: "Гледаш я. Нищо.",
       description:
-        "Преди 2-3 години беше различно. Виждаше я и... искаше. Сега? Сега тя излиза от банята, красива, и ти... нищо. Като че ли си изключен.",
+        "Преди 2-3 години беше различно. Виждаше я и... искаше. Автоматично. Инстинктивно. Сега? Тя излиза от банята, красива, и ти... нищо. Като че ли си изключен. Казваш си: 'Просто съм уморен. Утре ще е различно.' Но утре е същото. И вдругиден. И след 6 месеца...",
       icon: Heart,
       color: "text-red-500",
       image: "/landing/Гледаш я нищо.webp",
@@ -55,9 +55,9 @@ export function ProblemAgitationCards() {
     },
     {
       emoji: "💔",
-      title: "Загубена близост",
+      title: "Дистанцията расте. Всеки ден.",
       description:
-        "Тя мисли че не я желаеш. Ти се чувстваш виновен. Интимността намалява. Дистанцията расте. Връзката страда.",
+        "Вечер. Лягате си. Тя се притиска до теб... и ти се обръщаш на другата страна. 'Уморен съм', казваш. Тя въздиша. Разстоянието между вас в леглото става 20 сантиметра. После 50. После... тя спира да се опитва. И най-страшното? Ти си облекчен. Защото не трябва да се страхуваш, че тялото ти няма да реагира.",
       icon: TrendingDown,
       color: "text-purple-500",
       image: "/landing/Загубена Близост.webp",
@@ -188,9 +188,9 @@ export function ProblemAgitationCards() {
               isVisible ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-4"
             }`}
           >
-            4-те признака че{" "}
+            4-те етапа как ниският тестостерон{" "}
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500">
-              либидото ти е на дъното
+              унищожава либидото ти
             </span>
           </h2>
 
@@ -306,13 +306,36 @@ export function ProblemAgitationCards() {
                 </span>
               </h3>
 
-              <p className="text-sm sm:text-base md:text-lg lg:text-xl text-muted-foreground mb-4 sm:mb-6 max-w-2xl mx-auto leading-relaxed px-4">
-                Тестостеронът ти е спаднал. Може би от стрес. Може би от възраст.
-                Може би от лош сън. Резултатът?{" "}
-                <strong className="text-foreground font-black">
-                  Загубено либидо. Загубена увереност. Загубена близост.
-                </strong>
-              </p>
+              <div className="text-sm sm:text-base md:text-lg text-muted-foreground mb-4 sm:mb-6 max-w-3xl mx-auto leading-relaxed px-4 space-y-4">
+                <p className="font-semibold text-foreground text-base md:text-lg">
+                  Ето какво се случва в тялото ти:
+                </p>
+
+                <div className="space-y-2 text-left bg-muted/30 rounded-xl p-4 sm:p-6 border border-border/50">
+                  <p className="font-mono text-sm sm:text-base">
+                    <span className="text-red-400">Стресът от работа</span> → Кортизол ↑ → <span className="text-orange-500 font-bold">Тестостерон ↓</span>
+                  </p>
+                  <p className="font-mono text-sm sm:text-base">
+                    <span className="text-red-400">Лошият сън</span> → Възстановяване ↓ → <span className="text-orange-500 font-bold">Тестостерон ↓</span>
+                  </p>
+                  <p className="font-mono text-sm sm:text-base">
+                    <span className="text-red-400">Възрастта 30+</span> → <span className="text-orange-500 font-bold">Естествен спад 1-2% годишно</span>
+                  </p>
+                </div>
+
+                <p className="text-base md:text-lg lg:text-xl">
+                  <strong className="text-foreground font-black">
+                    След 5 години на 1-2% спад? Тестостеронът ти е с 10% по-нисък. Либидото ти е... почти нула.
+                  </strong>
+                </p>
+
+                <p className="text-base md:text-lg">
+                  Но добрата новина?{" "}
+                  <strong className="text-green-500 font-black">
+                    3,247 мъже обърнаха процеса за 30 дни. С естествени съставки. Без рецепти. Без инжекции.
+                  </strong>
+                </p>
+              </div>
 
               <div className="space-y-3">
                 <div className="inline-flex items-center gap-2 bg-green-500/10 border-2 border-green-500/30 rounded-full px-4 py-2.5 sm:px-6 sm:py-3 shadow-lg hover:scale-105 active:scale-95 transition-transform duration-300">
