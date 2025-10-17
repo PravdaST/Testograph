@@ -44,7 +44,7 @@ export function FertilityHero() {
               3 години опити за бебе?
               <br />
               <span className="relative inline-block mt-2">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 via-pink-500 to-blue-500">
+                <span className="font-black text-primary drop-shadow-[0_0_20px_rgba(59,130,246,0.4)]">
                   Може да е спермограмата.
                 </span>
                 <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-500 via-pink-500 to-blue-500 rounded-full blur-sm" />

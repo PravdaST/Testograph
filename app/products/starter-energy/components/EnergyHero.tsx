@@ -47,7 +47,7 @@ export function EnergyHero() {
               От зомби в 7 сутринта
               <br />
               <span className="relative inline-block mt-2">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-500">
+                <span className="font-black text-primary drop-shadow-[0_0_20px_rgba(234,179,8,0.4)]">
                   до 5км бягане преди работа.
                 </span>
                 <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-yellow-500 rounded-full blur-sm" />

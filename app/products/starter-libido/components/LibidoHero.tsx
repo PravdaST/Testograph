@@ -148,7 +148,7 @@ export function LibidoHero() {
               От 0 желание за секс
               <br />
               <span className="relative inline-block mt-1 sm:mt-2">
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 animate-hero-pulse-glow">
+                <span className="font-black text-primary drop-shadow-[0_0_20px_rgba(34,197,94,0.4)]">
                   до спонтанно либидо за 30 дни
                 </span>
                 <div className="absolute -bottom-1 sm:-bottom-2 left-0 right-0 h-1 sm:h-1.5 bg-gradient-to-r from-green-500 via-blue-500 to-purple-600 rounded-full shadow-lg blur-sm animate-pulse" />
@@ -295,9 +295,6 @@ export function LibidoHero() {
 
               {/* Floating Badge - Top Left - Mobile Optimized */}
               <div className="group absolute -top-2 -left-2 sm:-top-3 sm:-left-3 md:-top-4 md:-left-4 bg-gradient-to-r from-orange-500 via-red-500 to-red-600 text-white rounded-xl md:rounded-2xl px-3 py-2 sm:px-4 sm:py-2 md:px-6 md:py-3 shadow-2xl rotate-[-8deg] hover:rotate-0 transition-all duration-300 hover:shadow-orange-500/50 animate-hero-pulse-glow border-2 border-white/20">
-                {/* Shine effect */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-200%] group-hover:translate-x-[200%] transition-transform duration-1000 rounded-xl md:rounded-2xl" />
-
                 <div className="relative z-10">
                   <div className="text-[9px] sm:text-[10px] md:text-xs font-black uppercase tracking-wide drop-shadow">Спести</div>
                   <div className="text-base sm:text-lg md:text-2xl font-black drop-shadow-lg">245 лв</div>
