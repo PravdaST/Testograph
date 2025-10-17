@@ -65,12 +65,15 @@ export function FloatingCTA() {
           {/* CTA Button */}
           <button
             onClick={() => scrollToElement("#value-stack")}
-            className={`w-full bg-gradient-to-r from-primary to-accent text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2 ${
+            className={`w-full bg-gradient-to-r from-primary to-accent text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-all flex items-center justify-center gap-3 ${
               isUrgent ? "animate-pulse" : ""
             }`}
           >
             <ShoppingCart className="w-5 h-5" />
-            <span>Вземи СТАРТ за 97 лв</span>
+            <div className="flex items-baseline gap-2">
+              <span className="text-sm line-through opacity-70">342 лв</span>
+              <span className="text-base font-bold">97 лв</span>
+            </div>
             {isUrgent && <Sparkles className="w-4 h-4 animate-spin" />}
           </button>
 
@@ -134,7 +137,7 @@ export function FloatingCTA() {
               <ShoppingCart className="w-6 h-6" />
             </div>
             <div className="text-left">
-              <div className="text-xs opacity-90 uppercase tracking-wide">СТАРТ пакет</div>
+              <div className="text-xs opacity-70 line-through">342 лв</div>
               <div className="text-2xl font-black flex items-baseline gap-2">
                 97 лв
                 {isUrgent && <Sparkles className="w-4 h-4 animate-pulse" />}
