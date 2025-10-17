@@ -314,11 +314,17 @@ export function ProblemAgitationCards() {
                 </strong>
               </p>
 
-              <div className="inline-flex items-center gap-2 bg-green-500/10 border-2 border-green-500/30 rounded-full px-4 py-2.5 sm:px-6 sm:py-3 shadow-lg hover:scale-105 active:scale-95 transition-transform duration-300">
-                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50" />
-                <span className="text-xs sm:text-sm md:text-base font-bold text-green-500">
-                  3,247+ мъже вече го решиха с TestoUP
-                </span>
+              <div className="space-y-3">
+                <div className="inline-flex items-center gap-2 bg-green-500/10 border-2 border-green-500/30 rounded-full px-4 py-2.5 sm:px-6 sm:py-3 shadow-lg hover:scale-105 active:scale-95 transition-transform duration-300">
+                  <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse shadow-lg shadow-green-500/50" />
+                  <span className="text-xs sm:text-sm md:text-base font-bold text-green-500">
+                    3,247+ мъже вече го решиха с TestoUP
+                  </span>
+                </div>
+                <p className="text-sm md:text-base text-muted-foreground italic max-w-2xl mx-auto">
+                  Като <span className="font-semibold text-foreground">Георги (34г.)</span> който каза:{" "}
+                  <span className="text-foreground font-medium">"Ден 18 - жена ми попита дали съм започнал да тренирам отново."</span>
+                </p>
               </div>
 
               {/* New CTA Button - Conversion Moment */}
@@ -336,8 +342,11 @@ export function ProblemAgitationCards() {
                              hover:scale-105 active:scale-95 transition-all shadow-2xl
                              hover:shadow-primary/50 inline-flex items-center gap-2"
                 >
-                  Виж СТАРТ пакета (Спести 245 лв) →
+                  Да, искам 30-дневния протокол →
                 </button>
+                <p className="text-xs sm:text-sm text-muted-foreground/80 font-medium">
+                  (Спести 245 лв с СТАРТ пакета)
+                </p>
                 <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-xs sm:text-sm text-muted-foreground">
                   <span className="flex items-center gap-1.5">
                     <div className="w-1.5 h-1.5 rounded-full bg-green-500" />

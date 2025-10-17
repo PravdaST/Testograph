@@ -49,21 +49,21 @@ export default function StarterLibidoPage() {
           {
             name: "TestoUP бутилка (60 капсули)",
             value: 67,
-            description: "Tribulus + Цинк + L-аргинин = подобрена циркулация и желание за 21-30 дни.",
+            description: "750mg Tribulus Terrestris + 25mg Цинк + L-аргинин. Клинично доказани дози. Виждаш резултат между Ден 12-21.",
             icon: <Package className="w-8 h-8" />,
             highlight: true
           },
           {
             name: "TestographPRO 30-дневен протокол",
             value: 197,
-            description: "Точно какво да правиш всеки ден. Храна. Тренировки. Сън. Всичко.",
+            description: "Точно какво да ядеш на закуска в Ден 1. Кога да тренираш в Ден 7. Как да спиш в Ден 14. Без догадки.",
             icon: <FileText className="w-8 h-8" />,
             highlight: true
           },
           {
-            name: "24/7 Хормонален Експерт поддръжка",
+            name: "24/7 Директен достъп до Хормонален Експерт",
             value: "Включена",
-            description: "Питай за либидо. Питай за увереност. Винаги на линия.",
+            description: "Либидото не се връща на Ден 12? Питаш експерта. Тревожен си на Ден 18? Пишеш веднага. Реален човек за часове.",
             icon: <MessageCircle className="w-8 h-8" />,
             highlight: true
           },
