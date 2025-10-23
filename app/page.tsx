@@ -379,7 +379,7 @@ const Index = () => {
                   <br />
                   който беше преди 10 години
                   <br />
-                  <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                  <span className="text-[35px] bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                     (за 2 минути + безплатно)
                   </span>
                 </h1>
