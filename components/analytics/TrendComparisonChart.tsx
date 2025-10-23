@@ -151,28 +151,28 @@ export function TrendComparisonChart({ data }: TrendComparisonChartProps) {
               yAxisId="left"
               type="monotone"
               dataKey="sessions"
-              stroke="#8b5cf6"
+              stroke="#5c415d"
               strokeWidth={2}
               name="Total Sessions"
-              dot={{ fill: '#8b5cf6', r: 4 }}
+              dot={{ fill: '#5c415d', r: 4 }}
             />
             <Line
               yAxisId="left"
               type="monotone"
               dataKey="completed"
-              stroke="#10b981"
+              stroke="#499167"
               strokeWidth={2}
               name="Completed"
-              dot={{ fill: '#10b981', r: 4 }}
+              dot={{ fill: '#499167', r: 4 }}
             />
             <Line
               yAxisId="right"
               type="monotone"
               dataKey="conversionRate"
-              stroke="#f59e0b"
+              stroke="#5dbd83"
               strokeWidth={3}
               name="Conversion Rate"
-              dot={{ fill: '#f59e0b', r: 5 }}
+              dot={{ fill: '#5dbd83', r: 5 }}
             />
           </LineChart>
         </ResponsiveContainer>

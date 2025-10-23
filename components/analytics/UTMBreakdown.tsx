@@ -10,7 +10,7 @@ interface UTMBreakdownProps {
   };
 }
 
-const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899', '#06b6d4'];
+const COLORS = ['#499167', '#5c415d', '#5dbd83', '#7a5c7d', '#3d7752', '#4a2f4b', '#6aa07a'];
 
 export function UTMBreakdown({ utmBreakdown }: UTMBreakdownProps) {
   // Convert objects to arrays for charts
@@ -80,7 +80,7 @@ export function UTMBreakdown({ utmBreakdown }: UTMBreakdownProps) {
                     return null;
                   }}
                 />
-                <Bar dataKey="value" fill="#8b5cf6" />
+                <Bar dataKey="value" fill="#499167" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
