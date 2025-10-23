@@ -638,14 +638,14 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
     <>
       {/* Email Popup */}
       <Dialog open={showEmailPopup} onOpenChange={(open) => !isLoading && setShowEmailPopup(open)}>
-        <DialogContent className="sm:max-w-lg bg-gradient-to-b from-slate-900 to-slate-800 border-slate-700 text-white">
+        <DialogContent className="sm:max-w-lg bg-gradient-to-b from-background to-card border-muted text-foreground">
           <DialogHeader className="space-y-6">
             <div className="flex items-center justify-center w-16 h-16 mx-auto rounded-full bg-gradient-primary">
               <Gift className="w-8 h-8 text-white" />
             </div>
             <div className="space-y-3">
-              <DialogTitle className="text-center text-2xl font-bold text-white">Получете своят безплатен Testograph анализ</DialogTitle>
-              <DialogDescription className="text-center text-base leading-relaxed px-4 text-slate-300">
+              <DialogTitle className="text-center text-2xl font-bold text-foreground">Получете своят безплатен Testograph анализ</DialogTitle>
+              <DialogDescription className="text-center text-base leading-relaxed px-4 text-muted-foreground">
                 Присъединете се към хилядите, които подобриха своето здраве.
                 Получете персонализирани съвети и ексклузивни прозрения в пощенската си кутия.
               </DialogDescription>
@@ -661,7 +661,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
                   value={userFirstName}
                   onChange={e => setUserFirstName(e.target.value)}
                   placeholder="Име"
-                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 focus:ring-primary focus:border-primary"
+                  className="bg-background border-input text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary"
                   autoFocus
                 />
                 {firstNameError && <p className="text-sm text-red-400 mt-1">{firstNameError}</p>}
@@ -673,7 +673,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
                   value={userLastName}
                   onChange={e => setUserLastName(e.target.value)}
                   placeholder="Фамилия (незадължително)"
-                  className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 focus:ring-primary focus:border-primary"
+                  className="bg-background border-input text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary"
                 />
               </div>
             </div>
@@ -684,7 +684,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
                 value={userEmail}
                 onChange={e => setUserEmail(e.target.value)}
                 placeholder="Въведете вашия имейл адрес"
-                className="bg-slate-800 border-slate-600 text-white placeholder:text-slate-400 focus:ring-primary focus:border-primary"
+                className="bg-background border-input text-foreground placeholder:text-muted-foreground focus:ring-primary focus:border-primary"
               />
               {emailError && <p className="text-sm text-red-400 mt-1">{emailError}</p>}
             </div>
@@ -693,7 +693,7 @@ const TForecastFormMultiStep = ({ onResult }: TForecastFormProps) => {
               Получи в e-mail
             </Button>
 
-            <div className="flex items-center justify-center space-x-6 text-xs text-slate-400">
+            <div className="flex items-center justify-center space-x-6 text-xs text-muted-foreground">
               <div className="flex items-center space-x-1">
                 <span className="text-yellow-500">★</span>
                 <span>Бърз достъп</span>
