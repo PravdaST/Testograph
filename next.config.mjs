@@ -20,6 +20,14 @@ const nextConfig = {
         hostname: 'shop.testograph.eu',
         pathname: '/cdn/shop/files/**',
       },
+      {
+        protocol: 'https',
+        hostname: 'lh3.googleusercontent.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
     ],
     qualities: [75, 90, 100],
   },

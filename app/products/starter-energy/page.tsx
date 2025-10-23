@@ -1,122 +1,58 @@
-"use client";
-
-import { EnergyHero } from "./components/EnergyHero";
-import { EnergyProblemAgitationCards } from "./components/EnergyProblemAgitationCards";
-import { FloatingCTA } from "../starter/components/shared/FloatingCTA";
-import { ValueStackGrid } from "../starter/components/shared/ValueStackGrid";
-import { DividerTransition } from "../starter/components/shared/SectionTransition";
-import { SolutionTimeline } from "../starter/components/SolutionTimeline";
-import { IngredientsScience } from "@/components/funnel/IngredientsScience";
-import { BenefitsSection } from "@/components/funnel/BenefitsSection";
-import { FAQSection } from "@/components/funnel/FAQSection";
-import { GuaranteeSection } from "../starter/components/GuaranteeSection";
-import { FinalCTA } from "../starter/components/FinalCTA";
-import { ExitIntentPopup } from "../starter/components/ExitIntentPopup";
-import { SocialProofBanner } from "../starter/components/SocialProofBanner";
-import { CommunityChatsCarousel } from "@/components/funnel/CommunityChatsCarousel";
-import { VideoTestimonialGrid } from "@/components/funnel/VideoTestimonialGrid";
-import { Package, FileText, MessageCircle, Users, Zap } from "lucide-react";
+import Hero from './components/sections/Hero';
+import Problem from './components/sections/Problem';
+import Formula from './components/sections/Formula';
+import SystemFeatures from './components/sections/SystemFeatures';
+import Supplement from './components/sections/Supplement';
+import ValueBreakdown from './components/sections/ValueBreakdown';
+import Proof from './components/sections/Proof';
+import Testimonials from './components/sections/Testimonials';
+import Pricing from './components/sections/Pricing';
+import Guarantee from './components/sections/Guarantee';
+import WhyCheap from './components/sections/WhyCheap';
+import FAQ from './components/sections/FAQ';
+import FinalCTA from './components/sections/FinalCTA';
 
 export default function StarterEnergyPage() {
   return (
-    <div className="min-h-screen bg-background">
-      {/* SEO Canonical */}
-      <link rel="canonical" href="https://testograph.eu/products/starter" />
+    <main className="min-h-screen bg-white">
+      {/* 1. Hero - Personal Transformation Story */}
+      <Hero />
 
-      {/* Skip Links for Accessibility */}
-      <a href="#value-stack" className="skip-link">
-        Към офертата
-      </a>
-      <a href="#testimonials" className="skip-link">
-        Към отзивите
-      </a>
+      {/* 2. Problem - Pain Points */}
+      <Problem />
 
-      {/* New Modern Hero */}
-      <EnergyHero />
+      {/* 3. Formula - 100% System Breakdown */}
+      <Formula />
 
-      {/* Social Proof Banner */}
-      <SocialProofBanner />
+      {/* 4. System Features - 4 Protocols + Tracking */}
+      <SystemFeatures />
 
-      {/* New Problem Agitation Cards */}
-      <EnergyProblemAgitationCards />
+      {/* 5. Supplement - 12 Active Ingredients */}
+      <Supplement />
 
-      {/* Solution Timeline */}
-      <SolutionTimeline />
+      {/* 6. Value Breakdown - Price Anchor */}
+      <ValueBreakdown />
 
-      {/* New Value Stack Grid - FIRST PURCHASE MOMENT */}
-      <ValueStackGrid
-        items={[
-          {
-            name: "TestoUP бутилка (60 капсули)",
-            value: 67,
-            description: "B12 прави енергия в клетките + D3 намалява умората. Почувствай разликата за 7-14 дни.",
-            icon: <Package className="w-8 h-8" />,
-            highlight: true
-          },
-          {
-            name: "TestographPRO 30-дневен протокол",
-            value: 197,
-            description: "Сън. Храна. Добавки. Всичко за максимална енергия.",
-            icon: <FileText className="w-8 h-8" />,
-            highlight: true
-          },
-          {
-            name: "24/7 Хормонален Експерт поддръжка",
-            value: "Включена",
-            description: "Питай за умора. Питай за сън. Винаги на линия.",
-            icon: <MessageCircle className="w-8 h-8" />,
-            highlight: true
-          },
-          {
-            name: "VIP Telegram общност",
-            value: 29,
-            description: "Мъже които се събудиха. Споделят как.",
-            icon: <Users className="w-8 h-8" />,
-            isBonus: true
-          },
-          {
-            name: "БОНУС: 7-дневен план за бърз старт",
-            value: 49,
-            description: "Почувствай разликата в първата седмица.",
-            icon: <Zap className="w-8 h-8" />,
-            isBonus: true
-          }
-        ]}
-        totalValue={342}
-        discountedPrice={97}
-        savings={245}
-        spotsLeft={12}
-        tier="regular"
-      />
+      {/* 7. Proof - Stats & Results Timeline */}
+      <Proof />
 
-      {/* Ingredients Science - After the offer */}
-      <IngredientsScience />
+      {/* 8. Testimonials - 7 Detailed Reviews */}
+      <Testimonials />
 
-      {/* Benefits Section - 6 Key Benefits */}
-      <BenefitsSection />
+      {/* 9. Pricing - 3 Packages */}
+      <Pricing />
 
-      {/* Community Chat Proof - Social proof reinforcement */}
-      <CommunityChatsCarousel />
+      {/* 10. Guarantee - 30-Day Money Back */}
+      <Guarantee />
 
-      {/* Video Testimonials */}
-      <VideoTestimonialGrid />
+      {/* 11. Why Cheap - Transparent Pricing */}
+      <WhyCheap />
 
-      {/* Final CTA */}
+      {/* 12. FAQ - 10 Questions */}
+      <FAQ />
+
+      {/* 13. Final CTA - Two Choices Framework */}
       <FinalCTA />
-
-      {/* Guarantee - Above FAQ */}
-      <GuaranteeSection />
-
-      {/* FAQ - At Bottom */}
-      <section className="py-8 px-4 bg-muted/30">
-        <FAQSection tier="regular" />
-      </section>
-
-      {/* Floating CTA Button (appears on scroll) */}
-      <FloatingCTA />
-
-      {/* Exit Intent */}
-      <ExitIntentPopup />
-    </div>
+    </main>
   );
 }

@@ -67,3 +67,37 @@ export const fertilityTestimonials: VideoTestimonial[] = [
     duration: "1:30"
   }
 ];
+
+// Energy Testimonials за /products/starter-energy
+export const energyTestimonials: VideoTestimonial[] = [
+  {
+    id: 1,
+    name: "Стоян И.",
+    age: 42,
+    problem: "Енергия & Либидо",
+    badge: "След 4 седмици",
+    keyQuote: "Чувствам се като на 25. Енергията през целия ден е невероятна.",
+    videoUrl: "/testimonials/TestoUP - LIBIDO 2.mp4",
+    duration: "1:12"
+  },
+  {
+    id: 2,
+    name: "Георги М.",
+    age: 38,
+    problem: "Енергия & Фокус",
+    badge: "След 12 седмици",
+    keyQuote: "Енергията ми се удвои. Вече не заспивам следобед на бюрото.",
+    videoUrl: "/testimonials/TestoUp - Pregmant 2.mp4",
+    duration: "1:45"
+  },
+  {
+    id: 3,
+    name: "Димитър К.",
+    age: 37,
+    problem: "Енергия & Виталност",
+    badge: "След 3 седмици",
+    keyQuote: "От умора целия ден до тичане 5км всяка сутрин.",
+    videoUrl: "/testimonials/TestoUp - Libido 1.mp4",
+    duration: "0:47"
+  }
+];

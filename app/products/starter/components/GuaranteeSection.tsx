@@ -4,13 +4,13 @@ import { Shield, CheckCircle, Undo2 } from "lucide-react";
 
 export function GuaranteeSection() {
   return (
-    <section className="py-8 px-4 bg-gradient-to-br from-yellow-400/20 via-amber-400/20 to-orange-400/20">
+    <section className="py-8 px-4">
       <div className="max-w-3xl mx-auto">
         {/* Headline */}
         <div className="text-center mb-6">
           <div className="flex items-center justify-center gap-2 mb-2">
-            <Shield className="w-5 h-5 text-yellow-600" />
-            <h2 className="text-xl md:text-2xl font-bold">
+            <Shield className="w-5 h-5 text-primary" />
+            <h2 className="text-xl md:text-2xl font-bold text-foreground">
               30-дневна гаранция
             </h2>
           </div>
@@ -21,19 +21,19 @@ export function GuaranteeSection() {
 
         {/* How It Works - Compact */}
         <div className="grid md:grid-cols-3 gap-3 mb-4">
-          <div className="bg-card/80 rounded-lg p-3 text-center border border-border/50">
-            <CheckCircle className="w-5 h-5 text-green-600 mx-auto mb-1" />
-            <p className="text-xs font-semibold mb-1">Следвай протокола 30 дни</p>
+          <div className="bg-card/90 backdrop-blur-xl rounded-lg p-3 text-center border-2 border-primary/20 hover:border-primary/40 transition-all duration-300">
+            <CheckCircle className="w-5 h-5 text-success mx-auto mb-1" />
+            <p className="text-xs font-semibold mb-1 text-foreground">Следвай протокола 30 дни</p>
           </div>
 
-          <div className="bg-card/80 rounded-lg p-3 text-center border border-border/50">
-            <CheckCircle className="w-5 h-5 text-green-600 mx-auto mb-1" />
-            <p className="text-xs font-semibold mb-1">Ако не усетиш подобрение</p>
+          <div className="bg-card/90 backdrop-blur-xl rounded-lg p-3 text-center border-2 border-primary/20 hover:border-primary/40 transition-all duration-300">
+            <CheckCircle className="w-5 h-5 text-success mx-auto mb-1" />
+            <p className="text-xs font-semibold mb-1 text-foreground">Ако не усетиш подобрение</p>
           </div>
 
-          <div className="bg-card/80 rounded-lg p-3 text-center border border-border/50">
-            <Undo2 className="w-5 h-5 text-blue-600 mx-auto mb-1" />
-            <p className="text-xs font-semibold mb-1">Изпрати имейл - парите са ти</p>
+          <div className="bg-card/90 backdrop-blur-xl rounded-lg p-3 text-center border-2 border-primary/20 hover:border-primary/40 transition-all duration-300">
+            <Undo2 className="w-5 h-5 text-primary mx-auto mb-1" />
+            <p className="text-xs font-semibold mb-1 text-foreground">Изпрати имейл - парите са ти</p>
           </div>
         </div>
 
