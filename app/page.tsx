@@ -221,7 +221,7 @@ const Index = () => {
   if (showFunnel) {
     return <WaitingRoomFunnel userData={userData} />;
   }
-  return <div className="min-h-screen transition-none relative bg-gray-900">
+  return <div className="min-h-screen transition-none relative bg-background">
       {/* Animated Purple Wave Background - Full Page */}
       <div className="fixed inset-0 z-0">
         <div className="absolute inset-0 opacity-30">
@@ -374,18 +374,18 @@ const Index = () => {
                 </div>
 
                 {/* Main Headline - TRANSFORMATION FOCUSED */}
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-5 text-white leading-[1.1]">
+                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-5 text-foreground leading-[1.1]">
                   Върни се към мъжа,
                   <br />
                   който беше преди 10 години
                   <br />
-                  <span className="bg-gradient-to-r from-purple-400 to-violet-500 bg-clip-text text-transparent">
+                  <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
                     (за 2 минути + безплатно)
                   </span>
                 </h1>
 
                 {/* Sub-headline - Benefits focused */}
-                <p className="text-lg md:text-xl text-gray-200 mb-6 leading-relaxed">
+                <p className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed">
                   Енергия. Сила. Либидо. Ментална острота. Разбери защо ги загуби и как да ги върнеш.
                 </p>
 

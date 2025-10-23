@@ -383,13 +383,13 @@ const ColdTrafficLanding = () => {
               </div>
 
               {/* Main Problem - Relatable */}
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 text-white leading-tight">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 text-foreground leading-tight">
                 Сутрин ставаш от леглото и си
                 <br />
                 <span className="text-destructive">уморен като да си спал 2 часа</span>
               </h1>
 
-              <p className="text-lg md:text-xl text-gray-200 mb-6 leading-relaxed">
+              <p className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed">
                 През деня едвам се влачиш. Кафето не помага.
                 <br />
                 Вечерта си прекалено изморен за секс.

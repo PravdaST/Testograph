@@ -145,7 +145,7 @@ export const TierComparisonTable = ({ currentTier }: TierComparisonTableProps) =
                 <td className="p-4 text-sm md:text-base font-medium text-foreground">
                   {feature.name}
                 </td>
-                <td className="p-4 text-center bg-gray-900/50">
+                <td className="p-4 text-center bg-card/50">
                   {renderValue(feature.digital)}
                 </td>
                 <td className="p-4 text-center bg-blue-950/30">
