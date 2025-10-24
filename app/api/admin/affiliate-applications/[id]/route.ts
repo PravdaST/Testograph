@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import crypto from 'crypto';
+import { createShopifyDiscountCode, isShopifyConfigured } from '@/lib/shopify/discount-codes';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -94,6 +95,34 @@ export async function PATCH(
           { error: 'Failed to create affiliate account' },
           { status: 500 }
         );
+      }
+
+      // Create Shopify discount code
+      console.log('🛍️ Creating Shopify discount code...');
+      if (isShopifyConfigured()) {
+        const shopifyResult = await createShopifyDiscountCode({
+          code: promoCode,
+          discountPercentage: commission_rate || 5,
+          title: `Affiliate ${application.full_name} - ${promoCode}`,
+          combinesWith: {
+            orderDiscounts: false,
+            productDiscounts: false,
+            shippingDiscounts: false,
+          },
+        });
+
+        if (shopifyResult.success) {
+          console.log(`✅ Shopify discount code created: ${shopifyResult.discountCode?.code}`);
+        } else {
+          console.error('⚠️ Failed to create Shopify discount code:', shopifyResult.error);
+          // Don't fail the entire process - log warning and continue
+          // Admin can manually create the discount code if needed
+        }
+      } else {
+        console.warn('⚠️ Shopify credentials not configured - skipping discount code creation');
+        console.log('   To enable automatic discount code creation:');
+        console.log('   1. Add SHOPIFY_ADMIN_ACCESS_TOKEN to .env.local');
+        console.log('   2. See: https://shop.testograph.eu/admin/settings/apps/development');
       }
 
       // Check if Auth user already exists (e.g., existing Testograph customer)
