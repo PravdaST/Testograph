@@ -20,7 +20,8 @@ import {
   Database,
   Settings as SettingsIcon,
   TrendingUp,
-  ClipboardCheck
+  ClipboardCheck,
+  Handshake
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -76,6 +77,11 @@ const navItems = [
     title: 'Quiz Резултати',
     href: '/admin/quiz-results',
     icon: ClipboardCheck,
+  },
+  {
+    title: 'Афилиейти',
+    href: '/admin/affiliates',
+    icon: Handshake,
   },
   {
     title: 'Emails',
