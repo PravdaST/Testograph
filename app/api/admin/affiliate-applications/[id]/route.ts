@@ -96,46 +96,86 @@ export async function PATCH(
         );
       }
 
-      // Create Supabase Auth user with temporary password
-      const temporaryPassword = generateSecurePassword(12);
+      // Check if Auth user already exists (e.g., existing Testograph customer)
+      const { data: existingUsers } = await supabase.auth.admin.listUsers();
+      const existingUser = existingUsers?.users.find(u => u.email === application.email);
 
-      const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-        email: application.email,
-        password: temporaryPassword,
-        email_confirm: true, // Skip email verification
-        user_metadata: {
-          full_name: application.full_name,
-          affiliate_id: affiliate.id,
-          role: 'affiliate'
-        }
-      });
+      let userId: string;
+      let temporaryPassword: string | null = null;
+      let isExistingUser = false;
 
-      if (authError) {
-        console.error('Error creating auth user:', authError);
-        // Continue even if auth creation fails - affiliate can contact support
+      if (existingUser) {
+        // User already has Testograph account - link to affiliate
+        console.log('✅ Existing Testograph user found:', application.email);
+        isExistingUser = true;
+        userId = existingUser.id;
+
+        // Update user metadata to include affiliate info
+        await supabase.auth.admin.updateUserById(existingUser.id, {
+          user_metadata: {
+            ...existingUser.user_metadata,
+            affiliate_id: affiliate.id,
+            affiliate_role: 'active'
+          }
+        });
       } else {
-        // Update affiliate with user_id
-        await supabase
-          .from('affiliates')
-          .update({ user_id: authUser.user.id })
-          .eq('id', affiliate.id);
+        // New user - create Auth account with temporary password
+        console.log('🆕 Creating new Auth user for:', application.email);
+        temporaryPassword = generateSecurePassword(12);
+
+        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+          email: application.email,
+          password: temporaryPassword,
+          email_confirm: true, // Skip email verification
+          user_metadata: {
+            full_name: application.full_name,
+            affiliate_id: affiliate.id,
+            role: 'affiliate'
+          }
+        });
+
+        if (authError) {
+          console.error('❌ Error creating auth user:', authError);
+          return NextResponse.json(
+            { error: 'Failed to create user account' },
+            { status: 500 }
+          );
+        }
+
+        userId = authUser.user.id;
       }
 
-      // Send approval email with Resend
+      // Update affiliate with user_id
+      await supabase
+        .from('affiliates')
+        .update({ user_id: userId })
+        .eq('id', affiliate.id);
+
+      // Send appropriate approval email based on user type
       try {
+        const emailTemplate = isExistingUser
+          ? getApprovalEmailForExistingUser({
+              fullName: application.full_name,
+              promoCode: promoCode,
+              commissionRate: commission_rate || 5,
+              email: application.email,
+            })
+          : getApprovalEmailTemplate({
+              fullName: application.full_name,
+              promoCode: promoCode,
+              commissionRate: commission_rate || 5,
+              email: application.email,
+              password: temporaryPassword!,
+            });
+
         await resend.emails.send({
           from: 'Testograph Affiliates <affiliates@shop.testograph.eu>',
           to: application.email,
           subject: '🎉 Поздравления! Одобрен си като Testograph Affiliate',
-          html: getApprovalEmailTemplate({
-            fullName: application.full_name,
-            promoCode: promoCode,
-            commissionRate: commission_rate || 5,
-            email: application.email,
-            password: temporaryPassword,
-          }),
+          html: emailTemplate,
         });
-        console.log('✅ Approval email sent to', application.email);
+
+        console.log(`✅ Approval email sent to ${application.email} (${isExistingUser ? 'existing' : 'new'} user)`);
       } catch (emailError: any) {
         console.error('❌ Failed to send approval email:', emailError);
         // Don't fail the request if email fails - affiliate is already created
@@ -278,6 +318,135 @@ function getApprovalEmailTemplate(params: {
                 <li style="margin-bottom: 10px;">Разгледай маркетинг материалите (банери, текстове, видеа)</li>
                 <li style="margin-bottom: 10px;">Започни да промотираш с твоя промо код <strong>${promoCode}</strong></li>
                 <li style="margin-bottom: 10px;">Следи статистиките си в реално време</li>
+              </ul>
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f0f9ff; border-radius: 8px; margin: 30px 0;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="margin: 0; color: #0c4a6e; font-size: 14px; line-height: 1.6;">
+                      💡 <strong>Pro Tip:</strong> Колкото повече промотираш продуктите, толкова повече печелиш! Използвай маркетинг материалите от dashboard-а за максимален резултат.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background-color: #f8f9fa; padding: 30px; text-align: center; border-top: 1px solid #e5e7eb;">
+              <p style="margin: 0 0 10px 0; color: #666666; font-size: 14px;">
+                Имаш въпроси? Пиши ни на <a href="mailto:affiliates@testograph.eu" style="color: #667eea; text-decoration: none;">affiliates@testograph.eu</a>
+              </p>
+              <p style="margin: 0; color: #999999; font-size: 12px;">
+                © 2025 Testograph. Всички права запазени.
+              </p>
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
+}
+
+// Email template for existing Testograph users
+function getApprovalEmailForExistingUser(params: {
+  fullName: string;
+  promoCode: string;
+  commissionRate: number;
+  email: string;
+}): string {
+  const { fullName, promoCode, commissionRate, email } = params;
+
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Добре дошъл в Testograph Affiliates</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #f5f5f5;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f5f5f5; padding: 40px 20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: bold;">🎉 Поздравления, ${fullName}!</h1>
+              <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 16px; opacity: 0.95;">Одобрен си като Testograph Affiliate Partner</p>
+            </td>
+          </tr>
+
+          <!-- Content -->
+          <tr>
+            <td style="padding: 40px 30px;">
+
+              <p style="margin: 0 0 20px 0; color: #333333; font-size: 16px; line-height: 1.6;">
+                Радваме се да те поздравим в екипа на Testograph! Заявката ти е одобрена и вече можеш да започнеш да печелиш като промотираш нашите продукти.
+              </p>
+
+              <!-- Promo Code Card -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f8f9fa; border-radius: 8px; margin: 30px 0; border: 2px dashed #667eea;">
+                <tr>
+                  <td style="padding: 25px; text-align: center;">
+                    <p style="margin: 0 0 10px 0; color: #666666; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Твоят Промо Код</p>
+                    <p style="margin: 0; color: #667eea; font-size: 32px; font-weight: bold; letter-spacing: 2px; font-family: monospace;">${promoCode}</p>
+                    <p style="margin: 15px 0 0 0; color: #666666; font-size: 14px;">
+                      <strong>Commission Rate:</strong> <span style="color: #22c55e; font-weight: bold;">${commissionRate}%</span>
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <h2 style="margin: 30px 0 15px 0; color: #333333; font-size: 20px; font-weight: 600;">🔑 Данни за достъп</h2>
+
+              <p style="margin: 0 0 15px 0; color: #555555; font-size: 14px;">
+                Тъй като вече имаш Testograph account, можеш да влезеш директно в affiliate dashboard-а със същия email и парола:
+              </p>
+
+              <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #e0f2fe; border-left: 4px solid #0ea5e9; border-radius: 4px; margin: 20px 0;">
+                <tr>
+                  <td style="padding: 20px;">
+                    <p style="margin: 0 0 10px 0; color: #075985; font-size: 14px;">
+                      <strong>Email:</strong> ${email}
+                    </p>
+                    <p style="margin: 0 0 10px 0; color: #075985; font-size: 14px;">
+                      <strong>Парола:</strong> Използвай твоята Testograph парола
+                    </p>
+                    <p style="margin: 15px 0 0 0; color: #0c4a6e; font-size: 13px; font-style: italic;">
+                      ℹ️ <strong>Същият account работи</strong> и за Testograph, и за Affiliate Dashboard!
+                    </p>
+                  </td>
+                </tr>
+              </table>
+
+              <!-- CTA Button -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin: 30px 0;">
+                <tr>
+                  <td align="center">
+                    <a href="https://affiliate.testograph.eu/login" style="display: inline-block; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: #ffffff; text-decoration: none; padding: 16px 40px; border-radius: 6px; font-weight: 600; font-size: 16px;">
+                      Влез в Affiliate Dashboard →
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <h2 style="margin: 40px 0 15px 0; color: #333333; font-size: 20px; font-weight: 600;">📊 Какво следва?</h2>
+
+              <ul style="margin: 0; padding-left: 20px; color: #555555; line-height: 1.8;">
+                <li style="margin-bottom: 10px;">Влез в affiliate dashboard-а с твоята Testograph парола</li>
+                <li style="margin-bottom: 10px;">Разгледай маркетинг материалите (банери, текстове, видеа)</li>
+                <li style="margin-bottom: 10px;">Започни да промотираш с твоя промо код <strong>${promoCode}</strong></li>
+                <li style="margin-bottom: 10px;">Следи статистиките си в реално време</li>
+                <li style="margin-bottom: 10px;">Получавай комисионни от всяка продажба!</li>
               </ul>
 
               <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #f0f9ff; border-radius: 8px; margin: 30px 0;">
