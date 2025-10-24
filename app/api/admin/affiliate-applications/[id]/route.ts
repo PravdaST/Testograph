@@ -8,9 +8,10 @@ const supabase = createClient(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const { id } = await params;
     const body = await request.json();
     const { status, commission_rate, admin_notes } = body;
 
@@ -25,7 +26,7 @@ export async function PATCH(
     const { data: application, error: fetchError } = await supabase
       .from('affiliate_applications')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single();
 
     if (fetchError || !application) {
@@ -42,9 +43,10 @@ export async function PATCH(
         status,
         commission_rate: status === 'approved' ? commission_rate : null,
         admin_notes,
+        reviewed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select()
       .single();
 
@@ -72,7 +74,7 @@ export async function PATCH(
           promo_code: promoCode,
           commission_rate: commission_rate || 5,
           status: 'active',
-          application_id: params.id,
+          application_id: id,
         })
         .select()
         .single();
@@ -83,7 +85,7 @@ export async function PATCH(
         await supabase
           .from('affiliate_applications')
           .update({ status: 'pending' })
-          .eq('id', params.id);
+          .eq('id', id);
 
         return NextResponse.json(
           { error: 'Failed to create affiliate account' },
