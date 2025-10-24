@@ -41,7 +41,6 @@ export async function PATCH(
       .from('affiliate_applications')
       .update({
         status,
-        commission_rate: status === 'approved' ? commission_rate : null,
         admin_notes,
         reviewed_at: new Date().toISOString(),
         updated_at: new Date().toISOString(),
