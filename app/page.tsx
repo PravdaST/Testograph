@@ -1,1032 +1,988 @@
 'use client'
 
-import { useState, useEffect, useCallback } from "react";
-import { Activity, Target, Shield, Sparkles, ChevronDown, Instagram, Facebook, Youtube, TrendingUp, Zap, Clock, FileText, CheckCircle2, Mail, ChevronLeft, ChevronRight } from "lucide-react";
+import { useState } from "react";
 import Link from "next/link";
-import useEmblaCarousel from 'embla-carousel-react';
-import TForecastFormMultiStep from "@/components/TForecastFormMultiStep";
-import ResultsDisplay from "@/components/ResultsDisplay";
+import { Shield, Check, Star, TrendingUp, Zap, Moon, Activity, ChevronRight, Award, Users, Clock, ShoppingCart, Smartphone } from "lucide-react";
 import ChatAssistant from "@/components/ChatAssistant";
-import { Features } from "@/components/ui/features-8";
-import { useScrollDirection } from "@/hooks/use-scroll-direction";
-import { ScarcityBanner } from "@/components/ui/scarcity-banner";
-import { TestimonialCard } from "@/components/ui/testimonial-card";
-import { StatComparison } from "@/components/ui/stat-comparison";
-import { ValueStack } from "@/components/ui/value-stack";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { WaitingRoomFunnel } from "@/components/funnel/WaitingRoomFunnel";
-import { LiveActivityNotifications } from "@/components/ui/LiveActivityNotifications";
-import { SpotCounter } from "@/components/ui/SpotCounter";
-import { ViberProofGrid } from "@/components/ui/ViberProof";
-import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
 
-// Testimonials Carousel Component
-const TestimonialsCarousel = () => {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  const testimonials = [
-    {
-      name: "Мартин",
-      age: 34,
-      city: "София, IT специалист",
-      avatarUrl: "/funnel/martin-avatar.jpg",
-      quote: "Преди 6 месеца бях на дъното. Жена ми ме гледаше като брат, не като мъж. Testograph ми показа че тестостеронът ми е на 9.7. Сега съм на 23.2. Всичко се промени.",
-      beforeStat: "9.7",
-      afterStat: "23.2",
-      statLabel: "Тестостерон (nmol/L)"
-    },
-    {
-      name: "Георги",
-      age: 41,
-      city: "Пловдив, Архитект",
-      avatarUrl: "/funnel/georgi-avatar.jpg",
-      quote: "Тренирах 5 пъти седмично. Нищо. Безплатният анализ ми показа че спя 5 часа и кортизолът ми убива тестостерона. 3 месеца по протокола - пробих плато от 2 години.",
-      beforeStat: "120",
-      afterStat: "180",
-      statLabel: "Килограми на лост (кг)"
-    },
-    {
-      name: "Емил",
-      age: 48,
-      city: "Варна, 20 г. женен",
-      avatarUrl: "/funnel/emil-avatar.jpg",
-      quote: "Разбрах, че проблемът е на път да разруши семейството ми. Срам, не срам, направих анализа. Най-доброто решение, което съм взел. Връзката ни се върна.",
-      beforeStat: "2/10",
-      afterStat: "9/10",
-      statLabel: "Либидо скор"
-    },
-    {
-      name: "Димитър",
-      age: 37,
-      city: "Бургас, Предприемач",
-      avatarUrl: "/funnel/dimitar-avatar.jpg",
-      quote: "Бизнесът ми вървеше добре, но аз се чувствах като труп. Нулева енергия, нулева мотивация. PDF-ът ми показа че имам дефицит на витамин D и ниски нива на цинк. 2 месеца - съм друг човек.",
-      beforeStat: "4/10",
-      afterStat: "9/10",
-      statLabel: "Енергия"
-    },
-    {
-      name: "Стоян",
-      age: 29,
-      city: "Пловдив, Треньор",
-      avatarUrl: "/funnel/stoyan-avatar.jpg",
-      quote: "Мислех че съм млад и всичко е ОК. Оказа се тестостеронът ми е на 10.7. За 29 години? AI чатът ми обясни всичко - стрес, алкохол, лош сън. Сега съм на 20.1 и се чувствам ЖИВ.",
-      beforeStat: "10.7",
-      afterStat: "20.1",
-      statLabel: "Тестостерон (nmol/L)"
-    },
-    {
-      name: "Петър",
-      age: 52,
-      city: "Варна, Лекар",
-      avatarUrl: "/funnel/petar-avatar.jpg",
-      quote: "Но никога не съм си проверявал хормоните. Тест показа ниски нива. Започнах протокола от PDF-а. За 3 месеца загубих 8кг мазнини и спечелих 4кг мускули. На 52 години!",
-      beforeStat: "24%",
-      afterStat: "16%",
-      statLabel: "Телесни мазнини"
-    }
-  ];
-
-  const scrollPrev = () => emblaApi && emblaApi.scrollPrev();
-  const scrollNext = () => emblaApi && emblaApi.scrollNext();
-
-  const onSelect = useCallback(() => {
-    if (!emblaApi) return;
-    setSelectedIndex(emblaApi.selectedScrollSnap());
-  }, [emblaApi]);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-    onSelect();
-    emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', onSelect);
-  }, [emblaApi, onSelect]);
-
+// Wave Separator Component
+function WaveSeparator({ className = "" }: { className?: string }) {
   return (
-    <div className="relative">
-      {/* Carousel container */}
-      <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex gap-6">
-          {testimonials.map((testimonial, index) => (
-            <div key={index} className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0">
-              <TestimonialCard
-                name={testimonial.name}
-                age={testimonial.age}
-                city={testimonial.city}
-                avatarUrl={testimonial.avatarUrl}
-                quote={testimonial.quote}
-                beforeStat={testimonial.beforeStat}
-                afterStat={testimonial.afterStat}
-                statLabel={testimonial.statLabel}
-                verified={true}
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Navigation buttons */}
-      <div className="flex items-center justify-center gap-4 mt-8">
-        <button
-          onClick={scrollPrev}
-          className="w-12 h-12 rounded-full bg-primary/10 hover:bg-primary/20 border border-primary/30 flex items-center justify-center transition-all duration-300 hover:scale-110"
-        >
-          <ChevronLeft className="w-6 h-6 text-primary" />
-        </button>
-
-        {/* Dots indicator */}
-        <div className="flex gap-2">
-          {testimonials.map((_, index) => (
-            <button
-              key={index}
-              onClick={() => emblaApi && emblaApi.scrollTo(index)}
-              className={`w-2 h-2 rounded-full transition-all duration-300 ${
-                index === selectedIndex
-                  ? 'bg-primary w-8'
-                  : 'bg-primary/30 hover:bg-primary/50'
-              }`}
-            />
-          ))}
-        </div>
-
-        <button
-          onClick={scrollNext}
-          className="w-12 h-12 rounded-full bg-primary/10 hover:bg-primary/20 border border-primary/30 flex items-center justify-center transition-all duration-300 hover:scale-110"
-        >
-          <ChevronRight className="w-6 h-6 text-primary" />
-        </button>
-      </div>
-
-      {/* Counter */}
-      <p className="text-center mt-4 text-sm text-muted-foreground">
-        {selectedIndex + 1} / {testimonials.length}
-      </p>
+    <div className={`relative w-full h-16 overflow-hidden ${className}`}>
+      <svg
+        className="absolute bottom-0 left-0 w-full h-full"
+        viewBox="0 0 1440 100"
+        preserveAspectRatio="none"
+        xmlns="http://www.w3.org/2000/svg"
+      >
+        <path
+          d="M0,50 C240,80 480,20 720,50 C960,80 1200,20 1440,50 L1440,100 L0,100 Z"
+          fill="#499167"
+          fillOpacity="0.1"
+        />
+        <path
+          d="M0,70 C360,40 720,90 1080,60 C1260,45 1380,70 1440,80 L1440,100 L0,100 Z"
+          fill="#499167"
+          fillOpacity="0.05"
+        />
+      </svg>
     </div>
   );
-};
+}
 
-const Index = () => {
-  const [result, setResult] = useState(null);
-  const [showResults, setShowResults] = useState(false);
-  const [showFunnel, setShowFunnel] = useState(false);
-  const [userData, setUserData] = useState(null);
-  const [formModalOpen, setFormModalOpen] = useState(false);
-  const [showScarcityBanner, setShowScarcityBanner] = useState(false);
-  const { scrollDirection, isAtTop } = useScrollDirection();
+// Wave Animation Component
+function WaveBackground({ color = "#499167", opacity = 0.1 }: { color?: string; opacity?: number }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      <svg
+        className="absolute w-full h-full"
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 1440 320"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" style={{ stopColor: color, stopOpacity: opacity }} />
+            <stop offset="50%" style={{ stopColor: color, stopOpacity: opacity * 1.5 }} />
+            <stop offset="100%" style={{ stopColor: color, stopOpacity: opacity }} />
+          </linearGradient>
+        </defs>
+        {/* Wave 1 */}
+        <path
+          fill="url(#wave-gradient)"
+          d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+          style={{
+            animation: 'wave1 15s ease-in-out infinite',
+            transformOrigin: 'center'
+          }}
+        />
+        {/* Wave 2 */}
+        <path
+          fill={color}
+          fillOpacity={opacity * 0.7}
+          d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+          style={{
+            animation: 'wave2 20s ease-in-out infinite',
+            animationDelay: '-5s',
+            transformOrigin: 'center'
+          }}
+        />
+        {/* Wave 3 */}
+        <path
+          fill={color}
+          fillOpacity={opacity * 0.5}
+          d="M0,160L48,165.3C96,171,192,181,288,186.7C384,192,480,192,576,181.3C672,171,768,149,864,144C960,139,1056,149,1152,160C1248,171,1344,181,1392,186.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+          style={{
+            animation: 'wave3 25s ease-in-out infinite',
+            animationDelay: '-10s',
+            transformOrigin: 'center'
+          }}
+        />
+      </svg>
+      <style jsx>{`
+        @keyframes wave1 {
+          0%, 100% { transform: translateX(0) translateY(0); }
+          50% { transform: translateX(-25px) translateY(-10px); }
+        }
+        @keyframes wave2 {
+          0%, 100% { transform: translateX(0) translateY(0); }
+          50% { transform: translateX(25px) translateY(10px); }
+        }
+        @keyframes wave3 {
+          0%, 100% { transform: translateX(0) translateY(0); }
+          50% { transform: translateX(-20px) translateY(5px); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
-  // Show scarcity banner after scrolling down on mobile
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowScarcityBanner(true);
-      } else {
-        setShowScarcityBanner(false);
-      }
-    };
+// Floating Particles Component
+function FloatingParticles({ color = "#499167" }: { color?: string }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {[...Array(15)].map((_, i) => (
+        <div
+          key={i}
+          className="absolute rounded-full"
+          style={{
+            width: Math.random() * 6 + 2 + 'px',
+            height: Math.random() * 6 + 2 + 'px',
+            backgroundColor: color,
+            opacity: Math.random() * 0.3 + 0.1,
+            left: Math.random() * 100 + '%',
+            top: Math.random() * 100 + '%',
+            animation: `float ${Math.random() * 10 + 10}s ease-in-out infinite`,
+            animationDelay: `${Math.random() * 5}s`
+          }}
+        />
+      ))}
+      <style jsx>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0) translateX(0); }
+          25% { transform: translateY(-20px) translateX(10px); }
+          50% { transform: translateY(-10px) translateX(-10px); }
+          75% { transform: translateY(-30px) translateX(5px); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-  const handleResult = (data: any) => {
-    if (data.type === 'funnel') {
-      // Trigger funnel flow
-      setUserData(data.userData);
-      setShowFunnel(true);
-      setFormModalOpen(false);
-      // Scroll to top when funnel starts
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    } else {
-      // Standard results display
-      setResult(data);
-      setShowResults(true);
-      // Scroll to top when results are shown
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth'
-      });
-    }
-  };
-  const resetForm = () => {
-    setResult(null);
-    setShowResults(false);
-    setShowFunnel(false);
-    setUserData(null);
-  };
+export default function HomePage() {
+  return (
+    <div className="min-h-screen bg-white">
+      {/* Trust Badges Bar */}
+      <TrustBadgesBar />
 
-  // If funnel should be shown, render only the funnel
-  if (showFunnel) {
-    return <WaitingRoomFunnel userData={userData} />;
-  }
-  return <div className="min-h-screen transition-none relative bg-background">
-      {/* Animated Purple Wave Background - Full Page */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 opacity-30">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-gradient-to-br from-purple-600/40 to-purple-800/40 rounded-full mix-blend-multiply filter blur-3xl animate-pulse"></div>
-          <div className="absolute top-1/2 right-0 w-80 h-80 bg-gradient-to-bl from-purple-500/30 to-indigo-700/30 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-delay-2"></div>
-          <div className="absolute bottom-0 left-1/3 w-72 h-72 bg-gradient-to-tr from-purple-700/35 to-violet-600/35 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-delay-4"></div>
-          <div className="absolute top-1/4 left-1/2 w-64 h-64 bg-gradient-to-tl from-purple-400/25 to-indigo-600/25 rounded-full mix-blend-multiply filter blur-3xl animate-pulse-delay-1"></div>
-        </div>
-        
-        {/* Wave Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-900/20 via-transparent to-purple-800/10"></div>
-      </div>
-      {/* Floating Sticky Header */}
-      <header className={`sticky top-4 z-50 relative transition-transform duration-300 ${
-        isAtTop || scrollDirection === 'up' ? 'translate-y-0' : '-translate-y-full'
-      }`}>
-        <div className="container mx-auto px-4">
-          <div className="bg-background/30 backdrop-blur-xl border border-white/10 shadow-2xl shadow-black/20 px-4 py-3 rounded-full backdrop-saturate-150">
-            <div className="flex items-center justify-between gap-4">
-              {/* Logo + Brand */}
-              <div className="flex items-center gap-3">
-                <div className="p-1.5 rounded-xl">
-                  <img src="/testograph-logo.png" alt="Testograph Logo" className="h-11 w-auto max-w-11 rounded-xl object-contain" />
-                </div>
-                <div>
-                  <p className="text-xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                    Testograph
-                  </p>
-                  <p className="text-xs text-muted-foreground">Инструмент за оценка на тестостерон</p>
-                </div>
-              </div>
+      {/* Hero Section with Video Background */}
+      <HeroSection />
 
-              {/* Social Proof Badge - Hidden on small screens */}
-              <div className="hidden md:flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full">
-                <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9 6a3 3 0 11-6 0 3 3 0 016 0zM17 6a3 3 0 11-6 0 3 3 0 016 0zM12.93 17c.046-.327.07-.66.07-1a6.97 6.97 0 00-1.5-4.33A5 5 0 0119 16v1h-6.07zM6 11a5 5 0 015 5v1H1v-1a5 5 0 015-5z" />
-                </svg>
-                <span className="text-xs font-semibold text-primary">3,247+ мъже</span>
-              </div>
+      {/* Reviews Section */}
+      <ReviewsSection />
 
-              {/* Right side buttons */}
-              <div className="flex items-center gap-2">
-                {/* Trust Badge - Desktop only */}
-                <div className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 bg-success/10 border border-success/20 rounded-full">
-                  <svg className="w-4 h-4 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                  <span className="text-xs font-semibold text-success">100% дискретно</span>
-                </div>
+      {/* App Showcase Section */}
+      <AppShowcaseSection />
 
-                {/* CTA Button - Always visible */}
-                {!showResults ? (
-                  <a
-                    href="https://shop.testograph.eu"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white rounded-full text-sm font-semibold transition-all duration-200 hover:scale-105 shadow-lg shadow-primary/30 hover:shadow-primary/50"
-                  >
-                    <span>Магазин</span>
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </a>
-                ) : (
-                  <button
-                    onClick={resetForm}
-                    className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary border border-primary/20 hover:border-primary/40 rounded-full text-sm font-medium transition-all duration-200 hover:scale-105"
-                  >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    <span className="hidden sm:inline">Нов анализ</span>
-                  </button>
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* How It Works Section */}
+      <HowItWorksSection />
 
-      {/* Hero Section - Full Width */}
-      {!showResults && <section className="relative mb-8 -mt-4 min-h-[65vh] flex items-center">
-          {/* Floating Images - Desktop Only */}
-          <div className="hidden xl:block absolute inset-0 pointer-events-none">
-            {/* Floating DNA/Molecule icons */}
-            <div className="absolute top-20 left-10 w-8 h-8 opacity-20 animate-float">
-              <div className="w-full h-full bg-gradient-to-br from-purple-400 to-violet-600 rounded-full blur-sm"></div>
-            </div>
-            <div className="absolute top-40 right-16 w-6 h-6 opacity-30 animate-float-delay-1">
-              <div className="w-full h-full bg-gradient-to-br from-violet-400 to-purple-600 rounded-full blur-sm"></div>
-            </div>
-            <div className="absolute bottom-32 left-20 w-10 h-10 opacity-15 animate-float-delay-2">
-              <div className="w-full h-full bg-gradient-to-br from-purple-500 to-indigo-600 rounded-full blur-sm"></div>
-            </div>
-            <div className="absolute top-60 left-1/4 w-4 h-4 opacity-25 animate-float-delay-3">
-              <div className="w-full h-full bg-gradient-to-br from-indigo-400 to-purple-500 rounded-full blur-sm"></div>
-            </div>
-            <div className="absolute bottom-48 right-1/4 w-7 h-7 opacity-20 animate-float">
-              <div className="w-full h-full bg-gradient-to-br from-violet-500 to-purple-400 rounded-full blur-sm"></div>
-            </div>
-            <div className="absolute top-32 right-1/3 w-5 h-5 opacity-35 animate-float-delay-2">
-              <div className="w-full h-full bg-gradient-to-br from-purple-300 to-violet-700 rounded-full blur-sm"></div>
-            </div>
-          </div>
+      {/* Clinical Proof Section */}
+      <ClinicalProofSection />
 
-          {/* Grid Texture Background */}
-          <div className="absolute inset-0">
-            <div className="w-full h-full" style={{
-          backgroundColor: 'transparent',
-          backgroundImage: `
-                  linear-gradient(
-                    0deg,
-                    transparent 24%,
-                    hsl(var(--border) / 0.4) 25%,
-                    hsl(var(--border) / 0.4) 26%,
-                    transparent 27%,
-                    transparent 74%,
-                    hsl(var(--border) / 0.4) 75%,
-                    hsl(var(--border) / 0.4) 76%,
-                    transparent 77%,
-                    transparent
-                  ),
-                  linear-gradient(
-                    90deg,
-                    transparent 24%,
-                    hsl(var(--border) / 0.4) 25%,
-                    hsl(var(--border) / 0.4) 26%,
-                    transparent 27%,
-                    transparent 74%,
-                    hsl(var(--border) / 0.4) 75%,
-                    hsl(var(--border) / 0.4) 76%,
-                    transparent 77%,
-                    transparent
-                  )
-                `,
-          backgroundSize: '55px 55px',
-          maskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`,
-          WebkitMaskImage: `radial-gradient(ellipse at center, black 30%, transparent 80%)`
-        }} />
-          </div>
-          {/* Content Grid */}
-          <div className="relative z-10 container mx-auto px-4 md:px-6 max-w-[1200px] py-14 md:py-20 w-full">
-            <div className="grid grid-cols-1 lg:grid-cols-12 items-start gap-8 xl:gap-10">
-              {/* Left Content */}
-              <div className="lg:col-span-7 xl:col-span-7 flex flex-col justify-center h-full">
-                {/* Badge - Lead Magnet Focus */}
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-medium mb-4">
-                  <Sparkles className="h-3.5 w-3.5" />
-                  Безплатен доклад за теб
-                </div>
+      {/* Product Packages Section */}
+      <ProductPackagesSection />
 
-                {/* Main Headline - TRANSFORMATION FOCUSED */}
-                <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-5 text-foreground leading-[1.1]">
-                  Върни се към мъжа,
-                  <br />
-                  който беше преди 10 години
-                  <br />
-                  <span className="text-[35px] bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                    (за 2 минути + безплатно)
-                  </span>
-                </h1>
+      {/* Member Testimonials Section */}
+      <MemberTestimonialsSection />
 
-                {/* Sub-headline - Benefits focused */}
-                <p className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed">
-                  Енергия. Сила. Либидо. Ментална острота. Разбери защо ги загуби и как да ги върнеш.
-                </p>
+      {/* Guarantee Section */}
+      <GuaranteeSection />
 
-                {/* Social Proof Numbers - Compact */}
-                <div className="bg-card/30 backdrop-blur-sm border border-primary/20 rounded-xl p-4 mb-6">
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-primary">3,247+</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Мъже</p>
-                    </div>
-                    <div className="text-center">
-                      <p className="text-2xl font-bold text-success">2 мин</p>
-                      <p className="text-xs text-muted-foreground mt-0.5">Безплатен анализ</p>
-                    </div>
-                    <SpotCounter totalSpots={50} />
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Content - Animated Visual Proof - Desktop Only */}
-              <div className="hidden lg:flex lg:col-span-5 xl:col-span-5 lg:justify-self-end w-full max-w-[360px] xl:max-w-[400px] items-center flex-col">
-                <div className="relative w-full">
-                  {/* Background Glow - Animated Continuously */}
-                  <div className="absolute inset-0 bg-primary/20 rounded-full blur-3xl opacity-50 animate-pulse"></div>
-
-                  {/* Floating Particles */}
-                  <div className="absolute top-10 -left-4 w-3 h-3 bg-success/40 rounded-full animate-float-particle-1"></div>
-                  <div className="absolute top-20 -right-4 w-2 h-2 bg-primary/40 rounded-full animate-float-particle-2"></div>
-                  <div className="absolute bottom-20 -left-3 w-2.5 h-2.5 bg-accent/40 rounded-full animate-float-particle-3"></div>
-
-                  {/* Main Circular Comparison */}
-                  <div className="relative aspect-square w-full">
-                    {/* Split Circle Design - Animated entrance + hover effect */}
-                    <div className="relative w-full h-full rounded-full overflow-hidden border-4 border-primary/30 shadow-2xl animate-fade-in hover:scale-105 transition-transform duration-500 hover:border-primary/50">
-                      {/* Left Half - Before (Red) - Slide in from left + continuous subtle pulse */}
-                      <div className="absolute left-0 top-0 w-1/2 h-full bg-gradient-to-br from-destructive/80 to-destructive/40 flex flex-col items-center justify-center animate-slide-in-left">
-                        <p className="text-white/60 text-[10px] uppercase font-semibold mb-1 animate-fade-pulse">Преди</p>
-                        <p className="text-white font-bold text-4xl animate-count-up">9.7</p>
-                        <p className="text-white/80 text-[10px] mt-0.5">nmol/L</p>
-                        <div className="mt-2 text-white/60 animate-pulse-slow">
-                          <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
-                          </svg>
-                        </div>
-                      </div>
-
-                      {/* Right Half - After (Green) - Slide in from right + glow pulse */}
-                      <div className="absolute right-0 top-0 w-1/2 h-full bg-gradient-to-bl from-success/80 to-success/40 flex flex-col items-center justify-center animate-slide-in-right">
-                        <p className="text-white/60 text-[10px] uppercase font-semibold mb-1 animate-fade-pulse-delayed">След</p>
-                        <p className="text-white font-bold text-4xl animate-count-up-delayed">23.2</p>
-                        <p className="text-white/80 text-[10px] mt-0.5">nmol/L</p>
-                        <div className="mt-2 text-white/80 animate-bounce-subtle">
-                          <svg className="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M9 16.2L4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2z"/>
-                          </svg>
-                        </div>
-                      </div>
-
-                      {/* Center Divider Line - Shimmer effect */}
-                      <div className="absolute left-1/2 top-0 w-1 h-full bg-white/20 transform -translate-x-1/2 animate-fade-in-delay">
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/40 to-transparent animate-shimmer"></div>
-                      </div>
-
-                      {/* Center Arrow - Enhanced pulsing + rotation hint */}
-                      <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-14 h-14 bg-card rounded-full border-4 border-primary flex items-center justify-center shadow-xl z-10 animate-scale-pulse-glow">
-                        <svg className="w-6 h-6 text-primary animate-arrow-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                      </div>
-                    </div>
-
-                    {/* Bottom Label - Animated + glow */}
-                    <div className="absolute -bottom-6 left-0 right-0 text-center animate-fade-in-up">
-                      <p className="text-success font-bold text-xl drop-shadow-lg animate-glow-pulse">+139% подобрение</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* CTA Button Below Circle */}
-                <div className="w-full mt-12 text-center animate-fade-in-up-delay">
-                  <button onClick={() => setFormModalOpen(true)} className="group inline-flex items-center gap-2.5 px-8 py-4 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-base rounded-full transition-all duration-300 hover:scale-105 shadow-xl shadow-green-500/40 w-full justify-center">
-                    <Activity className="h-5 w-5" />
-                    <span>Започни безплатния анализ</span>
-                    <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Mobile Before/After Visual - Compact Version */}
-            <div className="lg:hidden w-full max-w-sm mx-auto mt-8 animate-fade-in">
-              <div className="relative bg-card/30 backdrop-blur-sm border-2 border-primary/30 rounded-2xl p-6 shadow-xl">
-                <div className="flex items-center justify-between mb-5">
-                  <div className="text-center flex-1">
-                    <p className="text-xs text-white/60 uppercase font-semibold mb-2">Преди</p>
-                    <p className="text-destructive font-bold text-4xl mb-1">9.7</p>
-                    <p className="text-xs text-muted-foreground">nmol/L</p>
-                  </div>
-                  <div className="px-4">
-                    <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                      <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                      </svg>
-                    </div>
-                  </div>
-                  <div className="text-center flex-1">
-                    <p className="text-xs text-white/60 uppercase font-semibold mb-2">След</p>
-                    <p className="text-success font-bold text-4xl mb-1">23.2</p>
-                    <p className="text-xs text-muted-foreground">nmol/L</p>
-                  </div>
-                </div>
-                <div className="text-center mb-4">
-                  <p className="text-success font-bold text-xl">+139% подобрение</p>
-                  <p className="text-xs text-muted-foreground mt-1">Реален резултат за 3 месеца</p>
-                </div>
-                <button onClick={() => setFormModalOpen(true)} className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-sm rounded-full transition-all duration-300 hover:scale-105 shadow-lg shadow-green-500/30 flex items-center justify-center gap-2">
-                  <Activity className="h-4 w-4" />
-                  <span>Започни безплатния анализ</span>
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>}
-
-      <main className="container mx-auto px-4 md:px-6 py-4 max-w-[1200px] relative z-20">
-        {!showResults ? <>
-            {/* Scroll Down Arrow */}
-            <div className="flex justify-center mb-4 -mt-8 animate-bounce-slow">
-              <div className="flex flex-col items-center cursor-pointer group" onClick={() => {
-            const whatYouGetSection = document.querySelector('#what-you-get');
-            whatYouGetSection?.scrollIntoView({
-              behavior: 'smooth'
-            });
-          }}>
-                <div className="p-3 rounded-full bg-purple-500/20 backdrop-blur-sm border border-purple-400/30 group-hover:bg-purple-500/30 transition-all duration-300 group-hover:scale-110">
-                  <ChevronDown className="h-6 w-6 text-purple-300 group-hover:text-purple-200" />
-                </div>
-              </div>
-            </div>
-
-            {/* What You Get - MOVED HERE FOR BETTER CONVERSION */}
-            <section id="what-you-get" className="mb-20">
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                    Какво получаваш{' '}
-                    <span className="text-primary">безплатно</span>?
-                  </h2>
-                  <p className="text-lg text-muted-foreground">
-                  Персонализиран 7-дневен план за повишаване на тестостерона на имейл. Само 2 минути.
-                  </p>
-                </div>
-
-                <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-                  {/* PDF Report Card */}
-                  <div className="group relative bg-gradient-to-br from-card/90 to-primary/5 backdrop-blur-xl rounded-xl border border-primary/30 p-5 hover:border-primary/50 transition-all duration-300 shadow-lg">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="flex-shrink-0 w-10 h-10 bg-primary/20 rounded-lg flex items-center justify-center">
-                        <svg className="w-5 h-5 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                        </svg>
-                      </div>
-                      <h3 className="text-base font-bold text-foreground">
-                      Безплатен хормонален анализ
-                      </h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                    Персонализиран тестостеронов профил
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-primary font-medium">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span>2 минути на имейл</span>
-                    </div>
-                  </div>
-
-                  {/* AI Chat Assistant Card */}
-                  <div className="group relative bg-gradient-to-br from-card/90 to-accent/5 backdrop-blur-xl rounded-xl border border-accent/30 p-5 hover:border-accent/50 transition-all duration-300 shadow-lg">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="flex-shrink-0 w-10 h-10 bg-accent/20 rounded-lg flex items-center justify-center">
-                        <svg className="w-5 h-5 text-accent" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                        </svg>
-                      </div>
-                      <h3 className="text-base font-bold text-foreground">
-                      Хормонален Експерт
-                      </h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                    AI асистент 24/7 - питай каквото искаш
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-accent font-medium">
-                      <Sparkles className="w-3.5 h-3.5" />
-                      <span>Неограничени въпроси</span>
-                    </div>
-                  </div>
-
-                  {/* Personalized Action Plan */}
-                  <div className="group relative bg-gradient-to-br from-card/90 to-success/5 backdrop-blur-xl rounded-xl border border-success/30 p-5 hover:border-success/50 transition-all duration-300 shadow-lg">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="flex-shrink-0 w-10 h-10 bg-success/20 rounded-lg flex items-center justify-center">
-                        <svg className="w-5 h-5 text-success" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                        </svg>
-                      </div>
-                      <h3 className="text-base font-bold text-foreground">
-                        7-дневен план
-                      </h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                      Храна, тренировки, навици - ден по ден
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-success font-medium">
-                      <Target className="w-3.5 h-3.5" />
-                      <span>Готов от утре</span>
-                    </div>
-                  </div>
-
-                  {/* Privacy & Security */}
-                  <div className="group relative bg-gradient-to-br from-card/90 to-muted/5 backdrop-blur-xl rounded-xl border border-border/50 p-5 hover:border-border transition-all duration-300 shadow-lg">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="flex-shrink-0 w-10 h-10 bg-muted/20 rounded-lg flex items-center justify-center">
-                        <Shield className="w-5 h-5 text-foreground" />
-                      </div>
-                      <h3 className="text-base font-bold text-foreground">
-                        100% Дискретно
-                      </h3>
-                    </div>
-                    <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                      Криптирани данни - никой няма да научи
-                    </p>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground font-medium">
-                      <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span>Без спам</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* CTA to Form */}
-                <div className="mt-12 text-center">
-                  <p className="text-muted-foreground mb-6">
-                    Готов си? Започни сега и получи доклада си за 2 минути 👇
-                  </p>
-                  <button onClick={() => {
-                    const formSection = document.getElementById('assessment-form');
-                    formSection?.scrollIntoView({
-                      behavior: 'smooth'
-                    });
-                  }} className="group inline-flex items-center gap-3 px-10 py-5 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 text-white font-bold text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl shadow-purple-500/30">
-                    <Activity className="h-6 w-6" />
-                    <span>Започни безплатния анализ</span>
-                    <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </button>
-                </div>
-            </section>
-
-            {/* Stats Visualization - Before/After - CONDENSED */}
-            <section className="mb-20">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                  Реални резултати.{' '}
-                
-                </h2>
-                <p className="text-muted-foreground text-lg">
-                  Вижте какво се случва когато следваш протокола
-                </p>
-              </div>
-
-              <div className="grid md:grid-cols-2 gap-6 mb-12">
-                <StatComparison
-                  label="Тестостерон"
-                  beforeValue={9.7}
-                  afterValue={23.2}
-                  unit=" nmol/L"
-                  normalRange="8.6-29"
-                  isHigherBetter={true}
-                  maxValue={35}
-                />
-                <StatComparison
-                  label="Покачване на либидо"
-                  beforeValue={2}
-                  afterValue={9}
-                  unit="/10"
-                  normalRange="7-10"
-                  isHigherBetter={true}
-                  maxValue={10}
-                />
-              </div>
-            </section>
-
-            {/* Success Stories Wall */}
-            <section className="mb-20">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                  Реални трансформации.{' '}
-                </h2>
-                <p className="text-muted-foreground text-lg">
-                  Естествени промени. Без химия. Само протокол.
-                </p>
-              </div>
-              <SuccessStoriesWall />
-            </section>
-
-            {/* Social Proof - Testimonials Carousel */}
-            <section className="mb-20">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                  Не вярваш?{' '}
-                  <span className="text-primary">Ето доказателствата.</span>
-                </h2>
-                <p className="text-muted-foreground text-lg">
-                Истински хора. Доказани резултати. Лични истории.
-                </p>
-              </div>
-
-              <TestimonialsCarousel />
-
-            </section>
-
-            {/* Viber Chat Proofs Section */}
-            <section className="mb-20 w-full max-w-full overflow-hidden">
-              <div className="text-center mb-12">
-                <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-                  Какво си пишат{' '}
-                  <span className="text-primary">нашите клиенти</span>
-                </h2>
-                <p className="text-muted-foreground text-lg">
-                  Реални разговори. Реални резултати. Без филтри.
-                </p>
-              </div>
-
-              <ViberProofGrid />
-            </section>
-
-            {/* Assessment Form - MOVED HERE - After Testimonials */}
-            <section id="assessment-form" className="mb-20">
-              <div className="text-center mb-10">
-                <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-success/10 rounded-full mb-3">
-                  <FileText className="w-3.5 h-3.5 text-success" />
-                  <span className="text-xs font-semibold text-success uppercase tracking-wide">
-                    Безплатен анализ
-                  </span>
-                </div>
-
-                <h2 className="text-2xl md:text-4xl font-bold mb-3">
-                  Отговори на{' '}
-                  <span className="bg-gradient-to-r from-purple-400 to-violet-500 bg-clip-text text-transparent">
-                    4 прости въпроса
-                  </span>
-                </h2>
-
-                <p className="text-base text-muted-foreground mb-5">
-                Достъп до 24/7 хормонален експерт
-                </p>
-
-                <div className="flex flex-wrap items-center justify-center gap-4 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-6 h-6 bg-primary/10 rounded-full flex items-center justify-center">
-                      <Clock className="w-3.5 h-3.5 text-primary" />
-                    </div>
-                    <span className="text-muted-foreground">2 мин</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-6 h-6 bg-success/10 rounded-full flex items-center justify-center">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-success" />
-                    </div>
-                    <span className="text-muted-foreground">Безплатно</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-6 h-6 bg-accent/10 rounded-full flex items-center justify-center">
-                      <Mail className="w-3.5 h-3.5 text-accent" />
-                    </div>
-                    <span className="text-muted-foreground">Персонализиран анализ</span>
-                  </div>
-                </div>
-              </div>
-
-              <TForecastFormMultiStep onResult={handleResult} />
-            </section>
-
-            {/* Problem Agitation Section - MOVED AFTER FORM */}
-            <section className="mb-20">
-                <div className="text-center mb-12">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full mb-4">
-                    <svg className="w-4 h-4 text-primary" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-sm font-semibold text-primary uppercase tracking-wide">
-                      Познати симптоми?
-                    </span>
-                  </div>
-                  <h2 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-                    Разбираме <span className="text-primary">какво преживяваш</span>
-                  </h2>
-                  <p className="text-lg text-muted-foreground">
-                    Ако поне 2 от тези ти звучат познато, нивата на тестостерон може да са причината.
-                  </p>
-                </div>
-
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {/* Bullet 1 - Performance */}
-                  <div className="group relative bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl rounded-2xl border-2 border-primary/20 p-6 hover:border-primary/50 transition-all duration-300 hover:scale-[1.02] shadow-xl">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                        <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <h3 className="font-bold text-lg text-foreground">Прогресът в залата спря</h3>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed text-sm">
-                      Тренираш редовно, но резултатите просто не идват. Силата и мускулната маса са на едно място от месеци.
-                    </p>
-                  </div>
-
-                  {/* Bullet 2 - Energy */}
-                  <div className="group relative bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl rounded-2xl border-2 border-primary/20 p-6 hover:border-primary/50 transition-all duration-300 hover:scale-[1.02] shadow-xl">
-                    <div className="absolute top-4 right-4 text-5xl opacity-5 group-hover:opacity-10 transition-opacity">😴</div>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                        <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <h3 className="font-bold text-lg text-foreground">Енергията е ниска</h3>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed text-sm">
-                      Сутринта се будиш уморен. През деня енергията ти е ниска. Кафето помага само за кратко време.
-                    </p>
-                  </div>
-
-                  {/* Bullet 3 - Libido */}
-                  <div className="group relative bg-gradient-to-br from-card/90 to-card/60 backdrop-blur-xl rounded-2xl border-2 border-primary/20 p-6 hover:border-primary/50 transition-all duration-300 hover:scale-[1.02] shadow-xl">
-                    <div className="absolute top-4 right-4 text-5xl opacity-5 group-hover:opacity-10 transition-opacity">💜</div>
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex-shrink-0 w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center">
-                        <svg className="w-6 h-6 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                      </div>
-                      <h3 className="font-bold text-lg text-foreground">Интимността отслабна</h3>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed text-sm">
-                      Либидото ти намаля. Интересът към интимност вече не е какъвто беше преди няколко години.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Empathy + CTA */}
-                <div className="mt-16 bg-gradient-to-br from-card/90 to-primary/5 backdrop-blur-xl rounded-3xl border-2 border-primary/30 p-10 text-center shadow-2xl">
-                  <p className="text-2xl md:text-3xl text-foreground font-bold mb-4">
-                    Добрата новина? <span className="text-primary">Има решение</span>.
-                  </p>
-                  <p className="text-lg text-muted-foreground mb-2">
-                    Нивата на тестостерон естествено спадат с възрастта - с 1-2% годишно след 30.
-                  </p>
-                  <p className="text-lg text-muted-foreground mb-8">
-                    Но с правилния подход можеш да направиш нещо по въпроса.
-                  </p>
-
-                  <div className="bg-primary/10 border border-primary/30 rounded-xl p-6 mb-8">
-                    <p className="text-primary font-bold text-xl mb-2">💡 Първата стъпка</p>
-                    <p className="text-foreground">
-                      Разбери къде си точно сега. Нашият безплатен анализ ще ти даде ясна картина
-                      <br />
-                      за нивата ти на тестостерон + персонални препоръки.
-                    </p>
-                  </div>
-
-                  <button onClick={() => {
-                    const formSection = document.getElementById('assessment-form');
-                    formSection?.scrollIntoView({
-                      behavior: 'smooth'
-                    });
-                  }} className="group inline-flex items-center gap-3 px-12 py-6 bg-gradient-to-r from-purple-600 to-violet-700 hover:from-purple-700 hover:to-violet-800 text-white font-bold text-xl rounded-full transition-all duration-300 hover:scale-105 shadow-2xl shadow-purple-500/30">
-                    <Activity className="h-7 w-7 group-hover:scale-110 transition-transform" />
-                    <span>Получи безплатния анализ сега</span>
-                    <svg className="w-6 h-6 group-hover:translate-x-2 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                    </svg>
-                  </button>
-
-                  <p className="mt-6 text-sm text-muted-foreground">
-                    ✓ 100% Безплатно • ✓ Само 2 минути • ✓ Персонален анализ
-                  </p>
-                </div>
-            </section>
-
-            {/* FAQ Section - CONDENSED */}
-            <section className="mt-20 mb-16">
-              <h2 className="text-3xl font-bold text-center text-foreground mb-12">
-                Въпроси, които вероятно имаш
-              </h2>
-
-              <div className="space-y-4">
-                  {/* FAQ Item 1 */}
-                  <details className="group bg-card/50 backdrop-blur-sm rounded-lg border border-border hover:border-primary/50 transition-all duration-300">
-                    <summary className="p-6 cursor-pointer flex items-center justify-between list-none">
-                      <span className="text-lg font-medium text-foreground">
-                        Наистина ли е безплатно?
-                      </span>
-                      <svg className="w-5 h-5 text-primary transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </summary>
-                    <div className="px-6 pb-6 text-muted-foreground">
-                      Да, 100%. Не искаме кредитна карта, няма скрити такси. Безплатният доклад е нашата инвестиция в теб. Точка.
-                    </div>
-                  </details>
-
-                  {/* FAQ Item 2 */}
-                  <details className="group bg-card/50 backdrop-blur-sm rounded-lg border border-border hover:border-primary/50 transition-all duration-300">
-                    <summary className="p-6 cursor-pointer flex items-center justify-between list-none">
-                      <span className="text-lg font-medium text-foreground">
-                        Колко време ще ми отнеме?
-                      </span>
-                      <svg className="w-5 h-5 text-primary transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </summary>
-                    <div className="px-6 pb-6 text-muted-foreground">
-                      Буквално минута и половина за 4-те въпроса. Докладът пристига на имейла ти веднага след това.
-                    </div>
-                  </details>
-
-                  {/* FAQ Item 3 */}
-                  <details className="group bg-card/50 backdrop-blur-sm rounded-lg border border-border hover:border-primary/50 transition-all duration-300">
-                    <summary className="p-6 cursor-pointer flex items-center justify-between list-none">
-                      <span className="text-lg font-medium text-foreground">
-                        Дискретно ли е? Никой няма да разбере?
-                      </span>
-                      <svg className="w-5 h-5 text-primary transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </summary>
-                    <div className="px-6 pb-6 text-muted-foreground">
-                      Абсолютно. Данните ти са криптирани. Дори ако поръчаш нещо след това, доставката идва в неутрална опаковка. Никой няма да научи.
-                    </div>
-                  </details>
-
-                  {/* FAQ Item 4 */}
-                  <details className="group bg-card/50 backdrop-blur-sm rounded-lg border border-border hover:border-primary/50 transition-all duration-300">
-                    <summary className="p-6 cursor-pointer flex items-center justify-between list-none">
-                      <span className="text-lg font-medium text-foreground">
-                        Какво точно ще науча от доклада?
-                      </span>
-                      <svg className="w-5 h-5 text-primary transition-transform group-open:rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                      </svg>
-                    </summary>
-                    <div className="px-6 pb-6 text-muted-foreground">
-                      Текущото ти ниво на тестостерон, защо имаш симптомите които описваш, и персонализиран план какво да направиш по въпроса.
-                    </div>
-                  </details>
-                </div>
-            </section>
-          </> : (/* Results Section */
-      <section>
-            <ResultsDisplay result={result} />
-          </section>)}
-      </main>
+      {/* FAQ Section */}
+      <FAQSection />
 
       {/* Footer */}
-      <footer className="border-t border-border/50 mt-16 pb-20 relative z-20">
-        <div className="container mx-auto px-4 py-6">
-          <div className="text-center text-sm text-muted-foreground">
-            {/* Social Media Section */}
-            <div className="mb-6">
-              <h3 className="text-base font-semibold text-foreground mb-3">Последвай ни в социалните мрежи</h3>
-              <div className="flex justify-center gap-6">
-                <a href="https://www.instagram.com/testograph.eu/" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110" aria-label="Instagram">
-                  <Instagram className="w-5 h-5" />
-                </a>
-                <a href="https://www.facebook.com/profile.php?id=61581045640912" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110" aria-label="Facebook">
-                  <Facebook className="w-5 h-5" />
-                </a>
-                <a href="https://www.tiktok.com/@testograph.eu" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110" aria-label="TikTok">
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43v-7a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1-.10z" />
-                  </svg>
-                </a>
-                <a href="https://www.youtube.com/@testograph" target="_blank" rel="noopener noreferrer" className="p-2 rounded-full bg-primary/10 hover:bg-primary/20 text-primary hover:text-primary transition-all duration-200 hover:scale-110" aria-label="YouTube">
-                  <Youtube className="w-5 h-5" />
-                </a>
-              </div>
-            </div>
-
-            {/* Legal Links */}
-            <div className="mb-4 flex flex-wrap justify-center gap-4 text-xs">
-              <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
-                Политика за поверителност
-              </Link>
-              <span className="text-border">|</span>
-              <Link href="/cookies" className="text-muted-foreground hover:text-primary transition-colors">
-                Политика за бисквитки
-              </Link>
-              <span className="text-border">|</span>
-              <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors">
-                Общи условия
-              </Link>
-            </div>
-
-            <p className="mb-2">Testograph © 2025. Образователен инструмент за оценка на тестостерон.</p>
-            <p>
-              Не е предназначен като медицински съвет. Консултирайте се с медицински специалисти за медицинско ръководство.
-            </p>
-          </div>
-        </div>
-      </footer>
-
-      {/* Scarcity Banner - Sticky at bottom, shows before form submission */}
-      {/* On mobile: appears after scroll with animation. On desktop: always visible */}
-      {!showResults && (
-        <div className={`fixed bottom-0 left-0 right-0 z-40 transition-transform duration-500 ${
-          showScarcityBanner ? 'translate-y-0' : 'lg:translate-y-0 translate-y-full'
-        }`}>
-          <ScarcityBanner />
-        </div>
-      )}
-
-      {/* Live Activity Notifications */}
-      {!showResults && <LiveActivityNotifications />}
+      <Footer />
 
       {/* Chat Assistant */}
       <ChatAssistant />
+    </div>
+  );
+}
 
-      {/* Modal Form Dialog */}
-      <Dialog open={formModalOpen} onOpenChange={setFormModalOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">
-              Безплатен тестостерон анализ - 4 въпроса
-            </DialogTitle>
-          </DialogHeader>
-          <TForecastFormMultiStep onResult={handleResult} />
-        </DialogContent>
-      </Dialog>
-    </div>;
-};
-export default Index;
+// ============================================
+// SECTION 1: TRUST BADGES BAR
+// ============================================
+function TrustBadgesBar() {
+  return (
+    <div className="bg-[#e6e6e6] border-b border-gray-200 py-3">
+      <div className="container mx-auto px-4">
+        <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <Award className="w-4 h-4 text-[#499167]" />
+            <span className="font-semibold text-gray-800">🏆 Сертифицирано от БАБХ</span>
+          </div>
+          <div className="hidden sm:block w-px h-4 bg-gray-300" />
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-[#499167]" />
+            <span className="font-semibold text-gray-800">✓ GMP стандарт на производство</span>
+          </div>
+          <div className="hidden sm:block w-px h-4 bg-gray-300" />
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-[#499167]" />
+            <span className="font-semibold text-gray-800">🇪🇺 Произведено в Европейския съюз</span>
+          </div>
+          <div className="hidden sm:block w-px h-4 bg-gray-300" />
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-[#499167]" />
+            <span className="font-semibold text-gray-800">✓ HACCP система за качество</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// SECTION 2: HERO SECTION
+// ============================================
+function HeroSection() {
+  return (
+    <section className="relative min-h-[80vh] flex items-center overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-black">
+      {/* Background Image */}
+      <div className="absolute inset-0 z-0">
+        <img
+          src="/testograph-background.webp"
+          alt="Натурален тестостеронов бустер и цялостна програма за мъжко здраве TestoUP"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
+      {/* Subtle Wave Animation */}
+      <div className="absolute inset-0 z-5">
+        <WaveBackground color="#499167" opacity={0.08} />
+      </div>
+
+      {/* Overlay */}
+      <div className="absolute inset-0 bg-black/40 z-10" />
+
+      {/* Content */}
+      <div className="relative z-20 container mx-auto px-4 py-16">
+        {/* Trust Line */}
+        <div className="text-center mb-8">
+          <p className="text-[#5fb57e] font-semibold text-lg">
+            ⭐ Над 2,438 мъже вече подобриха хормоналния си баланс с Testograph
+          </p>
+          <p className="text-gray-400 text-sm mt-2">
+            🔥 Само 47 опаковки остават на тази цена
+          </p>
+        </div>
+
+        {/* Headline */}
+        <div className="max-w-4xl mx-auto text-center mb-12">
+          <h1 className="text-5xl md:text-7xl font-black text-white mb-6 leading-tight">
+            TestoUP: Натурален Тестостеронов Бустер и Цялостна Програма за Мъжко Здраве
+          </h1>
+          <p className="text-2xl md:text-3xl text-gray-300 font-bold mb-4">
+            Персонални планове. Хранителни режими. Проследяване на възстановяването. Клинично тествана формула.
+          </p>
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
+            Всичко, от което се нуждаеш за естествено повишаване на тестостерона, събрано в едно: персонализиран дигитален треньор и клинично доказана хранителна добавка.
+          </p>
+        </div>
+
+        {/* Value Props */}
+        <div className="max-w-3xl mx-auto grid md:grid-cols-2 gap-4 mb-12">
+          <ValueProp icon="✓" text="Формула с 12 клинично доказани съставки" />
+          <ValueProp icon="✓" text="Оптимални дози за реален ефект" />
+          <ValueProp icon="✓" text="Поръчай добавката и отключи достъп до приложението" />
+          <ValueProp icon="✓" text="Следвай програмата за гарантирани резултати" />
+        </div>
+
+        {/* Buttons */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <a
+            href="https://shop.testograph.eu/products/testoup"
+            className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-gradient-to-r from-[#499167] to-[#3a7450] hover:from-[#3a7450] hover:to-[#2d5a3e] text-white font-bold text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl"
+          >
+            Започни своята трансформация
+            <ChevronRight className="w-5 h-5" />
+          </a>
+          <a href="#clinical-proof" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold text-lg rounded-full border-2 border-white/30 transition-all duration-300">
+            Научи повече
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ValueProp({ icon, text }: { icon: string; text: string }) {
+  return (
+    <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-3 border border-white/20">
+      <span className="text-[#5fb57e] text-xl font-bold">{icon}</span>
+      <span className="text-white text-sm font-medium">{text}</span>
+    </div>
+  );
+}
+
+// ============================================
+// SECTION 3: REVIEWS SECTION
+// ============================================
+function ReviewsSection() {
+  const reviews = [
+    {
+      name: "Иван, 32г.",
+      subtitle: "Фитнес ентусиаст",
+      review: `Пробвал съм три различни добавки преди Testograph, но без никакъв резултат.
+
+С вашата формула усетих разлика още на петия-шестия ден.
+Сутрешните ерекции се върнаха, либидото ми се повиши - честно казано, не очаквах толкова бърз ефект.
+
+След това започнах да следвам и плановете в приложението - за тренировки, хранене и сън.
+
+Един месец по-късно съм буквално различен човек - в залата, в леглото, дори на работа.
+Имам повече енергия, по-добра концентрация и се чувствам отново на 25.
+
+Добавката действа бързо, но цялата програма наистина те преобразява.`
+    },
+    {
+      name: "Георги, 38г.",
+      subtitle: "Вечно уморен",
+      review: `Още на четвъртия ден се събудих с ерекция, което не ми се беше случвало от месеци.
+Веднага си помислих: "Добре, това работи".
+
+След това разгледах плановете в приложението - какво да ям, как да тренирам и кога да спя.
+Реших да ги пробвам.
+
+След шест седмици съм напълно различен човек. Промяната не е само в либидото, а цялостна.
+Енергията ми е стабилна през целия ден, а настроението ми е значително по-добро.
+Жена ми казва, че съм по-присъстващ и жизнен. Пробвал съм три различни добавки преди Testograph, но без никакъв резултат.
+
+С вашата формула усетих разлика още на петия-шестия ден.
+Сутрешните ерекции се върнаха, либидото ми се повиши - честно казано, не очаквах толкова бърз ефект.
+
+След това започнах да следвам и плановете в приложението - за тренировки, хранене и сън.
+
+Един месец по-късно съм буквално различен човек - в залата, в леглото, дори на работа.
+Имам повече енергия, по-добра концентрация и се чувствам отново на 25.
+
+Добавката действа бързо, но цялата програма наистина те преобразява.`
+    },
+    {
+      name: "Петър, 41г.",
+      subtitle: "В търсене на искрата",
+      review: `Още през първата седмица либидото ми скочи. Буквално я желаех отново.
+Не осъзнавах колко ми е липсвало това чувство, докато не се върна.
+
+Съпругата ми го забеляза веднага. Връзката ни се промени само за няколко дни.
+
+След това започнах да следвам и останалите насоки - плановете за тренировки, хранене и режим.
+
+Два месеца по-късно не мога да се позная. По-уверен съм, в по-добра форма и с много по-стабилна енергия.
+Отново се чувствам мъж.
+
+Ефектът от добавката е бърз, но ако следваш цялата програма, животът ти наистина се променя.`
+    }
+  ];
+
+  return (
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-4">
+        <h2 className="text-4xl md:text-5xl font-black text-center mb-16">
+          Реални Резултати от Мъже Използващи TestoUP Тестостеронов Бустер
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+          {reviews.map((review, idx) => (
+            <div key={idx} className="bg-[#e6e6e6] rounded-2xl p-8 shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+              <div className="flex items-center gap-1 mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                ))}
+              </div>
+              <p className="text-gray-700 whitespace-pre-line mb-6 leading-relaxed">
+                {review.review}
+              </p>
+              <div className="border-t pt-4">
+                <p className="font-bold text-gray-900">{review.name}</p>
+                <p className="text-sm text-gray-500">{review.subtitle}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// SECTION 4: APP SHOWCASE SECTION
+// ============================================
+function AppShowcaseSection() {
+  return (
+    <section className="py-20 bg-gradient-to-br from-[#f0f9f4] to-[#e8f5ed]">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-black mb-4">
+            TestoUP: Не Просто Добавка - Цялостна Програма за Повишаване на Тестостерона
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            С всяка поръчка получаваш незабавен достъп до нашето приложение. Попълни кратък въпросник и само след 10 минути ще имаш свой персонализиран план за действие.
+          </p>
+        </div>
+
+        <div className="max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+          {/* Left: Features */}
+          <div className="space-y-6">
+            <FeatureBox
+              icon={<Activity className="w-8 h-8 text-[#499167]" />}
+              title="Твоят персонален план"
+              items={[
+                "Създаден за твоята цел (либидо, фитнес, енергия)",
+                "Готов само за 10 минути",
+                "Базиран на твоите отговори"
+              ]}
+            />
+            <FeatureBox
+              icon={<Zap className="w-8 h-8 text-[#499167]" />}
+              title="Тренировки, хранене и сън"
+              items={[
+                "Персонални тренировъчни планове",
+                "Насоки какво и кога да ядеш",
+                "Стратегии за оптимизиране на съня"
+              ]}
+            />
+            <FeatureBox
+              icon={<TrendingUp className="w-8 h-8 text-[#499167]" />}
+              title="Проследяване и напомняния"
+              items={[
+                "Визуализирай своя прогрес",
+                "Получавай напомняния какво и кога да правиш",
+                "Следи резултатите си в реално време"
+              ]}
+            />
+          </div>
+
+          {/* Right: Phone Mockup with Auto-Scrolling Screenshot */}
+          <div className="flex justify-center">
+            <div className="relative w-[320px] h-[640px]">
+              {/* Phone Frame Shadow */}
+              <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black rounded-[3rem] shadow-2xl"></div>
+
+              {/* App Screenshot - Auto Scrolling */}
+              <div className="relative w-full h-full p-3">
+                <div className="w-full h-full rounded-[2.5rem] overflow-hidden bg-white shadow-inner">
+                  <div className="w-full h-full overflow-hidden relative">
+                    <img
+                      src="/Application-fullpage-scroll.png"
+                      alt="Testograph мобилно приложение за персонализиран план за повишаване на тестостерона"
+                      className="w-full h-auto"
+                      style={{
+                        animation: 'scrollApp 20s ease-in-out infinite',
+                        position: 'absolute',
+                        top: 0,
+                        left: 0
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Phone Notch */}
+              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-32 h-7 bg-black rounded-b-3xl z-10"></div>
+            </div>
+          </div>
+
+          {/* Inline CSS for scroll animation */}
+          <style jsx>{`
+            @keyframes scrollApp {
+              0% {
+                transform: translateY(0);
+              }
+              45% {
+                transform: translateY(calc(-100% + 614px));
+              }
+              55% {
+                transform: translateY(calc(-100% + 614px));
+              }
+              100% {
+                transform: translateY(0);
+              }
+            }
+          `}</style>
+        </div>
+
+        <div className="text-center mt-12">
+          <a
+            href="https://shop.testograph.eu/products/testoup"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#499167] to-[#3a7450] hover:from-[#3a7450] hover:to-[#2d5a3e] text-white font-bold text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl"
+          >
+            Започни своята трансформация
+            <ChevronRight className="w-5 h-5" />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function FeatureBox({ icon, title, items }: { icon: React.ReactNode; title: string; items: string[] }) {
+  return (
+    <div className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:border-[#499167] transition-colors">
+      <div className="flex items-start gap-4 mb-4">
+        {icon}
+        <h3 className="text-xl font-bold text-gray-900">{title}</h3>
+      </div>
+      <ul className="space-y-2">
+        {items.map((item, idx) => (
+          <li key={idx} className="flex items-start gap-2 text-gray-700">
+            <Check className="w-5 h-5 text-[#499167] flex-shrink-0 mt-0.5" />
+            <span>{item}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+// ============================================
+// SECTION 5: HOW IT WORKS
+// ============================================
+function HowItWorksSection() {
+  const steps = [
+    {
+      icon: <ShoppingCart className="w-16 h-16 text-[#499167]" />,
+      title: "1. Поръчай добавката",
+      description: "С поръчката си получаваш незабавен достъп до приложението Testograph."
+    },
+    {
+      icon: <Smartphone className="w-16 h-16 text-[#499167]" />,
+      title: "2. Следвай твоя план",
+      description: "Вътре те очаква персонализиран план за тренировки, хранене, сън и прием на добавката."
+    },
+    {
+      icon: <TrendingUp className="w-16 h-16 text-[#499167]" />,
+      title: "3. Постигни резултати",
+      description: "Седмица 1: Повишено либидо и по-добри ерекции.\nМесец 1: Повече енергия и по-бързо възстановяване.\nМесец 2: Цялостна трансформация."
+    }
+  ];
+
+  return (
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-4 relative z-10">
+        <h2 className="text-4xl md:text-5xl font-black text-center mb-16">
+          Как Работи TestoUP Програмата за Оптимизиране на Тестостерона?
+        </h2>
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          {steps.map((step, idx) => (
+            <div key={idx} className="bg-[#e6e6e6] rounded-2xl p-8 shadow-lg text-center relative flex flex-col items-center border border-gray-100">
+              {idx < steps.length - 1 && (
+                <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
+                  <ChevronRight className="w-8 h-8 text-[#499167]" />
+                </div>
+              )}
+              <div className="mb-4">{step.icon}</div>
+              <h3 className="text-2xl font-bold mb-3 text-gray-900">{step.title}</h3>
+              <p className="text-gray-600 whitespace-pre-line leading-relaxed">{step.description}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center mt-12">
+          <a
+            href="#clinical-proof"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-[#e6e6e6] text-gray-900 font-bold text-lg rounded-full border-2 border-gray-300 transition-all duration-300 hover:scale-105"
+          >
+            Виж съставките
+            <ChevronRight className="w-5 h-5" />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// SECTION 6: CLINICAL PROOF
+// ============================================
+function ClinicalProofSection() {
+  return (
+    <section id="clinical-proof" className="py-20 bg-[#e6e6e6]">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-16">
+          <h2 className="text-4xl md:text-5xl font-black mb-4">
+            Клинично Доказана Формула за Естествено Повишаване на Тестостерона
+          </h2>
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Нашата формула съдържа 12 активни съставки, подкрепени от над 50 публикувани клинични проучвания.
+          </p>
+        </div>
+
+        {/* Show 4 featured researchers */}
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-7xl mx-auto mb-12">
+          <ResearcherCard
+            ingredient="Vitamin D3 (2400 IU)"
+            researcher="Д-р Майкъл Холик"
+            institution="Бостънски университет"
+            quote="Дефицитът на витамин D е пряко свързан с ниските нива на тестостерон. Суплементирането с витамин D доказано ги повишава."
+          />
+          <ResearcherCard
+            ingredient="Zinc (50mg)"
+            researcher="Д-р Ананда Прасад"
+            institution="Щатски университет 'Уейн'"
+            quote="Дефицитът на цинк директно намалява производството на тестостерон. Приемът му като добавка нормализира нивата в рамките на 3 до 6 месеца."
+          />
+          <ResearcherCard
+            ingredient="Ashwagandha (400mg)"
+            researcher="Д-р Биджасвит Оди"
+            institution="Институт за клинични изследвания, Индия"
+            quote="Доказано повишава тестостерона с до 15% и намалява кортизола (хормона на стреса) с до 40% при възрастни, подложени на стрес."
+          />
+          <ResearcherCard
+            ingredient="Magnesium (400mg)"
+            researcher="Д-р Джовани Чеда"
+            institution="Университет на Парма"
+            quote="Магнезият повишава както свободния, така и общия тестостерон, особено когато се комбинира с редовна физическа активност."
+          />
+        </div>
+
+        <div className="text-center">
+          <p className="text-gray-600 mb-6">+ още 8 клинично тествани съставки</p>
+          <a
+            href="https://shop.testograph.eu/products/testoup"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#499167] to-[#3a7450] hover:from-[#3a7450] hover:to-[#2d5a3e] text-white font-bold text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl"
+          >
+            Виж пълния състав
+            <ChevronRight className="w-5 h-5" />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ResearcherCard({ ingredient, researcher, institution, quote }: { ingredient: string; researcher: string; institution: string; quote: string }) {
+  return (
+    <div className="bg-white rounded-xl p-6 border-2 border-gray-200 hover:shadow-lg transition-all">
+      <div className="mb-4">
+        <h4 className="font-bold text-gray-900 text-lg mb-1">{ingredient}</h4>
+        <p className="text-sm font-semibold text-[#3a7450]">{researcher}</p>
+        <p className="text-xs text-gray-600">{institution}</p>
+      </div>
+      <blockquote className="text-sm text-gray-700 italic leading-relaxed">
+        "{quote}"
+      </blockquote>
+    </div>
+  );
+}
+
+// ============================================
+// SECTION 7: PRODUCT PACKAGES
+// ============================================
+function ProductPackagesSection() {
+  const packages = [
+    {
+      bottles: 1,
+      duration: "1-месечен план",
+      price: "67.00",
+      priceEur: "34.26",
+      totalPrice: "67.00",
+      savings: null,
+      popular: false,
+      image: "/product/testoup-bottle.webp"
+    },
+    {
+      bottles: 2,
+      duration: "2-месечен план",
+      price: "57.00",
+      priceEur: "29.13",
+      totalPrice: "114.00",
+      savings: "20 лв.",
+      popular: true,
+      image: "/product/testoup-bottle_v1.webp"
+    },
+    {
+      bottles: 3,
+      duration: "3-месечен план",
+      price: "50.00",
+      priceEur: "25.55",
+      totalPrice: "150.00",
+      savings: "51 лв.",
+      popular: false,
+      bestValue: true,
+      image: "/product/testoup-bottle_v2.webp"
+    }
+  ];
+
+  return (
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-4 relative z-10">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-black mb-4">
+            Избери TestoUP План за Повишаване на Тестостерона
+          </h2>
+          <p className="text-xl text-gray-600 mb-3">
+            Всеки план включва пълен достъп до приложението Testograph.
+          </p>
+          <div className="inline-flex items-center gap-2 bg-[#499167] text-white px-6 py-3 rounded-full font-semibold">
+            <span>⚡</span>
+            <span>Специална цена - валидна до изчерпване на stock-а</span>
+          </div>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto mb-12">
+          {packages.map((pkg, idx) => (
+            <PackageCard key={idx} {...pkg} />
+          ))}
+        </div>
+
+        <div className="text-center space-y-2 text-sm text-gray-600">
+          <p>✓ Безплатна доставка над 50 лв.</p>
+          <p>✓ Сигурно плащане</p>
+          <p>✓ Дискретна опаковка</p>
+          <p>✓ 30-дневна гаранция за връщане на парите</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+interface PackageCardProps {
+  bottles: number;
+  duration: string;
+  price: string;
+  priceEur: string;
+  totalPrice: string;
+  savings: string | null;
+  popular?: boolean;
+  bestValue?: boolean;
+  image: string;
+}
+
+function PackageCard({ bottles, duration, price, priceEur, totalPrice, savings, popular, bestValue, image }: PackageCardProps) {
+  return (
+    <div className={`relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all ${popular || bestValue ? 'border-4 border-[#499167] transform scale-105' : 'border-2 border-gray-200'}`}>
+      {popular && (
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-[#499167] text-white px-6 py-1 rounded-full text-sm font-bold">
+          НАЙ-ПОПУЛЯРЕН
+        </div>
+      )}
+      {bestValue && (
+        <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white px-6 py-1 rounded-full text-sm font-bold">
+          НАЙ-ИЗГОДЕН
+        </div>
+      )}
+
+      <div className="text-center mb-6">
+        <img src={image} alt={`TestoUP тестостеронов бустер - ${bottles} опаковки за ${duration.toLowerCase()}`} className="w-32 h-32 mx-auto object-contain mb-4" />
+        <h3 className="text-2xl font-black text-gray-900 mb-2">{duration}</h3>
+        <div className="mb-4">
+          <p className="text-4xl font-black text-[#499167]">{price} лв./месец</p>
+          <p className="text-sm text-gray-500">({priceEur} €)</p>
+          {totalPrice !== price && (
+            <p className="text-lg text-gray-700 mt-2">(общо {totalPrice} лв.)</p>
+          )}
+        </div>
+        {savings && (
+          <p className="text-[#499167] font-bold text-sm mb-2">
+            Спестяваш {savings}
+          </p>
+        )}
+      </div>
+
+      <ul className="space-y-3 mb-6">
+        <li className="flex items-center gap-2 text-gray-700">
+          <Check className="w-5 h-5 text-[#499167] flex-shrink-0" />
+          <span>{bottles} {bottles === 1 ? 'опаковка' : 'опаковки'} ({bottles * 30} дни)</span>
+        </li>
+        <li className="flex items-center gap-2 text-gray-700">
+          <Check className="w-5 h-5 text-[#499167] flex-shrink-0" />
+          <span>Безплатен достъп до приложението</span>
+        </li>
+        <li className="flex items-center gap-2 text-gray-700">
+          <Check className="w-5 h-5 text-[#499167] flex-shrink-0" />
+          <span>30-дневна гаранция за връщане на парите</span>
+        </li>
+      </ul>
+
+      <a
+        href="https://shop.testograph.eu/products/testoup"
+        className={`block w-full text-center py-4 rounded-full font-bold text-lg transition-all duration-300 hover:scale-105 ${
+          popular || bestValue
+            ? 'bg-gradient-to-r from-[#499167] to-[#3a7450] hover:from-[#3a7450] hover:to-[#2d5a3e] text-white shadow-xl'
+            : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border-2 border-gray-300'
+        }`}
+      >
+        Избери план →
+      </a>
+    </div>
+  );
+}
+
+// ============================================
+// SECTION 8: MEMBER TESTIMONIALS
+// ============================================
+function MemberTestimonialsSection() {
+  const testimonials = [
+    { text: "Първите две седмици бях скептичен. След това обаче забелязах, че приключвам работния ден без да съм напълно изтощен. Това е огромна промяна за мен.", author: "Стоян, 34г., София" },
+    { text: "На четвъртия ден се появи сутрешна ерекция, което не ми се беше случвало от месеци. Жена ми забеляза, че нещо се променя, още преди да ѝ кажа.", author: "Димитър, 40г., Пловдив" },
+    { text: "Без приложението нямаше да знам какво да правя. Особено частта за съня - промених часа си на лягане и температурата в стаята. Разликата беше огромна.", author: "Николай, 37г., Варна" },
+    { text: "Пета седмица: момчетата в залата ме питат 'какво взимаш?'. Вдигам повече и се възстановявам по-бързо.", author: "Иван, 29г., Бургас" },
+    { text: "Пробвал съм Tribulus и Maca преди, но без резултат. Тук е различно, защото следваш цялостна програма, а не просто пиеш хапчета.", author: "Петър, 42г., Русе" },
+    { text: "Преди спях по 5-6 часа и се чувствах разбит. Сега спя по 7-8 часа и се събуждам сам, преди алармата. Енергията ми през деня е стабилна.", author: "Георги, 45г., Стара Загора" },
+    { text: "Не стана за седмица, отне ми около месец и половина. Но програмата наистина работи, стига да си постоянен.", author: "Христо, 38г., Плевен" },
+    { text: "Харчил съм толкова пари за безполезни неща. Това е първото, което реално промени начина, по който се чувствам всеки ден.", author: "Александър, 35г., Велико Търново" },
+    { text: "Преди два месеца бях постоянно уморен, с нулево либидо и в лошо настроение. Сега отново се чувствам нормално. Просто нормално. Това е всичко, което исках.", author: "Мартин, 41г., Благоевград" }
+  ];
+
+  return (
+    <section className="py-20 bg-[#e6e6e6]">
+      <div className="container mx-auto px-4">
+        <div className="text-center mb-12">
+          <h2 className="text-4xl md:text-5xl font-black mb-4">
+            Успешни Истории от Мъже Използващи TestoUP за Мъжко Здраве
+          </h2>
+          <p className="text-xl text-gray-600">
+            Хиляди мъже вече следват програмата. Виж техните резултати.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+          {testimonials.map((testimonial, idx) => (
+            <div key={idx} className="bg-white rounded-xl p-6 border border-gray-200 hover:border-[#499167] transition-colors">
+              <p className="text-gray-700 mb-4 leading-relaxed">"{testimonial.text}"</p>
+              <p className="text-sm font-semibold text-gray-900">— {testimonial.author}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="text-center mt-12">
+          <a
+            href="https://shop.testograph.eu/products/testoup"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-gradient-to-r from-[#499167] to-[#3a7450] hover:from-[#3a7450] hover:to-[#2d5a3e] text-white font-bold text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl"
+          >
+            Присъедини се към тях
+            <ChevronRight className="w-5 h-5" />
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// GUARANTEE SECTION
+// ============================================
+function GuaranteeSection() {
+  const guarantees = [
+    {
+      icon: "🛡️",
+      title: "30 Дневна Гаранция",
+      description: "Пълно възстановяване на сумата, ако не си доволен"
+    },
+    {
+      icon: "🚚",
+      title: "Безплатна Доставка",
+      description: "За поръчки над 99 лв. до цяла България"
+    },
+    {
+      icon: "🔒",
+      title: "Сигурно Плащане",
+      description: "SSL криптиране и защитени транзакции"
+    },
+    {
+      icon: "✅",
+      title: "Сертифицирано Качество",
+      description: "Произведено в GMP сертифициран обект"
+    }
+  ];
+
+  return (
+    <section className="py-20 bg-gradient-to-br from-[#f0f9f4] to-[#e8f5ed]">
+      <div className="container mx-auto px-4">
+        <h2 className="text-4xl md:text-5xl font-black text-center mb-4">
+          Нашата Гаранция за Качество
+        </h2>
+        <p className="text-xl text-gray-600 text-center mb-16 max-w-3xl mx-auto">
+          Купуваш с пълна увереност. Ако не си доволен, връщаме парите - без въпроси.
+        </p>
+
+        <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
+          {guarantees.map((guarantee, idx) => (
+            <div key={idx} className="bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
+              <div className="text-5xl mb-4">{guarantee.icon}</div>
+              <h3 className="text-xl font-black text-gray-900 mb-3">{guarantee.title}</h3>
+              <p className="text-gray-600">{guarantee.description}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="mt-16 text-center">
+          <div className="inline-flex items-center gap-3 bg-[#499167] text-white px-8 py-4 rounded-xl font-bold text-lg">
+            <span>💚</span>
+            <span>Над 2,438 доволни клиенти в България</span>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// SECTION 9: FAQ
+// ============================================
+function FAQSection() {
+  const faqs = [
+    {
+      q: "Колко време отнема, за да видя резултати?",
+      a: "Повечето мъже забелязват първите ефекти (повишено либидо, повече енергия) в рамките на 3 до 7 дни. За цялостна трансформация са необходими между 60 и 90 дни стриктно следване на програмата."
+    },
+    {
+      q: "Как получавам достъп до приложението?",
+      a: "Веднага след като завършиш поръчката си, ще получиш имейл с линк за регистрация. Процесът отнема около 10 минути, в които трябва да попълниш кратък въпросник, след което ще получиш своя персонализиран план."
+    },
+    {
+      q: "Безопасна ли е добавката?",
+      a: "Абсолютно. Всички съставки в нашата формула са натурални и клинично тествани. Продуктът се произвежда в Европейския съюз и е сертифициран по GMP, HACCP и от БАБХ."
+    },
+    {
+      q: "Трябва ли да посещавам фитнес зала?",
+      a: "Не е задължително. Приложението предлага тренировъчни планове за всякакви нива - от напълно начинаещи до напреднали. Можеш да изпълняваш тренировките си както във фитнеса, така и у дома."
+    },
+    {
+      q: "Каква е гаранцията, ако не съм доволен?",
+      a: "Предлагаме 30-дневна гаранция за връщане на парите. Ако не си доволен от резултатите, просто се свържи с нас и ние ще ти върнем парите, без да задаваме въпроси."
+    }
+  ];
+
+  return (
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-4">
+        <h2 className="text-4xl md:text-5xl font-black text-center mb-16">
+          Често Задавани Въпроси за TestoUP и Повишаване на Тестостерона
+        </h2>
+
+        <div className="max-w-3xl mx-auto space-y-4">
+          {faqs.map((faq, idx) => (
+            <details key={idx} className="group bg-[#e6e6e6] rounded-xl border-2 border-gray-200 hover:border-[#499167] transition-colors">
+              <summary className="p-6 cursor-pointer flex items-center justify-between font-bold text-lg text-gray-900">
+                {faq.q}
+                <ChevronRight className="w-6 h-6 text-[#499167] transition-transform group-open:rotate-90" />
+              </summary>
+              <div className="px-6 pb-6 text-gray-700 leading-relaxed">
+                {faq.a}
+              </div>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// FOOTER
+// ============================================
+function Footer() {
+  return (
+    <footer className="bg-black text-gray-300 py-12">
+      <div className="container mx-auto px-4">
+        <div className="grid md:grid-cols-4 gap-8 mb-8">
+          <div>
+            <h3 className="text-white font-bold text-xl mb-4">TESTOGRAPH</h3>
+            <p className="text-sm">Цялостна програма за естествено повишаване на тестостерона.</p>
+          </div>
+          <div>
+            <h4 className="text-white font-semibold mb-4">Продукти</h4>
+            <ul className="space-y-2 text-sm">
+              <li><a href="https://shop.testograph.eu/products/testoup" className="hover:text-[#5fb57e] transition-colors">TestoUP</a></li>
+              <li><a href="https://shop.testograph.eu" className="hover:text-[#5fb57e] transition-colors">Магазин</a></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-white font-semibold mb-4">Информация</h4>
+            <ul className="space-y-2 text-sm">
+              <li><Link href="/terms" className="hover:text-[#5fb57e] transition-colors">Общи условия</Link></li>
+              <li><Link href="/privacy" className="hover:text-[#5fb57e] transition-colors">Политика за поверителност</Link></li>
+              <li><Link href="/cookies" className="hover:text-[#5fb57e] transition-colors">Политика за бисквитки</Link></li>
+            </ul>
+          </div>
+          <div>
+            <h4 className="text-white font-semibold mb-4">Контакти</h4>
+            <ul className="space-y-2 text-sm">
+              <li>Имейл: support@testograph.eu</li>
+              <li>Работно време: Понеделник - Петък, 9:00 - 18:00 ч.</li>
+            </ul>
+          </div>
+        </div>
+        <div className="border-t border-gray-800 pt-8 text-center text-sm">
+          <p>© 2025 Testograph. Всички права запазени.</p>
+          <p className="mt-2 text-gray-500">Този продукт не е лекарствено средство и не е предназначен за диагностика, лечение или превенция на заболявания. Консултирайте се с лекар преди употреба.</p>
+        </div>
+      </div>
+    </footer>
+  );
+}

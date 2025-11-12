@@ -369,7 +369,7 @@ const ChatAssistant = () => {
               {isEmailSubmitted && (
                 <div className="flex items-center gap-2 mt-1">
                   {pdfUploaded ? (
-                    <div className="flex items-center gap-1 text-xs text-green-600">
+                    <div className="flex items-center gap-1 text-xs text-[#499167]">
                       <CheckCircle className="w-3 h-3" />
                       <span>PDF файл качен</span>
                     </div>
@@ -432,7 +432,7 @@ const ChatAssistant = () => {
                     PDF анализ от Testograph
                   </Label>
                   {pdfUploaded && (
-                    <div className="flex items-center gap-1 text-xs text-green-600">
+                    <div className="flex items-center gap-1 text-xs text-[#499167]">
                       <FileText className="w-3 h-3" />
                       <span>Качен</span>
                     </div>

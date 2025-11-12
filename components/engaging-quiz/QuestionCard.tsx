@@ -2,13 +2,16 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Question } from "./types";
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import Image from 'next/image';
 
 interface QuestionCardProps {
   question: Question;
   value: string | number | undefined;
   onChange: (value: string | number) => void;
   onNext: () => void;
-  canProceed: boolean;
+  onPrevious: () => void;
+  isFirst: boolean;
 }
 
 export const QuestionCard = ({
@@ -16,210 +19,142 @@ export const QuestionCard = ({
   value,
   onChange,
   onNext,
-  canProceed
+  onPrevious,
+  isFirst,
 }: QuestionCardProps) => {
-  const [sliderValue, setSliderValue] = useState<number>(
-    typeof value === 'number' ? value : question.min || 0
-  );
-  const [isEditingValue, setIsEditingValue] = useState(false);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState(value || '');
 
-  // Sync slider value when question changes (fixes value carry-over bug)
   useEffect(() => {
-    if (question.type === 'slider') {
-      const initialValue = typeof value === 'number' ? value : question.min || 0;
-      setSliderValue(initialValue);
-    }
-  }, [question.id, value, question.min, question.type]);
-
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newValue = parseFloat(e.target.value);
-    setSliderValue(newValue);
-    onChange(newValue);
-  };
-
-  const handleValueClick = () => {
-    if (question.type === 'slider') {
-      setIsEditingValue(true);
-      setInputValue(sliderValue.toString());
-    }
-  };
-
-  const handleInputValueChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInputValue(e.target.value);
-  };
-
-  const handleInputBlur = () => {
-    const parsedValue = parseFloat(inputValue);
-    if (!isNaN(parsedValue)) {
-      // Clamp value between min and max
-      const clampedValue = Math.max(
-        question.min || 0,
-        Math.min(question.max || 100, parsedValue)
-      );
-      setSliderValue(clampedValue);
-      onChange(clampedValue);
-    }
-    setIsEditingValue(false);
-  };
-
-  const handleInputKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter') {
-      handleInputBlur();
-    }
-  };
+    setInputValue(value || '');
+  }, [question, value]);
 
   const handleButtonClick = (optionValue: string) => {
     onChange(optionValue);
-    // Auto-advance after selection for buttons (no canProceed check - button click satisfies requirement)
-    setTimeout(onNext, 300);
+    setTimeout(onNext, 250); // Auto-advance with a slight delay
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputValue(e.target.value);
     onChange(e.target.value);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && canProceed) {
+    if (e.key === 'Enter' && (value as string)?.trim()) {
       onNext();
     }
   };
 
+  const canProceed = value !== undefined && value !== null && String(value).trim() !== '';
+
+  // Check if this question has age group avatars
+  const hasAvatars = question.visualComponent === 'AgeGroupIcons';
+
+  // Map for age group avatar images
+  const ageGroupImages: Record<string, string> = {
+    '25-35': '/quiz-visuals/age-25-35.png',
+    '36-45': '/quiz-visuals/age-36-45.png',
+    '46-55': '/quiz-visuals/age-46-55.png',
+    '56+': '/quiz-visuals/age-56-plus.png',
+  };
+
   return (
-    <div className="min-h-[70vh] flex items-center justify-center p-4 animate-fade-in">
-      <div className="max-w-3xl w-full">
-        {/* Question Header */}
-        <div className="text-center mb-8">
-          <h2 className="text-3xl md:text-4xl lg:text-5xl font-bold text-foreground mb-4">
-            {question.question}
-          </h2>
-          {question.subtitle && (
-            <p className="text-base md:text-lg text-muted-foreground">
-              {question.subtitle}
-            </p>
-          )}
-        </div>
+    <div className="flex flex-col justify-center">
+      <div className="mb-8 text-center">
+        <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900">
+          {question.question}
+        </h2>
+        {question.subtitle && (
+          <p className="text-base text-gray-600 mt-2">
+            {question.subtitle}
+          </p>
+        )}
+      </div>
 
-        {/* Input based on type */}
-        <div className="mb-8">
-          {question.type === 'slider' && (
-            <div className="space-y-6">
-              {/* Slider Value Display (Editable) */}
-              <div className="text-center">
-                {!isEditingValue ? (
-                  <div
-                    className="text-6xl md:text-7xl font-black text-primary tabular-nums cursor-pointer hover:scale-105 transition-all inline-block group"
-                    onClick={handleValueClick}
-                    title="Кликни за да редактираш"
-                  >
-                    {sliderValue}
-                    {question.unit && (
-                      <span className="text-4xl md:text-5xl text-muted-foreground ml-2">
-                        {question.unit}
-                      </span>
-                    )}
-                    <span className="ml-3 text-2xl text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
-                      ✏️
-                    </span>
-                  </div>
-                ) : (
-                  <div className="inline-flex items-center gap-2">
-                    <Input
-                      type="number"
-                      value={inputValue}
-                      onChange={handleInputValueChange}
-                      onBlur={handleInputBlur}
-                      onKeyPress={handleInputKeyPress}
-                      min={question.min}
-                      max={question.max}
-                      step={question.step || 1}
-                      className="h-20 text-5xl md:text-6xl font-black text-primary text-center w-48 tabular-nums"
-                      autoFocus
-                    />
-                    {question.unit && (
-                      <span className="text-4xl md:text-5xl text-muted-foreground font-black">
-                        {question.unit}
-                      </span>
-                    )}
-                  </div>
-                )}
-                <p className="text-xs text-muted-foreground mt-2">
-                  {!isEditingValue && 'Кликни на числото за да редактираш ръчно'}
-                  {isEditingValue && `Между ${question.min} и ${question.max}`}
-                </p>
-              </div>
+      <div className="mb-8">
+        {question.type === 'buttons' && (
+          <div className="grid grid-cols-1 gap-3">
+            {question.options?.map((option) => {
+              const isSelected = value === option.value;
+              const avatarSrc = hasAvatars ? ageGroupImages[option.value] : null;
 
-              {/* Slider */}
-              <div className="px-4">
-                <input
-                  type="range"
-                  min={question.min}
-                  max={question.max}
-                  step={question.step || 1}
-                  value={sliderValue}
-                  onChange={handleSliderChange}
-                  className="w-full h-3 bg-muted rounded-lg appearance-none cursor-pointer accent-primary slider-thumb"
-                />
-                <div className="flex justify-between mt-2 text-sm text-muted-foreground">
-                  <span>{question.min}{question.unit}</span>
-                  <span>{question.max}{question.unit}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {question.type === 'buttons' && (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {question.options?.map((option) => (
+              return (
                 <button
                   key={option.value}
                   onClick={() => handleButtonClick(option.value)}
-                  className={`p-6 rounded-xl border-2 transition-all duration-200 text-left ${
-                    value === option.value
-                      ? 'border-primary bg-primary/10 shadow-lg scale-105'
-                      : 'border-muted hover:border-primary/50 hover:bg-muted/50'
+                  className={`flex items-center gap-4 p-4 rounded-xl border-2 text-left transition-all duration-200 ${
+                    isSelected
+                      ? 'border-gray-900 bg-gray-900 text-white shadow-md'
+                      : 'border-gray-300 bg-white hover:border-gray-400 hover:shadow-md'
                   }`}
                 >
-                  <div className="flex items-center gap-4">
-                    {option.icon && (
-                      <span className="text-4xl flex-shrink-0">{option.icon}</span>
+                  {/* Checkbox Circle (kegel-plan style) */}
+                  <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                    isSelected ? 'border-white' : 'border-gray-300'
+                  }`}>
+                    {isSelected && (
+                      <div className="w-4 h-4 bg-white rounded-full" />
                     )}
-                    <span className="text-lg md:text-xl font-semibold text-foreground">
-                      {option.label}
-                    </span>
                   </div>
+
+                  {/* Text */}
+                  <span className={`flex-1 text-base font-medium ${
+                    isSelected ? 'text-white' : 'text-gray-900'
+                  }`}>
+                    {option.label}
+                  </span>
+
+                  {/* Avatar (if applicable) */}
+                  {avatarSrc && (
+                    <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-gray-200">
+                      <Image
+                        src={avatarSrc}
+                        alt={`Age ${option.value}`}
+                        width={48}
+                        height={48}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
+                  )}
                 </button>
-              ))}
-            </div>
-          )}
-
-          {(question.type === 'text' || question.type === 'email') && (
-            <div className="max-w-xl mx-auto">
-              <Input
-                type={question.type === 'email' ? 'email' : 'text'}
-                value={value as string || ''}
-                onChange={handleInputChange}
-                onKeyPress={handleKeyPress}
-                placeholder={question.placeholder}
-                className="h-16 text-xl text-center"
-                autoFocus
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Next Button (for slider and text inputs) */}
-        {(question.type === 'slider' || question.type === 'text' || question.type === 'email') && (
-          <div className="flex justify-center">
-            <Button
-              onClick={onNext}
-              disabled={!canProceed}
-              size="lg"
-              className="text-lg md:text-xl px-12 py-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 font-bold shadow-lg transition-all hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              Напред →
-            </Button>
+              );
+            })}
           </div>
+        )}
+
+        {(question.type === 'text' || question.type === 'email') && (
+          <Input
+            type={question.type === 'email' ? 'email' : 'text'}
+            value={inputValue as string}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            placeholder={question.placeholder}
+            className="h-14 text-lg text-center bg-white border-2 border-gray-300 focus:border-blue-600 focus:ring-blue-600"
+            autoFocus
+          />
+        )}
+      </div>
+
+      {/* Navigation */}
+      <div className="flex items-center gap-4 mt-8">
+        {!isFirst && (
+          <Button
+            variant="outline"
+            onClick={onPrevious}
+            className="bg-white border-2 border-gray-300 hover:bg-[#e6e6e6] text-gray-700"
+          >
+            <ChevronLeft className="w-4 h-4 mr-2" />
+            Назад
+          </Button>
+        )}
+        {(question.type === 'text' || question.type === 'email') && (
+          <Button
+            onClick={onNext}
+            disabled={!canProceed}
+            size="lg"
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold shadow-lg transition-all disabled:opacity-50"
+          >
+            Напред <ChevronRight className="w-4 h-4 ml-2" />
+          </Button>
         )}
       </div>
     </div>

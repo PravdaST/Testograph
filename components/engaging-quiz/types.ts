@@ -16,6 +16,7 @@ export interface Question {
   unit?: string;
   placeholder?: string;
   required?: boolean;
+  visualComponent?: 'AgeGroupIcons' | 'TestosteroneGraph' | 'HabitsIndicator' | 'SocialProofGrid' | 'TimelineVisual' | 'TrustFactorGrid' | 'CalculatingAnimation';
 }
 
 export interface InfoSlide {
@@ -25,6 +26,7 @@ export interface InfoSlide {
   title: string;
   content: string[];
   cta?: string;
+  visualComponent?: 'AgeGroupIcons' | 'TestosteroneGraph' | 'HabitsIndicator' | 'SocialProofGrid' | 'TimelineVisual' | 'TrustFactorGrid' | 'CalculatingAnimation';
 }
 
 export type QuizItem = Question | InfoSlide;
