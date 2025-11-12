@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
-import puppeteer from 'puppeteer';
+// import puppeteer from 'puppeteer'; // Disabled for Vercel deployment
 
 // Use service role key to bypass RLS
 const supabase = createClient(
@@ -11,7 +11,13 @@ const supabase = createClient(
 export const maxDuration = 60; // Maximum 60 seconds for Vercel
 
 export async function POST(request: Request) {
-  let browser;
+  // PDF generation temporarily disabled for Vercel deployment
+  return NextResponse.json(
+    { error: 'PDF generation is temporarily unavailable' },
+    { status: 503 }
+  );
+
+  /* let browser;
 
   try {
     const { token } = await request.json();
@@ -161,5 +167,5 @@ export async function POST(request: Request) {
       { error: error.message || 'Failed to generate PDF' },
       { status: 500 }
     );
-  }
+  } */
 }
