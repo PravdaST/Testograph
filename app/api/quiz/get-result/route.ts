@@ -10,34 +10,81 @@ const supabase = createClient(
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
+    const token = searchParams.get('token');
     const email = searchParams.get('email');
 
-    // Validation
-    if (!email) {
+    // Validation - need either token or email
+    if (!token && !email) {
       return NextResponse.json(
-        { error: 'Email parameter is required', found: false },
+        { error: 'Token or email parameter is required', found: false },
         { status: 400 }
       );
     }
 
-    // Query quiz_results by email (get most recent)
-    const { data, error } = await supabase
-      .from('quiz_results')
-      .select('*')
-      .eq('email', email)
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
+    let data, error;
+
+    // Query by token (preferred)
+    if (token) {
+      const result = await supabase
+        .from('quiz_results')
+        .select('*')
+        .eq('result_token', token)
+        .single();
+
+      data = result.data;
+      error = result.error;
+
+      // Update result_viewed_at timestamp on first view
+      if (data && !data.result_viewed_at) {
+        await supabase
+          .from('quiz_results')
+          .update({ result_viewed_at: new Date().toISOString() })
+          .eq('result_token', token);
+      }
+    }
+    // Query by email (backward compatibility)
+    else if (email) {
+      const result = await supabase
+        .from('quiz_results')
+        .select('*')
+        .eq('email', email)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      data = result.data;
+      error = result.error;
+    }
 
     if (error || !data) {
-      // No result found for this email
+      // No result found
       return NextResponse.json({
         found: false,
-        message: 'No quiz results found for this email'
+        message: token ? 'Резултатът не беше намерен' : 'No quiz results found for this email'
+      }, { status: 404 });
+    }
+
+    // For token queries, return simplified format for result page
+    if (token) {
+      return NextResponse.json({
+        id: data.id,
+        email: data.email,
+        first_name: data.first_name,
+        score: data.score,
+        confidence_index: data.confidence_index || data.score, // Fallback to score
+        testosterone_estimate: data.testosterone_estimate || 'среден',
+        urgency_level: data.urgency_level || 'средна',
+        category_scores: data.category_scores || { lifestyle: 50, physical: 50, sexual: 50, mental: 50 },
+        percentile: data.percentile || 50,
+        pdf_template_url: data.pdf_template_url,
+        pdf_enhanced_url: data.pdf_enhanced_url,
+        ai_analysis_status: data.ai_analysis_status || 'pending',
+        ai_analysis_text: data.ai_analysis_text,
+        created_at: data.created_at
       });
     }
 
-    // Return full result
+    // For email queries, return full result (backward compatibility)
     return NextResponse.json({
       found: true,
       result: {
@@ -73,12 +120,19 @@ export async function GET(request: Request) {
         mood: data.mood,
         muscle_mass: data.muscle_mass,
 
-        // Results
+        // Results (Legacy)
         score: data.score,
         testosterone_level: data.testosterone_level,
         testosterone_category: data.testosterone_category,
         risk_level: data.risk_level,
         recommended_tier: data.recommended_tier,
+
+        // New Results (Confidence Index)
+        confidence_index: data.confidence_index,
+        testosterone_estimate: data.testosterone_estimate,
+        urgency_level: data.urgency_level,
+        category_scores: data.category_scores,
+        percentile: data.percentile,
 
         // Metadata
         source: data.source,

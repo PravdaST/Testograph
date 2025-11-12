@@ -34,12 +34,13 @@ export async function POST(request: Request) {
       );
     }
 
-    console.log('✅ Quiz result saved to Supabase via API:', data.id);
+    console.log('✅ Quiz result saved to Supabase via API:', data.id, 'Token:', data.result_token);
 
     return NextResponse.json({
       success: true,
       message: 'Quiz result saved successfully',
-      id: data.id
+      id: data.id,
+      result_token: data.result_token
     });
 
   } catch (error: any) {
