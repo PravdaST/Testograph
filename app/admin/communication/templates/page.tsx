@@ -123,7 +123,7 @@ export default function TemplatesPage() {
         setAdminEmail(email);
       } else {
         // Not authenticated as admin - redirect to login
-        router.push('/admin/login');
+        router.push('/admin');
       }
     };
     fetchAdminUser();
