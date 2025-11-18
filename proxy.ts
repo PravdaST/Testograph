@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 /**
  * Admin Proxy - Protects /admin routes
  *
- * Checks if user is authenticated and has admin privileges
- * before allowing access to admin dashboard pages
+ * Uses @supabase/ssr to properly check authentication with server-side cookies
+ * Verifies both session existence AND admin_users table membership
  */
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -18,31 +18,84 @@ export default async function proxy(request: NextRequest) {
 
   // For all other /admin/* routes, check authentication
   try {
-    // Get all Supabase-related cookies
-    const cookies = request.cookies.getAll();
-    const hasSupabaseAuth = cookies.some(cookie =>
-      cookie.name.startsWith('sb-') && cookie.value
+    let response = NextResponse.next({
+      request: {
+        headers: request.headers,
+      },
+    });
+
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return request.cookies.get(name)?.value;
+          },
+          set(name: string, value: string, options: CookieOptions) {
+            request.cookies.set({
+              name,
+              value,
+              ...options,
+            });
+            response = NextResponse.next({
+              request: {
+                headers: request.headers,
+              },
+            });
+            response.cookies.set({
+              name,
+              value,
+              ...options,
+            });
+          },
+          remove(name: string, options: CookieOptions) {
+            request.cookies.set({
+              name,
+              value: '',
+              ...options,
+            });
+            response = NextResponse.next({
+              request: {
+                headers: request.headers,
+              },
+            });
+            response.cookies.set({
+              name,
+              value: '',
+              ...options,
+            });
+          },
+        },
+      }
     );
 
-    // If no Supabase auth cookies, redirect to login
-    if (!hasSupabaseAuth) {
+    // Check if user has a valid session
+    const { data: { session } } = await supabase.auth.getSession();
+
+    if (!session) {
+      // No session - redirect to login
       const loginUrl = new URL('/admin', request.url);
       return NextResponse.redirect(loginUrl);
     }
 
-    // Note: We don't verify admin_users table here because:
-    // 1. Middleware runs on EVERY request (including assets, API calls)
-    // 2. Database queries in middleware add latency
-    // 3. Admin verification happens in page components via getCurrentAdminUser()
-    //
-    // This middleware provides baseline auth check (must be logged in to Supabase)
-    // Individual pages enforce admin-specific permissions
+    // Check if user is an admin
+    const { data: adminData } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('id', session.user.id)
+      .single();
 
-    // Allow the request to continue
-    return NextResponse.next();
+    if (!adminData) {
+      // Not an admin - redirect to login
+      const loginUrl = new URL('/admin', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
+
+    return response;
 
   } catch (error) {
-    console.error('Middleware auth error:', error);
+    console.error('Proxy auth error:', error);
 
     // On error, redirect to login for safety
     const loginUrl = new URL('/admin', request.url);
