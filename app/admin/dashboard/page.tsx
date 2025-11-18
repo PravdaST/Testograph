@@ -1,5 +1,9 @@
 'use client';
 
+// Force dynamic rendering for Next.js 16 - no server-side pre-rendering
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
