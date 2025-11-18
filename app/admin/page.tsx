@@ -44,6 +44,8 @@ export default function AdminLoginPage() {
 
           if (adminData && !adminError) {
             // User is admin, redirect to dashboard
+            // Small delay to ensure session is fully synced in Next.js 16
+            await new Promise(resolve => setTimeout(resolve, 100));
             router.push('/admin/dashboard');
           } else {
             // User is logged in but not admin, show login form
@@ -89,6 +91,8 @@ export default function AdminLoginPage() {
 
         if (adminData && !adminError) {
           // User is admin, redirect to dashboard
+          // Small delay to ensure session is fully synced in Next.js 16
+          await new Promise(resolve => setTimeout(resolve, 100));
           router.push('/admin/dashboard');
         } else {
           // User is not admin
