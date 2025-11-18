@@ -24,10 +24,11 @@ interface BlogPost {
   featured_image_url?: string;
   article_images?: string[];
   keywords?: string[];
-  status: 'draft' | 'published' | 'archived';
+  is_published: boolean;
   published_at?: string;
   created_at: string;
   updated_at: string;
+  views?: number;
 }
 
 interface PageProps {
@@ -207,10 +208,10 @@ function MostReadArticles({ currentSlug, category }: { currentSlug: string; cate
     async function loadMostRead() {
       const { data } = await supabase
         .from('blog_posts')
-        .select('title, slug, guide_category, view_count')
-        .eq('status', 'published')
+        .select('title, slug, guide_category, views')
+        .eq('is_published', true)
         .neq('slug', currentSlug)
-        .order('view_count', { ascending: false })
+        .order('views', { ascending: false })
         .limit(5);
 
       setArticles(data || []);
@@ -232,7 +233,7 @@ function MostReadArticles({ currentSlug, category }: { currentSlug: string; cate
               {article.title}
             </h4>
             <p className="text-xs text-gray-500 mt-1">
-              {article.view_count || 0} преглеждания
+              {article.views || 0} преглеждания
             </p>
           </Link>
         ))}
@@ -249,7 +250,7 @@ function CategoriesWidget() {
       const { data } = await supabase
         .from('blog_posts')
         .select('guide_category')
-        .eq('status', 'published');
+        .eq('is_published', true);
 
       if (data) {
         const counts: Record<string, number> = {};
@@ -364,24 +365,19 @@ function RelatedFromOtherCategories({ currentSlug, currentCategory, keywords }: 
       // If we have keywords, try to find articles with similar keywords
       let query = supabase
         .from('blog_posts')
-        .select('title, slug, guide_category, excerpt, keywords')
-        .eq('status', 'published')
+        .select('title, slug, guide_category, excerpt')
+        .eq('is_published', true)
         .neq('slug', currentSlug)
         .neq('guide_category', currentCategory);
 
-      // If we have keywords, prioritize articles with matching keywords
-      if (keywords && keywords.length > 0) {
-        query = query.overlaps('keywords', keywords);
-      }
-
       const { data } = await query.limit(4);
 
-      // If no keyword matches, get random articles from other categories
+      // If no matches, get random articles from other categories
       if (!data || data.length === 0) {
         const { data: randomData } = await supabase
           .from('blog_posts')
           .select('title, slug, guide_category, excerpt')
-          .eq('status', 'published')
+          .eq('is_published', true)
           .neq('slug', currentSlug)
           .neq('guide_category', currentCategory)
           .limit(4);
@@ -661,7 +657,7 @@ export default function LearnGuidePage({ params }: PageProps) {
         .select('*')
         .eq('slug', resolvedParams.slug)
         .eq('guide_category', resolvedParams.category)
-        .eq('status', 'published')
+        .eq('is_published', true)
         .single();
 
       if (error || !data) {
@@ -690,7 +686,7 @@ export default function LearnGuidePage({ params }: PageProps) {
           .select('title, slug, excerpt')
           .eq('parent_cluster_slug', data.parent_cluster_slug)
           .eq('guide_type', 'pillar')
-          .eq('status', 'published')
+          .eq('is_published', true)
           .neq('slug', resolvedParams.slug)
           .limit(5);
 
@@ -704,7 +700,7 @@ export default function LearnGuidePage({ params }: PageProps) {
           .select('title, slug, excerpt')
           .eq('parent_cluster_slug', resolvedParams.slug)
           .eq('guide_type', 'pillar')
-          .eq('status', 'published');
+          .eq('is_published', true);
 
         setPillars(childPillars || []);
       }

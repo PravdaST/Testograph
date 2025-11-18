@@ -437,13 +437,6 @@ Pillar теми за споменаване: ${suggestedPillars.join(', ')}
         meta_title: metadata.meta_title,
         meta_description: metadata.meta_description,
         featured_image_url: heroImageUrl,
-        article_images: articleImageUrls,
-        keywords: keywords ? keywords.split(',').map((k: string) => k.trim()).filter(Boolean) : [],
-        word_count: wordCount,
-        reading_time: readingTime,
-        ai_generated: true,
-        main_topic: 'mens-health',
-        status: is_published ? 'published' : 'draft',
         author_id: user.id,
         is_published: is_published || false,
         published_at: published_at || null
