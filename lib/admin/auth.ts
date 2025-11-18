@@ -18,15 +18,15 @@ export async function getCurrentAdminUser(): Promise<{
   email: string | null
 }> {
   try {
-    // Get current session
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+    // Get current user (more reliable than getSession after redirect)
+    const { data: { user }, error: userError } = await supabase.auth.getUser()
 
-    if (sessionError || !session) {
+    if (userError || !user) {
       return { adminUser: null, userId: null, email: null }
     }
 
-    const userId = session.user.id
-    const email = session.user.email || null
+    const userId = user.id
+    const email = user.email || null
 
     // Check if user is in admin_users table
     const { data: adminData, error: adminError } = await supabase
