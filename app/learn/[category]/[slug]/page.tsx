@@ -24,7 +24,7 @@ interface BlogPost {
   featured_image_url?: string;
   article_images?: string[];
   keywords?: string[];
-  is_published: boolean;
+  status: 'draft' | 'published' | 'archived';
   published_at?: string;
   created_at: string;
   updated_at: string;
@@ -208,7 +208,7 @@ function MostReadArticles({ currentSlug, category }: { currentSlug: string; cate
       const { data } = await supabase
         .from('blog_posts')
         .select('title, slug, guide_category, view_count')
-        .eq('is_published', true)
+        .eq('status', 'published')
         .neq('slug', currentSlug)
         .order('view_count', { ascending: false })
         .limit(5);
@@ -249,7 +249,7 @@ function CategoriesWidget() {
       const { data } = await supabase
         .from('blog_posts')
         .select('guide_category')
-        .eq('is_published', true);
+        .eq('status', 'published');
 
       if (data) {
         const counts: Record<string, number> = {};
@@ -365,7 +365,7 @@ function RelatedFromOtherCategories({ currentSlug, currentCategory, keywords }: 
       let query = supabase
         .from('blog_posts')
         .select('title, slug, guide_category, excerpt, keywords')
-        .eq('is_published', true)
+        .eq('status', 'published')
         .neq('slug', currentSlug)
         .neq('guide_category', currentCategory);
 
@@ -381,7 +381,7 @@ function RelatedFromOtherCategories({ currentSlug, currentCategory, keywords }: 
         const { data: randomData } = await supabase
           .from('blog_posts')
           .select('title, slug, guide_category, excerpt')
-          .eq('is_published', true)
+          .eq('status', 'published')
           .neq('slug', currentSlug)
           .neq('guide_category', currentCategory)
           .limit(4);
@@ -661,7 +661,7 @@ export default function LearnGuidePage({ params }: PageProps) {
         .select('*')
         .eq('slug', resolvedParams.slug)
         .eq('guide_category', resolvedParams.category)
-        .eq('is_published', true)
+        .eq('status', 'published')
         .single();
 
       if (error || !data) {
@@ -690,7 +690,7 @@ export default function LearnGuidePage({ params }: PageProps) {
           .select('title, slug, excerpt')
           .eq('parent_cluster_slug', data.parent_cluster_slug)
           .eq('guide_type', 'pillar')
-          .eq('is_published', true)
+          .eq('status', 'published')
           .neq('slug', resolvedParams.slug)
           .limit(5);
 
@@ -704,7 +704,7 @@ export default function LearnGuidePage({ params }: PageProps) {
           .select('title, slug, excerpt')
           .eq('parent_cluster_slug', resolvedParams.slug)
           .eq('guide_type', 'pillar')
-          .eq('is_published', true);
+          .eq('status', 'published');
 
         setPillars(childPillars || []);
       }
