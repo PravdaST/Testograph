@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import { generateAndUploadGuideImages } from '@/lib/ai/image-generation';
 import {
   insertImagesIntoContent,
+  insertInternalLinks,
   countWords,
   calculateReadingTime,
   extractExcerpt
@@ -263,27 +264,52 @@ Keywords: ${keywords || 'няма'}
       // Continue without images - not critical
     }
 
-    // Step 6: Insert article images into content
+    // Step 6: Fetch related guides for internal linking
+    const { data: relatedGuides } = await supabase
+      .from('blog_posts')
+      .select('title, slug, guide_category, keywords')
+      .eq('category', 'learn-guide')
+      .eq('is_published', true)
+      .neq('slug', metadata.slug)
+      .limit(20);
+
+    // Step 7: Insert internal links to related guides
     let finalContent = content;
+    if (relatedGuides && relatedGuides.length > 0) {
+      finalContent = insertInternalLinks({
+        content: finalContent,
+        relatedGuides: relatedGuides.map(g => ({
+          title: g.title,
+          slug: g.slug,
+          category: g.guide_category || category,
+          keywords: g.keywords || []
+        })),
+        currentSlug: metadata.slug,
+        maxLinks: 5
+      });
+      console.log(`[Internal Links] ✅ Added keyword-based links to related guides`);
+    }
+
+    // Step 8: Insert article images into content
     if (articleImageUrls.length > 0) {
       finalContent = insertImagesIntoContent({
-        content,
+        content: finalContent,
         imageUrls: articleImageUrls,
         imageAlts: articleImageUrls.map((_, idx) => `${title} - illustration ${idx + 1}`)
       });
       console.log(`[Content] ✅ Inserted ${articleImageUrls.length} images into HTML`);
     }
 
-    // Step 7: Calculate word count & reading time
+    // Step 9: Calculate word count & reading time
     const wordCount = countWords(finalContent);
     const readingTime = calculateReadingTime(finalContent);
 
     console.log(`[Analytics] Word count: ${wordCount} | Reading time: ${readingTime} min`);
 
-    // Step 8: Extract excerpt
+    // Step 10: Extract excerpt
     const excerpt = extractExcerpt(finalContent, 200);
 
-    // Step 9: Save to database with new fields
+    // Step 11: Save to database with new fields
     const { data: savedGuide, error: saveError } = await supabase
       .from('blog_posts')
       .insert({

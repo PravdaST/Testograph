@@ -9,6 +9,18 @@ interface InsertImagesOptions {
   imageAlts?: string[];
 }
 
+interface InternalLinkOptions {
+  content: string;
+  relatedGuides: Array<{
+    title: string;
+    slug: string;
+    category: string;
+    keywords: string[];
+  }>;
+  currentSlug: string;
+  maxLinks?: number;
+}
+
 /**
  * Insert images into HTML content after every N paragraphs
  * Ensures even distribution throughout the article
@@ -170,4 +182,112 @@ export function extractExcerpt(htmlContent: string, maxLength = 200): string {
   }
 
   return '';
+}
+
+/**
+ * Insert internal links to related guides based on keywords
+ * Automatically links first occurrence of keywords to related articles
+ * SEO-friendly internal linking strategy
+ */
+export function insertInternalLinks({
+  content,
+  relatedGuides,
+  currentSlug,
+  maxLinks = 5
+}: InternalLinkOptions): string {
+  if (!relatedGuides || relatedGuides.length === 0) {
+    return content;
+  }
+
+  // Filter out current guide
+  const guides = relatedGuides.filter(g => g.slug !== currentSlug);
+  if (guides.length === 0) {
+    return content;
+  }
+
+  // Build keyword → guide mapping (prioritize longer keywords)
+  const keywordMap: Array<{
+    keyword: string;
+    url: string;
+    title: string;
+  }> = [];
+
+  for (const guide of guides) {
+    const url = `/learn/${guide.category}/${guide.slug}`;
+
+    // Add guide title as a keyword
+    keywordMap.push({
+      keyword: guide.title.toLowerCase(),
+      url,
+      title: guide.title
+    });
+
+    // Add all keywords
+    if (guide.keywords && guide.keywords.length > 0) {
+      for (const keyword of guide.keywords) {
+        if (keyword && keyword.trim().length > 2) {
+          keywordMap.push({
+            keyword: keyword.toLowerCase().trim(),
+            url,
+            title: guide.title
+          });
+        }
+      }
+    }
+  }
+
+  // Sort by keyword length (longer first for better matching)
+  keywordMap.sort((a, b) => b.keyword.length - a.keyword.length);
+
+  // Track linked keywords to avoid duplicates
+  const linkedKeywords = new Set<string>();
+  let linksAdded = 0;
+
+  // Process content paragraph by paragraph
+  const paragraphs = content.split(/(<p[^>]*>.*?<\/p>)/s);
+
+  const processedParagraphs = paragraphs.map(para => {
+    // Skip if not a paragraph or already has max links
+    if (!para.startsWith('<p') || linksAdded >= maxLinks) {
+      return para;
+    }
+
+    // Extract paragraph content
+    const pMatch = para.match(/<p([^>]*)>(.*?)<\/p>/s);
+    if (!pMatch) return para;
+
+    const [, pAttrs, pContent] = pMatch;
+    let processedContent = pContent;
+
+    // Try to link keywords in this paragraph
+    for (const { keyword, url, title } of keywordMap) {
+      // Stop if max links reached
+      if (linksAdded >= maxLinks) break;
+
+      // Skip if already linked
+      if (linkedKeywords.has(keyword)) continue;
+
+      // Create case-insensitive regex (match whole words only)
+      const regex = new RegExp(
+        `\\b(${keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})\\b`,
+        'i'
+      );
+
+      // Check if keyword exists in content
+      const match = processedContent.match(regex);
+      if (match && match[0]) {
+        // Replace ONLY first occurrence with link
+        const replacement = `<a href="${url}" class="internal-link" title="${title}">${match[0]}</a>`;
+        processedContent = processedContent.replace(regex, replacement);
+
+        linkedKeywords.add(keyword);
+        linksAdded++;
+        break; // Only one link per paragraph
+      }
+    }
+
+    return `<p${pAttrs}>${processedContent}</p>`;
+  });
+
+  return processedParagraphs.join('');
 }
