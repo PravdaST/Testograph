@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { getCurrentAdminUser } from '@/lib/admin/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -84,10 +85,6 @@ interface UsersResponse {
   total: number;
 }
 
-// Hardcoded admin credentials (should come from auth session in production)
-const ADMIN_ID = 'e4ea078b-30b2-4347-801f-6d26a87318b6';
-const ADMIN_EMAIL = 'caspere63@gmail.com';
-
 export default function UsersPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -95,6 +92,10 @@ export default function UsersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Admin user authentication
+  const [adminId, setAdminId] = useState<string | null>(null);
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
 
   // Modal states
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
@@ -121,9 +122,26 @@ export default function UsersPage() {
   const [editAvatar, setEditAvatar] = useState('');
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
 
+  // Fetch admin user on mount
   useEffect(() => {
-    fetchUsers();
-  }, [search]);
+    const fetchAdminUser = async () => {
+      const { adminUser, userId, email } = await getCurrentAdminUser();
+      if (adminUser) {
+        setAdminId(userId);
+        setAdminEmail(email);
+      } else {
+        // Not authenticated as admin - redirect to login
+        router.push('/admin/login');
+      }
+    };
+    fetchAdminUser();
+  }, [router]);
+
+  useEffect(() => {
+    if (adminId && adminEmail) {
+      fetchUsers();
+    }
+  }, [search, adminId, adminEmail]);
 
   useEffect(() => {
     if (userDetailModal && selectedUser) {
@@ -290,8 +308,8 @@ export default function UsersPage() {
         body: JSON.stringify({
           userId: selectedUser.id,
           startDate: proStartDate,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -333,8 +351,8 @@ export default function UsersPage() {
         body: JSON.stringify({
           userId: selectedUser.id,
           reason: revokeProReason,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -390,8 +408,8 @@ export default function UsersPage() {
           amount: parseFloat(appAmount),
           currency: 'BGN',
           status: 'completed',
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -435,8 +453,8 @@ export default function UsersPage() {
         body: JSON.stringify({
           userId: selectedUser.id,
           newPassword,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -474,8 +492,8 @@ export default function UsersPage() {
         body: JSON.stringify({
           userId: selectedUser.id,
           reason: banReason,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -513,8 +531,8 @@ export default function UsersPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: selectedUser.id,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -555,8 +573,8 @@ export default function UsersPage() {
             name: editName,
             avatar: editAvatar || null,
           },
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -594,8 +612,8 @@ export default function UsersPage() {
         body: JSON.stringify({
           userId: selectedUser.id,
           confirmEmail: deleteConfirmEmail,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 

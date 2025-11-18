@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { getCurrentAdminUser } from '@/lib/admin/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -45,10 +46,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Hardcoded admin credentials
-const ADMIN_ID = 'e4ea078b-30b2-4347-801f-6d26a87318b6';
-const ADMIN_EMAIL = 'caspere63@gmail.com';
-
 interface User {
   id: string;
   email: string;
@@ -71,6 +68,10 @@ export default function CommunicationPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('single');
+
+  // Admin user authentication
+  const [adminId, setAdminId] = useState<string | null>(null);
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
 
   // Email logs state
   const [emailLogs, setEmailLogs] = useState<any[]>([]);
@@ -100,25 +101,33 @@ export default function CommunicationPage() {
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [selectedTemplate, setSelectedTemplate] = useState<string>('');
 
+  // Fetch admin user on mount
   useEffect(() => {
-    checkAuth();
-    fetchUsers();
-    fetchTemplates();
-  }, []);
+    const fetchAdminUser = async () => {
+      const { adminUser, userId, email } = await getCurrentAdminUser();
+      if (adminUser) {
+        setAdminId(userId);
+        setAdminEmail(email);
+      } else {
+        // Not authenticated as admin - redirect to login
+        router.push('/admin/login');
+      }
+    };
+    fetchAdminUser();
+  }, [router]);
 
   useEffect(() => {
-    if (activeTab === 'history') {
+    if (adminId && adminEmail) {
+      fetchUsers();
+      fetchTemplates();
+    }
+  }, [adminId, adminEmail]);
+
+  useEffect(() => {
+    if (activeTab === 'history' && adminId && adminEmail) {
       fetchEmailLogs();
     }
-  }, [activeTab, logsPage, logsFilters]);
-
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      router.push('/admin');
-      return;
-    }
-  };
+  }, [activeTab, logsPage, logsFilters, adminId, adminEmail]);
 
   const fetchUsers = async () => {
     try {
@@ -208,8 +217,8 @@ export default function CommunicationPage() {
           subject: singleSubject,
           message: singleMessage,
           isBulk: false,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
           templateId: selectedTemplate || undefined,
         }),
       });
@@ -264,8 +273,8 @@ export default function CommunicationPage() {
           subject: bulkSubject,
           message: bulkMessage,
           isBulk: true,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
           templateId: selectedTemplate || undefined,
         }),
       });

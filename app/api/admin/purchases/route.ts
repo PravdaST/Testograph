@@ -36,9 +36,14 @@ export async function GET(request: Request) {
     const userMap = new Map(authUsers?.users.map(u => [u.id, { email: u.email, name: u.user_metadata?.full_name }]));
 
     const enrichedPurchases = purchases?.map(purchase => ({
-      ...purchase,
+      id: purchase.id,
       userEmail: userMap.get(purchase.user_id)?.email || 'Unknown',
       userName: userMap.get(purchase.user_id)?.name || null,
+      productName: purchase.product_name || 'Unknown Product',
+      amount: purchase.amount,
+      purchasedAt: purchase.purchased_at,
+      status: purchase.status,
+      currency: purchase.currency,
     })) || [];
 
     // Calculate revenue stats

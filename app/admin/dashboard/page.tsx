@@ -9,6 +9,7 @@ import { EmptyState } from '@/components/admin/EmptyState';
 import { SearchBar } from '@/components/admin/SearchBar';
 import { UsersGrowthChart } from '@/components/admin/UsersGrowthChart';
 import { RevenueTrendChart } from '@/components/admin/RevenueTrendChart';
+import { getCurrentAdminUser } from '@/lib/admin/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -57,6 +58,7 @@ import {
   Mail,
   Shield,
   ClipboardList,
+  ClipboardCheck,
   Zap,
   Database,
   Server,
@@ -66,28 +68,60 @@ import {
 } from 'lucide-react';
 
 interface DashboardStats {
-  totalChatSessions: number;
-  totalFunnelSessions: number;
-  totalUsers: number;
-  conversionRate: number;
-  recentChatSessions: number;
-  recentFunnelSessions: number;
-  totalRevenue: number;
-  totalPurchases: number;
-  averageOrderValue: number;
-  appStats?: {
-    totalUsers: number;
-    activeMealPlans: number;
-    sleepLogsLast30Days: number;
-    exerciseLogsLast30Days: number;
-    totalLabResults: number;
+  quiz: {
+    totalCompletions: number;
+    categoryBreakdown: {
+      energy: number;
+      libido: number;
+      muscle: number;
+    };
+    categoryPercentages: {
+      energy: number;
+      libido: number;
+      muscle: number;
+    };
+    averageScore: number;
+    workoutLocationBreakdown: {
+      gym: number;
+      home: number;
+    };
+    dietaryPreferences: {
+      omnivor: number;
+      vegetarian: number;
+      vegan: number;
+      pescatarian: number;
+    };
   };
-  proStats?: {
-    totalUsers: number;
-    activeProtocols: number;
-    dailyEntriesLast30Days: number;
-    averageCompliance: number | null;
-    totalWeightTracking: number;
+  users: {
+    total: number;
+    active: number;
+    activePercentage: number;
+    proUsers: number;
+  };
+  engagement: {
+    period: string;
+    mealLogs: number;
+    workoutSessions: number;
+    sleepEntries: number;
+    testoUpCompliance: number;
+    proDailyEntries: number;
+    proCompliance: number;
+  };
+  purchases: {
+    totalRevenue: number;
+    totalPurchases: number;
+    averageOrderValue: number;
+    productBreakdown: Record<string, number>;
+  };
+  program: {
+    completionRate: number;
+    completedPrograms: number;
+    activePrograms: number;
+  };
+  trends?: {
+    revenue: { value: number; label: string };
+    users: { value: number; label: string };
+    conversion: { value: number; label: string };
   };
 }
 
@@ -108,10 +142,6 @@ interface ActivityEvent {
   description: string;
 }
 
-// Hardcoded admin credentials
-const ADMIN_ID = 'e4ea078b-30b2-4347-801f-6d26a87318b6';
-const ADMIN_EMAIL = 'caspere63@gmail.com';
-
 export default function DashboardPage() {
   const router = useRouter();
   const { toast } = useToast();
@@ -122,6 +152,10 @@ export default function DashboardPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Admin user authentication
+  const [adminId, setAdminId] = useState<string | null>(null);
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
 
   // New states for enhancements
   const [timeRange, setTimeRange] = useState<string>('30');
@@ -142,14 +176,33 @@ export default function DashboardPage() {
   const [confirmChecked, setConfirmChecked] = useState(false);
   const [isClearingData, setIsClearingData] = useState(false);
 
+  // Fetch admin user on mount
   useEffect(() => {
-    fetchDashboardData();
-    fetchChartsData();
-  }, []);
+    const fetchAdminUser = async () => {
+      const { adminUser, userId, email } = await getCurrentAdminUser();
+      if (adminUser) {
+        setAdminId(userId);
+        setAdminEmail(email);
+      } else {
+        // Not authenticated as admin - redirect to login
+        router.push('/admin/login');
+      }
+    };
+    fetchAdminUser();
+  }, [router]);
 
   useEffect(() => {
-    fetchChartsData();
-  }, [timeRange]);
+    if (adminId && adminEmail) {
+      fetchDashboardData();
+      fetchChartsData();
+    }
+  }, [adminId, adminEmail]);
+
+  useEffect(() => {
+    if (adminId && adminEmail) {
+      fetchChartsData();
+    }
+  }, [timeRange, adminId, adminEmail]);
 
   const fetchDashboardData = async (isRefresh = false) => {
     if (isRefresh) {
@@ -165,49 +218,55 @@ export default function DashboardPage() {
         setActivities(activityData.activities);
       }
 
-      // Fetch users for stats
-      const usersRes = await fetch('/api/admin/users');
-      const usersData = await usersRes.json();
-
-      // Fetch funnel stats
-      const funnelRes = await fetch('/api/analytics/funnel-stats?days=30');
-      const funnelData = await funnelRes.json();
-
-      // Fetch chat sessions
-      const chatRes = await fetch('/api/admin/chat-sessions?limit=1000');
-      const chatData = await chatRes.json();
+      // Fetch comprehensive app stats from testograph-v2
+      const appStatsRes = await fetch('/api/admin/app-stats');
+      const appStatsData = await appStatsRes.json();
 
       // Fetch purchases
       const purchasesRes = await fetch('/api/admin/purchases?limit=10');
       const purchasesData = await purchasesRes.json();
 
-      // Fetch app/pro stats
-      const appProRes = await fetch('/api/admin/app-pro-stats');
-      const appProData = await appProRes.json();
+      // Fetch trends data
+      const trendsRes = await fetch('/api/admin/stats/trends');
+      const trendsData = await trendsRes.json();
 
-      if (usersRes.ok && funnelRes.ok && chatRes.ok && purchasesRes.ok) {
-        // Calculate stats
-        const now = new Date();
-        const oneDayAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-
-        const recentChats = (chatData?.sessions || []).filter(
-          (s: any) => new Date(s.created_at) > oneDayAgo
-        ).length;
-
-        const recentFunnels = funnelData?.stats?.totalSessions ?? 0;
-
+      if (appStatsRes.ok && purchasesRes.ok) {
         setStats({
-          totalChatSessions: chatData?.total ?? 0,
-          totalFunnelSessions: funnelData?.stats?.totalSessions ?? 0,
-          totalUsers: usersData?.total ?? 0,
-          conversionRate: funnelData?.stats?.overallConversionRate ?? 0,
-          recentChatSessions: recentChats,
-          recentFunnelSessions: recentFunnels,
-          totalRevenue: purchasesData?.stats?.totalRevenue ?? 0,
-          totalPurchases: purchasesData?.stats?.totalPurchases ?? 0,
-          averageOrderValue: purchasesData?.stats?.averageOrderValue ?? 0,
-          appStats: (appProRes.ok && appProData?.app) ? appProData.app : undefined,
-          proStats: (appProRes.ok && appProData?.pro) ? appProData.pro : undefined,
+          quiz: appStatsData.quiz || {
+            totalCompletions: 0,
+            categoryBreakdown: { energy: 0, libido: 0, muscle: 0 },
+            categoryPercentages: { energy: 0, libido: 0, muscle: 0 },
+            averageScore: 0,
+            workoutLocationBreakdown: { gym: 0, home: 0 },
+            dietaryPreferences: { omnivor: 0, vegetarian: 0, vegan: 0, pescatarian: 0 },
+          },
+          users: appStatsData.users || {
+            total: 0,
+            active: 0,
+            activePercentage: 0,
+            proUsers: 0,
+          },
+          engagement: appStatsData.engagement || {
+            period: '30 days',
+            mealLogs: 0,
+            workoutSessions: 0,
+            sleepEntries: 0,
+            testoUpCompliance: 0,
+            proDailyEntries: 0,
+            proCompliance: 0,
+          },
+          purchases: appStatsData.purchases || {
+            totalRevenue: 0,
+            totalPurchases: 0,
+            averageOrderValue: 0,
+            productBreakdown: {},
+          },
+          program: appStatsData.program || {
+            completionRate: 0,
+            completedPrograms: 0,
+            activePrograms: 0,
+          },
+          trends: (trendsRes.ok && trendsData?.trends) ? trendsData.trends : undefined,
         });
 
         setRecentPurchases(purchasesData.purchases || []);
@@ -256,8 +315,10 @@ export default function DashboardPage() {
       if (response.ok) {
         setUsersGrowthData(data.usersGrowth || []);
         setRevenueData(data.revenueData || []);
+        // Database is healthy if API returned data successfully
+        const dbIsHealthy = data.usersGrowth || data.revenueData;
         setSystemHealth({
-          dbStatus: 'healthy',
+          dbStatus: dbIsHealthy ? 'healthy' : 'degraded',
           apiResponseTime,
           activeSessions: data.usersGrowth?.[data.usersGrowth.length - 1]?.users || 0,
         });
@@ -291,8 +352,8 @@ export default function DashboardPage() {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
           confirmText,
         }),
       });
@@ -484,31 +545,31 @@ export default function DashboardPage() {
         {/* Key Metrics */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
-            title="Общо Потребители"
-            value={stats?.totalUsers || 0}
+            title="Quiz Завършени"
+            value={stats?.quiz.totalCompletions || 0}
+            icon={ClipboardCheck}
+            description={`Средeн Score: ${stats?.quiz.averageScore || 0}`}
+          />
+          <StatCard
+            title="Активни Потребители"
+            value={stats?.users.active || 0}
             icon={Users}
-            description="Уникални emails в системата"
+            description={`${stats?.users.activePercentage || 0}% от ${stats?.users.total || 0} общо`}
           />
           <StatCard
             title="Общ Приход"
-            value={`${stats?.totalRevenue || 0} лв`}
+            value={`${stats?.purchases.totalRevenue || 0} лв`}
             icon={DollarSign}
             valueColor="text-green-600"
-            description={`${stats?.totalPurchases || 0} покупки`}
-            trend={{ value: 12, label: 'спрямо миналия месец' }}
+            description={`${stats?.purchases.totalPurchases || 0} покупки`}
+            trend={stats?.trends?.revenue}
           />
           <StatCard
-            title="Конверсия"
-            value={`${stats?.conversionRate || 0}%`}
-            icon={CheckCircle}
+            title="Програми Завършени"
+            value={`${stats?.program.completionRate || 0}%`}
+            icon={Target}
             valueColor="text-green-600"
-            trend={{ value: 5, label: 'спрямо миналия месец' }}
-          />
-          <StatCard
-            title="Активни Сесии"
-            value={(stats?.totalChatSessions || 0) + (stats?.totalFunnelSessions || 0)}
-            icon={Activity}
-            description={`${stats?.recentChatSessions || 0} чатове, ${stats?.recentFunnelSessions || 0} фънъли`}
+            description={`${stats?.program.completedPrograms || 0} от ${stats?.quiz.totalCompletions || 0}`}
           />
         </div>
 
@@ -595,7 +656,7 @@ export default function DashboardPage() {
                   <Users className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">Total Users</span>
                 </div>
-                <Badge variant="outline">{stats?.totalUsers || 0}</Badge>
+                <Badge variant="outline">{stats?.users.total || 0}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -625,8 +686,8 @@ export default function DashboardPage() {
                   <div className="flex-1">
                     <h3 className="font-semibold text-sm mb-1">Clear Test Data</h3>
                     <p className="text-xs text-muted-foreground mb-3">
-                      Изтрива ВСИЧКИ потребители и техни данни от базата (purchases, chat sessions, funnel data, PRO entries).
-                      Admin user-ът ({ADMIN_EMAIL}) ще бъде запазен.
+                      Изтрива ВСИЧКИ потребители и техни данни от базата (quiz results, profiles, purchases, tracking data, PRO entries).
+                      Admin user-ът ({adminEmail || 'текущия админ'}) ще бъде запазен.
                     </p>
                     <Button
                       variant="destructive"
@@ -650,124 +711,187 @@ export default function DashboardPage() {
           <RevenueTrendChart data={revenueData} isLoading={chartsLoading} />
         </div>
 
-        {/* Product Usage */}
-        {(stats?.appStats || stats?.proStats) && (
+        {/* Quiz Categories & Engagement */}
+        {stats && (
           <>
             <div>
-              <h2 className="text-xl font-semibold">Използване на Продукти</h2>
+              <h2 className="text-xl font-semibold">Анализ на Quiz Резултати</h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Метрики за използване на App и PRO функции
+                Разпределение по категории и предпочитания на потребителите
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {/* Highlighted user counts */}
-              {stats?.appStats && (
-                <Card className="border-l-4 border-l-blue-500 shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                      <Users className="h-4 w-4 text-blue-600" />
-                      <span className="font-medium">App Потребители</span>
-                    </div>
-                    <div className="text-2xl font-bold text-blue-600">{stats.appStats.totalUsers}</div>
-                  </CardContent>
-                </Card>
-              )}
-              {stats?.proStats && (
-                <Card className="border-l-4 border-l-purple-500 shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                      <Users className="h-4 w-4 text-purple-600" />
-                      <span className="font-medium">PRO Потребители</span>
-                    </div>
-                    <div className="text-2xl font-bold text-purple-600">{stats.proStats.totalUsers}</div>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* App metrics */}
-              {stats?.appStats && (
-                <>
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                        <Utensils className="h-4 w-4" />
-                        <span className="font-medium">Хранителни Планове</span>
-                      </div>
-                      <div className="text-2xl font-bold">{stats.appStats.activeMealPlans}</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                        <Moon className="h-4 w-4" />
-                        <span className="font-medium">Записи за Сън</span>
-                      </div>
-                      <div className="text-2xl font-bold">{stats.appStats.sleepLogsLast30Days}</div>
-                      <p className="text-xs text-muted-foreground mt-1">Последни 30д</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                        <Dumbbell className="h-4 w-4" />
-                        <span className="font-medium">Записи за Упражнения</span>
-                      </div>
-                      <div className="text-2xl font-bold">{stats.appStats.exerciseLogsLast30Days}</div>
-                      <p className="text-xs text-muted-foreground mt-1">Последни 30д</p>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
+            {/* Category Breakdown */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="border-l-4 border-l-orange-500 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Zap className="h-4 w-4 text-orange-600" />
+                    <span className="font-medium">Energy (Енергия)</span>
+                  </div>
+                  <div className="text-2xl font-bold text-orange-600">{stats.quiz.categoryBreakdown.energy}</div>
+                  <p className="text-xs text-muted-foreground mt-1">{stats.quiz.categoryPercentages.energy}% от всички</p>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-pink-500 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Target className="h-4 w-4 text-pink-600" />
+                    <span className="font-medium">Libido (Либидо)</span>
+                  </div>
+                  <div className="text-2xl font-bold text-pink-600">{stats.quiz.categoryBreakdown.libido}</div>
+                  <p className="text-xs text-muted-foreground mt-1">{stats.quiz.categoryPercentages.libido}% от всички</p>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-blue-500 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Dumbbell className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium">Muscle (Мускули)</span>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-600">{stats.quiz.categoryBreakdown.muscle}</div>
+                  <p className="text-xs text-muted-foreground mt-1">{stats.quiz.categoryPercentages.muscle}% от всички</p>
+                </CardContent>
+              </Card>
             </div>
 
-            {/* Second row - PRO metrics and Lab Results */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {stats?.appStats && (
-                <Card className="shadow-sm">
-                  <CardContent className="p-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                      <FlaskConical className="h-4 w-4" />
-                      <span className="font-medium">Лабораторни Резултати</span>
+            {/* Engagement Metrics */}
+            <div>
+              <h2 className="text-xl font-semibold">Engagement Метрики (30 дни)</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Активност на потребителите в последните {stats.engagement.period}
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Utensils className="h-4 w-4" />
+                    <span className="font-medium">Хранителни Записи</span>
+                  </div>
+                  <div className="text-2xl font-bold">{stats.engagement.mealLogs}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Последни 30д</p>
+                </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Dumbbell className="h-4 w-4" />
+                    <span className="font-medium">Тренировки</span>
+                  </div>
+                  <div className="text-2xl font-bold">{stats.engagement.workoutSessions}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Последни 30д</p>
+                </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Moon className="h-4 w-4" />
+                    <span className="font-medium">Записи за Сън</span>
+                  </div>
+                  <div className="text-2xl font-bold">{stats.engagement.sleepEntries}</div>
+                  <p className="text-xs text-muted-foreground mt-1">Последни 30д</p>
+                </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <FlaskConical className="h-4 w-4" />
+                    <span className="font-medium">TestoUP Compliance</span>
+                  </div>
+                  <div className="text-2xl font-bold text-green-600">{stats.engagement.testoUpCompliance}%</div>
+                  <p className="text-xs text-muted-foreground mt-1">Средно спазване</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* PRO Stats & User Preferences */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* PRO Users */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Target className="h-5 w-5 text-purple-600" />
+                    Testograph PRO
+                  </CardTitle>
+                  <CardDescription>Метрики за PRO потребители</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">PRO Потребители</span>
                     </div>
-                    <div className="text-2xl font-bold">{stats.appStats.totalLabResults}</div>
-                  </CardContent>
-                </Card>
-              )}
-              {stats?.proStats && (
-                <>
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                        <Target className="h-4 w-4" />
-                        <span className="font-medium">Активни Протоколи</span>
+                    <Badge variant="outline" className="text-purple-600 border-purple-600">{stats.users.proUsers}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Flame className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">Дневни Записи (30д)</span>
+                    </div>
+                    <Badge variant="outline">{stats.engagement.proDailyEntries}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">Средна Дисциплина</span>
+                    </div>
+                    <Badge variant="outline" className="text-green-600 border-green-600">{stats.engagement.proCompliance}/10</Badge>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* User Preferences */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    Предпочитания на Потребителите
+                  </CardTitle>
+                  <CardDescription>Тренировъчна локация и диета</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Тренировъчна Локация</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">🏋️ Gym</span>
+                        <Badge variant="outline">{stats.quiz.workoutLocationBreakdown.gym}</Badge>
                       </div>
-                      <div className="text-2xl font-bold">{stats.proStats.activeProtocols}</div>
-                    </CardContent>
-                  </Card>
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                        <Flame className="h-4 w-4" />
-                        <span className="font-medium">Дневни Записи</span>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">🏠 Home</span>
+                        <Badge variant="outline">{stats.quiz.workoutLocationBreakdown.home}</Badge>
                       </div>
-                      <div className="text-2xl font-bold">{stats.proStats.dailyEntriesLast30Days}</div>
-                      <p className="text-xs text-muted-foreground mt-1">Последни 30д</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                        <CheckCircle className="h-4 w-4" />
-                        <span className="font-medium">Средна Дисциплина</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium">Хранителни Предпочитания</span>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">🍖 Omnivor</span>
+                        <Badge variant="outline">{stats.quiz.dietaryPreferences.omnivor}</Badge>
                       </div>
-                      <div className="text-2xl font-bold text-green-600">
-                        {stats.proStats.averageCompliance?.toFixed(1) || 'N/A'}/10
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">🥬 Vegetarian</span>
+                        <Badge variant="outline">{stats.quiz.dietaryPreferences.vegetarian}</Badge>
                       </div>
-                    </CardContent>
-                  </Card>
-                </>
-              )}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">🌱 Vegan</span>
+                        <Badge variant="outline">{stats.quiz.dietaryPreferences.vegan}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">🐟 Pescatarian</span>
+                        <Badge variant="outline">{stats.quiz.dietaryPreferences.pescatarian}</Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </>
         )}
@@ -939,12 +1063,13 @@ export default function DashboardPage() {
               {/* Warning list */}
               <div className="bg-destructive/10 p-3 rounded-lg border border-destructive/20">
                 <ul className="text-xs space-y-1 text-muted-foreground">
-                  <li>• Всички auth users (освен {ADMIN_EMAIL})</li>
+                  <li>• Всички auth users (освен {adminEmail || 'текущия админ'})</li>
                   <li>• Profiles</li>
+                  <li>• Quiz Results (quiz_results_v2)</li>
                   <li>• Purchases</li>
-                  <li>• Chat sessions</li>
-                  <li>• Funnel sessions и events</li>
-                  <li>• PRO entries и measurements</li>
+                  <li>• Meal completions, workout sessions, sleep tracking</li>
+                  <li>• TestoUP tracking</li>
+                  <li>• PRO daily entries</li>
                   <li>• User settings</li>
                 </ul>
               </div>

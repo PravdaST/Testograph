@@ -6,6 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { QueryProvider } from '@/components/providers/query-provider'
 import { CookieConsent } from "@/components/CookieConsent"
+import { AnalyticsScripts } from "@/components/AnalyticsScripts"
 
 const montserrat = Montserrat({
   subsets: ['latin', 'cyrillic'],
@@ -145,48 +146,7 @@ export default function RootLayout({
           }}
         />
 
-        {/* Facebook Meta Pixel */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              !function(f,b,e,v,n,t,s)
-              {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-              n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-              if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-              n.queue=[];t=b.createElement(e);t.async=!0;
-              t.src=v;s=b.getElementsByTagName(e)[0];
-              s.parentNode.insertBefore(t,s)}(window, document,'script',
-              'https://connect.facebook.net/en_US/fbevents.js');
-              fbq('init', '9450560195068576');
-              fbq('track', 'PageView');
-            `
-          }}
-        />
-        <noscript>
-          <img
-            height="1"
-            width="1"
-            style={{ display: 'none' }}
-            src="https://www.facebook.com/tr?id=9450560195068576&ev=PageView&noscript=1"
-            alt=""
-          />
-        </noscript>
-
-        {/* Google Analytics */}
-        <script
-          async
-          src="https://www.googletagmanager.com/gtag/js?id=G-88D9NGJX4M"
-        />
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `
-              window.dataLayer = window.dataLayer || [];
-              function gtag(){dataLayer.push(arguments);}
-              gtag('js', new Date());
-              gtag('config', 'G-88D9NGJX4M');
-            `
-          }}
-        />
+        {/* Analytics scripts handled by AnalyticsScripts component */}
       </head>
       <body className={montserrat.className} suppressHydrationWarning>
         <QueryProvider>
@@ -195,6 +155,7 @@ export default function RootLayout({
             <Toaster />
             <Sonner />
             <CookieConsent />
+            <AnalyticsScripts />
           </TooltipProvider>
         </QueryProvider>
       </body>

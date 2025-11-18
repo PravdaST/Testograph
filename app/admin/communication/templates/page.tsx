@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { getCurrentAdminUser } from '@/lib/admin/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -60,9 +61,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-const ADMIN_ID = 'e4ea078b-30b2-4347-801f-6d26a87318b6';
-const ADMIN_EMAIL = 'caspere63@gmail.com';
-
 const CATEGORIES = [
   { value: 'general', label: 'Общи', color: 'bg-gray-600' },
   { value: 'welcome', label: 'Добре дошли', color: 'bg-blue-600' },
@@ -95,6 +93,10 @@ export default function TemplatesPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
 
+  // Admin user authentication
+  const [adminId, setAdminId] = useState<string | null>(null);
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
+
   // Modals state
   const [createModal, setCreateModal] = useState(false);
   const [editModal, setEditModal] = useState(false);
@@ -112,18 +114,26 @@ export default function TemplatesPage() {
     notes: ''
   });
 
+  // Fetch admin user on mount
   useEffect(() => {
-    checkAuth();
-    fetchTemplates();
-  }, [categoryFilter]);
+    const fetchAdminUser = async () => {
+      const { adminUser, userId, email } = await getCurrentAdminUser();
+      if (adminUser) {
+        setAdminId(userId);
+        setAdminEmail(email);
+      } else {
+        // Not authenticated as admin - redirect to login
+        router.push('/admin/login');
+      }
+    };
+    fetchAdminUser();
+  }, [router]);
 
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      router.push('/admin');
-      return;
+  useEffect(() => {
+    if (adminId && adminEmail) {
+      fetchTemplates();
     }
-  };
+  }, [categoryFilter, adminId, adminEmail]);
 
   const fetchTemplates = async () => {
     try {
@@ -171,8 +181,8 @@ export default function TemplatesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -217,8 +227,8 @@ export default function TemplatesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...formData,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -253,7 +263,7 @@ export default function TemplatesPage() {
     setIsLoading(true);
     try {
       const response = await fetch(
-        `/api/admin/communication/templates/${selectedTemplate.id}/delete?adminId=${ADMIN_ID}&adminEmail=${ADMIN_EMAIL}`,
+        `/api/admin/communication/templates/${selectedTemplate.id}/delete?adminId=${adminId}&adminEmail=${adminEmail}`,
         { method: 'DELETE' }
       );
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import AdminLayout from '@/components/admin/AdminLayout';
+import { getCurrentAdminUser } from '@/lib/admin/auth';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,10 +60,6 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 );
 
-// Hardcoded admin credentials
-const ADMIN_ID = 'e4ea078b-30b2-4347-801f-6d26a87318b6';
-const ADMIN_EMAIL = 'caspere63@gmail.com';
-
 interface Admin {
   id: string;
   email: string;
@@ -98,6 +95,10 @@ export default function SettingsPage() {
   const [allUsers, setAllUsers] = useState<User[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Admin user authentication
+  const [adminId, setAdminId] = useState<string | null>(null);
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
+
   // Add Admin Modal
   const [addAdminModal, setAddAdminModal] = useState(false);
   const [selectedUserId, setSelectedUserId] = useState('');
@@ -117,19 +118,27 @@ export default function SettingsPage() {
   // Remove Admin Modal
   const [removeAdminModal, setRemoveAdminModal] = useState(false);
 
+  // Fetch admin user on mount
   useEffect(() => {
-    checkAuth();
-    fetchAdmins();
-    fetchAllUsers();
-  }, []);
+    const fetchAdminUser = async () => {
+      const { adminUser, userId, email } = await getCurrentAdminUser();
+      if (adminUser) {
+        setAdminId(userId);
+        setAdminEmail(email);
+      } else {
+        // Not authenticated as admin - redirect to login
+        router.push('/admin/login');
+      }
+    };
+    fetchAdminUser();
+  }, [router]);
 
-  const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) {
-      router.push('/admin');
-      return;
+  useEffect(() => {
+    if (adminId && adminEmail) {
+      fetchAdmins();
+      fetchAllUsers();
     }
-  };
+  }, [adminId, adminEmail]);
 
   const fetchAdmins = async () => {
     try {
@@ -177,8 +186,8 @@ export default function SettingsPage() {
           role: selectedRole,
           permissions: Array.from(selectedPermissions),
           notes: adminNotes || undefined,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -220,8 +229,8 @@ export default function SettingsPage() {
         body: JSON.stringify({
           userId: editingAdmin.id,
           role: newRole,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -267,8 +276,8 @@ export default function SettingsPage() {
         body: JSON.stringify({
           userId: editingAdmin.id,
           permissions: Array.from(newPermissions),
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -307,8 +316,8 @@ export default function SettingsPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           userId: editingAdmin.id,
-          adminId: ADMIN_ID,
-          adminEmail: ADMIN_EMAIL,
+          adminId,
+          adminEmail,
         }),
       });
 
@@ -508,7 +517,7 @@ export default function SettingsPage() {
                               <DropdownMenuItem
                                 onClick={() => openRemoveAdminModal(admin)}
                                 className="text-red-600"
-                                disabled={admin.id === ADMIN_ID}
+                                disabled={admin.id === adminId}
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Премахни Админ

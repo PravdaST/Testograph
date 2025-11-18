@@ -21,7 +21,8 @@ import {
   Settings as SettingsIcon,
   TrendingUp,
   ClipboardCheck,
-  Handshake
+  Handshake,
+  BookOpen
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -44,19 +45,9 @@ const navItems = [
     icon: Users,
   },
   {
-    title: 'Чат Сесии',
-    href: '/admin/chat-sessions',
-    icon: MessageSquare,
-  },
-  {
     title: 'Testograph PRO',
     href: '/admin/pro-users',
     icon: Target,
-  },
-  {
-    title: 'Funnel Analytics',
-    href: '/admin/analytics',
-    icon: BarChart3,
   },
   {
     title: 'Business Analytics',
@@ -84,9 +75,9 @@ const navItems = [
     icon: Handshake,
   },
   {
-    title: 'Emails',
-    href: '/admin/emails',
-    icon: Mail,
+    title: 'Learn Content',
+    href: '/admin/learn-content',
+    icon: BookOpen,
   },
   {
     title: 'Комуникация',
@@ -178,7 +169,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           </div>
 
           {/* Navigation */}
-          <nav className="flex-1 p-4 space-y-2">
+          <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href || pathname?.startsWith(item.href + '/');
