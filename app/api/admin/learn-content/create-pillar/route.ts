@@ -77,9 +77,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { title, parent_cluster_slug, category, keywords } = await request.json();
+    const { title, parent_cluster_slug, category, keywords, is_published, published_at } = await request.json();
 
-    console.log('[Pillar] Starting:', { title, parent_cluster_slug, category });
+    console.log('[Pillar] Starting:', { title, parent_cluster_slug, category, is_published, published_at });
 
     // Step 1: Fetch parent cluster
     const { data: parentCluster, error: clusterError } = await supabase
@@ -309,7 +309,29 @@ Keywords: ${keywords || 'няма'}
     // Step 10: Extract excerpt
     const excerpt = extractExcerpt(finalContent, 200);
 
-    // Step 11: Save to database with new fields
+    // Step 11: Check for duplicate by slug
+    const { data: existingGuide } = await supabase
+      .from('blog_posts')
+      .select('id, title, slug')
+      .eq('slug', metadata.slug)
+      .single();
+
+    if (existingGuide) {
+      console.log('[Pillar] ❌ Duplicate detected:', existingGuide.slug);
+      return NextResponse.json(
+        {
+          error: 'Pillar вече съществува',
+          existing: {
+            id: existingGuide.id,
+            title: existingGuide.title,
+            slug: existingGuide.slug
+          }
+        },
+        { status: 409 } // Conflict
+      );
+    }
+
+    // Step 12: Save to database with new fields
     const { data: savedGuide, error: saveError } = await supabase
       .from('blog_posts')
       .insert({
@@ -330,9 +352,10 @@ Keywords: ${keywords || 'няма'}
         reading_time: readingTime,
         ai_generated: true,
         main_topic: 'mens-health',
-        status: 'draft',
+        status: is_published ? 'published' : 'draft',
         author_id: user.id,
-        is_published: false
+        is_published: is_published || false,
+        published_at: published_at || null
       })
       .select()
       .single();

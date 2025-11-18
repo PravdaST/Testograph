@@ -136,9 +136,9 @@ export async function POST(request: Request) {
   }
 
   try {
-    const { title, category, keywords } = await request.json();
+    const { title, category, keywords, is_published, published_at } = await request.json();
 
-    console.log('[Cluster] Starting generation:', { title, category, keywords });
+    console.log('[Cluster] Starting generation:', { title, category, keywords, is_published, published_at });
 
     // Step 1: Determine suggested pillars
     let suggestedPillars = getTestographPillarSuggestions(category);
@@ -400,7 +400,29 @@ Pillar теми за споменаване: ${suggestedPillars.join(', ')}
     // Step 7: Extract excerpt
     const excerpt = extractExcerpt(finalContent, 200);
 
-    // Step 8: Save to database with new fields
+    // Step 8: Check for duplicate by slug
+    const { data: existingGuide } = await supabase
+      .from('blog_posts')
+      .select('id, title, slug')
+      .eq('slug', metadata.slug)
+      .single();
+
+    if (existingGuide) {
+      console.log('[Cluster] ❌ Duplicate detected:', existingGuide.slug);
+      return NextResponse.json(
+        {
+          error: 'Cluster вече съществува',
+          existing: {
+            id: existingGuide.id,
+            title: existingGuide.title,
+            slug: existingGuide.slug
+          }
+        },
+        { status: 409 } // Conflict
+      );
+    }
+
+    // Step 9: Save to database with new fields
     const { data: savedGuide, error: saveError } = await supabase
       .from('blog_posts')
       .insert({
@@ -421,9 +443,10 @@ Pillar теми за споменаване: ${suggestedPillars.join(', ')}
         reading_time: readingTime,
         ai_generated: true,
         main_topic: 'mens-health',
-        status: 'draft',
+        status: is_published ? 'published' : 'draft',
         author_id: user.id,
-        is_published: false
+        is_published: is_published || false,
+        published_at: published_at || null
       })
       .select()
       .single();

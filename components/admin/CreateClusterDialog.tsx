@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { PublishScheduler } from '@/components/admin/PublishScheduler';
 import {
   Dialog,
   DialogContent,
@@ -47,6 +48,10 @@ export function CreateClusterDialog({
   const [title, setTitle] = useState('');
   const [category, setCategory] = useState<GuideCategory>('testosterone');
   const [keywords, setKeywords] = useState('');
+  const [publishSettings, setPublishSettings] = useState({
+    isPublished: false,
+    publishedAt: null as string | null,
+  });
 
   const handleCreate = async () => {
     if (!title.trim()) {
@@ -67,6 +72,8 @@ export function CreateClusterDialog({
           title,
           category,
           keywords,
+          is_published: publishSettings.isPublished,
+          published_at: publishSettings.publishedAt,
         }),
       });
 
@@ -82,6 +89,7 @@ export function CreateClusterDialog({
       // Reset form and close dialog
       setTitle('');
       setKeywords('');
+      setPublishSettings({ isPublished: false, publishedAt: null });
       setOpen(false);
 
       // Notify parent
@@ -182,6 +190,12 @@ export function CreateClusterDialog({
               AI автоматично ще определи кои pillars са нужни
             </p>
           </div>
+
+          {/* Publish Settings */}
+          <PublishScheduler
+            value={publishSettings}
+            onChange={setPublishSettings}
+          />
 
           {/* Info */}
           <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">

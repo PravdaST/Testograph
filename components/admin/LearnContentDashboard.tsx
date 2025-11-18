@@ -99,7 +99,7 @@ export function LearnContentDashboard() {
     setCreatingPillar(pillarKey);
 
     try {
-      const response = await fetch('/api/admin/learn-content/create-pillar', {
+      const response = await adminFetch('/api/admin/learn-content/create-pillar', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

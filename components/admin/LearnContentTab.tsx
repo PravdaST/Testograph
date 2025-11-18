@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { LearnContentGuide } from "./LearnContentGuide";
 import { LearnContentDashboard } from "./LearnContentDashboard";
 import { LearnContentGuidesTable } from "./LearnContentGuidesTable";
+import { PublishScheduler } from "./PublishScheduler";
 import { adminFetch } from "@/lib/admin/api";
 
 type GuideCategory =
@@ -59,6 +60,10 @@ export function LearnContentTab() {
   const [pillarCategory, setPillarCategory] =
     useState<GuideCategory>("testosterone");
   const [pillarKeywords, setPillarKeywords] = useState("");
+  const [pillarPublishSettings, setPillarPublishSettings] = useState({
+    isPublished: false,
+    publishedAt: null as string | null,
+  });
 
   // Toggle expand suggestion
   const toggleSuggestion = (index: number) => {
@@ -163,6 +168,8 @@ export function LearnContentTab() {
           parent_cluster_slug: parentClusterSlug,
           category: pillarCategory,
           keywords: pillarKeywords,
+          is_published: pillarPublishSettings.isPublished,
+          published_at: pillarPublishSettings.publishedAt,
         }),
       });
 
@@ -179,6 +186,7 @@ export function LearnContentTab() {
       setPillarTitle("");
       setParentClusterSlug("");
       setPillarKeywords("");
+      setPillarPublishSettings({ isPublished: false, publishedAt: null });
     } catch (error: any) {
       console.error("Pillar error:", error);
       toast({
@@ -469,6 +477,11 @@ export function LearnContentTab() {
                 className="bg-zinc-900/50 border-zinc-700"
               />
             </div>
+
+            <PublishScheduler
+              value={pillarPublishSettings}
+              onChange={setPillarPublishSettings}
+            />
 
             <Button
               onClick={handleCreatePillar}
