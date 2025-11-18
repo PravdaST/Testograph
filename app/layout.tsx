@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Montserrat } from 'next/font/google'
 import '@/app/globals.css'
 import { Toaster } from "@/components/ui/toaster"
@@ -13,6 +13,15 @@ const montserrat = Montserrat({
   variable: '--font-montserrat',
   weight: ['300', '400', '500', '600', '700', '800', '900'],
 })
+
+// Mobile-first viewport configuration
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
+  themeColor: '#499167',
+}
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://testograph.eu'),
@@ -179,7 +188,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className={montserrat.className}>
+      <body className={montserrat.className} suppressHydrationWarning>
         <QueryProvider>
           <TooltipProvider>
             {children}
