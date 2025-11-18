@@ -2,23 +2,13 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createClient } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Lock, Loader2 } from 'lucide-react';
-
-// Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables');
-}
-
-const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -28,7 +18,7 @@ export default function AdminLoginPage() {
   const [checkingAuth, setCheckingAuth] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Check if already authenticated
+  // Check if already authenticated as admin
   useEffect(() => {
     const checkAuth = async () => {
       try {
@@ -45,8 +35,20 @@ export default function AdminLoginPage() {
         ]) as any;
 
         if (user) {
-          // Already logged in, redirect to dashboard
-          router.push('/admin/dashboard');
+          // Check if user is admin
+          const { data: adminData, error: adminError } = await supabase
+            .from('admin_users')
+            .select('*')
+            .eq('id', user.id)
+            .single();
+
+          if (adminData && !adminError) {
+            // User is admin, redirect to dashboard
+            router.push('/admin/dashboard');
+          } else {
+            // User is logged in but not admin, show login form
+            setCheckingAuth(false);
+          }
         } else {
           setCheckingAuth(false);
         }
@@ -78,8 +80,23 @@ export default function AdminLoginPage() {
       }
 
       if (data.user) {
-        // Successful login, redirect to dashboard
-        router.push('/admin/dashboard');
+        // Check if user is admin
+        const { data: adminData, error: adminError } = await supabase
+          .from('admin_users')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+
+        if (adminData && !adminError) {
+          // User is admin, redirect to dashboard
+          router.push('/admin/dashboard');
+        } else {
+          // User is not admin
+          setError('Нямате администраторски права');
+          setIsLoading(false);
+          // Sign out the user
+          await supabase.auth.signOut();
+        }
       }
     } catch (err) {
       setError('Възникна грешка при влизане');
