@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutDashboard,
@@ -97,71 +97,35 @@ const navItems = [
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const [authStatus, setAuthStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
   const [userEmail, setUserEmail] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    // Skip auth check for the login page itself to prevent redirect loops
-    if (pathname === '/admin') {
-      setAuthStatus('unauthorized'); // Or a new status like 'login-page'
-      return;
-    }
-
-    const checkAuth = async () => {
-      console.log('[DEBUG AdminLayout] checkAuth started');
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log('[DEBUG AdminLayout] getSession() returned, session:', session ? 'exists' : 'null', 'error:', sessionError);
-
-      if (sessionError || !session?.user) {
-        console.log('[DEBUG AdminLayout] No session or error, redirecting to /admin');
-        window.location.href = '/admin';
-        return;
+    // Fetch user email for sidebar display
+    // Middleware already handles auth, so we just need to display user info
+    const fetchUserEmail = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user?.email) {
+        setUserEmail(session.user.email);
       }
-
-      console.log('[DEBUG AdminLayout] Session found, checking admin table for ID:', session.user.id);
-      const { data: adminData, error: adminError } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('id', session.user.id)
-        .single();
-
-      console.log('[DEBUG AdminLayout] Admin check result:', { hasAdminData: !!adminData, hasError: !!adminError });
-
-      if (adminError || !adminData) {
-        console.log('[DEBUG AdminLayout] Not an admin or error fetching admin data, redirecting to /admin');
-        // Signing out is important to clear a potentially invalid session
-        await supabase.auth.signOut();
-        window.location.href = '/admin';
-        return;
-      }
-
-      console.log('[DEBUG AdminLayout] User is authorized admin');
-      setUserEmail(session.user.email || '');
-      setAuthStatus('authorized');
+      setIsLoading(false);
     };
 
-    checkAuth();
-  }, [pathname]);
+    fetchUserEmail();
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = '/admin';
   };
 
-  if (authStatus === 'loading') {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
-  }
-
-  // If on a page that uses AdminLayout, but user is not authorized,
-  // this will effectively render nothing while the redirect initiated in useEffect happens.
-  if (authStatus !== 'authorized') {
-    return null;
   }
 
   return (
