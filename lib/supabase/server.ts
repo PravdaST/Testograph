@@ -5,6 +5,7 @@
  */
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { createClient as createSupabaseClient } from '@supabase/supabase-js';
 import { cookies, headers } from 'next/headers';
 import type { Database } from '@/integrations/supabase/types';
 
@@ -16,29 +17,44 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 /**
- * Create a Supabase server client with cookie support
- * This maintains user authentication state via cookies OR Authorization header
+ * Create a Supabase server client with cookie support OR Bearer token
  *
- * For admin API routes:
- * - Client-side uses localStorage for sessions
- * - Requests include Authorization: Bearer <token> header
- * - This function checks Authorization header first, then falls back to cookies
+ * If Authorization header is present (admin API routes), use direct client with token
+ * Otherwise use cookie-based SSR client (server components)
  */
 export async function createClient() {
-  const cookieStore = await cookies();
   const headersList = await headers();
   const authorization = headersList.get('authorization');
 
   console.log('[createClient] Authorization header:', authorization ? 'present' : 'missing');
-  console.log('[createClient] Setting global headers:', authorization ? { authorization: 'Bearer ***' } : {});
+
+  // For admin API routes with Bearer token, use direct client
+  if (authorization?.startsWith('Bearer ')) {
+    const token = authorization.replace('Bearer ', '');
+    console.log('[createClient] Using direct client with Bearer token');
+
+    return createSupabaseClient<Database>(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: {
+          Authorization: authorization
+        }
+      },
+      auth: {
+        persistSession: false,
+        autoRefreshToken: false,
+        detectSessionInUrl: false
+      }
+    });
+  }
+
+  // For server components, use cookie-based SSR client
+  console.log('[createClient] Using cookie-based SSR client');
+  const cookieStore = await cookies();
 
   return createServerClient<Database>(
     supabaseUrl,
     supabaseAnonKey,
     {
-      global: {
-        headers: authorization ? { authorization } : {},
-      },
       cookies: {
         get(name: string) {
           return cookieStore.get(name)?.value;
