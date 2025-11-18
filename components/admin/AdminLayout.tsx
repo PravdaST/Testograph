@@ -27,8 +27,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-const ADMIN_USER_ID = 'e4ea078b-30b2-4347-801f-6d26a87318b6';
-
 interface AdminLayoutProps {
   children: ReactNode;
 }
@@ -112,7 +110,14 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         return;
       }
 
-      if (user.id !== ADMIN_USER_ID) {
+      // Check if user is in admin_users table
+      const { data: adminData, error: adminError } = await supabase
+        .from('admin_users')
+        .select('*')
+        .eq('id', user.id)
+        .single();
+
+      if (adminError || !adminData) {
         router.push('/admin');
         return;
       }
