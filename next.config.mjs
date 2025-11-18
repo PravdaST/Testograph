@@ -1,10 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  eslint: {
-    // Disable ESLint during production builds
-    ignoreDuringBuilds: true,
-  },
   typescript: {
     // Disable TypeScript errors during production builds
     ignoreBuildErrors: true,
@@ -28,13 +24,18 @@ const nextConfig = {
         protocol: 'https',
         hostname: 'images.unsplash.com',
       },
+      {
+        protocol: 'https',
+        hostname: 'mrpsaqtmucxpawajfxfn.supabase.co',
+        pathname: '/storage/v1/object/public/**',
+      },
     ],
     qualities: [75, 90, 100],
   },
-  // Enable React Server Components
+  // Server Actions are now stable in Next.js 16
   experimental: {
     serverActions: {
-      enabled: true,
+      allowedOrigins: ['*'],
     },
   },
   // Redirect old routes if needed

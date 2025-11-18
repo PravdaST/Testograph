@@ -1,5 +1,5 @@
 import React from 'react';
-import { Leaf, Flask, Award, Shield, Check } from 'lucide-react';
+import { Leaf, FlaskRound as Flask, Award, Shield, Check } from 'lucide-react';
 import Container from '../shared/Container';
 import SectionHeader from '../shared/SectionHeader';
 

@@ -15,10 +15,11 @@ interface TimelineEvent {
 
 export async function GET(
   request: Request,
-  { params }: { params: { email: string } }
+  { params }: { params: Promise<{ email: string }> }
 ) {
   try {
-    const email = decodeURIComponent(params.email);
+    const { email: emailParam } = await params;
+    const email = decodeURIComponent(emailParam);
 
     // Get chat sessions for this email
     const { data: chatSessions, error: chatError } = await supabase

@@ -3,12 +3,12 @@ import type { NextRequest } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
 /**
- * Admin Middleware - Protects /admin routes
+ * Admin Proxy - Protects /admin routes
  *
  * Checks if user is authenticated and has admin privileges
  * before allowing access to admin dashboard pages
  */
-export async function middleware(request: NextRequest) {
+export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Allow access to the login page itself

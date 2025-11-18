@@ -31,10 +31,10 @@ interface BlogPost {
 }
 
 interface PageProps {
-  params: {
+  params: Promise<{
     category: string;
     slug: string;
-  };
+  }>;
 }
 
 // Key Takeaways Component - Compact version for hero
@@ -646,7 +646,10 @@ export default function LearnGuidePage({ params }: PageProps) {
   const [resolvedParams, setResolvedParams] = useState<{ category: string; slug: string } | null>(null);
 
   useEffect(() => {
-    Promise.resolve(params).then(setResolvedParams);
+    (async () => {
+      const awaitedParams = await params;
+      setResolvedParams(awaitedParams);
+    })();
   }, [params]);
 
   useEffect(() => {

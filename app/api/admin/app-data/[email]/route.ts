@@ -37,10 +37,11 @@ interface AppDataStats {
 
 export async function GET(
   request: Request,
-  { params }: { params: { email: string } }
+  { params }: { params: Promise<{ email: string }> }
 ) {
   try {
-    const email = decodeURIComponent(params.email);
+    const { email: emailParam } = await params;
+    const email = decodeURIComponent(emailParam);
 
     // Get user_id from email via auth.users
     const { data: authUsers } = await supabase.auth.admin.listUsers();

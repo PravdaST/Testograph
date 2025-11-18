@@ -9,10 +9,10 @@ const supabase = createClient(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const templateId = params.id;
+    const { id: templateId } = await params;
     const { searchParams } = new URL(request.url);
     const adminId = searchParams.get('adminId');
     const adminEmail = searchParams.get('adminEmail');
