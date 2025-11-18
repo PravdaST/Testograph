@@ -34,6 +34,12 @@ export function insertImagesIntoContent({
     return content;
   }
 
+  // Check if images are already embedded in content
+  // If content already has <figure> or <img> tags, assume images are already inserted
+  if (content.includes('<figure') || content.includes('<img')) {
+    return content;
+  }
+
   // Split content into sections (by <h2> tags)
   const h2Sections = content.split(/(<h2[^>]*>.*?<\/h2>)/);
 
