@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutDashboard,
@@ -97,6 +97,7 @@ const navItems = [
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [authStatus, setAuthStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
   const [userEmail, setUserEmail] = useState<string>('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -142,11 +143,11 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
     };
 
     checkAuth();
-  }, [pathname, router]);
+  }, [pathname]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    router.push('/admin');
+    window.location.href = '/admin';
   };
 
   if (authStatus === 'loading') {
