@@ -106,10 +106,20 @@ export default async function proxy(request: NextRequest) {
 
 /**
  * Matcher configuration - which routes this middleware applies to
+ *
+ * NOTE: We DON'T protect /admin routes here because:
+ * - Admin pages are client components ('use client')
+ * - Supabase client-side auth uses localStorage, not HTTP cookies
+ * - Server-side proxy can't see client-side sessions
+ * - AdminLayout component handles client-side auth protection
+ *
+ * If you need server-side auth protection, use API routes or server components
+ * with proper Supabase SSR setup (server-side cookies)
  */
 export const config = {
   matcher: [
-    // Match all /admin routes except static files
-    '/admin/:path*',
+    // Currently not matching any routes
+    // Add API routes here if you need server-side auth protection
+    // Example: '/api/admin/:path*'
   ],
 };
