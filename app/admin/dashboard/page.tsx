@@ -177,20 +177,19 @@ export default function DashboardPage() {
   const [isClearingData, setIsClearingData] = useState(false);
 
   // Fetch admin user on mount
+  // NOTE: AdminLayout already handles auth check and redirect,
+  // so we only need to get user data here (no redirect needed)
   useEffect(() => {
     const fetchAdminUser = async () => {
-      console.log('[DEBUG Dashboard] Checking admin user...');
+      console.log('[DEBUG Dashboard] Fetching admin user data...');
       const { adminUser, userId, email } = await getCurrentAdminUser();
       console.log('[DEBUG Dashboard] getCurrentAdminUser returned:', { hasAdminUser: !!adminUser, userId, email });
       if (adminUser) {
         console.log('[DEBUG Dashboard] Admin user found, setting state');
         setAdminId(userId);
         setAdminEmail(email);
-      } else {
-        console.log('[DEBUG Dashboard] No admin user, redirecting to /admin');
-        // Not authenticated as admin - redirect to login
-        router.push('/admin');
       }
+      // No redirect here - AdminLayout handles that
     };
     fetchAdminUser();
   }, [router]);

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -15,118 +15,51 @@ export default function AdminLoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [checkingAuth, setCheckingAuth] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Check if already authenticated as admin
-  useEffect(() => {
-    const checkAuth = async () => {
-      console.log('[DEBUG] checkAuth started');
-      try {
-        // Use getSession() which doesn't throw errors
-        console.log('[DEBUG] Calling getSession()...');
-        const { data: { session } } = await supabase.auth.getSession();
-        console.log('[DEBUG] getSession() returned, session:', session ? 'exists' : 'null');
-
-        if (session?.user) {
-          console.log('[DEBUG] User session found, checking admin table for ID:', session.user.id);
-          // Check if user is admin
-          const { data: adminData, error: adminError } = await supabase
-            .from('admin_users')
-            .select('*')
-            .eq('id', session.user.id)
-            .single();
-
-          console.log('[DEBUG] Admin check result:', { hasAdminData: !!adminData, hasError: !!adminError });
-
-          if (adminData && !adminError) {
-            console.log('[DEBUG] User is admin, redirecting to dashboard');
-            // User is admin, redirect to dashboard
-            // Longer delay to ensure session is fully synced in Next.js 16 (cookies + localStorage)
-            await new Promise(resolve => setTimeout(resolve, 500));
-            router.push('/admin/dashboard');
-          } else {
-            console.log('[DEBUG] User is not admin, showing login form');
-            // User is logged in but not admin, show login form
-            setCheckingAuth(false);
-          }
-        } else {
-          console.log('[DEBUG] No session, showing login form');
-          setCheckingAuth(false);
-        }
-      } catch (error) {
-        console.error('[DEBUG] Auth check error:', error);
-        // On error, show login form
-        setCheckingAuth(false);
-      }
-      console.log('[DEBUG] checkAuth completed');
-    };
-
-    checkAuth();
-  }, [router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('[DEBUG handleLogin] Started');
     setIsLoading(true);
     setError(null);
 
     try {
-      console.log('[DEBUG handleLogin] Calling signInWithPassword...');
       const { data, error: signInError } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
-      console.log('[DEBUG handleLogin] signInWithPassword returned:', { hasData: !!data, hasError: !!signInError });
 
       if (signInError) {
-        console.log('[DEBUG handleLogin] Sign in error:', signInError.message);
-        setError('Невалиден имейл или парола');
+        setError('Невалиден имейл или парола.');
         setIsLoading(false);
         return;
       }
 
       if (data.user) {
-        console.log('[DEBUG handleLogin] User logged in, checking admin table for ID:', data.user.id);
-        // Check if user is admin
         const { data: adminData, error: adminError } = await supabase
           .from('admin_users')
-          .select('*')
+          .select('id')
           .eq('id', data.user.id)
           .single();
 
-        console.log('[DEBUG handleLogin] Admin check result:', { hasAdminData: !!adminData, hasError: !!adminError });
-
         if (adminData && !adminError) {
-          console.log('[DEBUG handleLogin] User is admin, redirecting to dashboard');
-          // User is admin, redirect to dashboard
-          // Longer delay to ensure session is fully synced in Next.js 16 (cookies + localStorage)
-          await new Promise(resolve => setTimeout(resolve, 500));
+          // Redirect to dashboard, AdminLayout will handle the rest
           router.push('/admin/dashboard');
         } else {
-          console.log('[DEBUG handleLogin] User is not admin');
-          // User is not admin
-          setError('Нямате администраторски права');
-          setIsLoading(false);
-          // Sign out the user
+          setError('Нямате администраторски права.');
           await supabase.auth.signOut();
+          setIsLoading(false);
         }
+      } else {
+        // This case should ideally not be reached if signInError is handled
+        setError('Възникна неочаквана грешка.');
+        setIsLoading(false);
       }
     } catch (err) {
-      console.error('[DEBUG handleLogin] Error:', err);
-      setError('Възникна грешка при влизане');
+      console.error('Login error:', err);
+      setError('Възникна грешка при влизане.');
       setIsLoading(false);
     }
-    console.log('[DEBUG handleLogin] Completed');
   };
-
-  if (checkingAuth) {
-    return (
-      <div className="flex items-center justify-center min-h-screen bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
-      </div>
-    );
-  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-background p-4">

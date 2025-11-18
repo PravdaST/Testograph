@@ -22,7 +22,8 @@ import {
   TrendingUp,
   ClipboardCheck,
   Handshake,
-  BookOpen
+  BookOpen,
+  Loader2
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -97,61 +98,70 @@ const navItems = [
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const [authStatus, setAuthStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
   const [userEmail, setUserEmail] = useState<string>('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
+    // Skip auth check for the login page itself to prevent redirect loops
+    if (pathname === '/admin') {
+      setAuthStatus('unauthorized'); // Or a new status like 'login-page'
+      return;
+    }
+
     const checkAuth = async () => {
       console.log('[DEBUG AdminLayout] checkAuth started');
-      // Use getSession() which doesn't throw errors and works reliably in Next.js 16
-      const { data: { session } } = await supabase.auth.getSession();
-      console.log('[DEBUG AdminLayout] getSession() returned, session:', session ? 'exists' : 'null');
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log('[DEBUG AdminLayout] getSession() returned, session:', session ? 'exists' : 'null', 'error:', sessionError);
 
-      if (!session?.user) {
-        console.log('[DEBUG AdminLayout] No session, redirecting to /admin');
+      if (sessionError || !session?.user) {
+        console.log('[DEBUG AdminLayout] No session or error, redirecting to /admin');
         router.push('/admin');
+        // No need to set state, redirect is happening
         return;
       }
 
       console.log('[DEBUG AdminLayout] Session found, checking admin table for ID:', session.user.id);
-      // Check if user is in admin_users table
       const { data: adminData, error: adminError } = await supabase
         .from('admin_users')
-        .select('*')
+        .select('id')
         .eq('id', session.user.id)
         .single();
 
-      console.log('[DEBUG AdminLayout] Admin check result:', { hasAdminData: !!adminData, hasError: !!adminError, errorCode: adminError?.code });
+      console.log('[DEBUG AdminLayout] Admin check result:', { hasAdminData: !!adminData, hasError: !!adminError });
 
       if (adminError || !adminData) {
-        console.log('[DEBUG AdminLayout] Not admin or error, redirecting to /admin');
+        console.log('[DEBUG AdminLayout] Not an admin or error fetching admin data, redirecting to /admin');
+        // Signing out is important to clear a potentially invalid session
+        await supabase.auth.signOut();
         router.push('/admin');
         return;
       }
 
       console.log('[DEBUG AdminLayout] User is authorized admin');
-      setIsAuthorized(true);
       setUserEmail(session.user.email || '');
+      setAuthStatus('authorized');
     };
 
     checkAuth();
-  }, [router]);
+  }, [pathname, router]);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/admin');
   };
 
-  if (isAuthorized === null) {
+  if (authStatus === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-screen bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  if (!isAuthorized) {
+  // If on a page that uses AdminLayout, but user is not authorized,
+  // this will effectively render nothing while the redirect initiated in useEffect happens.
+  if (authStatus !== 'authorized') {
     return null;
   }
 
