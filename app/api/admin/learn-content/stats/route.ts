@@ -2,11 +2,18 @@ import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
+  // Log incoming headers
+  const authHeader = request.headers.get('authorization');
+  console.log('[stats API] Authorization header:', authHeader ? 'present' : 'missing');
+
   const supabase = await createClient();
 
   // Check auth & admin
-  const { data: { user } } = await supabase.auth.getUser();
+  const { data: { user }, error } = await supabase.auth.getUser();
+  console.log('[stats API] getUser result:', { hasUser: !!user, error });
+
   if (!user) {
+    console.log('[stats API] Returning 401 - no user');
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 

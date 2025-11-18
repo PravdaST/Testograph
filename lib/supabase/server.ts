@@ -29,6 +29,9 @@ export async function createClient() {
   const headersList = await headers();
   const authorization = headersList.get('authorization');
 
+  console.log('[createClient] Authorization header:', authorization ? 'present' : 'missing');
+  console.log('[createClient] Setting global headers:', authorization ? { authorization: 'Bearer ***' } : {});
+
   return createServerClient<Database>(
     supabaseUrl,
     supabaseAnonKey,
