@@ -2,7 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { supabase } from '@/integrations/supabase/client';
 import {
   LayoutDashboard,
@@ -97,7 +97,6 @@ const navItems = [
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
   const pathname = usePathname();
-  const router = useRouter();
   const [authStatus, setAuthStatus] = useState<'loading' | 'authorized' | 'unauthorized'>('loading');
   const [userEmail, setUserEmail] = useState<string>('');
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -116,8 +115,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
       if (sessionError || !session?.user) {
         console.log('[DEBUG AdminLayout] No session or error, redirecting to /admin');
-        router.push('/admin');
-        // No need to set state, redirect is happening
+        window.location.href = '/admin';
         return;
       }
 
@@ -134,7 +132,7 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         console.log('[DEBUG AdminLayout] Not an admin or error fetching admin data, redirecting to /admin');
         // Signing out is important to clear a potentially invalid session
         await supabase.auth.signOut();
-        router.push('/admin');
+        window.location.href = '/admin';
         return;
       }
 
