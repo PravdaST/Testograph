@@ -1,5 +1,6 @@
 'use client';
 
+import { adminFetch } from '@/lib/admin/api';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -72,14 +73,14 @@ export function EmailDetail({ emailId, onClose, showCompose = false, onCloseComp
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/admin/email/${emailId}`);
+      const response = await adminFetch(`/api/admin/email/${emailId}`);
       const data = await response.json();
 
       if (response.ok) {
         setEmail(data.email);
         // Mark as read
         if (!data.email.is_read) {
-          await fetch(`/api/admin/email/${emailId}`, {
+          await adminFetch(`/api/admin/email/${emailId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ is_read: true }),
@@ -103,7 +104,7 @@ export function EmailDetail({ emailId, onClose, showCompose = false, onCloseComp
     if (!email) return;
 
     try {
-      await fetch(`/api/admin/email/${email.message_id}`, {
+      await adminFetch(`/api/admin/email/${email.message_id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ is_starred: !email.is_starred }),
@@ -120,7 +121,7 @@ export function EmailDetail({ emailId, onClose, showCompose = false, onCloseComp
 
     setIsSending(true);
     try {
-      const response = await fetch('/api/admin/email/reply', {
+      const response = await adminFetch('/api/admin/email/reply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -167,7 +168,7 @@ export function EmailDetail({ emailId, onClose, showCompose = false, onCloseComp
 
     setIsSending(true);
     try {
-      const response = await fetch('/api/admin/email/send-smtp', {
+      const response = await adminFetch('/api/admin/email/send-smtp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

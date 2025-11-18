@@ -16,6 +16,7 @@ import {
 } from 'lucide-react';
 import { CreateClusterDialog } from './CreateClusterDialog';
 import { useToast } from '@/hooks/use-toast';
+import { adminFetch } from '@/lib/admin/api';
 
 interface Stats {
   total_clusters: number;
@@ -57,7 +58,7 @@ export function LearnContentDashboard() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/learn-content/stats');
+      const response = await adminFetch('/api/admin/learn-content/stats');
       if (!response.ok) throw new Error('Failed to fetch stats');
 
       const data = await response.json();

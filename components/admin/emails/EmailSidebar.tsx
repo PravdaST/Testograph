@@ -1,5 +1,6 @@
 'use client';
 
+import { adminFetch } from '@/lib/admin/api';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -42,7 +43,7 @@ export function EmailSidebar({
 
   const fetchEmailStats = async () => {
     try {
-      const response = await fetch('/api/admin/email/stats');
+      const response = await adminFetch('/api/admin/email/stats');
       const data = await response.json();
 
       if (response.ok) {

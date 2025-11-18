@@ -1,5 +1,6 @@
 'use client';
 
+import { adminFetch } from '@/lib/admin/api';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
@@ -69,7 +70,7 @@ export function EmailDetailModal({
 
     setIsSending(true);
     try {
-      const response = await fetch('/api/admin/email/reply', {
+      const response = await adminFetch('/api/admin/email/reply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

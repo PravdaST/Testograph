@@ -18,6 +18,7 @@ import { Badge } from "@/components/ui/badge";
 import { LearnContentGuide } from "./LearnContentGuide";
 import { LearnContentDashboard } from "./LearnContentDashboard";
 import { LearnContentGuidesTable } from "./LearnContentGuidesTable";
+import { adminFetch } from "@/lib/admin/api";
 
 type GuideCategory =
   | "testosterone"
@@ -77,7 +78,7 @@ export function LearnContentTab() {
   ) => {
     setGeneratingCluster(index);
     try {
-      const response = await fetch("/api/admin/learn-content/create-cluster", {
+      const response = await adminFetch("/api/admin/learn-content/create-cluster", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -111,7 +112,7 @@ export function LearnContentTab() {
   const handleSuggestClusters = async () => {
     setLoading(true);
     try {
-      const response = await fetch(
+      const response = await adminFetch(
         "/api/admin/learn-content/suggest-clusters",
         {
           method: "POST",
@@ -154,7 +155,7 @@ export function LearnContentTab() {
 
     setLoading(true);
     try {
-      const response = await fetch("/api/admin/learn-content/create-pillar", {
+      const response = await adminFetch("/api/admin/learn-content/create-pillar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

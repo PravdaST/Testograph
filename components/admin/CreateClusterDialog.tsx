@@ -1,5 +1,6 @@
 'use client';
 
+import { adminFetch } from '@/lib/admin/api';
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -59,7 +60,7 @@ export function CreateClusterDialog({
 
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/learn-content/create-cluster', {
+      const response = await adminFetch('/api/admin/learn-content/create-cluster', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

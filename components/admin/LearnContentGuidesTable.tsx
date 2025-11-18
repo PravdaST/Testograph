@@ -33,6 +33,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { bg } from 'date-fns/locale';
+import { adminFetch } from '@/lib/admin/api';
 
 interface Stats {
   total: number;
@@ -65,7 +66,7 @@ export function LearnContentGuidesTable() {
   const fetchGuides = async () => {
     setLoading(true);
     try {
-      const response = await fetch('/api/admin/learn-content/guides');
+      const response = await adminFetch('/api/admin/learn-content/guides');
       if (!response.ok) throw new Error('Failed to fetch guides');
 
       const data = await response.json();
@@ -90,7 +91,7 @@ export function LearnContentGuidesTable() {
   const handlePublishToggle = async (guide: Guide) => {
     setUpdatingId(guide.id);
     try {
-      const response = await fetch('/api/admin/learn-content/guides', {
+      const response = await adminFetch('/api/admin/learn-content/guides', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -128,7 +129,7 @@ export function LearnContentGuidesTable() {
 
     setDeletingId(guideId);
     try {
-      const response = await fetch(
+      const response = await adminFetch(
         `/api/admin/learn-content/guides?id=${guideId}`,
         {
           method: 'DELETE',
