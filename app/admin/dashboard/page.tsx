@@ -10,6 +10,7 @@ import { SearchBar } from '@/components/admin/SearchBar';
 import { UsersGrowthChart } from '@/components/admin/UsersGrowthChart';
 import { RevenueTrendChart } from '@/components/admin/RevenueTrendChart';
 import { getCurrentAdminUser } from '@/lib/admin/auth';
+import { adminFetch } from '@/lib/admin/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -215,22 +216,22 @@ export default function DashboardPage() {
     }
     try {
       // Fetch activity feed
-      const activityRes = await fetch('/api/admin/activity?limit=10');
+      const activityRes = await adminFetch('/api/admin/activity?limit=10');
       const activityData = await activityRes.json();
       if (activityRes.ok) {
         setActivities(activityData.activities);
       }
 
       // Fetch comprehensive app stats from testograph-v2
-      const appStatsRes = await fetch('/api/admin/app-stats');
+      const appStatsRes = await adminFetch('/api/admin/app-stats');
       const appStatsData = await appStatsRes.json();
 
       // Fetch purchases
-      const purchasesRes = await fetch('/api/admin/purchases?limit=10');
+      const purchasesRes = await adminFetch('/api/admin/purchases?limit=10');
       const purchasesData = await purchasesRes.json();
 
       // Fetch trends data
-      const trendsRes = await fetch('/api/admin/stats/trends');
+      const trendsRes = await adminFetch('/api/admin/stats/trends');
       const trendsData = await trendsRes.json();
 
       if (appStatsRes.ok && purchasesRes.ok) {
@@ -310,7 +311,7 @@ export default function DashboardPage() {
     setChartsLoading(true);
     try {
       const startTime = Date.now();
-      const response = await fetch(`/api/admin/stats/growth?days=${timeRange}`);
+      const response = await adminFetch(`/api/admin/stats/growth?days=${timeRange}`);
       const apiResponseTime = Date.now() - startTime;
 
       const data = await response.json();
@@ -351,7 +352,7 @@ export default function DashboardPage() {
 
     setIsClearingData(true);
     try {
-      const response = await fetch('/api/admin/clear-test-data', {
+      const response = await adminFetch('/api/admin/clear-test-data', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

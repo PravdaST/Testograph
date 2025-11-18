@@ -5,7 +5,7 @@
  */
 
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
-import { cookies } from 'next/headers';
+import { cookies, headers } from 'next/headers';
 import type { Database } from '@/integrations/supabase/types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -17,15 +17,25 @@ if (!supabaseUrl || !supabaseAnonKey) {
 
 /**
  * Create a Supabase server client with cookie support
- * This maintains user authentication state via cookies
+ * This maintains user authentication state via cookies OR Authorization header
+ *
+ * For admin API routes:
+ * - Client-side uses localStorage for sessions
+ * - Requests include Authorization: Bearer <token> header
+ * - This function checks Authorization header first, then falls back to cookies
  */
 export async function createClient() {
   const cookieStore = await cookies();
+  const headersList = await headers();
+  const authorization = headersList.get('authorization');
 
   return createServerClient<Database>(
     supabaseUrl,
     supabaseAnonKey,
     {
+      global: {
+        headers: authorization ? { authorization } : {},
+      },
       cookies: {
         get(name: string) {
           return cookieStore.get(name)?.value;

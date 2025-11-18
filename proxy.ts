@@ -118,8 +118,8 @@ export default async function proxy(request: NextRequest) {
  */
 export const config = {
   matcher: [
-    // Currently not matching any routes
-    // Add API routes here if you need server-side auth protection
-    // Example: '/api/admin/:path*'
+    // No routes protected by proxy
+    // - /admin pages: protected by AdminLayout (client-side)
+    // - /api/admin routes: each route has own auth check
   ],
 };
