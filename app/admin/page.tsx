@@ -40,9 +40,11 @@ export default function AdminLoginPage() {
           .single();
 
         if (adminData && !adminError) {
-          // Use window.location.href for full page reload
-          // This ensures session cookies are synced before server-side check
-          window.location.href = '/admin/dashboard';
+          // Small delay to ensure session cookies are fully synced
+          // before proxy.ts checks them on the server
+          setTimeout(() => {
+            window.location.href = '/admin/dashboard';
+          }, 150);
         } else {
           setError('Нямате администраторски права.');
           await supabase.auth.signOut();
