@@ -10,10 +10,15 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Lock, Loader2 } from 'lucide-react';
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables');
+}
+
+const supabase = createClient(supabaseUrl!, supabaseAnonKey!);
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -26,12 +31,28 @@ export default function AdminLoginPage() {
   // Check if already authenticated
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      try {
+        // Add timeout to prevent infinite loading
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Auth check timeout')), 5000)
+        );
 
-      if (user) {
-        // Already logged in, redirect to dashboard
-        router.push('/admin/dashboard');
-      } else {
+        const authPromise = supabase.auth.getUser();
+
+        const { data: { user } } = await Promise.race([
+          authPromise,
+          timeoutPromise
+        ]) as any;
+
+        if (user) {
+          // Already logged in, redirect to dashboard
+          router.push('/admin/dashboard');
+        } else {
+          setCheckingAuth(false);
+        }
+      } catch (error) {
+        console.error('Auth check error:', error);
+        // On error, show login form
         setCheckingAuth(false);
       }
     };
