@@ -22,24 +22,15 @@ export default function AdminLoginPage() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        // Add timeout to prevent infinite loading
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Auth check timeout')), 5000)
-        );
+        // Use getSession() which doesn't throw errors
+        const { data: { session } } = await supabase.auth.getSession();
 
-        const authPromise = supabase.auth.getUser();
-
-        const { data: { user } } = await Promise.race([
-          authPromise,
-          timeoutPromise
-        ]) as any;
-
-        if (user) {
+        if (session?.user) {
           // Check if user is admin
           const { data: adminData, error: adminError } = await supabase
             .from('admin_users')
             .select('*')
-            .eq('id', user.id)
+            .eq('id', session.user.id)
             .single();
 
           if (adminData && !adminError) {
