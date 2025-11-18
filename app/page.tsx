@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Shield, Check, Star, TrendingUp, Zap, Moon, Activity, ChevronRight, Award, Users, Clock, ShoppingCart, Smartphone } from "lucide-react";
+import { Shield, Check, Star, TrendingUp, Zap, Moon, Activity, ChevronRight, Award, Users, Clock, ShoppingCart, Smartphone, Package, Truck, Lock } from "lucide-react";
 import ChatAssistant from "@/components/ChatAssistant";
 
 // Wave Separator Component
@@ -181,22 +181,22 @@ function TrustBadgesBar() {
         <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
           <div className="flex items-center gap-2">
             <Award className="w-4 h-4 text-[#499167]" />
-            <span className="font-semibold text-gray-800">🏆 Сертифицирано от БАБХ</span>
+            <span className="font-semibold text-gray-800">Сертифицирано от БАБХ</span>
           </div>
           <div className="hidden sm:block w-px h-4 bg-gray-300" />
           <div className="flex items-center gap-2">
             <Check className="w-4 h-4 text-[#499167]" />
-            <span className="font-semibold text-gray-800">✓ GMP стандарт на производство</span>
+            <span className="font-semibold text-gray-800">GMP стандарт на производство</span>
           </div>
           <div className="hidden sm:block w-px h-4 bg-gray-300" />
           <div className="flex items-center gap-2">
             <Shield className="w-4 h-4 text-[#499167]" />
-            <span className="font-semibold text-gray-800">🇪🇺 Произведено в Европейския съюз</span>
+            <span className="font-semibold text-gray-800">Произведено в Европейския съюз</span>
           </div>
           <div className="hidden sm:block w-px h-4 bg-gray-300" />
           <div className="flex items-center gap-2">
             <Check className="w-4 h-4 text-[#499167]" />
-            <span className="font-semibold text-gray-800">✓ HACCP система за качество</span>
+            <span className="font-semibold text-gray-800">HACCP система за качество</span>
           </div>
         </div>
       </div>
@@ -232,10 +232,10 @@ function HeroSection() {
         {/* Trust Line */}
         <div className="text-center mb-8">
           <p className="text-[#5fb57e] font-semibold text-lg">
-            ⭐ Над 2,438 мъже вече подобриха хормоналния си баланс с Testograph
+            Над 2,438 мъже вече подобриха хормоналния си баланс с Testograph
           </p>
           <p className="text-gray-400 text-sm mt-2">
-            🔥 Само 47 опаковки остават на тази цена
+            Само 47 опаковки остават на тази цена
           </p>
         </div>
 
@@ -254,10 +254,10 @@ function HeroSection() {
 
         {/* Value Props */}
         <div className="max-w-3xl mx-auto grid md:grid-cols-2 gap-4 mb-12">
-          <ValueProp icon="✓" text="Формула с 12 клинично доказани съставки" />
-          <ValueProp icon="✓" text="Оптимални дози за реален ефект" />
-          <ValueProp icon="✓" text="Поръчай добавката и отключи достъп до приложението" />
-          <ValueProp icon="✓" text="Следвай програмата за гарантирани резултати" />
+          <ValueProp text="Формула с 12 клинично доказани съставки" />
+          <ValueProp text="Оптимални дози за реален ефект" />
+          <ValueProp text="Поръчай добавката и отключи достъп до приложението" />
+          <ValueProp text="Следвай програмата за гарантирани резултати" />
         </div>
 
         {/* Buttons */}
@@ -269,6 +269,9 @@ function HeroSection() {
             Започни своята трансформация
             <ChevronRight className="w-5 h-5" />
           </a>
+          <a href="/learn" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold text-lg rounded-full border-2 border-white/30 transition-all duration-300">
+            Научни статии
+          </a>
           <a href="#clinical-proof" className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold text-lg rounded-full border-2 border-white/30 transition-all duration-300">
             Научи повече
           </a>
@@ -278,10 +281,10 @@ function HeroSection() {
   );
 }
 
-function ValueProp({ icon, text }: { icon: string; text: string }) {
+function ValueProp({ text }: { text: string }) {
   return (
     <div className="flex items-center gap-3 bg-white/10 backdrop-blur-sm rounded-lg px-4 py-3 border border-white/20">
-      <span className="text-[#5fb57e] text-xl font-bold">{icon}</span>
+      <Check className="w-5 h-5 text-[#5fb57e]" />
       <span className="text-white text-sm font-medium">{text}</span>
     </div>
   );
@@ -700,10 +703,10 @@ function ProductPackagesSection() {
         </div>
 
         <div className="text-center space-y-2 text-sm text-gray-600">
-          <p>✓ Безплатна доставка над 50 лв.</p>
-          <p>✓ Сигурно плащане</p>
-          <p>✓ Дискретна опаковка</p>
-          <p>✓ 30-дневна гаранция за връщане на парите</p>
+          <p className="flex items-center justify-center gap-2"><Check className="w-4 h-4 text-[#499167]" /> Безплатна доставка над 50 лв.</p>
+          <p className="flex items-center justify-center gap-2"><Check className="w-4 h-4 text-[#499167]" /> Сигурно плащане</p>
+          <p className="flex items-center justify-center gap-2"><Check className="w-4 h-4 text-[#499167]" /> Дискретна опаковка</p>
+          <p className="flex items-center justify-center gap-2"><Check className="w-4 h-4 text-[#499167]" /> 30-дневна гаранция за връщане на парите</p>
         </div>
       </div>
     </section>
@@ -839,22 +842,22 @@ function MemberTestimonialsSection() {
 function GuaranteeSection() {
   const guarantees = [
     {
-      icon: "🛡️",
+      icon: <Shield className="w-12 h-12" />,
       title: "30 Дневна Гаранция",
       description: "Пълно възстановяване на сумата, ако не си доволен"
     },
     {
-      icon: "🚚",
+      icon: <Truck className="w-12 h-12" />,
       title: "Безплатна Доставка",
       description: "За поръчки над 99 лв. до цяла България"
     },
     {
-      icon: "🔒",
+      icon: <Lock className="w-12 h-12" />,
       title: "Сигурно Плащане",
       description: "SSL криптиране и защитени транзакции"
     },
     {
-      icon: "✅",
+      icon: <Award className="w-12 h-12" />,
       title: "Сертифицирано Качество",
       description: "Произведено в GMP сертифициран обект"
     }
@@ -873,7 +876,7 @@ function GuaranteeSection() {
         <div className="grid md:grid-cols-4 gap-8 max-w-6xl mx-auto">
           {guarantees.map((guarantee, idx) => (
             <div key={idx} className="bg-white rounded-2xl p-8 text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-              <div className="text-5xl mb-4">{guarantee.icon}</div>
+              <div className="flex justify-center mb-4 text-[#499167]">{guarantee.icon}</div>
               <h3 className="text-xl font-black text-gray-900 mb-3">{guarantee.title}</h3>
               <p className="text-gray-600">{guarantee.description}</p>
             </div>
@@ -882,7 +885,7 @@ function GuaranteeSection() {
 
         <div className="mt-16 text-center">
           <div className="inline-flex items-center gap-3 bg-[#499167] text-white px-8 py-4 rounded-xl font-bold text-lg">
-            <span>💚</span>
+            <Users className="w-6 h-6" />
             <span>Над 2,438 доволни клиенти в България</span>
           </div>
         </div>
@@ -965,6 +968,7 @@ function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Информация</h4>
             <ul className="space-y-2 text-sm">
+              <li><Link href="/learn" className="hover:text-[#5fb57e] transition-colors">Научни статии</Link></li>
               <li><Link href="/terms" className="hover:text-[#5fb57e] transition-colors">Общи условия</Link></li>
               <li><Link href="/privacy" className="hover:text-[#5fb57e] transition-colors">Политика за поверителност</Link></li>
               <li><Link href="/cookies" className="hover:text-[#5fb57e] transition-colors">Политика за бисквитки</Link></li>
