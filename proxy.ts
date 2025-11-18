@@ -71,10 +71,11 @@ export default async function proxy(request: NextRequest) {
     );
 
     // Check if user has a valid session
-    const { data: { session } } = await supabase.auth.getSession();
+    // Use getUser() instead of getSession() to verify authenticity with Supabase server
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    if (!session) {
-      // No session - redirect to login
+    if (userError || !user) {
+      // No valid user - redirect to login
       const loginUrl = new URL('/admin', request.url);
       return NextResponse.redirect(loginUrl);
     }
@@ -83,7 +84,7 @@ export default async function proxy(request: NextRequest) {
     const { data: adminData } = await supabase
       .from('admin_users')
       .select('id')
-      .eq('id', session.user.id)
+      .eq('id', user.id)
       .single();
 
     if (!adminData) {
