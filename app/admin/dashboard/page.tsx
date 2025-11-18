@@ -179,11 +179,15 @@ export default function DashboardPage() {
   // Fetch admin user on mount
   useEffect(() => {
     const fetchAdminUser = async () => {
+      console.log('[DEBUG Dashboard] Checking admin user...');
       const { adminUser, userId, email } = await getCurrentAdminUser();
+      console.log('[DEBUG Dashboard] getCurrentAdminUser returned:', { hasAdminUser: !!adminUser, userId, email });
       if (adminUser) {
+        console.log('[DEBUG Dashboard] Admin user found, setting state');
         setAdminId(userId);
         setAdminEmail(email);
       } else {
+        console.log('[DEBUG Dashboard] No admin user, redirecting to /admin');
         // Not authenticated as admin - redirect to login
         router.push('/admin');
       }

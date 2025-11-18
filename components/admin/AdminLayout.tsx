@@ -103,27 +103,36 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
+      console.log('[DEBUG AdminLayout] checkAuth started');
+      // Use getSession() which doesn't throw errors and works reliably in Next.js 16
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('[DEBUG AdminLayout] getSession() returned, session:', session ? 'exists' : 'null');
 
-      if (!user) {
+      if (!session?.user) {
+        console.log('[DEBUG AdminLayout] No session, redirecting to /admin');
         router.push('/admin');
         return;
       }
 
+      console.log('[DEBUG AdminLayout] Session found, checking admin table for ID:', session.user.id);
       // Check if user is in admin_users table
       const { data: adminData, error: adminError } = await supabase
         .from('admin_users')
         .select('*')
-        .eq('id', user.id)
+        .eq('id', session.user.id)
         .single();
 
+      console.log('[DEBUG AdminLayout] Admin check result:', { hasAdminData: !!adminData, hasError: !!adminError, errorCode: adminError?.code });
+
       if (adminError || !adminData) {
+        console.log('[DEBUG AdminLayout] Not admin or error, redirecting to /admin');
         router.push('/admin');
         return;
       }
 
+      console.log('[DEBUG AdminLayout] User is authorized admin');
       setIsAuthorized(true);
-      setUserEmail(user.email || '');
+      setUserEmail(session.user.email || '');
     };
 
     checkAuth();
