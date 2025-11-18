@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,7 +10,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Lock, Loader2 } from 'lucide-react';
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -42,8 +40,9 @@ export default function AdminLoginPage() {
           .single();
 
         if (adminData && !adminError) {
-          // Redirect to dashboard, AdminLayout will handle the rest
-          router.push('/admin/dashboard');
+          // Use window.location.href for full page reload
+          // This ensures session cookies are synced before server-side check
+          window.location.href = '/admin/dashboard';
         } else {
           setError('Нямате администраторски права.');
           await supabase.auth.signOut();
