@@ -6,7 +6,7 @@ import { KeywordsManager } from "./keywords/KeywordsManager";
 import { GSCPerformance } from "./keywords/GSCPerformance";
 import { TrendingQueries } from "./keywords/TrendingQueries";
 import { AIKeywordSuggestions } from "./keywords/AIKeywordSuggestions";
-import { adminFetch } from "@/lib/adminFetch";
+import { adminFetch } from "@/lib/admin/api";
 
 type TabMode = "keywords" | "performance" | "trending" | "ai-suggestions";
 
