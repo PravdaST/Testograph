@@ -11,6 +11,12 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 export default async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Allow access to the login page itself
+  if (pathname === '/admin' || pathname === '/admin/') {
+    return NextResponse.next();
+  }
+
+  // For all other /admin/* routes, check authentication
   try {
     let response = NextResponse.next({
       request: {
@@ -64,71 +70,56 @@ export default async function proxy(request: NextRequest) {
       }
     );
 
-    // Refresh session for all routes (critical for OAuth flows)
-    await supabase.auth.getUser();
+    // Check if user has a valid session
+    // Use getUser() instead of getSession() to verify authenticity with Supabase server
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-    // Only enforce admin auth for /admin routes (except login page)
-    const isAdminRoute = pathname.startsWith('/admin') && pathname !== '/admin' && pathname !== '/admin/';
+    if (userError || !user) {
+      // No valid user - redirect to login
+      const loginUrl = new URL('/admin', request.url);
+      return NextResponse.redirect(loginUrl);
+    }
 
-    if (isAdminRoute) {
-      // Check if user has a valid session
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
+    // Check if user is an admin
+    const { data: adminData } = await supabase
+      .from('admin_users')
+      .select('id')
+      .eq('id', user.id)
+      .single();
 
-      if (userError || !user) {
-        // No valid user - redirect to login
-        const loginUrl = new URL('/admin', request.url);
-        return NextResponse.redirect(loginUrl);
-      }
-
-      // Check if user is an admin
-      const { data: adminData } = await supabase
-        .from('admin_users')
-        .select('id')
-        .eq('id', user.id)
-        .single();
-
-      if (!adminData) {
-        // Not an admin - redirect to login
-        const loginUrl = new URL('/admin', request.url);
-        return NextResponse.redirect(loginUrl);
-      }
+    if (!adminData) {
+      // Not an admin - redirect to login
+      const loginUrl = new URL('/admin', request.url);
+      return NextResponse.redirect(loginUrl);
     }
 
     return response;
 
   } catch (error) {
-    console.error('Proxy error:', error);
+    console.error('Proxy auth error:', error);
 
-    // Only redirect to login for /admin routes
-    if (pathname.startsWith('/admin') && pathname !== '/admin' && pathname !== '/admin/') {
-      const loginUrl = new URL('/admin', request.url);
-      return NextResponse.redirect(loginUrl);
-    }
-
-    // For other routes, just continue
-    return NextResponse.next();
+    // On error, redirect to login for safety
+    const loginUrl = new URL('/admin', request.url);
+    return NextResponse.redirect(loginUrl);
   }
 }
 
 /**
- * Matcher configuration - which routes this proxy applies to
+ * Matcher configuration - which routes this middleware applies to
  *
- * Applies to ALL routes to ensure Supabase session cookies are refreshed
- * This is critical for OAuth flows (like GSC connection) where session
- * persistence across redirects is essential
+ * NOTE: We DON'T protect /admin routes here because:
+ * - Admin pages are client components ('use client')
+ * - Supabase client-side auth uses localStorage, not HTTP cookies
+ * - Server-side proxy can't see client-side sessions
+ * - AdminLayout component handles client-side auth protection
  *
- * Admin protection is still handled by AdminLayout (client-side)
- * but this proxy ensures session cookies stay fresh for API routes
+ * If you need server-side auth protection, use API routes or server components
+ * with proper Supabase SSR setup (server-side cookies)
  */
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public files (svg, png, jpg, etc.)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // No routes protected by proxy
+    // - /admin pages: protected by AdminLayout (client-side)
+    // - /api/admin routes: each route has own auth check
   ],
 };
