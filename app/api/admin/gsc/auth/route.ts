@@ -70,11 +70,15 @@ export async function GET(request: Request) {
   }
 
   try {
+    // Get the base URL from the request
+    const url = new URL(request.url);
+    const baseUrl = `${url.protocol}//${url.host}`;
+
     // Initialize OAuth2 client
     const oauth2Client = new google.auth.OAuth2(
       process.env.GOOGLE_CLIENT_ID,
       process.env.GOOGLE_CLIENT_SECRET,
-      `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/admin/gsc/callback`
+      `${baseUrl}/api/admin/gsc/callback`
     );
 
     // Generate authorization URL
