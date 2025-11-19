@@ -1,10 +1,34 @@
 import { createClient } from '@/lib/supabase/server';
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
 
-const anthropic = new Anthropic({
-  apiKey: process.env.ANTHROPIC_API_KEY,
-});
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+const AI_MODEL = 'google/gemini-2.5-pro';
+
+async function callOpenRouter(messages: any[], temperature = 0.7, maxTokens = 4000) {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+      'Content-Type': 'application/json',
+      'HTTP-Referer': 'https://testograph.eu',
+      'X-Title': 'Testograph Keyword Suggestions'
+    },
+    body: JSON.stringify({
+      model: AI_MODEL,
+      messages,
+      temperature,
+      max_tokens: maxTokens,
+    })
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`OpenRouter error ${response.status}: ${error}`);
+  }
+
+  const data = await response.json();
+  return data.choices[0].message.content;
+}
 
 // POST /api/admin/keywords/suggest - AI keyword suggestions
 export async function POST(request: Request) {
@@ -146,22 +170,18 @@ ${focus_area ? `\n## FOCUS AREA: ${focus_area}\nФокусирай препор�
 
 ВЪРНИ САМО ВАЛИДЕН JSON - без markdown code blocks!`;
 
-    // Call Claude API
-    const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 4000,
-      temperature: 0.7,
-      system: systemPrompt,
-      messages: [
-        {
-          role: 'user',
-          content: userPrompt,
-        },
-      ],
-    });
+    // Call OpenRouter API with Gemini
+    const aiContent = await callOpenRouter([
+      {
+        role: 'system',
+        content: systemPrompt,
+      },
+      {
+        role: 'user',
+        content: userPrompt,
+      },
+    ], 0.7, 4000);
 
-    // Parse AI response
-    const aiContent = response.content[0].type === 'text' ? response.content[0].text : '';
     console.log('[Keyword Suggestions] AI response length:', aiContent.length);
 
     // Clean up response (remove markdown code blocks if present)
