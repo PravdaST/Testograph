@@ -1,14 +1,43 @@
-'use client'
+"use client";
 
 import { useState, useEffect } from "react";
-import { Activity, Target, Shield, Sparkles, ChevronDown, Instagram, Facebook, Youtube, TrendingUp, Zap, Clock, FileText, CheckCircle2, Mail, ChevronLeft, ChevronRight, Users, Award, Timer, Star, ArrowRight, Play, Gift } from "lucide-react";
+import {
+  Activity,
+  Target,
+  Shield,
+  Sparkles,
+  ChevronDown,
+  Instagram,
+  Facebook,
+  Youtube,
+  TrendingUp,
+  Zap,
+  Clock,
+  FileText,
+  CheckCircle2,
+  Mail,
+  ChevronLeft,
+  ChevronRight,
+  Users,
+  Award,
+  Timer,
+  Star,
+  ArrowRight,
+  Play,
+  Gift,
+} from "lucide-react";
 import Link from "next/link";
-import useEmblaCarousel from 'embla-carousel-react';
+import useEmblaCarousel from "embla-carousel-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { GlassCard } from "@/components/ui/glass-card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useScrollDirection } from "@/hooks/use-scroll-direction";
 import { ScarcityBanner } from "@/components/ui/scarcity-banner";
 import { TestimonialCard } from "@/components/ui/testimonial-card";
@@ -18,11 +47,15 @@ import { LiveActivityNotifications } from "@/components/ui/LiveActivityNotificat
 import { SpotCounter } from "@/components/ui/SpotCounter";
 import { ViberProofGrid } from "@/components/ui/ViberProof";
 import { SuccessStoriesWall } from "@/components/ui/SuccessStoriesWall";
-import { trackViewContent, trackLead, trackAddToCart } from "@/lib/facebook-pixel";
+import {
+  trackViewContent,
+  trackLead,
+  trackAddToCart,
+} from "@/lib/facebook-pixel";
 
 // Testimonials Carousel Component
 const TestimonialsCarousel = () => {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: 'start' });
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true, align: "start" });
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const testimonials = [
@@ -31,41 +64,45 @@ const TestimonialsCarousel = () => {
       age: 42,
       city: "София, Мениджър",
       avatarUrl: "/funnel/stefan-avatar.jpg",
-      quote: "Бях на 8.7 тестостерон. След 3 месеца система + продукт - 22.1! Жена ми казва че съм се променил напълно. Енергия, сила, всичко се върна.",
+      quote:
+        "Бях на 8.7 тестостерон. След 3 месеца система + продукт - 22.1! Жена ми казва че съм се променил напълно. Енергия, сила, всичко се върна.",
       beforeStat: "8.7",
       afterStat: "22.1",
-      statLabel: "Тестостерон (nmol/L)"
+      statLabel: "Тестостерон (nmol/L)",
     },
     {
       name: "Алекс",
       age: 35,
       city: "Пловдив, Фитнес треньор",
       avatarUrl: "/funnel/alex-avatar.jpg",
-      quote: "Клиентите ми питаха как поддържам форма на 35. Истината - системата + TestoUP. +4кг мускули, -6% мазнини за 2 месеца. Това е разликата.",
+      quote:
+        "Клиентите ми питаха как поддържам форма на 35. Истината - системата + TestoUP. +4кг мускули, -6% мазнини за 2 месеца. Това е разликата.",
       beforeStat: "15.2",
       afterStat: "24.8",
-      statLabel: "Тестостерон (nmol/L)"
+      statLabel: "Тестостерон (nmol/L)",
     },
     {
       name: "Марио",
       age: 48,
       city: "Варна, Предприемач",
       avatarUrl: "/funnel/mario-avatar.jpg",
-      quote: "Бизнесът ми страдаше от липса на фокус. Системата ми върна остротата. 3 месеца по-късно - +180% тестостерон и бизнесът лети.",
+      quote:
+        "Бизнесът ми страдаше от липса на фокус. Системата ми върна остротата. 3 месеца по-късно - +180% тестостерон и бизнесът лети.",
       beforeStat: "7.1",
       afterStat: "19.9",
-      statLabel: "Тестостерон (nmol/L)"
+      statLabel: "Тестостерон (nmol/L)",
     },
     {
       name: "Георги",
       age: 38,
       city: "Бургас, Инженер",
       avatarUrl: "/funnel/georgi-avatar.jpg",
-      quote: "Мислех че е възрастта. Оказа се нисък тестостерон. Системата + продукта - от 9.3 на 21.7 за 90 дни. Чувствам се като на 25!",
+      quote:
+        "Мислех че е възрастта. Оказа се нисък тестостерон. Системата + продукта - от 9.3 на 21.7 за 90 дни. Чувствам се като на 25!",
       beforeStat: "9.3",
       afterStat: "21.7",
-      statLabel: "Тестостерон (nmol/L)"
-    }
+      statLabel: "Тестостерон (nmol/L)",
+    },
   ];
 
   const scrollPrev = () => emblaApi && emblaApi.scrollPrev();
@@ -74,11 +111,11 @@ const TestimonialsCarousel = () => {
   useEffect(() => {
     if (!emblaApi) return;
     const onSelect = () => setSelectedIndex(emblaApi.selectedScrollSnap());
-    emblaApi.on('select', onSelect);
-    emblaApi.on('reInit', onSelect);
+    emblaApi.on("select", onSelect);
+    emblaApi.on("reInit", onSelect);
     return () => {
-      emblaApi.off('select', onSelect);
-      emblaApi.off('reInit', onSelect);
+      emblaApi.off("select", onSelect);
+      emblaApi.off("reInit", onSelect);
     };
   }, [emblaApi]);
 
@@ -87,7 +124,10 @@ const TestimonialsCarousel = () => {
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex gap-6">
           {testimonials.map((testimonial, index) => (
-            <div key={index} className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0">
+            <div
+              key={index}
+              className="flex-[0_0_100%] md:flex-[0_0_50%] lg:flex-[0_0_33.333%] min-w-0"
+            >
               <TestimonialCard
                 name={testimonial.name}
                 age={testimonial.age}
@@ -104,7 +144,7 @@ const TestimonialsCarousel = () => {
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-4 mt-8">
+      <div className="flex items-center justify-center gap-4 mt-6 sm:mt-8">
         <button
           onClick={scrollPrev}
           className="w-12 h-12 rounded-full bg-primary/10 hover:bg-primary/20 border border-primary/30 flex items-center justify-center transition-all duration-300 hover:scale-110"
@@ -119,8 +159,8 @@ const TestimonialsCarousel = () => {
               onClick={() => emblaApi && emblaApi.scrollTo(index)}
               className={`w-2 h-2 rounded-full transition-all duration-300 ${
                 index === selectedIndex
-                  ? 'bg-primary w-8'
-                  : 'bg-primary/30 hover:bg-primary/50'
+                  ? "bg-primary w-8"
+                  : "bg-primary/30 hover:bg-primary/50"
               }`}
             />
           ))}
@@ -142,12 +182,12 @@ const CountdownTimer = () => {
   const [timeLeft, setTimeLeft] = useState({
     hours: 23,
     minutes: 47,
-    seconds: 12
+    seconds: 12,
   });
 
   useEffect(() => {
     const timer = setInterval(() => {
-      setTimeLeft(prev => {
+      setTimeLeft((prev) => {
         let { hours, minutes, seconds } = prev;
 
         if (seconds > 0) {
@@ -174,21 +214,25 @@ const CountdownTimer = () => {
   }, []);
 
   return (
-    <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/30 rounded-lg px-4 py-2">
+    <div className="flex items-center gap-2 bg-destructive/10 border border-destructive/30 rounded-lg px-4 sm:px-4 sm:px-6 py-1.5 sm:py-2">
       <Timer className="w-4 h-4 text-destructive" />
       <span className="text-sm font-bold text-destructive">
-        {String(timeLeft.hours).padStart(2, '0')}:
-        {String(timeLeft.minutes).padStart(2, '0')}:
-        {String(timeLeft.seconds).padStart(2, '0')}
+        {String(timeLeft.hours).padStart(2, "0")}:
+        {String(timeLeft.minutes).padStart(2, "0")}:
+        {String(timeLeft.seconds).padStart(2, "0")}
       </span>
     </div>
   );
 };
 
 // Email Capture Form Component
-const EmailCaptureForm = ({ onSuccess }: { onSuccess: (email: string, name: string) => void }) => {
-  const [email, setEmail] = useState('');
-  const [name, setName] = useState('');
+const EmailCaptureForm = ({
+  onSuccess,
+}: {
+  onSuccess: (email: string, name: string) => void;
+}) => {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [step, setStep] = useState(1);
 
@@ -199,7 +243,7 @@ const EmailCaptureForm = ({ onSuccess }: { onSuccess: (email: string, name: stri
     setIsLoading(true);
 
     // Track lead in Facebook Pixel
-    trackLead('Cold Traffic Landing - Email Capture', 0);
+    trackLead("Cold Traffic Landing - Email Capture", 0);
 
     // Simulate API call
     setTimeout(() => {
@@ -211,21 +255,27 @@ const EmailCaptureForm = ({ onSuccess }: { onSuccess: (email: string, name: stri
 
   if (step === 1) {
     return (
-      <div className="bg-gradient-to-br from-primary/5 to-accent/5 backdrop-blur-xl rounded-2xl border border-primary/20 p-8 shadow-2xl">
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-success/10 rounded-full mb-4">
+      <div className="bg-gradient-to-br from-primary/5 to-accent/5 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-primary/20 p-6 sm:p-8 shadow-2xl">
+        <div className="text-center mb-3 sm:mb-4 sm:mb-6">
+          <div className="inline-flex items-center gap-2 px-4 sm:px-4 sm:px-6 py-1.5 sm:py-2 bg-success/10 rounded-full mb-3 sm:mb-4">
             <Gift className="w-4 h-4 text-success" />
             <span className="text-sm font-semibold text-success uppercase tracking-wide">
               Безплатен Бонус
             </span>
           </div>
-          <h3 className="text-2xl font-bold mb-2">Получи БЕЗПЛАТЕН Анализ + 7-Дневен План</h3>
+          <h3 className="text-2xl font-bold mb-2">
+            Получи БЕЗПЛАТЕН Анализ + 7-Дневен План
+          </h3>
           <p className="text-muted-foreground">
-            Въведи данните си и ще получиш персонализиран PDF анализ на твоите хормонални нива + 7-дневен план за начало
+            Въведи данните си и ще получиш персонализиран PDF анализ на твоите
+            хормонални нива + 7-дневен план за начало
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-2 sm:space-y-3 sm:space-y-4"
+        >
           <div>
             <Label htmlFor="name">Име</Label>
             <Input
@@ -277,22 +327,28 @@ const EmailCaptureForm = ({ onSuccess }: { onSuccess: (email: string, name: stri
   }
 
   return (
-    <div className="bg-gradient-to-br from-success/5 to-green-500/5 backdrop-blur-xl rounded-2xl border border-success/20 p-8 shadow-2xl text-center">
-      <div className="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-4">
+    <div className="bg-gradient-to-br from-success/5 to-green-500/5 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-success/20 p-6 sm:p-8 shadow-2xl text-center">
+      <div className="w-16 h-16 bg-success/20 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
         <CheckCircle2 className="w-8 h-8 text-success" />
       </div>
-      <h3 className="text-2xl font-bold mb-2 text-success">Готово! Провери имейла си</h3>
-      <p className="text-muted-foreground mb-6">
-        Изпратихме ти персонализирания анализ + 7-дневен план на <strong>{email}</strong>
+      <h3 className="text-2xl font-bold mb-2 text-success">
+        Готово! Провери имейла си
+      </h3>
+      <p className="text-muted-foreground mb-3 sm:mb-4 sm:mb-6">
+        Изпратихме ти персонализирания анализ + 7-дневен план на{" "}
+        <strong>{email}</strong>
       </p>
-      <div className="bg-primary/10 border border-primary/30 rounded-xl p-4 mb-6">
-        <p className="text-primary font-bold text-lg mb-2">🔥 СПЕЦИАЛНА ОФЕРТА</p>
-        <p className="text-foreground mb-4">
-          СЕГА можеш да получиш ПЪЛНАТА 30-дневна система + продукта за 97лв вместо 639лв
+      <div className="bg-primary/10 border border-primary/30 rounded-lg sm:rounded-xl p-4 mb-3 sm:mb-4 sm:mb-6">
+        <p className="text-primary font-bold text-lg mb-2">
+          🔥 СПЕЦИАЛНА ОФЕРТА
+        </p>
+        <p className="text-foreground mb-3 sm:mb-4">
+          СЕГА можеш да получиш ПЪЛНАТА 30-дневна система + продукта за 97лв
+          вместо 639лв
         </p>
         <Button
           onClick={() => {
-            trackAddToCart('Testograph Complete System + Product', 97, 'BGN');
+            trackAddToCart("Testograph Complete System + Product", 97, "BGN");
           }}
           className="w-full bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-bold py-3 rounded-full transition-all duration-300 hover:scale-105 shadow-lg shadow-primary/30"
         >
@@ -309,14 +365,14 @@ const EmailCaptureForm = ({ onSuccess }: { onSuccess: (email: string, name: stri
 
 const ColdTrafficLanding = () => {
   const [showEmailForm, setShowEmailForm] = useState(false);
-  const [userEmail, setUserEmail] = useState('');
-  const [userName, setUserName] = useState('');
+  const [userEmail, setUserEmail] = useState("");
+  const [userName, setUserName] = useState("");
   const [showScarcityBanner, setShowScarcityBanner] = useState(false);
   const { scrollDirection, isAtTop } = useScrollDirection();
 
   // Track page view
   useEffect(() => {
-    trackViewContent('Cold Traffic Landing Page', 'landing_page');
+    trackViewContent("Cold Traffic Landing Page", "landing_page");
   }, []);
 
   // Show scarcity banner after scrolling
@@ -326,8 +382,8 @@ const ColdTrafficLanding = () => {
         setShowScarcityBanner(true);
       }
     };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   const handleEmailSuccess = (email: string, name: string) => {
@@ -347,21 +403,29 @@ const ColdTrafficLanding = () => {
       </div>
 
       {/* Header */}
-      <header className="relative z-50 py-4">
-        <div className="container mx-auto px-4">
+      <header className="relative z-50 py-3 sm:py-4">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <img src="/testograph-logo.png" alt="Testograph Logo" className="h-12 w-auto" />
+              <img
+                src="/testograph-logo.png"
+                alt="Testograph Logo"
+                className="h-12 w-auto"
+              />
               <div>
                 <p className="text-xl font-bold text-white">Testograph</p>
-                <p className="text-xs text-gray-300">Пълната система за тестостерон</p>
+                <p className="text-xs text-gray-300">
+                  Пълната система за тестостерон
+                </p>
               </div>
             </div>
 
             <div className="hidden md:flex items-center gap-4">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 border border-primary/20 rounded-full">
                 <Users className="w-4 h-4 text-primary" />
-                <span className="text-xs font-semibold text-primary">3,247+ мъже</span>
+                <span className="text-xs font-semibold text-primary">
+                  3,247+ мъже
+                </span>
               </div>
               <CountdownTimer />
             </div>
@@ -371,11 +435,11 @@ const ColdTrafficLanding = () => {
 
       <main className="relative z-10">
         {/* Hero Section - Cold Traffic Optimized */}
-        <section className="py-8 md:py-12">
-          <div className="container mx-auto px-4">
+        <section className="py-6 sm:py-8 md:py-12">
+          <div className="container mx-auto px-4 sm:px-6">
             <div className="max-w-4xl mx-auto text-center">
               {/* Social Proof Badge */}
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-success/10 border border-success/30 rounded-full mb-6">
+              <div className="inline-flex items-center gap-2 px-4 sm:px-4 sm:px-6 py-1.5 sm:py-2 bg-success/10 border border-success/30 rounded-full mb-3 sm:mb-4 sm:mb-6">
                 <Users className="w-4 h-4 text-success" />
                 <span className="text-sm font-semibold text-success">
                   3,247+ мъже вече го направиха
@@ -383,13 +447,15 @@ const ColdTrafficLanding = () => {
               </div>
 
               {/* Main Problem - Relatable */}
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-4 text-foreground leading-tight">
+              <h1 className="text-2xl sm:text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold mb-3 sm:mb-4 text-foreground leading-tight">
                 Сутрин ставаш от леглото и си
                 <br />
-                <span className="text-destructive">уморен като да си спал 2 часа</span>
+                <span className="text-destructive">
+                  уморен като да си спал 2 часа
+                </span>
               </h1>
 
-              <p className="text-lg md:text-xl text-muted-foreground mb-6 leading-relaxed">
+              <p className="text-base sm:text-lg md:text-xl text-muted-foreground mb-3 sm:mb-4 sm:mb-6 leading-relaxed">
                 През деня едвам се влачиш. Кафето не помага.
                 <br />
                 Вечерта си прекалено изморен за секс.
@@ -398,24 +464,27 @@ const ColdTrafficLanding = () => {
               </p>
 
               {/* What is Testosterone - Simple Explanation */}
-              <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-xl rounded-2xl border border-blue-500/30 p-6 mb-8">
+              <div className="bg-gradient-to-r from-blue-500/10 to-purple-500/10 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-blue-500/30 p-4 sm:p-6 mb-3 sm:mb-4 sm:mb-6 sm:mb-8">
                 <div className="flex items-center justify-center gap-2 mb-3">
                   <div className="w-3 h-3 bg-blue-400 rounded-full animate-pulse"></div>
-                  <span className="text-blue-400 font-semibold text-sm uppercase tracking-wide">Какво е тестостерон?</span>
+                  <span className="text-blue-400 font-semibold text-sm uppercase tracking-wide">
+                    Какво е тестостерон?
+                  </span>
                 </div>
                 <p className="text-lg text-white mb-2">
                   Тестостеронът е <strong>ГОРИВОТО на мъжа</strong>
                 </p>
                 <p className="text-base text-gray-300">
-                  Когато е нисък: нямаш енергия, либидото изчезва, мускулите не растат.
+                  Когато е нисък: нямаш енергия, либидото изчезва, мускулите не
+                  растат.
                   <br />
                   Когато е нормален: си пълен с енергия, силен и уверен.
                 </p>
               </div>
 
               {/* Visual Before/After */}
-              <div className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto mb-8">
-                <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-4 sm:p-6 max-w-3xl mx-auto mb-3 sm:mb-4 sm:mb-6 sm:mb-8">
+                <div className="bg-red-500/10 border border-red-500/30 rounded-lg sm:rounded-xl p-4">
                   <div className="text-center mb-3">
                     <div className="w-16 h-16 bg-red-500/20 rounded-full mx-auto mb-2 flex items-center justify-center">
                       <span className="text-2xl">😴</span>
@@ -430,7 +499,7 @@ const ColdTrafficLanding = () => {
                   </ul>
                 </div>
 
-                <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-4">
+                <div className="bg-green-500/10 border border-green-500/30 rounded-lg sm:rounded-xl p-4">
                   <div className="text-center mb-3">
                     <div className="w-16 h-16 bg-green-500/20 rounded-full mx-auto mb-2 flex items-center justify-center">
                       <span className="text-2xl">💪</span>
@@ -447,23 +516,24 @@ const ColdTrafficLanding = () => {
               </div>
 
               {/* Simple Results */}
-              <div className="bg-gradient-to-r from-primary/10 to-accent/10 backdrop-blur-xl rounded-2xl border border-primary/30 p-6 mb-8">
-                <p className="text-2xl md:text-3xl font-bold text-white mb-2">
+              <div className="bg-gradient-to-r from-primary/10 to-accent/10 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-primary/30 p-4 sm:p-6 mb-3 sm:mb-4 sm:mb-6 sm:mb-8">
+                <p className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-2">
                   Средно +130% тестостерон за 90 дни
                 </p>
                 <p className="text-lg text-gray-300">
-                  341 българи вече постигнаха тези резултати. Ето какво казват те:
+                  341 българи вече постигнаха тези резултати. Ето какво казват
+                  те:
                 </p>
               </div>
 
               {/* Main CTA - No Brainer */}
-              <div className="space-y-4">
+              <div className="space-y-2 sm:space-y-3 sm:space-y-4">
                 <Button
                   onClick={() => {
                     setShowEmailForm(true);
-                    trackViewContent('Email Form Opened', 'form');
+                    trackViewContent("Email Form Opened", "form");
                   }}
-                  className="w-full md:w-auto px-12 py-6 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl rounded-full transition-all duration-300 hover:scale-105 shadow-2xl shadow-green-500/40"
+                  className="w-full md:w-auto px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl rounded-full transition-all duration-300 hover:scale-105 shadow-2xl shadow-green-500/40"
                 >
                   <Gift className="w-6 h-6 mr-3" />
                   Получи БЕЗПЛАТЕН Анализ + План
@@ -499,37 +569,52 @@ const ColdTrafficLanding = () => {
         </section>
 
         {/* Product Showcase Section */}
-        <section className="py-16 bg-black/20">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
+        <section className="py-12 sm:py-16 bg-black/20">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-3 sm:mb-4 sm:mb-6 sm:mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
                 Виж какво точно получаваш
               </h2>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                Не е поредната добавка. Това е професионална система с реални резултати.
+                Не е поредната добавка. Това е професионална система с реални
+                резултати.
               </p>
             </div>
 
             {/* Main Product Display */}
             <div className="max-w-4xl mx-auto mb-16">
-              <div className="relative bg-gradient-to-br from-card/90 to-primary/5 backdrop-blur-xl rounded-3xl border border-primary/30 p-8 shadow-2xl">
-                <div className="grid md:grid-cols-2 gap-8 items-center">
+              <div className="relative bg-gradient-to-br from-card/90 to-primary/5 backdrop-blur-xl rounded-3xl border border-primary/30 p-6 sm:p-8 shadow-2xl">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:p-8 items-center">
                   {/* Product Image */}
                   <div className="relative">
-                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl blur-2xl"></div>
-                    <div className="relative bg-white rounded-2xl p-8 shadow-xl">
+                    <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-xl sm:rounded-2xl blur-2xl"></div>
+                    <div className="relative bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-xl">
                       {/* TestoUP Product Mockup */}
                       <div className="text-center">
-                        <div className="w-32 h-32 bg-gradient-to-br from-primary to-accent rounded-full mx-auto mb-4 flex items-center justify-center">
-                          <span className="text-2xl font-bold text-white">T</span>
+                        <div className="w-32 h-32 bg-gradient-to-br from-primary to-accent rounded-full mx-auto mb-3 sm:mb-4 flex items-center justify-center">
+                          <span className="text-2xl font-bold text-white">
+                            T
+                          </span>
                         </div>
-                        <h3 className="text-2xl font-bold text-gray-800 mb-2">TestoUP</h3>
-                        <p className="text-sm text-gray-600 mb-4">60 капсули • 30-дневна доза</p>
+                        <h3 className="text-2xl font-bold text-gray-800 mb-2">
+                          TestoUP
+                        </h3>
+                        <p className="text-sm text-gray-600 mb-3 sm:mb-4">
+                          60 капсули • 30-дневна доза
+                        </p>
                         <div className="grid grid-cols-2 gap-2 text-xs">
-                          <div className="bg-green-100 text-green-800 px-2 py-1 rounded">Натурални съставки</div>
-                          <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded">Клинично тествани</div>
-                          <div className="bg-purple-100 text-purple-800 px-2 py-1 rounded">EU стандарт</div>
-                          <div className="bg-orange-100 text-orange-800 px-2 py-1 rounded">Без рецепта</div>
+                          <div className="bg-green-100 text-green-800 px-2 py-1 rounded">
+                            Натурални съставки
+                          </div>
+                          <div className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                            Клинично тествани
+                          </div>
+                          <div className="bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                            EU стандарт
+                          </div>
+                          <div className="bg-orange-100 text-orange-800 px-2 py-1 rounded">
+                            Без рецепта
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -537,35 +622,52 @@ const ColdTrafficLanding = () => {
 
                   {/* Product Details */}
                   <div className="text-left">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-success/10 rounded-full mb-4">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-success/10 rounded-full mb-3 sm:mb-4">
                       <CheckCircle2 className="w-4 h-4 text-success" />
-                      <span className="text-sm font-semibold text-success">Професионална формула</span>
+                      <span className="text-sm font-semibold text-success">
+                        Професионална формула
+                      </span>
                     </div>
 
-                    <h3 className="text-2xl font-bold text-white mb-4">TestoUP - Тестостерон оптимизатор</h3>
+                    <h3 className="text-2xl font-bold text-white mb-3 sm:mb-4">
+                      TestoUP - Тестостерон оптимизатор
+                    </h3>
 
-                    <div className="space-y-3 mb-6">
+                    <div className="space-y-2 sm:space-y-3 mb-3 sm:mb-4 sm:mb-6">
                       <div className="flex items-center gap-3">
                         <div className="w-2 h-2 bg-primary rounded-full"></div>
-                        <span className="text-gray-300">Тонгкат Али 400mg (екстракт 100:1)</span>
+                        <span className="text-gray-300">
+                          Тонгкат Али 400mg (екстракт 100:1)
+                        </span>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="w-2 h-2 bg-success rounded-full"></div>
-                        <span className="text-gray-300">Ашваганда KSM-66 300mg</span>
+                        <span className="text-gray-300">
+                          Ашваганда KSM-66 300mg
+                        </span>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="w-2 h-2 bg-accent rounded-full"></div>
-                        <span className="text-gray-300">Цинк 30mg + Витамин D3 2000IU</span>
+                        <span className="text-gray-300">
+                          Цинк 30mg + Витамин D3 2000IU
+                        </span>
                       </div>
                       <div className="flex items-center gap-3">
                         <div className="w-2 h-2 bg-purple-400 rounded-full"></div>
-                        <span className="text-gray-300">Бор + Магнезий комплекс</span>
+                        <span className="text-gray-300">
+                          Бор + Магнезий комплекс
+                        </span>
                       </div>
                     </div>
 
-                    <div className="bg-primary/10 border border-primary/30 rounded-xl p-4">
-                      <p className="text-primary font-bold text-lg mb-1">💊 Как се приема:</p>
-                      <p className="text-gray-300 text-sm">2 капсули дневно с вода. 30-дневна програма за максимални резултати.</p>
+                    <div className="bg-primary/10 border border-primary/30 rounded-lg sm:rounded-xl p-4">
+                      <p className="text-primary font-bold text-lg mb-1">
+                        💊 Как се приема:
+                      </p>
+                      <p className="text-gray-300 text-sm">
+                        2 капсули дневно с вода. 30-дневна програма за
+                        максимални резултати.
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -573,28 +675,31 @@ const ColdTrafficLanding = () => {
             </div>
 
             {/* System Components */}
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <div className="text-center mb-3 sm:mb-4 sm:mb-6 sm:mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
                 ПЪЛНАТА СИСТЕМА включва:
               </h2>
               <p className="text-lg text-gray-300 max-w-2xl mx-auto">
-                Не само продукта. Получаваш цялата система за гарантирани резултати.
+                Не само продукта. Получаваш цялата система за гарантирани
+                резултати.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:p-6 sm:gap-6 sm:p-8 max-w-6xl mx-auto">
               {/* System Protocol */}
-              <div className="group relative bg-gradient-to-br from-card/90 to-primary/5 backdrop-blur-xl rounded-2xl border border-primary/30 p-8 hover:border-primary/50 transition-all duration-300 hover:scale-105 shadow-xl">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 bg-primary/20 rounded-2xl flex items-center justify-center">
+              <div className="group relative bg-gradient-to-br from-card/90 to-primary/5 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-primary/30 p-6 sm:p-8 hover:border-primary/50 transition-all duration-300 hover:scale-105 shadow-xl">
+                <div className="flex items-center gap-4 mb-3 sm:mb-4 sm:mb-6">
+                  <div className="w-16 h-16 bg-primary/20 rounded-xl sm:rounded-2xl flex items-center justify-center">
                     <Target className="w-8 h-8 text-primary" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">30-Дневен Протокол</h3>
+                    <h3 className="text-xl font-bold text-white">
+                      30-Дневен Протокол
+                    </h3>
                     <p className="text-primary font-semibold">197лв стойност</p>
                   </div>
                 </div>
-                <ul className="space-y-3 text-gray-300">
+                <ul className="space-y-2 sm:space-y-3 text-gray-300">
                   <li className="flex items-center gap-3">
                     <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
                     <span>Дневни хранителни планове</span>
@@ -615,17 +720,19 @@ const ColdTrafficLanding = () => {
               </div>
 
               {/* TestoUP Product */}
-              <div className="group relative bg-gradient-to-br from-card/90 to-accent/5 backdrop-blur-xl rounded-2xl border border-accent/30 p-8 hover:border-accent/50 transition-all duration-300 hover:scale-105 shadow-xl">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 bg-accent/20 rounded-2xl flex items-center justify-center">
+              <div className="group relative bg-gradient-to-br from-card/90 to-accent/5 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-accent/30 p-6 sm:p-8 hover:border-accent/50 transition-all duration-300 hover:scale-105 shadow-xl">
+                <div className="flex items-center gap-4 mb-3 sm:mb-4 sm:mb-6">
+                  <div className="w-16 h-16 bg-accent/20 rounded-xl sm:rounded-2xl flex items-center justify-center">
                     <Activity className="w-8 h-8 text-accent" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">TestoUP Добавка</h3>
+                    <h3 className="text-xl font-bold text-white">
+                      TestoUP Добавка
+                    </h3>
                     <p className="text-accent font-semibold">67лв стойност</p>
                   </div>
                 </div>
-                <ul className="space-y-3 text-gray-300">
+                <ul className="space-y-2 sm:space-y-3 text-gray-300">
                   <li className="flex items-center gap-3">
                     <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
                     <span>Натурални съставки</span>
@@ -646,17 +753,19 @@ const ColdTrafficLanding = () => {
               </div>
 
               {/* AI Expert */}
-              <div className="group relative bg-gradient-to-br from-card/90 to-success/5 backdrop-blur-xl rounded-2xl border border-success/30 p-8 hover:border-success/50 transition-all duration-300 hover:scale-105 shadow-xl">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 bg-success/20 rounded-2xl flex items-center justify-center">
+              <div className="group relative bg-gradient-to-br from-card/90 to-success/5 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-success/30 p-6 sm:p-8 hover:border-success/50 transition-all duration-300 hover:scale-105 shadow-xl">
+                <div className="flex items-center gap-4 mb-3 sm:mb-4 sm:mb-6">
+                  <div className="w-16 h-16 bg-success/20 rounded-xl sm:rounded-2xl flex items-center justify-center">
                     <Sparkles className="w-8 h-8 text-success" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-white">AI Експерт 24/7</h3>
+                    <h3 className="text-xl font-bold text-white">
+                      AI Експерт 24/7
+                    </h3>
                     <p className="text-success font-semibold">99лв стойност</p>
                   </div>
                 </div>
-                <ul className="space-y-3 text-gray-300">
+                <ul className="space-y-2 sm:space-y-3 text-gray-300">
                   <li className="flex items-center gap-3">
                     <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
                     <span>Независим чат асистент</span>
@@ -677,17 +786,19 @@ const ColdTrafficLanding = () => {
               </div>
 
               {/* Bonuses */}
-              <div className="group relative bg-gradient-to-br from-card/90 to-purple-500/5 backdrop-blur-xl rounded-2xl border border-purple-500/30 p-8 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 shadow-xl">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center">
+              <div className="group relative bg-gradient-to-br from-card/90 to-purple-500/5 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-purple-500/30 p-6 sm:p-8 hover:border-purple-500/50 transition-all duration-300 hover:scale-105 shadow-xl">
+                <div className="flex items-center gap-4 mb-3 sm:mb-4 sm:mb-6">
+                  <div className="w-16 h-16 bg-purple-500/20 rounded-xl sm:rounded-2xl flex items-center justify-center">
                     <Gift className="w-8 h-8 text-purple-400" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-white">Бонуси</h3>
-                    <p className="text-purple-400 font-semibold">276лв стойност</p>
+                    <p className="text-purple-400 font-semibold">
+                      276лв стойност
+                    </p>
                   </div>
                 </div>
-                <ul className="space-y-3 text-gray-300">
+                <ul className="space-y-2 sm:space-y-3 text-gray-300">
                   <li className="flex items-center gap-3">
                     <CheckCircle2 className="w-5 h-5 text-success flex-shrink-0" />
                     <span>Meal Planner App</span>
@@ -710,10 +821,12 @@ const ColdTrafficLanding = () => {
 
             {/* Value Stack Summary */}
             <div className="mt-16 text-center">
-              <div className="bg-gradient-to-r from-primary/10 to-accent/10 backdrop-blur-xl rounded-2xl border border-primary/30 p-8 max-w-4xl mx-auto">
-                <div className="grid md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-gradient-to-r from-primary/10 to-accent/10 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-primary/30 p-6 sm:p-8 max-w-4xl mx-auto">
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-4 sm:p-6 mb-3 sm:mb-4 sm:mb-6 sm:mb-3 sm:mb-4 sm:mb-6 sm:mb-8">
                   <div>
-                    <p className="text-4xl font-bold text-destructive line-through">639лв</p>
+                    <p className="text-4xl font-bold text-destructive line-through">
+                      639лв
+                    </p>
                     <p className="text-sm text-gray-300">Пълна стойност</p>
                   </div>
                   <div className="flex items-center justify-center">
@@ -731,16 +844,21 @@ const ColdTrafficLanding = () => {
                 <Button
                   onClick={() => {
                     setShowEmailForm(true);
-                    trackAddToCart('Testograph Complete System + Product', 97, 'BGN');
+                    trackAddToCart(
+                      "Testograph Complete System + Product",
+                      97,
+                      "BGN",
+                    );
                   }}
-                  className="w-full md:w-auto px-12 py-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-bold text-xl rounded-full transition-all duration-300 hover:scale-105 shadow-2xl shadow-primary/40"
+                  className="w-full md:w-auto px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-white font-bold text-xl rounded-full transition-all duration-300 hover:scale-105 shadow-2xl shadow-primary/40"
                 >
                   <span>Вземи Системата за 97лв</span>
                   <ArrowRight className="w-6 h-6 ml-3" />
                 </Button>
 
                 <p className="text-sm text-gray-300 mt-4">
-                  ⏰ Офертата изтича след 24 часа • 💯 60-дневна гаранция • 🚚 Безплатна доставка
+                  ⏰ Офертата изтича след 24 часа • 💯 60-дневна гаранция • 🚚
+                  Безплатна доставка
                 </p>
               </div>
             </div>
@@ -748,22 +866,24 @@ const ColdTrafficLanding = () => {
         </section>
 
         {/* Visual Testimonials Section */}
-        <section className="py-16 bg-black/20">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-5xl font-bold text-white mb-4">
-                Реални хора. <span className="text-primary">Реални резултати.</span>
+        <section className="py-12 sm:py-16 bg-black/20">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-3 sm:mb-4 sm:mb-6 sm:mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-5xl font-bold text-white mb-3 sm:mb-4">
+                Реални хора.{" "}
+                <span className="text-primary">Реални резултати.</span>
               </h2>
               <p className="text-xl text-gray-300 max-w-3xl mx-auto">
-                Виж как се промениха тези мъже. Това не са актьори - това са НАШИ клиенти.
+                Виж как се промениха тези мъже. Това не са актьори - това са
+                НАШИ клиенти.
               </p>
             </div>
 
             {/* Before/After Visual Testimonials */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto mb-16">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:p-6 sm:gap-6 sm:p-8 max-w-6xl mx-auto mb-16">
               {/* Stefan's Story */}
-              <div className="group relative bg-gradient-to-br from-card/90 to-primary/5 backdrop-blur-xl rounded-2xl border border-primary/30 p-6 hover:border-primary/50 transition-all duration-300 hover:scale-105 shadow-xl">
-                <div className="text-center mb-6">
+              <div className="group relative bg-gradient-to-br from-card/90 to-primary/5 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-primary/30 p-4 sm:p-6 hover:border-primary/50 transition-all duration-300 hover:scale-105 shadow-xl">
+                <div className="text-center mb-3 sm:mb-4 sm:mb-6">
                   <div className="relative inline-block">
                     <div className="w-20 h-20 bg-gradient-to-br from-primary to-accent rounded-full mx-auto mb-3 flex items-center justify-center text-white font-bold text-xl border-4 border-primary/30">
                       СД
@@ -772,14 +892,20 @@ const ColdTrafficLanding = () => {
                       <CheckCircle2 className="w-4 h-4 text-white" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-bold text-white">Стефан Димитров</h3>
+                  <h3 className="text-lg font-bold text-white">
+                    Стефан Димитров
+                  </h3>
                   <p className="text-sm text-gray-400">42г, София • Мениджър</p>
                 </div>
 
-                <div className="bg-gray-800/50 rounded-xl p-4 mb-4">
+                <div className="bg-gray-800/50 rounded-lg sm:rounded-xl p-4 mb-3 sm:mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-red-400 font-semibold">ПРЕДИ</span>
-                    <span className="text-xs text-green-400 font-semibold">СЛЕД</span>
+                    <span className="text-xs text-red-400 font-semibold">
+                      ПРЕДИ
+                    </span>
+                    <span className="text-xs text-green-400 font-semibold">
+                      СЛЕД
+                    </span>
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
@@ -797,19 +923,23 @@ const ColdTrafficLanding = () => {
                 </div>
 
                 <p className="text-sm text-gray-300 italic leading-relaxed">
-                  "Бях на 8.7 тестостерон. След 3 месеца система + продукт - 22.1! Жена ми казва че съм се променил напълно."
+                  "Бях на 8.7 тестостерон. След 3 месеца система + продукт -
+                  22.1! Жена ми казва че съм се променил напълно."
                 </p>
 
                 <div className="mt-4 flex gap-1 justify-center">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    <Star
+                      key={i}
+                      className="w-3 h-3 fill-yellow-400 text-yellow-400"
+                    />
                   ))}
                 </div>
               </div>
 
               {/* Alex's Story */}
-              <div className="group relative bg-gradient-to-br from-card/90 to-accent/5 backdrop-blur-xl rounded-2xl border border-accent/30 p-6 hover:border-accent/50 transition-all duration-300 hover:scale-105 shadow-xl">
-                <div className="text-center mb-6">
+              <div className="group relative bg-gradient-to-br from-card/90 to-accent/5 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-accent/30 p-4 sm:p-6 hover:border-accent/50 transition-all duration-300 hover:scale-105 shadow-xl">
+                <div className="text-center mb-3 sm:mb-4 sm:mb-6">
                   <div className="relative inline-block">
                     <div className="w-20 h-20 bg-gradient-to-br from-accent to-purple-500 rounded-full mx-auto mb-3 flex items-center justify-center text-white font-bold text-xl border-4 border-accent/30">
                       АП
@@ -819,13 +949,19 @@ const ColdTrafficLanding = () => {
                     </div>
                   </div>
                   <h3 className="text-lg font-bold text-white">Алекс Петров</h3>
-                  <p className="text-sm text-gray-400">35г, Пловдив • Фитнес треньор</p>
+                  <p className="text-sm text-gray-400">
+                    35г, Пловдив • Фитнес треньор
+                  </p>
                 </div>
 
-                <div className="bg-gray-800/50 rounded-xl p-4 mb-4">
+                <div className="bg-gray-800/50 rounded-lg sm:rounded-xl p-4 mb-3 sm:mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-red-400 font-semibold">ПРЕДИ</span>
-                    <span className="text-xs text-green-400 font-semibold">СЛЕД</span>
+                    <span className="text-xs text-red-400 font-semibold">
+                      ПРЕДИ
+                    </span>
+                    <span className="text-xs text-green-400 font-semibold">
+                      СЛЕД
+                    </span>
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
@@ -843,19 +979,23 @@ const ColdTrafficLanding = () => {
                 </div>
 
                 <p className="text-sm text-gray-300 italic leading-relaxed">
-                  "Клиентите ми питаха как поддържам форма на 35. Истината - системата + TestoUP. +4кг мускули, -6% мазнини."
+                  "Клиентите ми питаха как поддържам форма на 35. Истината -
+                  системата + TestoUP. +4кг мускули, -6% мазнини."
                 </p>
 
                 <div className="mt-4 flex gap-1 justify-center">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    <Star
+                      key={i}
+                      className="w-3 h-3 fill-yellow-400 text-yellow-400"
+                    />
                   ))}
                 </div>
               </div>
 
               {/* Mario's Story */}
-              <div className="group relative bg-gradient-to-br from-card/90 to-success/5 backdrop-blur-xl rounded-2xl border border-success/30 p-6 hover:border-success/50 transition-all duration-300 hover:scale-105 shadow-xl">
-                <div className="text-center mb-6">
+              <div className="group relative bg-gradient-to-br from-card/90 to-success/5 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-success/30 p-4 sm:p-6 hover:border-success/50 transition-all duration-300 hover:scale-105 shadow-xl">
+                <div className="text-center mb-3 sm:mb-4 sm:mb-6">
                   <div className="relative inline-block">
                     <div className="w-20 h-20 bg-gradient-to-br from-success to-green-500 rounded-full mx-auto mb-3 flex items-center justify-center text-white font-bold text-xl border-4 border-success/30">
                       МВ
@@ -864,14 +1004,22 @@ const ColdTrafficLanding = () => {
                       <CheckCircle2 className="w-4 h-4 text-white" />
                     </div>
                   </div>
-                  <h3 className="text-lg font-bold text-white">Марио Василев</h3>
-                  <p className="text-sm text-gray-400">48г, Варна • Предприемач</p>
+                  <h3 className="text-lg font-bold text-white">
+                    Марио Василев
+                  </h3>
+                  <p className="text-sm text-gray-400">
+                    48г, Варна • Предприемач
+                  </p>
                 </div>
 
-                <div className="bg-gray-800/50 rounded-xl p-4 mb-4">
+                <div className="bg-gray-800/50 rounded-lg sm:rounded-xl p-4 mb-3 sm:mb-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-red-400 font-semibold">ПРЕДИ</span>
-                    <span className="text-xs text-green-400 font-semibold">СЛЕД</span>
+                    <span className="text-xs text-red-400 font-semibold">
+                      ПРЕДИ
+                    </span>
+                    <span className="text-xs text-green-400 font-semibold">
+                      СЛЕД
+                    </span>
                   </div>
                   <div className="grid grid-cols-3 gap-2 text-center">
                     <div>
@@ -889,42 +1037,48 @@ const ColdTrafficLanding = () => {
                 </div>
 
                 <p className="text-sm text-gray-300 italic leading-relaxed">
-                  "Бизнесът ми страдаше от липса на фокус. Системата ми върна остротата. 3 месеца по-късно - +180% тестостерон."
+                  "Бизнесът ми страдаше от липса на фокус. Системата ми върна
+                  остротата. 3 месеца по-късно - +180% тестостерон."
                 </p>
 
                 <div className="mt-4 flex gap-1 justify-center">
                   {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+                    <Star
+                      key={i}
+                      className="w-3 h-3 fill-yellow-400 text-yellow-400"
+                    />
                   ))}
                 </div>
               </div>
             </div>
 
             {/* Overall Results Summary */}
-            <div className="bg-gradient-to-r from-primary/10 to-accent/10 backdrop-blur-xl rounded-2xl border border-primary/30 p-8 max-w-4xl mx-auto">
-              <div className="text-center mb-8">
-                <h3 className="text-2xl md:text-3xl font-bold text-white mb-4">
+            <div className="bg-gradient-to-r from-primary/10 to-accent/10 backdrop-blur-xl rounded-xl sm:rounded-2xl border border-primary/30 p-6 sm:p-8 max-w-4xl mx-auto">
+              <div className="text-center mb-3 sm:mb-4 sm:mb-6 sm:mb-8">
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-3 sm:mb-4">
                   Средни резултати на 341 клиенти:
                 </h3>
               </div>
 
-              <div className="grid md:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
                 <div className="text-center">
-                  <div className="bg-primary/20 rounded-xl p-4 mb-3">
+                  <div className="bg-primary/20 rounded-lg sm:rounded-xl p-4 mb-3">
                     <p className="text-3xl font-bold text-primary">+130%</p>
                     <p className="text-sm text-primary/80">Тестостерон</p>
                   </div>
-                  <p className="text-xs text-gray-400">Средно повишение за 90 дни</p>
+                  <p className="text-xs text-gray-400">
+                    Средно повишение за 90 дни
+                  </p>
                 </div>
                 <div className="text-center">
-                  <div className="bg-success/20 rounded-xl p-4 mb-3">
+                  <div className="bg-success/20 rounded-lg sm:rounded-xl p-4 mb-3">
                     <p className="text-3xl font-bold text-success">3кг</p>
                     <p className="text-sm text-success/80">Мускули</p>
                   </div>
                   <p className="text-xs text-gray-400">Средно покачване</p>
                 </div>
                 <div className="text-center">
-                  <div className="bg-accent/20 rounded-xl p-4 mb-3">
+                  <div className="bg-accent/20 rounded-lg sm:rounded-xl p-4 mb-3">
                     <p className="text-3xl font-bold text-accent">-5%</p>
                     <p className="text-sm text-accent/80">Мазнини</p>
                   </div>
@@ -932,8 +1086,8 @@ const ColdTrafficLanding = () => {
                 </div>
               </div>
 
-              <div className="mt-8 text-center">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-success/10 rounded-full">
+              <div className="mt-6 sm:mt-8 text-center">
+                <div className="inline-flex items-center gap-2 px-4 sm:px-4 sm:px-6 py-1.5 sm:py-2 bg-success/10 rounded-full">
                   <Users className="w-4 h-4 text-success" />
                   <span className="text-sm font-semibold text-success">
                     341 българи вече постигнаха тези резултати
@@ -945,39 +1099,41 @@ const ColdTrafficLanding = () => {
         </section>
 
         {/* Email Capture Section */}
-        <section className="py-16 bg-black/20">
-          <div className="container mx-auto px-4">
+        <section className="py-12 sm:py-16 bg-black/20">
+          <div className="container mx-auto px-4 sm:px-6">
             <div className="max-w-2xl mx-auto">
               {!showEmailForm ? (
                 <div className="text-center">
-                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-success/10 rounded-full mb-6">
+                  <div className="inline-flex items-center gap-2 px-4 sm:px-4 sm:px-6 py-1.5 sm:py-2 bg-success/10 rounded-full mb-3 sm:mb-4 sm:mb-6">
                     <Gift className="w-4 h-4 text-success" />
                     <span className="text-sm font-semibold text-success uppercase tracking-wide">
                       Започни БЕЗПЛАТНО
                     </span>
                   </div>
 
-                  <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-                    Получи своя <span className="text-primary">персонален анализ</span>
+                  <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
+                    Получи своя{" "}
+                    <span className="text-primary">персонален анализ</span>
                   </h2>
 
-                  <p className="text-lg text-gray-300 mb-8">
-                    Отговори на 4 въпроса и ще получиш PDF с твоите хормонални нива + 7-дневен план за начало
+                  <p className="text-lg text-gray-300 mb-3 sm:mb-4 sm:mb-6 sm:mb-8">
+                    Отговори на 4 въпроса и ще получиш PDF с твоите хормонални
+                    нива + 7-дневен план за начало
                   </p>
 
                   <Button
                     onClick={() => {
                       setShowEmailForm(true);
-                      trackViewContent('Email Form Opened', 'form');
+                      trackViewContent("Email Form Opened", "form");
                     }}
-                    className="px-12 py-6 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl rounded-full transition-all duration-300 hover:scale-105 shadow-2xl shadow-green-500/40"
+                    className="px-8 sm:px-12 py-4 sm:py-6 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-bold text-xl rounded-full transition-all duration-300 hover:scale-105 shadow-2xl shadow-green-500/40"
                   >
                     <Gift className="w-6 h-6 mr-3" />
                     Започни Безплатния Анализ
                     <ArrowRight className="w-6 h-6 ml-3" />
                   </Button>
 
-                  <div className="flex flex-wrap items-center justify-center gap-6 mt-6 text-sm text-gray-300">
+                  <div className="flex flex-wrap items-center justify-center gap-4 sm:p-6 mt-6 text-sm text-gray-300">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4" />
                       <span>2 минути</span>
@@ -1000,60 +1156,66 @@ const ColdTrafficLanding = () => {
         </section>
 
         {/* FAQ Section */}
-        <section className="py-16">
-          <div className="container mx-auto px-4">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+        <section className="py-12 sm:py-16">
+          <div className="container mx-auto px-4 sm:px-6">
+            <div className="text-center mb-3 sm:mb-4 sm:mb-6 sm:mb-8 sm:mb-12">
+              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4">
                 Въпроси?
               </h2>
             </div>
 
-            <div className="max-w-3xl mx-auto space-y-4">
+            <div className="max-w-3xl mx-auto space-y-2 sm:space-y-3 sm:space-y-4">
               <details className="group bg-card/50 backdrop-blur-sm rounded-lg border border-border hover:border-primary/50 transition-all duration-300">
-                <summary className="p-6 cursor-pointer flex items-center justify-between list-none">
+                <summary className="p-4 sm:p-6 cursor-pointer flex items-center justify-between list-none">
                   <span className="text-lg font-medium text-foreground">
                     Какво е различното при Testograph?
                   </span>
                   <ChevronDown className="w-5 h-5 text-primary transition-transform group-open:rotate-180" />
                 </summary>
                 <div className="px-6 pb-6 text-muted-foreground">
-                  Не сме просто добавка. Ние сме ПЪЛНАТА СИСТЕМА - протокол + продукт + AI експерт + community. 341 българи вече постигнаха +130% тестостерон. Това е разликата.
+                  Не сме просто добавка. Ние сме ПЪЛНАТА СИСТЕМА - протокол +
+                  продукт + AI експерт + community. 341 българи вече постигнаха
+                  +130% тестостерон. Това е разликата.
                 </div>
               </details>
 
               <details className="group bg-card/50 backdrop-blur-sm rounded-lg border border-border hover:border-primary/50 transition-all duration-300">
-                <summary className="p-6 cursor-pointer flex items-center justify-between list-none">
+                <summary className="p-4 sm:p-6 cursor-pointer flex items-center justify-between list-none">
                   <span className="text-lg font-medium text-foreground">
                     Колко време отнема да видя резултати?
                   </span>
                   <ChevronDown className="w-5 h-5 text-primary transition-transform group-open:rotate-180" />
                 </summary>
                 <div className="px-6 pb-6 text-muted-foreground">
-                  Първите промени (енергия, настроение) се усещат за 7-14 дни. За значителни хормонални промени - 30-90 дни. Затова даваме 60-дневна гаранция.
+                  Първите промени (енергия, настроение) се усещат за 7-14 дни.
+                  За значителни хормонални промени - 30-90 дни. Затова даваме
+                  60-дневна гаранция.
                 </div>
               </details>
 
               <details className="group bg-card/50 backdrop-blur-sm rounded-lg border border-border hover:border-primary/50 transition-all duration-300">
-                <summary className="p-6 cursor-pointer flex items-center justify-between list-none">
+                <summary className="p-4 sm:p-6 cursor-pointer flex items-center justify-between list-none">
                   <span className="text-lg font-medium text-foreground">
                     Безопасно ли е?
                   </span>
                   <ChevronDown className="w-5 h-5 text-primary transition-transform group-open:rotate-180" />
                 </summary>
                 <div className="px-6 pb-6 text-muted-foreground">
-                  100% натурални съставки, клинично тествани дози. Произведено в ЕС. Но винаги се консултирай с лекар преди нови добавки.
+                  100% натурални съставки, клинично тествани дози. Произведено в
+                  ЕС. Но винаги се консултирай с лекар преди нови добавки.
                 </div>
               </details>
 
               <details className="group bg-card/50 backdrop-blur-sm rounded-lg border border-border hover:border-primary/50 transition-all duration-300">
-                <summary className="p-6 cursor-pointer flex items-center justify-between list-none">
+                <summary className="p-4 sm:p-6 cursor-pointer flex items-center justify-between list-none">
                   <span className="text-lg font-medium text-foreground">
                     Какво ако не работи за мен?
                   </span>
                   <ChevronDown className="w-5 h-5 text-primary transition-transform group-open:rotate-180" />
                 </summary>
                 <div className="px-6 pb-6 text-muted-foreground">
-                  60-дневна гаранция. Ако не видиш резултати, връщаме 100% от парите + 50лв бонус за загубеното време. Риск нула.
+                  60-дневна гаранция. Ако не видиш резултати, връщаме 100% от
+                  парите + 50лв бонус за загубеното време. Риск нула.
                 </div>
               </details>
             </div>
@@ -1062,15 +1224,24 @@ const ColdTrafficLanding = () => {
 
         {/* Footer */}
         <footer className="py-8 border-t border-border/50">
-          <div className="container mx-auto px-4 text-center">
-            <div className="flex flex-wrap justify-center gap-6 mb-4">
-              <Link href="/privacy" className="text-muted-foreground hover:text-primary transition-colors">
+          <div className="container mx-auto px-4 sm:px-6 text-center">
+            <div className="flex flex-wrap justify-center gap-4 sm:p-6 mb-3 sm:mb-4">
+              <Link
+                href="/privacy"
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
                 Поверителност
               </Link>
-              <Link href="/terms" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link
+                href="/terms"
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
                 Условия
               </Link>
-              <Link href="/cookies" className="text-muted-foreground hover:text-primary transition-colors">
+              <Link
+                href="/cookies"
+                className="text-muted-foreground hover:text-primary transition-colors"
+              >
                 Бисквитки
               </Link>
             </div>
@@ -1097,9 +1268,9 @@ const ColdTrafficLanding = () => {
               <Button
                 onClick={() => {
                   setShowEmailForm(true);
-                  trackAddToCart('Scarcity Banner CTA', 97, 'BGN');
+                  trackAddToCart("Scarcity Banner CTA", 97, "BGN");
                 }}
-                className="bg-white text-destructive hover:bg-gray-100 font-bold px-6 py-2 rounded-full"
+                className="bg-white text-destructive hover:bg-gray-100 font-bold px-4 sm:px-6 py-1.5 sm:py-2 rounded-full"
               >
                 Вземи Системата СЕГА
               </Button>

@@ -1,18 +1,24 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import AdminLayout from "@/components/admin/AdminLayout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -20,7 +26,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Search,
   ClipboardList,
@@ -30,9 +36,9 @@ import {
   ChevronDown,
   ChevronRight,
   Calendar,
-  X
-} from 'lucide-react';
-import { exportToCSV } from '@/lib/utils/exportToCSV';
+  X,
+} from "lucide-react";
+import { exportToCSV } from "@/lib/utils/exportToCSV";
 
 interface AuditLog {
   id: string;
@@ -49,21 +55,21 @@ interface AuditLog {
 }
 
 const ACTION_TYPES = [
-  { value: 'all', label: 'Всички Действия' },
-  { value: 'grant_pro_access', label: 'Даване на PRO достъп' },
-  { value: 'revoke_pro_access', label: 'Премахване на PRO достъп' },
-  { value: 'create_purchase', label: 'Създаване на покупка' },
-  { value: 'edit_purchase', label: 'Редактиране на покупка' },
-  { value: 'delete_purchase', label: 'Изтриване на покупка' },
-  { value: 'reset_password', label: 'Промяна на парола' },
-  { value: 'ban_user', label: 'Блокиране на потребител' },
-  { value: 'unban_user', label: 'Разблокиране на потребител' },
-  { value: 'edit_profile', label: 'Редактиране на профил' },
-  { value: 'delete_user', label: 'Изтриване на потребител' },
-  { value: 'send_email', label: 'Изпращане на email' },
-  { value: 'bulk_email', label: 'Масово изпращане на email' },
-  { value: 'add_admin', label: 'Добавяне на админ' },
-  { value: 'remove_admin', label: 'Премахване на админ' },
+  { value: "all", label: "Всички Действия" },
+  { value: "grant_pro_access", label: "Даване на PRO достъп" },
+  { value: "revoke_pro_access", label: "Премахване на PRO достъп" },
+  { value: "create_purchase", label: "Създаване на покупка" },
+  { value: "edit_purchase", label: "Редактиране на покупка" },
+  { value: "delete_purchase", label: "Изтриване на покупка" },
+  { value: "reset_password", label: "Промяна на парола" },
+  { value: "ban_user", label: "Блокиране на потребител" },
+  { value: "unban_user", label: "Разблокиране на потребител" },
+  { value: "edit_profile", label: "Редактиране на профил" },
+  { value: "delete_user", label: "Изтриване на потребител" },
+  { value: "send_email", label: "Изпращане на email" },
+  { value: "bulk_email", label: "Масово изпращане на email" },
+  { value: "add_admin", label: "Добавяне на админ" },
+  { value: "remove_admin", label: "Премахване на админ" },
 ];
 
 export default function AuditLogsPage() {
@@ -73,10 +79,10 @@ export default function AuditLogsPage() {
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   // Filters
-  const [search, setSearch] = useState('');
-  const [actionType, setActionType] = useState('all');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [search, setSearch] = useState("");
+  const [actionType, setActionType] = useState("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -90,11 +96,11 @@ export default function AuditLogsPage() {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
-      if (actionType !== 'all') params.append('actionType', actionType);
-      if (dateFrom) params.append('dateFrom', dateFrom);
-      if (dateTo) params.append('dateTo', dateTo);
-      params.append('limit', limit.toString());
-      params.append('offset', ((currentPage - 1) * limit).toString());
+      if (actionType !== "all") params.append("actionType", actionType);
+      if (dateFrom) params.append("dateFrom", dateFrom);
+      if (dateTo) params.append("dateTo", dateTo);
+      params.append("limit", limit.toString());
+      params.append("offset", ((currentPage - 1) * limit).toString());
 
       const response = await fetch(`/api/admin/audit-logs?${params}`);
       const data = await response.json();
@@ -104,7 +110,7 @@ export default function AuditLogsPage() {
         setTotal(data.total);
       }
     } catch (error) {
-      console.error('Error fetching audit logs:', error);
+      console.error("Error fetching audit logs:", error);
     } finally {
       setIsLoading(false);
     }
@@ -115,10 +121,10 @@ export default function AuditLogsPage() {
   };
 
   const handleClearFilters = () => {
-    setSearch('');
-    setActionType('all');
-    setDateFrom('');
-    setDateTo('');
+    setSearch("");
+    setActionType("all");
+    setDateFrom("");
+    setDateTo("");
     setCurrentPage(1);
   };
 
@@ -133,46 +139,56 @@ export default function AuditLogsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('bg-BG', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      second: '2-digit',
+    return new Date(dateString).toLocaleString("bg-BG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
     });
   };
 
   const getActionTypeBadgeColor = (actionType: string): string => {
-    if (actionType.includes('grant') || actionType.includes('add')) return 'bg-green-600';
-    if (actionType.includes('revoke') || actionType.includes('delete') || actionType.includes('ban')) return 'bg-red-600';
-    if (actionType.includes('edit') || actionType.includes('update')) return 'bg-yellow-600';
-    if (actionType.includes('email')) return 'bg-purple-600';
-    if (actionType.includes('create')) return 'bg-blue-600';
-    if (actionType.includes('unban')) return 'bg-green-600';
-    return 'bg-gray-600';
+    if (actionType.includes("grant") || actionType.includes("add"))
+      return "bg-green-600";
+    if (
+      actionType.includes("revoke") ||
+      actionType.includes("delete") ||
+      actionType.includes("ban")
+    )
+      return "bg-red-600";
+    if (actionType.includes("edit") || actionType.includes("update"))
+      return "bg-yellow-600";
+    if (actionType.includes("email")) return "bg-purple-600";
+    if (actionType.includes("create")) return "bg-blue-600";
+    if (actionType.includes("unban")) return "bg-green-600";
+    return "bg-gray-600";
   };
 
   const getActionTypeLabel = (actionType: string): string => {
-    const found = ACTION_TYPES.find(t => t.value === actionType);
+    const found = ACTION_TYPES.find((t) => t.value === actionType);
     return found ? found.label : actionType;
   };
 
   const handleExport = () => {
     const exportData = filteredLogs.map((log) => ({
-      'Дата': formatDate(log.created_at),
-      'Админ': log.admin_email,
-      'Действие': getActionTypeLabel(log.action_type),
-      'Потребител': log.target_user_email || 'N/A',
-      'Описание': log.description,
-      'IP Адрес': log.ip_address || 'N/A',
+      Дата: formatDate(log.created_at),
+      Админ: log.admin_email,
+      Действие: getActionTypeLabel(log.action_type),
+      Потребител: log.target_user_email || "N/A",
+      Описание: log.description,
+      "IP Адрес": log.ip_address || "N/A",
     }));
 
-    exportToCSV(exportData, `audit-logs-${new Date().toISOString().split('T')[0]}`);
+    exportToCSV(
+      exportData,
+      `audit-logs-${new Date().toISOString().split("T")[0]}`,
+    );
   };
 
   // Client-side search filtering
-  const filteredLogs = logs.filter(log => {
+  const filteredLogs = logs.filter((log) => {
     if (!search) return true;
     const searchLower = search.toLowerCase();
     return (
@@ -183,7 +199,7 @@ export default function AuditLogsPage() {
   });
 
   const totalPages = Math.ceil(total / limit);
-  const hasFilters = actionType !== 'all' || dateFrom || dateTo || search;
+  const hasFilters = actionType !== "all" || dateFrom || dateTo || search;
 
   return (
     <AdminLayout>
@@ -200,7 +216,9 @@ export default function AuditLogsPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Филтри</CardTitle>
-            <CardDescription>Филтрирайте логовете по дата, тип действие или потребител</CardDescription>
+            <CardDescription>
+              Филтрирайте логовете по дата, тип действие или потребител
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
@@ -239,10 +257,13 @@ export default function AuditLogsPage() {
               {/* Action Type */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">Тип Действие</label>
-                <Select value={actionType} onValueChange={(value) => {
-                  setActionType(value);
-                  setCurrentPage(1);
-                }}>
+                <Select
+                  value={actionType}
+                  onValueChange={(value) => {
+                    setActionType(value);
+                    setCurrentPage(1);
+                  }}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -288,7 +309,9 @@ export default function AuditLogsPage() {
                     onClick={handleRefresh}
                     disabled={isLoading}
                   >
-                    <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                    <RefreshCw
+                      className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`}
+                    />
                   </Button>
                 </div>
               </div>
@@ -306,7 +329,8 @@ export default function AuditLogsPage() {
                   Всички Логове
                 </CardTitle>
                 <CardDescription>
-                  Показани {filteredLogs.length} от {total} {total === 1 ? 'запис' : 'записа'}
+                  Показани {filteredLogs.length} от {total}{" "}
+                  {total === 1 ? "запис" : "записа"}
                   {search && ` (филтрирани по "${search}")`}
                 </CardDescription>
               </div>
@@ -329,7 +353,9 @@ export default function AuditLogsPage() {
               <div className="text-center py-12">
                 <ClipboardList className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
-                  {hasFilters ? 'Няма намерени логове с тези филтри' : 'Все още няма audit логове'}
+                  {hasFilters
+                    ? "Няма намерени логове с тези филтри"
+                    : "Все още няма audit логове"}
                 </p>
               </div>
             ) : (
@@ -369,20 +395,24 @@ export default function AuditLogsPage() {
                               {log.admin_email}
                             </TableCell>
                             <TableCell>
-                              <Badge className={`${getActionTypeBadgeColor(log.action_type)} text-white`}>
+                              <Badge
+                                className={`${getActionTypeBadgeColor(log.action_type)} text-white`}
+                              >
                                 {getActionTypeLabel(log.action_type)}
                               </Badge>
                             </TableCell>
                             <TableCell>
                               {log.target_user_email || (
-                                <span className="text-muted-foreground text-sm">—</span>
+                                <span className="text-muted-foreground text-sm">
+                                  —
+                                </span>
                               )}
                             </TableCell>
                             <TableCell className="max-w-md truncate">
                               {log.description}
                             </TableCell>
                             <TableCell className="text-sm text-muted-foreground">
-                              {log.ip_address || '—'}
+                              {log.ip_address || "—"}
                             </TableCell>
                           </TableRow>
 
@@ -391,7 +421,9 @@ export default function AuditLogsPage() {
                             <TableRow>
                               <TableCell colSpan={7} className="bg-muted/50">
                                 <div className="py-4 px-2">
-                                  <h4 className="font-semibold mb-3">Детайли на промените:</h4>
+                                  <h4 className="font-semibold mb-3">
+                                    Детайли на промените:
+                                  </h4>
                                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     {/* Before */}
                                     <div>
@@ -400,8 +432,12 @@ export default function AuditLogsPage() {
                                       </h5>
                                       <pre className="text-xs bg-background p-3 rounded border overflow-x-auto">
                                         {log.changes_before
-                                          ? JSON.stringify(log.changes_before, null, 2)
-                                          : 'Няма данни'}
+                                          ? JSON.stringify(
+                                              log.changes_before,
+                                              null,
+                                              2,
+                                            )
+                                          : "Няма данни"}
                                       </pre>
                                     </div>
                                     {/* After */}
@@ -411,31 +447,51 @@ export default function AuditLogsPage() {
                                       </h5>
                                       <pre className="text-xs bg-background p-3 rounded border overflow-x-auto">
                                         {log.changes_after
-                                          ? JSON.stringify(log.changes_after, null, 2)
-                                          : 'Няма данни'}
+                                          ? JSON.stringify(
+                                              log.changes_after,
+                                              null,
+                                              2,
+                                            )
+                                          : "Няма данни"}
                                       </pre>
                                     </div>
                                   </div>
                                   {/* Additional Info */}
                                   <div className="mt-4 pt-4 border-t grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                                     <div>
-                                      <span className="text-muted-foreground">Log ID:</span>
-                                      <p className="font-mono text-xs">{log.id}</p>
+                                      <span className="text-muted-foreground">
+                                        Log ID:
+                                      </span>
+                                      <p className="font-mono text-xs">
+                                        {log.id}
+                                      </p>
                                     </div>
                                     <div>
-                                      <span className="text-muted-foreground">Admin ID:</span>
-                                      <p className="font-mono text-xs">{log.admin_id}</p>
+                                      <span className="text-muted-foreground">
+                                        Admin ID:
+                                      </span>
+                                      <p className="font-mono text-xs">
+                                        {log.admin_id}
+                                      </p>
                                     </div>
                                     {log.target_user_id && (
                                       <div>
-                                        <span className="text-muted-foreground">Target User ID:</span>
-                                        <p className="font-mono text-xs">{log.target_user_id}</p>
+                                        <span className="text-muted-foreground">
+                                          Target User ID:
+                                        </span>
+                                        <p className="font-mono text-xs">
+                                          {log.target_user_id}
+                                        </p>
                                       </div>
                                     )}
                                     {log.ip_address && (
                                       <div>
-                                        <span className="text-muted-foreground">IP Address:</span>
-                                        <p className="font-mono text-xs">{log.ip_address}</p>
+                                        <span className="text-muted-foreground">
+                                          IP Address:
+                                        </span>
+                                        <p className="font-mono text-xs">
+                                          {log.ip_address}
+                                        </p>
                                       </div>
                                     )}
                                   </div>
@@ -459,7 +515,9 @@ export default function AuditLogsPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                        onClick={() =>
+                          setCurrentPage((prev) => Math.max(1, prev - 1))
+                        }
                         disabled={currentPage === 1}
                       >
                         Предишна
@@ -467,7 +525,11 @@ export default function AuditLogsPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                        onClick={() =>
+                          setCurrentPage((prev) =>
+                            Math.min(totalPages, prev + 1),
+                          )
+                        }
                         disabled={currentPage === totalPages}
                       >
                         Следваща

@@ -1,15 +1,21 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { getCurrentAdminUser } from '@/lib/admin/auth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { getCurrentAdminUser } from "@/lib/admin/auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,7 +23,7 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +31,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   Search,
   Users as UsersIcon,
@@ -49,10 +55,10 @@ import {
   Clock,
   Copy,
   Plus,
-  Minus
-} from 'lucide-react';
-import { exportToCSV } from '@/lib/utils/exportToCSV';
-import { useToast } from '@/hooks/use-toast';
+  Minus,
+} from "lucide-react";
+import { exportToCSV } from "@/lib/utils/exportToCSV";
+import { useToast } from "@/hooks/use-toast";
 
 interface User {
   id?: string;
@@ -90,7 +96,7 @@ export default function UsersPage() {
   const { toast } = useToast();
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
 
   // Admin user authentication
@@ -112,15 +118,15 @@ export default function UsersPage() {
   const [deleteUserModal, setDeleteUserModal] = useState(false);
 
   // Form states
-  const [proStartDate, setProStartDate] = useState('');
-  const [revokeProReason, setRevokeProReason] = useState('');
-  const [selectedApp, setSelectedApp] = useState('');
-  const [appAmount, setAppAmount] = useState('0');
-  const [newPassword, setNewPassword] = useState('');
-  const [banReason, setBanReason] = useState('');
-  const [editName, setEditName] = useState('');
-  const [editAvatar, setEditAvatar] = useState('');
-  const [deleteConfirmEmail, setDeleteConfirmEmail] = useState('');
+  const [proStartDate, setProStartDate] = useState("");
+  const [revokeProReason, setRevokeProReason] = useState("");
+  const [selectedApp, setSelectedApp] = useState("");
+  const [appAmount, setAppAmount] = useState("0");
+  const [newPassword, setNewPassword] = useState("");
+  const [banReason, setBanReason] = useState("");
+  const [editName, setEditName] = useState("");
+  const [editAvatar, setEditAvatar] = useState("");
+  const [deleteConfirmEmail, setDeleteConfirmEmail] = useState("");
 
   // Fetch admin user on mount
   useEffect(() => {
@@ -131,7 +137,7 @@ export default function UsersPage() {
         setAdminEmail(email);
       } else {
         // Not authenticated as admin - redirect to login
-        router.push('/admin');
+        router.push("/admin");
       }
     };
     fetchAdminUser();
@@ -152,7 +158,9 @@ export default function UsersPage() {
   const fetchUserPurchases = async (email: string) => {
     setLoadingPurchases(true);
     try {
-      const response = await fetch(`/api/admin/users/${encodeURIComponent(email)}`);
+      const response = await fetch(
+        `/api/admin/users/${encodeURIComponent(email)}`,
+      );
       const data = await response.json();
 
       if (response.ok && data.purchases) {
@@ -175,11 +183,11 @@ export default function UsersPage() {
         }
       }
     } catch (error) {
-      console.error('Error fetching user purchases:', error);
+      console.error("Error fetching user purchases:", error);
       toast({
-        title: 'Грешка',
-        description: 'Не успя да се заредят покупките',
-        variant: 'destructive',
+        title: "Грешка",
+        description: "Не успя да се заредят покупките",
+        variant: "destructive",
       });
     } finally {
       setLoadingPurchases(false);
@@ -191,7 +199,7 @@ export default function UsersPage() {
     try {
       const params = new URLSearchParams();
       if (search) {
-        params.append('search', search);
+        params.append("search", search);
       }
 
       const response = await fetch(`/api/admin/users?${params}`);
@@ -202,29 +210,31 @@ export default function UsersPage() {
         const usersWithDetails = await Promise.all(
           data.users.map(async (user) => {
             try {
-              const detailsRes = await fetch(`/api/admin/users/${encodeURIComponent(user.email)}`);
+              const detailsRes = await fetch(
+                `/api/admin/users/${encodeURIComponent(user.email)}`,
+              );
               const details = await detailsRes.json();
               return {
                 ...user,
                 id: details.userId,
                 banned: details.banned || false,
                 name: details.profile?.name,
-                avatar: details.profile?.avatar
+                avatar: details.profile?.avatar,
               };
             } catch (error) {
               console.error(`Error fetching details for ${user.email}:`, error);
               return user;
             }
-          })
+          }),
         );
         setUsers(usersWithDetails);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
       toast({
-        title: 'Грешка',
-        description: 'Не успя да се заредят потребителите',
-        variant: 'destructive',
+        title: "Грешка",
+        description: "Не успя да се заредят потребителите",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -232,12 +242,12 @@ export default function UsersPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('bg-BG', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleString("bg-BG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -249,10 +259,12 @@ export default function UsersPage() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Сега';
+    if (diffMins < 1) return "Сега";
     if (diffMins < 60) return `Преди ${diffMins} мин`;
-    if (diffHours < 24) return `Преди ${diffHours} час${diffHours === 1 ? '' : 'а'}`;
-    if (diffDays < 30) return `Преди ${diffDays} ден${diffDays === 1 ? '' : 'и'}`;
+    if (diffHours < 24)
+      return `Преди ${diffHours} час${diffHours === 1 ? "" : "а"}`;
+    if (diffDays < 30)
+      return `Преди ${diffDays} ден${diffDays === 1 ? "" : "и"}`;
     return formatDate(dateString);
   };
 
@@ -268,8 +280,8 @@ export default function UsersPage() {
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
     toast({
-      title: 'Копирано',
-      description: 'Текстът е копиран в клипборда',
+      title: "Копирано",
+      description: "Текстът е копиран в клипборда",
     });
   };
 
@@ -280,20 +292,20 @@ export default function UsersPage() {
   const handleExport = () => {
     const exportData = users.map((user) => ({
       Email: user.email,
-      'First Name': user.firstName || 'N/A',
-      'Chat Sessions': user.chatSessions,
-      'Funnel Attempts': user.funnelAttempts,
-      'Converted': user.converted ? 'Yes' : 'No',
-      'Last Activity': formatDate(user.lastActivity),
-      'Banned': user.banned ? 'Yes' : 'No',
+      "First Name": user.firstName || "N/A",
+      "Chat Sessions": user.chatSessions,
+      "Funnel Attempts": user.funnelAttempts,
+      Converted: user.converted ? "Yes" : "No",
+      "Last Activity": formatDate(user.lastActivity),
+      Banned: user.banned ? "Yes" : "No",
     }));
 
-    exportToCSV(exportData, `users-${new Date().toISOString().split('T')[0]}`);
+    exportToCSV(exportData, `users-${new Date().toISOString().split("T")[0]}`);
   };
 
   const openGrantProModal = (user: User) => {
     setSelectedUser(user);
-    setProStartDate(new Date().toISOString().split('T')[0]);
+    setProStartDate(new Date().toISOString().split("T")[0]);
     setGrantProModal(true);
   };
 
@@ -302,9 +314,9 @@ export default function UsersPage() {
 
     setActionLoading(true);
     try {
-      const response = await fetch('/api/admin/access/grant-pro', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/access/grant-pro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUser.id,
           startDate: proStartDate,
@@ -317,7 +329,7 @@ export default function UsersPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех',
+          title: "Успех",
           description: data.message,
         });
         setGrantProModal(false);
@@ -331,9 +343,9 @@ export default function UsersPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно даване на PRO достъп',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно даване на PRO достъп",
+        variant: "destructive",
       });
     } finally {
       setActionLoading(false);
@@ -345,9 +357,9 @@ export default function UsersPage() {
 
     setActionLoading(true);
     try {
-      const response = await fetch('/api/admin/access/revoke-pro', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/access/revoke-pro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUser.id,
           reason: revokeProReason,
@@ -360,11 +372,11 @@ export default function UsersPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех',
+          title: "Успех",
           description: data.message,
         });
         setRevokeProModal(false);
-        setRevokeProReason('');
+        setRevokeProReason("");
         fetchUsers();
         // Refresh user detail
         if (selectedUser.email) {
@@ -375,9 +387,9 @@ export default function UsersPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно премахване на PRO достъп',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно премахване на PRO достъп",
+        variant: "destructive",
       });
     } finally {
       setActionLoading(false);
@@ -388,26 +400,26 @@ export default function UsersPage() {
     if (!selectedUser?.id || !selectedApp) return;
 
     const appNames: Record<string, string> = {
-      'meal-planner': 'Meal Planner',
-      'sleep-protocol': 'Sleep Protocol',
-      'supplement-timing': 'Supplement Timing Guide',
-      'exercise-guide': 'Exercise Reference Guide',
-      'lab-testing': 'Lab Testing Guide',
+      "meal-planner": "Meal Planner",
+      "sleep-protocol": "Sleep Protocol",
+      "supplement-timing": "Supplement Timing Guide",
+      "exercise-guide": "Exercise Reference Guide",
+      "lab-testing": "Lab Testing Guide",
     };
 
     setActionLoading(true);
     try {
-      const response = await fetch('/api/admin/access/create-purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/access/create-purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUser.id,
           productName: appNames[selectedApp] || selectedApp,
-          productType: 'digital',
+          productType: "digital",
           appsIncluded: [selectedApp],
           amount: parseFloat(appAmount),
-          currency: 'BGN',
-          status: 'completed',
+          currency: "BGN",
+          status: "completed",
           adminId,
           adminEmail,
         }),
@@ -417,12 +429,12 @@ export default function UsersPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех',
+          title: "Успех",
           description: data.message,
         });
         setAddAppModal(false);
-        setSelectedApp('');
-        setAppAmount('0');
+        setSelectedApp("");
+        setAppAmount("0");
         fetchUsers();
         // Refresh user detail
         if (selectedUser.email) {
@@ -433,9 +445,10 @@ export default function UsersPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно добавяне на достъп до приложение',
-        variant: 'destructive',
+        title: "Грешка",
+        description:
+          error.message || "Неуспешно добавяне на достъп до приложение",
+        variant: "destructive",
       });
     } finally {
       setActionLoading(false);
@@ -447,9 +460,9 @@ export default function UsersPage() {
 
     setActionLoading(true);
     try {
-      const response = await fetch('/api/admin/users/reset-password', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/users/reset-password", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUser.id,
           newPassword,
@@ -462,19 +475,19 @@ export default function UsersPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех',
+          title: "Успех",
           description: data.message,
         });
         setResetPasswordModal(false);
-        setNewPassword('');
+        setNewPassword("");
       } else {
         throw new Error(data.error);
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешна промяна на парола',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешна промяна на парола",
+        variant: "destructive",
       });
     } finally {
       setActionLoading(false);
@@ -486,9 +499,9 @@ export default function UsersPage() {
 
     setActionLoading(true);
     try {
-      const response = await fetch('/api/admin/users/ban', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/users/ban", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUser.id,
           reason: banReason,
@@ -501,20 +514,20 @@ export default function UsersPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех',
+          title: "Успех",
           description: data.message,
         });
         setBanUserModal(false);
-        setBanReason('');
+        setBanReason("");
         fetchUsers();
       } else {
         throw new Error(data.error);
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно блокиране на потребител',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно блокиране на потребител",
+        variant: "destructive",
       });
     } finally {
       setActionLoading(false);
@@ -526,9 +539,9 @@ export default function UsersPage() {
 
     setActionLoading(true);
     try {
-      const response = await fetch('/api/admin/users/unban', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/users/unban", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUser.id,
           adminId,
@@ -540,7 +553,7 @@ export default function UsersPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех',
+          title: "Успех",
           description: data.message,
         });
         setUnbanUserModal(false);
@@ -550,9 +563,9 @@ export default function UsersPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно разблокиране на потребител',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно разблокиране на потребител",
+        variant: "destructive",
       });
     } finally {
       setActionLoading(false);
@@ -564,9 +577,9 @@ export default function UsersPage() {
 
     setActionLoading(true);
     try {
-      const response = await fetch('/api/admin/users/edit-profile', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/users/edit-profile", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUser.id,
           updates: {
@@ -582,7 +595,7 @@ export default function UsersPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех',
+          title: "Успех",
           description: data.message,
         });
         setEditProfileModal(false);
@@ -592,9 +605,9 @@ export default function UsersPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно редактиране на профил',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно редактиране на профил",
+        variant: "destructive",
       });
     } finally {
       setActionLoading(false);
@@ -606,9 +619,9 @@ export default function UsersPage() {
 
     setActionLoading(true);
     try {
-      const response = await fetch('/api/admin/users/delete', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/users/delete", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUser.id,
           confirmEmail: deleteConfirmEmail,
@@ -621,20 +634,20 @@ export default function UsersPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех',
+          title: "Успех",
           description: data.message,
         });
         setDeleteUserModal(false);
-        setDeleteConfirmEmail('');
+        setDeleteConfirmEmail("");
         fetchUsers();
       } else {
         throw new Error(data.error);
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно изтриване на потребител',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно изтриване на потребител",
+        variant: "destructive",
       });
     } finally {
       setActionLoading(false);
@@ -643,9 +656,11 @@ export default function UsersPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-3 sm:space-y-4 md:space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Потребители</h1>
+          <h1 className="text-xl sm:text-2xl sm:text-3xl font-bold">
+            Потребители
+          </h1>
           <p className="text-muted-foreground mt-2">
             Преглед на всички потребители и тяхната активност
           </p>
@@ -661,7 +676,9 @@ export default function UsersPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{users.length}</div>
+                <div className="text-xl sm:text-2xl font-bold">
+                  {users.length}
+                </div>
               </CardContent>
             </Card>
 
@@ -672,7 +689,7 @@ export default function UsersPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-xl sm:text-2xl font-bold text-green-600">
                   {users.filter((u) => u.converted).length}
                 </div>
               </CardContent>
@@ -685,7 +702,7 @@ export default function UsersPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-xl sm:text-2xl font-bold">
                   {users.filter((u) => u.chatSessions > 0).length}
                 </div>
               </CardContent>
@@ -698,7 +715,7 @@ export default function UsersPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">
+                <div className="text-xl sm:text-2xl font-bold">
                   {users.filter((u) => u.funnelAttempts > 0).length}
                 </div>
               </CardContent>
@@ -711,7 +728,7 @@ export default function UsersPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">
+                <div className="text-xl sm:text-2xl font-bold text-green-600">
                   {users.filter((u) => u.purchasesCount > 0).length}
                 </div>
               </CardContent>
@@ -724,8 +741,11 @@ export default function UsersPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {users.reduce((sum, u) => sum + (u.totalSpent || 0), 0).toFixed(2)} лв
+                <div className="text-xl sm:text-2xl font-bold text-green-600">
+                  {users
+                    .reduce((sum, u) => sum + (u.totalSpent || 0), 0)
+                    .toFixed(2)}{" "}
+                  лв
                 </div>
               </CardContent>
             </Card>
@@ -738,7 +758,8 @@ export default function UsersPage() {
               <div>
                 <CardTitle>Всички Потребители</CardTitle>
                 <CardDescription>
-                  Общо {users.length} {users.length === 1 ? 'потребител' : 'потребители'}
+                  Общо {users.length}{" "}
+                  {users.length === 1 ? "потребител" : "потребители"}
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -771,7 +792,9 @@ export default function UsersPage() {
               <div className="text-center py-12">
                 <UsersIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
-                  {search ? 'Няма намерени потребители' : 'Още няма потребители'}
+                  {search
+                    ? "Няма намерени потребители"
+                    : "Още няма потребители"}
                 </p>
               </div>
             ) : (
@@ -793,7 +816,9 @@ export default function UsersPage() {
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className="font-semibold truncate">
-                            {user.name || user.firstName || user.email.split('@')[0]}
+                            {user.name ||
+                              user.firstName ||
+                              user.email.split("@")[0]}
                           </p>
                           <p className="text-xs text-muted-foreground truncate">
                             {user.email}
@@ -808,9 +833,13 @@ export default function UsersPage() {
                           <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
                               <MessageCircle className="w-4 h-4 text-blue-500" />
-                              <span className="text-muted-foreground">Chat</span>
+                              <span className="text-muted-foreground">
+                                Chat
+                              </span>
                             </div>
-                            <Badge variant="secondary">{user.chatSessions}</Badge>
+                            <Badge variant="secondary">
+                              {user.chatSessions}
+                            </Badge>
                           </div>
                         )}
 
@@ -819,9 +848,13 @@ export default function UsersPage() {
                           <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
                               <TrendingUp className="w-4 h-4 text-orange-500" />
-                              <span className="text-muted-foreground">Funnel</span>
+                              <span className="text-muted-foreground">
+                                Funnel
+                              </span>
                             </div>
-                            <Badge variant="secondary">{user.funnelAttempts}</Badge>
+                            <Badge variant="secondary">
+                              {user.funnelAttempts}
+                            </Badge>
                           </div>
                         )}
 
@@ -830,10 +863,13 @@ export default function UsersPage() {
                           <div className="flex items-center justify-between text-sm">
                             <div className="flex items-center gap-2">
                               <ShoppingBag className="w-4 h-4 text-green-500" />
-                              <span className="text-muted-foreground">Покупки</span>
+                              <span className="text-muted-foreground">
+                                Покупки
+                              </span>
                             </div>
                             <Badge variant="default" className="bg-green-600">
-                              {user.purchasesCount} ({user.totalSpent.toFixed(2)} лв)
+                              {user.purchasesCount} (
+                              {user.totalSpent.toFixed(2)} лв)
                             </Badge>
                           </div>
                         )}
@@ -857,7 +893,9 @@ export default function UsersPage() {
                           {getRelativeTime(user.lastActivity)}
                         </div>
                         {user.banned ? (
-                          <Badge variant="destructive" className="text-xs">BANNED</Badge>
+                          <Badge variant="destructive" className="text-xs">
+                            BANNED
+                          </Badge>
                         ) : user.converted ? (
                           <CheckCircle className="w-4 h-4 text-green-600" />
                         ) : (
@@ -902,7 +940,9 @@ export default function UsersPage() {
               Отказ
             </Button>
             <Button onClick={handleGrantPro} disabled={actionLoading}>
-              {actionLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {actionLoading && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Дай PRO
             </Button>
           </DialogFooter>
@@ -942,7 +982,9 @@ export default function UsersPage() {
               onClick={handleRevokePro}
               disabled={actionLoading}
             >
-              {actionLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {actionLoading && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Премахни PRO
             </Button>
           </DialogFooter>
@@ -970,7 +1012,9 @@ export default function UsersPage() {
                 <option value="">-- Изберете --</option>
                 <option value="meal-planner">Meal Planner</option>
                 <option value="sleep-protocol">Sleep Protocol</option>
-                <option value="supplement-timing">Supplement Timing Guide</option>
+                <option value="supplement-timing">
+                  Supplement Timing Guide
+                </option>
                 <option value="exercise-guide">Exercise Reference Guide</option>
                 <option value="lab-testing">Lab Testing Guide</option>
               </select>
@@ -1000,7 +1044,9 @@ export default function UsersPage() {
               onClick={handleAddAppAccess}
               disabled={actionLoading || !selectedApp}
             >
-              {actionLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {actionLoading && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Добави Достъп
             </Button>
           </DialogFooter>
@@ -1018,7 +1064,9 @@ export default function UsersPage() {
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="new-password">Нова Парола (минимум 8 символа)</Label>
+              <Label htmlFor="new-password">
+                Нова Парола (минимум 8 символа)
+              </Label>
               <Input
                 id="new-password"
                 type="password"
@@ -1040,7 +1088,9 @@ export default function UsersPage() {
               onClick={handleResetPassword}
               disabled={actionLoading || newPassword.length < 8}
             >
-              {actionLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {actionLoading && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Промени Парола
             </Button>
           </DialogFooter>
@@ -1080,7 +1130,9 @@ export default function UsersPage() {
               onClick={handleBanUser}
               disabled={actionLoading}
             >
-              {actionLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {actionLoading && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Блокирай
             </Button>
           </DialogFooter>
@@ -1110,7 +1162,9 @@ export default function UsersPage() {
               Отказ
             </Button>
             <Button onClick={handleUnbanUser} disabled={actionLoading}>
-              {actionLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {actionLoading && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Разблокирай
             </Button>
           </DialogFooter>
@@ -1155,7 +1209,9 @@ export default function UsersPage() {
               Отказ
             </Button>
             <Button onClick={handleEditProfile} disabled={actionLoading}>
-              {actionLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {actionLoading && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Запази
             </Button>
           </DialogFooter>
@@ -1171,7 +1227,8 @@ export default function UsersPage() {
               Изтрий Потребител
             </DialogTitle>
             <DialogDescription>
-              Това действие е необратимо! Всички данни на потребителя ще бъдат изтрити.
+              Това действие е необратимо! Всички данни на потребителя ще бъдат
+              изтрити.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
@@ -1186,7 +1243,8 @@ export default function UsersPage() {
                 placeholder={selectedUser?.email}
               />
               <p className="text-xs text-muted-foreground">
-                Потвърдете като въведете: <span className="font-mono">{selectedUser?.email}</span>
+                Потвърдете като въведете:{" "}
+                <span className="font-mono">{selectedUser?.email}</span>
               </p>
             </div>
           </div>
@@ -1201,9 +1259,13 @@ export default function UsersPage() {
             <Button
               variant="destructive"
               onClick={handleDeleteUser}
-              disabled={actionLoading || deleteConfirmEmail !== selectedUser?.email}
+              disabled={
+                actionLoading || deleteConfirmEmail !== selectedUser?.email
+              }
             >
-              {actionLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+              {actionLoading && (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              )}
               Изтрий Завинаги
             </Button>
           </DialogFooter>
@@ -1220,7 +1282,9 @@ export default function UsersPage() {
               </div>
               <div>
                 <p className="text-xl font-semibold">
-                  {selectedUser?.name || selectedUser?.firstName || selectedUser?.email.split('@')[0]}
+                  {selectedUser?.name ||
+                    selectedUser?.firstName ||
+                    selectedUser?.email.split("@")[0]}
                 </p>
                 <p className="text-sm text-muted-foreground font-normal">
                   {selectedUser?.email}
@@ -1228,21 +1292,26 @@ export default function UsersPage() {
               </div>
             </DialogTitle>
             <DialogDescription>
-              Преглед на подробна информация за потребителя и управление на достъпа
+              Преглед на подробна информация за потребителя и управление на
+              достъпа
             </DialogDescription>
           </DialogHeader>
 
           {selectedUser && (
-            <div className="space-y-6 py-4">
+            <div className="space-y-3 sm:space-y-4 md:space-y-6 py-4">
               {/* Quick Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <Card>
                   <CardContent className="pt-6">
                     <div className="flex items-center gap-2">
                       <MessageCircle className="w-5 h-5 text-blue-500" />
                       <div>
-                        <p className="text-2xl font-bold">{selectedUser.chatSessions}</p>
-                        <p className="text-xs text-muted-foreground">Chat Сесии</p>
+                        <p className="text-xl sm:text-2xl font-bold">
+                          {selectedUser.chatSessions}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Chat Сесии
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -1253,8 +1322,12 @@ export default function UsersPage() {
                     <div className="flex items-center gap-2">
                       <TrendingUp className="w-5 h-5 text-orange-500" />
                       <div>
-                        <p className="text-2xl font-bold">{selectedUser.funnelAttempts}</p>
-                        <p className="text-xs text-muted-foreground">Funnel Опити</p>
+                        <p className="text-xl sm:text-2xl font-bold">
+                          {selectedUser.funnelAttempts}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Funnel Опити
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -1265,7 +1338,9 @@ export default function UsersPage() {
                     <div className="flex items-center gap-2">
                       <ShoppingBag className="w-5 h-5 text-green-500" />
                       <div>
-                        <p className="text-2xl font-bold">{selectedUser.purchasesCount}</p>
+                        <p className="text-xl sm:text-2xl font-bold">
+                          {selectedUser.purchasesCount}
+                        </p>
                         <p className="text-xs text-muted-foreground">Покупки</p>
                       </div>
                     </div>
@@ -1277,10 +1352,12 @@ export default function UsersPage() {
                     <div className="flex items-center gap-2">
                       <span className="text-2xl">💰</span>
                       <div>
-                        <p className="text-2xl font-bold text-green-600">
+                        <p className="text-xl sm:text-2xl font-bold text-green-600">
                           {selectedUser.totalSpent.toFixed(2)}
                         </p>
-                        <p className="text-xs text-muted-foreground">Общо (лв)</p>
+                        <p className="text-xs text-muted-foreground">
+                          Общо (лв)
+                        </p>
                       </div>
                     </div>
                   </CardContent>
@@ -1315,13 +1392,17 @@ export default function UsersPage() {
 
               {/* User Info Section */}
               <div className="border-t pt-4">
-                <Label className="text-base font-semibold mb-3 block">Информация за потребителя</Label>
+                <Label className="text-base font-semibold mb-3 block">
+                  Информация за потребителя
+                </Label>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">User ID</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      User ID
+                    </Label>
                     <div className="flex items-center gap-2">
                       <code className="text-xs bg-muted px-2 py-1 rounded font-mono flex-1 truncate">
-                        {selectedUser.id || 'N/A'}
+                        {selectedUser.id || "N/A"}
                       </code>
                       {selectedUser.id && (
                         <Button
@@ -1337,14 +1418,20 @@ export default function UsersPage() {
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Създаден на</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Създаден на
+                    </Label>
                     <p className="text-sm">
-                      {selectedUser.userCreatedAt ? formatDate(selectedUser.userCreatedAt) : 'N/A'}
+                      {selectedUser.userCreatedAt
+                        ? formatDate(selectedUser.userCreatedAt)
+                        : "N/A"}
                     </p>
                   </div>
 
                   <div className="space-y-2">
-                    <Label className="text-xs text-muted-foreground">Email Verified</Label>
+                    <Label className="text-xs text-muted-foreground">
+                      Email Verified
+                    </Label>
                     <div>
                       {selectedUser.emailVerified ? (
                         <Badge variant="default" className="bg-green-600">
@@ -1366,13 +1453,15 @@ export default function UsersPage() {
               {selectedUser.protocolStartDatePro && (
                 <div className="border-t pt-4">
                   <div className="flex items-center justify-between mb-3">
-                    <Label className="text-base font-semibold">PRO Status</Label>
+                    <Label className="text-base font-semibold">
+                      PRO Status
+                    </Label>
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => {
                         setUserDetailModal(false);
-                        setRevokeProReason('');
+                        setRevokeProReason("");
                         setRevokeProModal(true);
                       }}
                     >
@@ -1387,7 +1476,9 @@ export default function UsersPage() {
                         <div className="flex-1">
                           <div className="flex items-center gap-2 mb-1">
                             <h4 className="font-semibold">Testograph PRO</h4>
-                            <Badge variant="default" className="bg-yellow-600">Active</Badge>
+                            <Badge variant="default" className="bg-yellow-600">
+                              Active
+                            </Badge>
                           </div>
                           <p className="text-xs text-muted-foreground">
                             28-дневна програма за оптимизация на тестостерона
@@ -1395,25 +1486,43 @@ export default function UsersPage() {
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Започнат на</Label>
+                          <Label className="text-xs text-muted-foreground">
+                            Започнат на
+                          </Label>
                           <p className="text-sm font-medium">
-                            {new Date(selectedUser.protocolStartDatePro).toLocaleDateString('bg-BG')}
+                            {new Date(
+                              selectedUser.protocolStartDatePro,
+                            ).toLocaleDateString("bg-BG")}
                           </p>
                         </div>
 
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Дни изминали</Label>
+                          <Label className="text-xs text-muted-foreground">
+                            Дни изминали
+                          </Label>
                           <p className="text-sm font-medium text-primary">
-                            {calculateProDays(selectedUser.protocolStartDatePro).daysElapsed} дни
+                            {
+                              calculateProDays(
+                                selectedUser.protocolStartDatePro,
+                              ).daysElapsed
+                            }{" "}
+                            дни
                           </p>
                         </div>
 
                         <div className="space-y-1">
-                          <Label className="text-xs text-muted-foreground">Остават</Label>
+                          <Label className="text-xs text-muted-foreground">
+                            Остават
+                          </Label>
                           <p className="text-sm font-medium">
-                            {calculateProDays(selectedUser.protocolStartDatePro).daysRemaining} дни
+                            {
+                              calculateProDays(
+                                selectedUser.protocolStartDatePro,
+                              ).daysRemaining
+                            }{" "}
+                            дни
                           </p>
                         </div>
                       </div>
@@ -1423,72 +1532,95 @@ export default function UsersPage() {
               )}
 
               {/* Apps Access Section */}
-              {selectedUser.activeApps && selectedUser.activeApps.length > 0 && (
-                <div className="border-t pt-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <Label className="text-base font-semibold">Достъп до приложения ({selectedUser.activeApps.length})</Label>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setUserDetailModal(false);
-                        setSelectedApp('');
-                        setAppAmount('0');
-                        setAddAppModal(true);
-                      }}
-                    >
-                      <Plus className="w-4 h-4 mr-2" />
-                      Добави App
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {selectedUser.activeApps.map((app) => (
-                      <Card key={app} className="border-green-500/30">
-                        <CardContent className="p-4">
-                          <div className="flex items-center gap-2">
-                            <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                            <div className="flex-1 min-w-0">
-                              <p className="font-semibold text-sm truncate">
-                                {app === 'meal-planner' && 'Meal Planner'}
-                                {app === 'sleep-protocol' && 'Sleep Protocol'}
-                                {app === 'supplement-timing' && 'Supplement Timing'}
-                                {app === 'exercise-guide' && 'Exercise Guide'}
-                                {app === 'lab-testing' && 'Lab Testing'}
-                              </p>
-                              <p className="text-xs text-muted-foreground truncate">{app}</p>
+              {selectedUser.activeApps &&
+                selectedUser.activeApps.length > 0 && (
+                  <div className="border-t pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <Label className="text-base font-semibold">
+                        Достъп до приложения ({selectedUser.activeApps.length})
+                      </Label>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          setUserDetailModal(false);
+                          setSelectedApp("");
+                          setAppAmount("0");
+                          setAddAppModal(true);
+                        }}
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Добави App
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {selectedUser.activeApps.map((app) => (
+                        <Card key={app} className="border-green-500/30">
+                          <CardContent className="p-4">
+                            <div className="flex items-center gap-2">
+                              <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                              <div className="flex-1 min-w-0">
+                                <p className="font-semibold text-sm truncate">
+                                  {app === "meal-planner" && "Meal Planner"}
+                                  {app === "sleep-protocol" && "Sleep Protocol"}
+                                  {app === "supplement-timing" &&
+                                    "Supplement Timing"}
+                                  {app === "exercise-guide" && "Exercise Guide"}
+                                  {app === "lab-testing" && "Lab Testing"}
+                                </p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {app}
+                                </p>
+                              </div>
+                              <Badge
+                                variant="default"
+                                className="bg-green-600 flex-shrink-0"
+                              >
+                                Active
+                              </Badge>
                             </div>
-                            <Badge variant="default" className="bg-green-600 flex-shrink-0">
-                              Active
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                          </CardContent>
+                        </Card>
+                      ))}
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Ban Details Section */}
               {selectedUser.banned && selectedUser.banInfo && (
                 <div className="border-t pt-4">
-                  <Label className="text-base font-semibold mb-3 block">Ban Information</Label>
+                  <Label className="text-base font-semibold mb-3 block">
+                    Ban Information
+                  </Label>
                   <Card className="border-red-500/30 bg-red-500/5">
                     <CardContent className="p-4">
                       <div className="flex items-start gap-3">
                         <AlertTriangle className="w-5 h-5 text-red-600 mt-0.5" />
                         <div className="flex-1 space-y-2">
                           <div>
-                            <Label className="text-xs text-muted-foreground">Причина</Label>
-                            <p className="text-sm">{selectedUser.banInfo.reason}</p>
+                            <Label className="text-xs text-muted-foreground">
+                              Причина
+                            </Label>
+                            <p className="text-sm">
+                              {selectedUser.banInfo.reason}
+                            </p>
                           </div>
-                          <div className="grid grid-cols-2 gap-4">
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                              <Label className="text-xs text-muted-foreground">Блокиран на</Label>
-                              <p className="text-sm">{formatDate(selectedUser.banInfo.bannedAt)}</p>
+                              <Label className="text-xs text-muted-foreground">
+                                Блокиран на
+                              </Label>
+                              <p className="text-sm">
+                                {formatDate(selectedUser.banInfo.bannedAt)}
+                              </p>
                             </div>
                             <div>
-                              <Label className="text-xs text-muted-foreground">Блокиран от</Label>
-                              <p className="text-sm">{selectedUser.banInfo.bannedBy}</p>
+                              <Label className="text-xs text-muted-foreground">
+                                Блокиран от
+                              </Label>
+                              <p className="text-sm">
+                                {selectedUser.banInfo.bannedBy}
+                              </p>
                             </div>
                           </div>
                         </div>
@@ -1506,48 +1638,67 @@ export default function UsersPage() {
                   </Label>
 
                   {loadingPurchases ? (
-                    <div className="flex items-center justify-center py-8">
+                    <div className="flex items-center justify-center py-6 sm:py-8">
                       <Loader2 className="h-6 w-6 animate-spin text-primary" />
                     </div>
                   ) : userPurchases.length > 0 ? (
                     <div className="space-y-3">
                       {userPurchases.map((purchase) => (
-                        <Card key={purchase.id} className="border-l-4 border-l-green-500">
+                        <Card
+                          key={purchase.id}
+                          className="border-l-4 border-l-green-500"
+                        >
                           <CardContent className="p-4">
                             <div className="flex items-start justify-between">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
                                   <ShoppingBag className="w-4 h-4 text-green-600" />
-                                  <h4 className="font-semibold">{purchase.productName}</h4>
-                                  <Badge variant="secondary" className="text-xs">
+                                  <h4 className="font-semibold">
+                                    {purchase.productName}
+                                  </h4>
+                                  <Badge
+                                    variant="secondary"
+                                    className="text-xs"
+                                  >
                                     {purchase.productType}
                                   </Badge>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
                                   <div>
-                                    <span className="font-medium">Сума:</span>{' '}
+                                    <span className="font-medium">Сума:</span>{" "}
                                     <span className="text-green-600 font-semibold">
                                       {purchase.amount} {purchase.currency}
                                     </span>
                                   </div>
                                   <div>
-                                    <span className="font-medium">Статус:</span>{' '}
+                                    <span className="font-medium">Статус:</span>{" "}
                                     <Badge
-                                      variant={purchase.status === 'completed' ? 'default' : 'outline'}
-                                      className={purchase.status === 'completed' ? 'bg-green-600' : ''}
+                                      variant={
+                                        purchase.status === "completed"
+                                          ? "default"
+                                          : "outline"
+                                      }
+                                      className={
+                                        purchase.status === "completed"
+                                          ? "bg-green-600"
+                                          : ""
+                                      }
                                     >
                                       {purchase.status}
                                     </Badge>
                                   </div>
-                                  {purchase.appsIncluded && purchase.appsIncluded.length > 0 && (
-                                    <div className="col-span-2">
-                                      <span className="font-medium">Apps:</span>{' '}
-                                      {purchase.appsIncluded.join(', ')}
-                                    </div>
-                                  )}
+                                  {purchase.appsIncluded &&
+                                    purchase.appsIncluded.length > 0 && (
+                                      <div className="col-span-2">
+                                        <span className="font-medium">
+                                          Apps:
+                                        </span>{" "}
+                                        {purchase.appsIncluded.join(", ")}
+                                      </div>
+                                    )}
                                   <div className="col-span-2">
-                                    <span className="font-medium">Дата:</span>{' '}
+                                    <span className="font-medium">Дата:</span>{" "}
                                     {formatDate(purchase.purchasedAt)}
                                   </div>
                                 </div>
@@ -1558,14 +1709,18 @@ export default function UsersPage() {
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted-foreground py-4">Няма данни за покупки</p>
+                    <p className="text-sm text-muted-foreground py-4">
+                      Няма данни за покупки
+                    </p>
                   )}
                 </div>
               )}
 
               {/* Admin Actions */}
               <div className="border-t pt-4">
-                <Label className="text-base font-semibold mb-3 block">Admin Действия</Label>
+                <Label className="text-base font-semibold mb-3 block">
+                  Admin Действия
+                </Label>
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant="outline"
@@ -1584,7 +1739,7 @@ export default function UsersPage() {
                     size="sm"
                     onClick={() => {
                       setUserDetailModal(false);
-                      setNewPassword('');
+                      setNewPassword("");
                       setResetPasswordModal(true);
                     }}
                   >
@@ -1610,7 +1765,7 @@ export default function UsersPage() {
                       size="sm"
                       onClick={() => {
                         setUserDetailModal(false);
-                        setBanReason('');
+                        setBanReason("");
                         setBanUserModal(true);
                       }}
                     >
@@ -1624,8 +1779,10 @@ export default function UsersPage() {
                     size="sm"
                     onClick={() => {
                       setUserDetailModal(false);
-                      setEditName(selectedUser.name || selectedUser.firstName || '');
-                      setEditAvatar(selectedUser.avatar || '');
+                      setEditName(
+                        selectedUser.name || selectedUser.firstName || "",
+                      );
+                      setEditAvatar(selectedUser.avatar || "");
                       setEditProfileModal(true);
                     }}
                   >
@@ -1638,7 +1795,7 @@ export default function UsersPage() {
                     size="sm"
                     onClick={() => {
                       setUserDetailModal(false);
-                      setDeleteConfirmEmail('');
+                      setDeleteConfirmEmail("");
                       setDeleteUserModal(true);
                     }}
                   >

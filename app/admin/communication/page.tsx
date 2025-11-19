@@ -1,24 +1,30 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { getCurrentAdminUser } from '@/lib/admin/auth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { getCurrentAdminUser } from "@/lib/admin/auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -26,7 +32,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Mail,
   Send,
@@ -37,13 +43,13 @@ import {
   Search,
   FileText,
   Download,
-} from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-import { useToast } from '@/hooks/use-toast';
+} from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
+import { useToast } from "@/hooks/use-toast";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
 interface User {
@@ -67,7 +73,7 @@ export default function CommunicationPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState('single');
+  const [activeTab, setActiveTab] = useState("single");
 
   // Admin user authentication
   const [adminId, setAdminId] = useState<string | null>(null);
@@ -79,27 +85,27 @@ export default function CommunicationPage() {
   const [logsPage, setLogsPage] = useState(1);
   const [logsPagination, setLogsPagination] = useState<any>({});
   const [logsFilters, setLogsFilters] = useState({
-    status: '',
-    search: '',
-    startDate: '',
-    endDate: ''
+    status: "",
+    search: "",
+    startDate: "",
+    endDate: "",
   });
 
   // Single email state
-  const [singleTo, setSingleTo] = useState('');
-  const [singleSubject, setSingleSubject] = useState('');
-  const [singleMessage, setSingleMessage] = useState('');
+  const [singleTo, setSingleTo] = useState("");
+  const [singleSubject, setSingleSubject] = useState("");
+  const [singleMessage, setSingleMessage] = useState("");
 
   // Bulk email state
   const [users, setUsers] = useState<User[]>([]);
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
-  const [bulkSubject, setBulkSubject] = useState('');
-  const [bulkMessage, setBulkMessage] = useState('');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [bulkSubject, setBulkSubject] = useState("");
+  const [bulkMessage, setBulkMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Template state
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
+  const [selectedTemplate, setSelectedTemplate] = useState<string>("");
 
   // Fetch admin user on mount
   useEffect(() => {
@@ -110,7 +116,7 @@ export default function CommunicationPage() {
         setAdminEmail(email);
       } else {
         // Not authenticated as admin - redirect to login
-        router.push('/admin');
+        router.push("/admin");
       }
     };
     fetchAdminUser();
@@ -124,34 +130,36 @@ export default function CommunicationPage() {
   }, [adminId, adminEmail]);
 
   useEffect(() => {
-    if (activeTab === 'history' && adminId && adminEmail) {
+    if (activeTab === "history" && adminId && adminEmail) {
       fetchEmailLogs();
     }
   }, [activeTab, logsPage, logsFilters, adminId, adminEmail]);
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/access/users');
+      const response = await fetch("/api/admin/access/users");
       const data = await response.json();
 
       if (response.ok) {
         setUsers(data.users || []);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
     }
   };
 
   const fetchTemplates = async () => {
     try {
-      const response = await fetch('/api/admin/communication/templates?active_only=true');
+      const response = await fetch(
+        "/api/admin/communication/templates?active_only=true",
+      );
       const data = await response.json();
 
       if (response.ok) {
         setTemplates(data.templates || []);
       }
     } catch (error) {
-      console.error('Error fetching templates:', error);
+      console.error("Error fetching templates:", error);
     }
   };
 
@@ -159,7 +167,7 @@ export default function CommunicationPage() {
     try {
       const params = new URLSearchParams({
         page: logsPage.toString(),
-        limit: '20',
+        limit: "20",
         ...(logsFilters.status && { status: logsFilters.status }),
         ...(logsFilters.search && { search: logsFilters.search }),
         ...(logsFilters.startDate && { start_date: logsFilters.startDate }),
@@ -175,15 +183,15 @@ export default function CommunicationPage() {
         setEmailStats(data.stats || {});
       }
     } catch (error) {
-      console.error('Error fetching email logs:', error);
+      console.error("Error fetching email logs:", error);
     }
   };
 
-  const loadTemplate = (templateId: string, target: 'single' | 'bulk') => {
-    const template = templates.find(t => t.id === templateId);
+  const loadTemplate = (templateId: string, target: "single" | "bulk") => {
+    const template = templates.find((t) => t.id === templateId);
     if (!template) return;
 
-    if (target === 'single') {
+    if (target === "single") {
       setSingleSubject(template.subject);
       setSingleMessage(template.body);
     } else {
@@ -192,7 +200,7 @@ export default function CommunicationPage() {
     }
 
     toast({
-      title: 'Template зареден',
+      title: "Template зареден",
       description: `"${template.name}" е зареден успешно`,
     });
   };
@@ -200,18 +208,18 @@ export default function CommunicationPage() {
   const handleSendSingle = async () => {
     if (!singleTo || !singleSubject || !singleMessage) {
       toast({
-        title: 'Грешка',
-        description: 'Моля попълнете всички полета',
-        variant: 'destructive',
+        title: "Грешка",
+        description: "Моля попълнете всички полета",
+        variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/admin/communication/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/communication/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           to: singleTo,
           subject: singleSubject,
@@ -227,22 +235,22 @@ export default function CommunicationPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех!',
+          title: "Успех!",
           description: data.message,
         });
         // Clear form
-        setSingleTo('');
-        setSingleSubject('');
-        setSingleMessage('');
-        setSelectedTemplate('');
+        setSingleTo("");
+        setSingleSubject("");
+        setSingleMessage("");
+        setSelectedTemplate("");
       } else {
         throw new Error(data.error);
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно изпращане на email',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно изпращане на email",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -252,22 +260,22 @@ export default function CommunicationPage() {
   const handleSendBulk = async () => {
     if (selectedUsers.size === 0 || !bulkSubject || !bulkMessage) {
       toast({
-        title: 'Грешка',
-        description: 'Моля попълнете всички полета и изберете потребители',
-        variant: 'destructive',
+        title: "Грешка",
+        description: "Моля попълнете всички полета и изберете потребители",
+        variant: "destructive",
       });
       return;
     }
 
     const selectedEmails = users
-      .filter(u => selectedUsers.has(u.id))
-      .map(u => u.email);
+      .filter((u) => selectedUsers.has(u.id))
+      .map((u) => u.email);
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/admin/communication/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/communication/send-email", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           to: selectedEmails,
           subject: bulkSubject,
@@ -283,22 +291,22 @@ export default function CommunicationPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех!',
+          title: "Успех!",
           description: data.message,
         });
         // Clear form
         setSelectedUsers(new Set());
-        setBulkSubject('');
-        setBulkMessage('');
-        setSelectedTemplate('');
+        setBulkSubject("");
+        setBulkMessage("");
+        setSelectedTemplate("");
       } else {
         throw new Error(data.error);
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно изпращане на emails',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно изпращане на emails",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -319,14 +327,15 @@ export default function CommunicationPage() {
     if (selectedUsers.size === filteredUsers.length) {
       setSelectedUsers(new Set());
     } else {
-      setSelectedUsers(new Set(filteredUsers.map(u => u.id)));
+      setSelectedUsers(new Set(filteredUsers.map((u) => u.id)));
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    searchQuery === '' ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      searchQuery === "" ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   return (
@@ -344,7 +353,7 @@ export default function CommunicationPage() {
             </p>
           </div>
           <Button
-            onClick={() => router.push('/admin/communication/templates')}
+            onClick={() => router.push("/admin/communication/templates")}
             variant="outline"
           >
             <FileText className="h-4 w-4 mr-2" />
@@ -382,10 +391,15 @@ export default function CommunicationPage() {
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
                   <div className="flex items-center gap-2">
                     <FileText className="h-5 w-5 text-blue-600" />
-                    <Label className="text-blue-900 font-medium">Използвай Email Template</Label>
+                    <Label className="text-blue-900 font-medium">
+                      Използвай Email Template
+                    </Label>
                   </div>
                   <div className="flex gap-2">
-                    <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                    <Select
+                      value={selectedTemplate}
+                      onValueChange={setSelectedTemplate}
+                    >
                       <SelectTrigger className="flex-1 bg-white">
                         <SelectValue placeholder="Изберете template (опционално)" />
                       </SelectTrigger>
@@ -398,7 +412,10 @@ export default function CommunicationPage() {
                       </SelectContent>
                     </Select>
                     <Button
-                      onClick={() => selectedTemplate && loadTemplate(selectedTemplate, 'single')}
+                      onClick={() =>
+                        selectedTemplate &&
+                        loadTemplate(selectedTemplate, "single")
+                      }
                       disabled={!selectedTemplate}
                       variant="outline"
                       className="bg-white"
@@ -407,16 +424,26 @@ export default function CommunicationPage() {
                       Зареди
                     </Button>
                   </div>
-                  {selectedTemplate && templates.find(t => t.id === selectedTemplate)?.variables.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-2 border-t border-blue-200">
-                      <span className="text-xs text-blue-700 font-medium">Променливи:</span>
-                      {templates.find(t => t.id === selectedTemplate)?.variables.map((variable) => (
-                        <Badge key={variable} variant="secondary" className="text-xs">
-                          {`{{${variable}}}`}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
+                  {selectedTemplate &&
+                    templates.find((t) => t.id === selectedTemplate)?.variables
+                      .length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-2 border-t border-blue-200">
+                        <span className="text-xs text-blue-700 font-medium">
+                          Променливи:
+                        </span>
+                        {templates
+                          .find((t) => t.id === selectedTemplate)
+                          ?.variables.map((variable) => (
+                            <Badge
+                              key={variable}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {`{{${variable}}}`}
+                            </Badge>
+                          ))}
+                      </div>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -456,7 +483,9 @@ export default function CommunicationPage() {
 
                 <Button
                   onClick={handleSendSingle}
-                  disabled={isLoading || !singleTo || !singleSubject || !singleMessage}
+                  disabled={
+                    isLoading || !singleTo || !singleSubject || !singleMessage
+                  }
                   className="w-full"
                 >
                   {isLoading ? (
@@ -489,10 +518,15 @@ export default function CommunicationPage() {
                 <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg space-y-3">
                   <div className="flex items-center gap-2">
                     <FileText className="h-5 w-5 text-blue-600" />
-                    <Label className="text-blue-900 font-medium">Използвай Email Template</Label>
+                    <Label className="text-blue-900 font-medium">
+                      Използвай Email Template
+                    </Label>
                   </div>
                   <div className="flex gap-2">
-                    <Select value={selectedTemplate} onValueChange={setSelectedTemplate}>
+                    <Select
+                      value={selectedTemplate}
+                      onValueChange={setSelectedTemplate}
+                    >
                       <SelectTrigger className="flex-1 bg-white">
                         <SelectValue placeholder="Изберете template (опционално)" />
                       </SelectTrigger>
@@ -505,7 +539,10 @@ export default function CommunicationPage() {
                       </SelectContent>
                     </Select>
                     <Button
-                      onClick={() => selectedTemplate && loadTemplate(selectedTemplate, 'bulk')}
+                      onClick={() =>
+                        selectedTemplate &&
+                        loadTemplate(selectedTemplate, "bulk")
+                      }
                       disabled={!selectedTemplate}
                       variant="outline"
                       className="bg-white"
@@ -514,16 +551,26 @@ export default function CommunicationPage() {
                       Зареди
                     </Button>
                   </div>
-                  {selectedTemplate && templates.find(t => t.id === selectedTemplate)?.variables.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-2 border-t border-blue-200">
-                      <span className="text-xs text-blue-700 font-medium">Променливи:</span>
-                      {templates.find(t => t.id === selectedTemplate)?.variables.map((variable) => (
-                        <Badge key={variable} variant="secondary" className="text-xs">
-                          {`{{${variable}}}`}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
+                  {selectedTemplate &&
+                    templates.find((t) => t.id === selectedTemplate)?.variables
+                      .length > 0 && (
+                      <div className="flex flex-wrap gap-2 pt-2 border-t border-blue-200">
+                        <span className="text-xs text-blue-700 font-medium">
+                          Променливи:
+                        </span>
+                        {templates
+                          .find((t) => t.id === selectedTemplate)
+                          ?.variables.map((variable) => (
+                            <Badge
+                              key={variable}
+                              variant="secondary"
+                              className="text-xs"
+                            >
+                              {`{{${variable}}}`}
+                            </Badge>
+                          ))}
+                      </div>
+                    )}
                 </div>
 
                 <div className="space-y-2">
@@ -556,7 +603,12 @@ export default function CommunicationPage() {
                   </div>
                   <Button
                     onClick={handleSendBulk}
-                    disabled={isLoading || selectedUsers.size === 0 || !bulkSubject || !bulkMessage}
+                    disabled={
+                      isLoading ||
+                      selectedUsers.size === 0 ||
+                      !bulkSubject ||
+                      !bulkMessage
+                    }
                   >
                     {isLoading ? (
                       <>
@@ -595,7 +647,9 @@ export default function CommunicationPage() {
                       />
                     </div>
                     <Button variant="outline" onClick={selectAllUsers}>
-                      {selectedUsers.size === filteredUsers.length ? 'Deselect All' : 'Select All'}
+                      {selectedUsers.size === filteredUsers.length
+                        ? "Deselect All"
+                        : "Select All"}
                     </Button>
                   </div>
                 </div>
@@ -607,7 +661,10 @@ export default function CommunicationPage() {
                       <TableRow>
                         <TableHead className="w-12">
                           <Checkbox
-                            checked={selectedUsers.size === filteredUsers.length && filteredUsers.length > 0}
+                            checked={
+                              selectedUsers.size === filteredUsers.length &&
+                              filteredUsers.length > 0
+                            }
                             onCheckedChange={selectAllUsers}
                           />
                         </TableHead>
@@ -619,7 +676,10 @@ export default function CommunicationPage() {
                     <TableBody>
                       {filteredUsers.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                          <TableCell
+                            colSpan={4}
+                            className="text-center py-8 text-muted-foreground"
+                          >
                             Няма намерени потребители
                           </TableCell>
                         </TableRow>
@@ -629,14 +689,21 @@ export default function CommunicationPage() {
                             <TableCell>
                               <Checkbox
                                 checked={selectedUsers.has(user.id)}
-                                onCheckedChange={() => toggleUserSelection(user.id)}
+                                onCheckedChange={() =>
+                                  toggleUserSelection(user.id)
+                                }
                               />
                             </TableCell>
-                            <TableCell className="font-medium">{user.email}</TableCell>
-                            <TableCell>{user.name || '—'}</TableCell>
+                            <TableCell className="font-medium">
+                              {user.email}
+                            </TableCell>
+                            <TableCell>{user.name || "—"}</TableCell>
                             <TableCell className="text-right">
                               {selectedUsers.has(user.id) ? (
-                                <Badge variant="default" className="bg-green-600">
+                                <Badge
+                                  variant="default"
+                                  className="bg-green-600"
+                                >
                                   Избран
                                 </Badge>
                               ) : (
@@ -659,11 +726,15 @@ export default function CommunicationPage() {
             <div className="grid gap-4 md:grid-cols-4">
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Изпратени</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Изпратени
+                  </CardTitle>
                   <CheckCircle className="h-4 w-4 text-green-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{emailStats.total_sent || 0}</div>
+                  <div className="text-2xl font-bold">
+                    {emailStats.total_sent || 0}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Успешно изпратени emails
                   </p>
@@ -672,27 +743,31 @@ export default function CommunicationPage() {
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Неуспешни</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Неуспешни
+                  </CardTitle>
                   <AlertCircle className="h-4 w-4 text-red-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{emailStats.total_failed || 0}</div>
-                  <p className="text-xs text-muted-foreground">
-                    Failed emails
-                  </p>
+                  <div className="text-2xl font-bold">
+                    {emailStats.total_failed || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground">Failed emails</p>
                 </CardContent>
               </Card>
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
+                  <CardTitle className="text-sm font-medium">
+                    Success Rate
+                  </CardTitle>
                   <CheckCircle className="h-4 w-4 text-blue-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{emailStats.success_rate || 0}%</div>
-                  <p className="text-xs text-muted-foreground">
-                    Процент успех
-                  </p>
+                  <div className="text-2xl font-bold">
+                    {emailStats.success_rate || 0}%
+                  </div>
+                  <p className="text-xs text-muted-foreground">Процент успех</p>
                 </CardContent>
               </Card>
 
@@ -702,7 +777,10 @@ export default function CommunicationPage() {
                   <Mail className="h-4 w-4 text-purple-600" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold">{(emailStats.total_sent || 0) + (emailStats.total_failed || 0)}</div>
+                  <div className="text-2xl font-bold">
+                    {(emailStats.total_sent || 0) +
+                      (emailStats.total_failed || 0)}
+                  </div>
                   <p className="text-xs text-muted-foreground">
                     Общо изпратени
                   </p>
@@ -719,13 +797,23 @@ export default function CommunicationPage() {
                     <Input
                       placeholder="Търси по email..."
                       value={logsFilters.search}
-                      onChange={(e) => setLogsFilters({ ...logsFilters, search: e.target.value })}
+                      onChange={(e) =>
+                        setLogsFilters({
+                          ...logsFilters,
+                          search: e.target.value,
+                        })
+                      }
                       className="pl-10"
                     />
                   </div>
                   <Select
-                    value={logsFilters.status || 'all'}
-                    onValueChange={(v) => setLogsFilters({ ...logsFilters, status: v === 'all' ? '' : v })}
+                    value={logsFilters.status || "all"}
+                    onValueChange={(v) =>
+                      setLogsFilters({
+                        ...logsFilters,
+                        status: v === "all" ? "" : v,
+                      })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Статус" />
@@ -741,13 +829,23 @@ export default function CommunicationPage() {
                   <Input
                     type="date"
                     value={logsFilters.startDate}
-                    onChange={(e) => setLogsFilters({ ...logsFilters, startDate: e.target.value })}
+                    onChange={(e) =>
+                      setLogsFilters({
+                        ...logsFilters,
+                        startDate: e.target.value,
+                      })
+                    }
                     placeholder="От дата"
                   />
                   <Input
                     type="date"
                     value={logsFilters.endDate}
-                    onChange={(e) => setLogsFilters({ ...logsFilters, endDate: e.target.value })}
+                    onChange={(e) =>
+                      setLogsFilters({
+                        ...logsFilters,
+                        endDate: e.target.value,
+                      })
+                    }
                     placeholder="До дата"
                   />
                 </div>
@@ -757,7 +855,9 @@ export default function CommunicationPage() {
             {/* Email Logs Table */}
             <Card>
               <CardHeader>
-                <CardTitle>Email History ({logsPagination.total || 0})</CardTitle>
+                <CardTitle>
+                  Email History ({logsPagination.total || 0})
+                </CardTitle>
                 <CardDescription>
                   История на всички изпратени emails
                 </CardDescription>
@@ -778,7 +878,10 @@ export default function CommunicationPage() {
                     <TableBody>
                       {emailLogs.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                          <TableCell
+                            colSpan={6}
+                            className="text-center py-8 text-muted-foreground"
+                          >
                             Няма намерени emails
                           </TableCell>
                         </TableRow>
@@ -788,43 +891,66 @@ export default function CommunicationPage() {
                             <TableCell className="font-medium">
                               {log.recipient_email}
                               {log.recipient_name && (
-                                <div className="text-xs text-muted-foreground">{log.recipient_name}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {log.recipient_name}
+                                </div>
                               )}
                             </TableCell>
-                            <TableCell className="max-w-xs truncate">{log.subject}</TableCell>
+                            <TableCell className="max-w-xs truncate">
+                              {log.subject}
+                            </TableCell>
                             <TableCell>
                               {log.template_name ? (
-                                <Badge variant="outline">{log.template_name}</Badge>
+                                <Badge variant="outline">
+                                  {log.template_name}
+                                </Badge>
                               ) : (
-                                <span className="text-xs text-muted-foreground">—</span>
+                                <span className="text-xs text-muted-foreground">
+                                  —
+                                </span>
                               )}
                             </TableCell>
                             <TableCell>
                               <Badge
                                 variant={
-                                  log.status === 'sent' ? 'default' :
-                                  log.status === 'failed' ? 'destructive' :
-                                  log.status === 'pending' ? 'secondary' :
-                                  'outline'
+                                  log.status === "sent"
+                                    ? "default"
+                                    : log.status === "failed"
+                                      ? "destructive"
+                                      : log.status === "pending"
+                                        ? "secondary"
+                                        : "outline"
                                 }
                                 className={
-                                  log.status === 'sent' ? 'bg-green-600' :
-                                  log.status === 'failed' ? 'bg-red-600' :
-                                  ''
+                                  log.status === "sent"
+                                    ? "bg-green-600"
+                                    : log.status === "failed"
+                                      ? "bg-red-600"
+                                      : ""
                                 }
                               >
-                                {log.status === 'sent' ? 'Изпратен' :
-                                 log.status === 'failed' ? 'Неуспешен' :
-                                 log.status === 'pending' ? 'Pending' :
-                                 log.status}
+                                {log.status === "sent"
+                                  ? "Изпратен"
+                                  : log.status === "failed"
+                                    ? "Неуспешен"
+                                    : log.status === "pending"
+                                      ? "Pending"
+                                      : log.status}
                               </Badge>
                               {log.is_bulk && (
-                                <Badge variant="outline" className="ml-2 text-xs">Bulk</Badge>
+                                <Badge
+                                  variant="outline"
+                                  className="ml-2 text-xs"
+                                >
+                                  Bulk
+                                </Badge>
                               )}
                             </TableCell>
-                            <TableCell className="text-sm">{log.sent_by_email}</TableCell>
                             <TableCell className="text-sm">
-                              {new Date(log.created_at).toLocaleString('bg-BG')}
+                              {log.sent_by_email}
+                            </TableCell>
+                            <TableCell className="text-sm">
+                              {new Date(log.created_at).toLocaleString("bg-BG")}
                             </TableCell>
                           </TableRow>
                         ))
@@ -837,13 +963,16 @@ export default function CommunicationPage() {
                 {logsPagination.totalPages > 1 && (
                   <div className="flex items-center justify-between mt-4">
                     <div className="text-sm text-muted-foreground">
-                      Страница {logsPagination.page} от {logsPagination.totalPages}
+                      Страница {logsPagination.page} от{" "}
+                      {logsPagination.totalPages}
                     </div>
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setLogsPage(prev => Math.max(1, prev - 1))}
+                        onClick={() =>
+                          setLogsPage((prev) => Math.max(1, prev - 1))
+                        }
                         disabled={logsPage === 1}
                       >
                         Предишна
@@ -851,7 +980,11 @@ export default function CommunicationPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => setLogsPage(prev => Math.min(logsPagination.totalPages, prev + 1))}
+                        onClick={() =>
+                          setLogsPage((prev) =>
+                            Math.min(logsPagination.totalPages, prev + 1),
+                          )
+                        }
                         disabled={logsPage === logsPagination.totalPages}
                       >
                         Следваща
@@ -874,8 +1007,13 @@ export default function CommunicationPage() {
           </CardHeader>
           <CardContent className="text-blue-800 text-sm space-y-2">
             <p>• Emails се изпращат чрез Resend с domain testograph.eu</p>
-            <p>• Използвайте Email Templates за бързо зареждане на готови съобщения</p>
-            <p>• Всички изпратени emails се записват в Audit Logs за проследяване</p>
+            <p>
+              • Използвайте Email Templates за бързо зареждане на готови
+              съобщения
+            </p>
+            <p>
+              • Всички изпратени emails се записват в Audit Logs за проследяване
+            </p>
             <p>• За bulk emails, процесът може да отнеме няколко секунди</p>
             <p>• Проверете историята на изпратени emails в Audit Logs таба</p>
           </CardContent>

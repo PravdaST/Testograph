@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from "react";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   BarChart,
   Bar,
@@ -18,14 +24,21 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from 'recharts';
-import { RefreshCw, Download, TrendingUp, Users, Target, Clock } from 'lucide-react';
-import { HeatmapChart } from '@/components/analytics/HeatmapChart';
-import { TrendComparisonChart } from '@/components/analytics/TrendComparisonChart';
-import { UTMBreakdown } from '@/components/analytics/UTMBreakdown';
-import { SessionsTable } from '@/components/analytics/SessionsTable';
-import { SessionJourneyModal } from '@/components/analytics/SessionJourneyModal';
-import { Smartphone, Monitor, Tablet } from 'lucide-react';
+} from "recharts";
+import {
+  RefreshCw,
+  Download,
+  TrendingUp,
+  Users,
+  Target,
+  Clock,
+} from "lucide-react";
+import { HeatmapChart } from "@/components/analytics/HeatmapChart";
+import { TrendComparisonChart } from "@/components/analytics/TrendComparisonChart";
+import { UTMBreakdown } from "@/components/analytics/UTMBreakdown";
+import { SessionsTable } from "@/components/analytics/SessionsTable";
+import { SessionJourneyModal } from "@/components/analytics/SessionJourneyModal";
+import { Smartphone, Monitor, Tablet } from "lucide-react";
 
 interface SessionData {
   sessionId: string;
@@ -119,16 +132,22 @@ interface TrendsData {
   }>;
 }
 
-const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444'];
+const COLORS = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
 
 export default function AnalyticsDashboard() {
   const [funnelStats, setFunnelStats] = useState<FunnelStats | null>(null);
-  const [timeSpentData, setTimeSpentData] = useState<TimeSpentData | null>(null);
+  const [timeSpentData, setTimeSpentData] = useState<TimeSpentData | null>(
+    null,
+  );
   const [trendsData, setTrendsData] = useState<TrendsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDays, setSelectedDays] = useState(7);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'completed' | 'incomplete'>('all');
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<
+    "all" | "completed" | "incomplete"
+  >("all");
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
+    null,
+  );
   const [isJourneyModalOpen, setIsJourneyModalOpen] = useState(false);
 
   const handleSessionClick = (sessionId: string) => {
@@ -140,13 +159,19 @@ export default function AnalyticsDashboard() {
     setLoading(true);
     try {
       // Use absolute URLs to prevent any URL resolution issues
-      const baseUrl = typeof window !== 'undefined' ? window.location.origin : '';
-      const statusParam = statusFilter !== 'all' ? `&status=${statusFilter}` : '';
+      const baseUrl =
+        typeof window !== "undefined" ? window.location.origin : "";
+      const statusParam =
+        statusFilter !== "all" ? `&status=${statusFilter}` : "";
       const statsUrl = `${baseUrl}/api/analytics/funnel-stats?days=${selectedDays}${statusParam}`;
       const timeUrl = `${baseUrl}/api/analytics/time-spent?days=${selectedDays}`;
       const trendsUrl = `${baseUrl}/api/analytics/trends?days=${selectedDays}`;
 
-      console.log('🔍 Fetching analytics data from:', { statsUrl, timeUrl, trendsUrl });
+      console.log("🔍 Fetching analytics data from:", {
+        statsUrl,
+        timeUrl,
+        trendsUrl,
+      });
 
       const [statsRes, timeRes, trendsRes] = await Promise.all([
         fetch(statsUrl),
@@ -154,7 +179,7 @@ export default function AnalyticsDashboard() {
         fetch(trendsUrl),
       ]);
 
-      console.log('📊 Response status:', {
+      console.log("📊 Response status:", {
         stats: statsRes.status,
         time: timeRes.status,
         trends: trendsRes.status,
@@ -162,30 +187,35 @@ export default function AnalyticsDashboard() {
 
       if (!statsRes.ok || !timeRes.ok || !trendsRes.ok) {
         const errors = [];
-        if (!statsRes.ok) errors.push(`Stats API: ${statsRes.status} ${statsRes.statusText}`);
-        if (!timeRes.ok) errors.push(`Time API: ${timeRes.status} ${timeRes.statusText}`);
-        if (!trendsRes.ok) errors.push(`Trends API: ${trendsRes.status} ${trendsRes.statusText}`);
-        throw new Error(`API errors: ${errors.join(', ')}`);
+        if (!statsRes.ok)
+          errors.push(`Stats API: ${statsRes.status} ${statsRes.statusText}`);
+        if (!timeRes.ok)
+          errors.push(`Time API: ${timeRes.status} ${timeRes.statusText}`);
+        if (!trendsRes.ok)
+          errors.push(
+            `Trends API: ${trendsRes.status} ${trendsRes.statusText}`,
+          );
+        throw new Error(`API errors: ${errors.join(", ")}`);
       }
 
       const stats = await statsRes.json();
       const time = await timeRes.json();
       const trends = await trendsRes.json();
 
-      console.log('✅ Analytics data loaded successfully');
+      console.log("✅ Analytics data loaded successfully");
 
       setFunnelStats(stats);
       setTimeSpentData(time);
       setTrendsData(trends);
     } catch (error) {
-      console.error('❌ Error fetching analytics:', error);
+      console.error("❌ Error fetching analytics:", error);
       // Show user-friendly error
       alert(
-        'Failed to load analytics data. Please try:\n' +
-          '1. Hard refresh the page (Ctrl+Shift+R)\n' +
-          '2. Clear browser cache\n' +
-          '3. Check browser console for details\n\n' +
-          `Error: ${error instanceof Error ? error.message : 'Unknown error'}`
+        "Failed to load analytics data. Please try:\n" +
+          "1. Hard refresh the page (Ctrl+Shift+R)\n" +
+          "2. Clear browser cache\n" +
+          "3. Check browser console for details\n\n" +
+          `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
       );
     } finally {
       setLoading(false);
@@ -206,33 +236,45 @@ export default function AnalyticsDashboard() {
   const exportToCSV = () => {
     if (!funnelStats) return;
 
-    let csv = 'Funnel Analytics Report\\n\\n';
+    let csv = "Funnel Analytics Report\\n\\n";
     csv += `Date Range: Last ${selectedDays} days\\n\\n`;
-    csv += 'Overall Stats\\n';
+    csv += "Overall Stats\\n";
     csv += `Total Sessions,${funnelStats.stats.totalSessions}\\n`;
     csv += `Completed Sessions,${funnelStats.stats.completedSessions}\\n`;
     csv += `Conversion Rate,${funnelStats.stats.overallConversionRate}%\\n`;
     csv += `Avg Time in Funnel,${formatTime(funnelStats.stats.avgTimeInFunnel)}\\n\\n`;
 
-    csv += 'Conversion Funnel\\n';
-    csv += 'Step,Visitors,Conversion Rate\\n';
+    csv += "Conversion Funnel\\n";
+    csv += "Step,Visitors,Conversion Rate\\n";
     funnelStats.conversionFunnel.forEach((item) => {
       csv += `${item.step},${item.visitors},${item.conversionRate}%\\n`;
     });
 
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `funnel-analytics-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `funnel-analytics-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
   };
 
   const offerChartData = funnelStats
     ? [
-        { name: 'Premium', value: funnelStats.offerPerformance.premium, color: '#f97316' },
-        { name: 'Regular', value: funnelStats.offerPerformance.regular, color: '#3b82f6' },
-        { name: 'Digital', value: funnelStats.offerPerformance.digital, color: '#8b5cf6' },
+        {
+          name: "Premium",
+          value: funnelStats.offerPerformance.premium,
+          color: "#f97316",
+        },
+        {
+          name: "Regular",
+          value: funnelStats.offerPerformance.regular,
+          color: "#3b82f6",
+        },
+        {
+          name: "Digital",
+          value: funnelStats.offerPerformance.digital,
+          color: "#8b5cf6",
+        },
       ]
     : [];
 
@@ -267,9 +309,12 @@ export default function AnalyticsDashboard() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground">Фунел Анализи</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+              Фунел Анализи
+            </h1>
             <p className="text-muted-foreground mt-1">
-              Последните {selectedDays} дни • {funnelStats.stats.totalSessions} сесии
+              Последните {selectedDays} дни • {funnelStats.stats.totalSessions}{" "}
+              сесии
             </p>
           </div>
 
@@ -279,7 +324,7 @@ export default function AnalyticsDashboard() {
               {[7, 30, 90].map((days) => (
                 <Button
                   key={days}
-                  variant={selectedDays === days ? 'default' : 'outline'}
+                  variant={selectedDays === days ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedDays(days)}
                 >
@@ -290,14 +335,18 @@ export default function AnalyticsDashboard() {
 
             {/* Status Filter */}
             <div className="flex gap-1 border-l pl-2">
-              {(['all', 'completed', 'incomplete'] as const).map((status) => (
+              {(["all", "completed", "incomplete"] as const).map((status) => (
                 <Button
                   key={status}
-                  variant={statusFilter === status ? 'default' : 'outline'}
+                  variant={statusFilter === status ? "default" : "outline"}
                   size="sm"
                   onClick={() => setStatusFilter(status)}
                 >
-                  {status === 'all' ? 'Всички' : status === 'completed' ? 'Завършени' : 'В процес'}
+                  {status === "all"
+                    ? "Всички"
+                    : status === "completed"
+                      ? "Завършени"
+                      : "В процес"}
                 </Button>
               ))}
             </div>
@@ -324,7 +373,9 @@ export default function AnalyticsDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{funnelStats.stats.totalSessions}</div>
+              <div className="text-3xl font-bold">
+                {funnelStats.stats.totalSessions}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {funnelStats.stats.completedSessions} завършени
               </p>
@@ -339,7 +390,9 @@ export default function AnalyticsDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{funnelStats.stats.overallConversionRate}%</div>
+              <div className="text-3xl font-bold">
+                {funnelStats.stats.overallConversionRate}%
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Завършили funnel-а
               </p>
@@ -371,7 +424,9 @@ export default function AnalyticsDashboard() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{funnelStats.stats.totalCTAClicks}</div>
+              <div className="text-3xl font-bold">
+                {funnelStats.stats.totalCTAClicks}
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Общо кликвания на оферти
               </p>
@@ -387,35 +442,45 @@ export default function AnalyticsDashboard() {
                 <Smartphone className="w-5 h-5" />
                 Устройства
               </CardTitle>
-              <CardDescription>От къде разглеждат потребителите</CardDescription>
+              <CardDescription>
+                От къде разглеждат потребителите
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="flex items-center gap-3">
                   <Monitor className="w-8 h-8 text-blue-500" />
                   <div>
-                    <p className="text-2xl font-bold">{funnelStats.deviceStats.desktop}</p>
+                    <p className="text-2xl font-bold">
+                      {funnelStats.deviceStats.desktop}
+                    </p>
                     <p className="text-xs text-muted-foreground">Десктоп</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Smartphone className="w-8 h-8 text-green-500" />
                   <div>
-                    <p className="text-2xl font-bold">{funnelStats.deviceStats.mobile}</p>
+                    <p className="text-2xl font-bold">
+                      {funnelStats.deviceStats.mobile}
+                    </p>
                     <p className="text-xs text-muted-foreground">Мобилен</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Tablet className="w-8 h-8 text-purple-500" />
                   <div>
-                    <p className="text-2xl font-bold">{funnelStats.deviceStats.tablet}</p>
+                    <p className="text-2xl font-bold">
+                      {funnelStats.deviceStats.tablet}
+                    </p>
                     <p className="text-xs text-muted-foreground">Таблет</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <Target className="w-8 h-8 text-muted-foreground" />
                   <div>
-                    <p className="text-2xl font-bold">{funnelStats.deviceStats.unknown}</p>
+                    <p className="text-2xl font-bold">
+                      {funnelStats.deviceStats.unknown}
+                    </p>
                     <p className="text-xs text-muted-foreground">Неизвестно</p>
                   </div>
                 </div>
@@ -445,16 +510,35 @@ export default function AnalyticsDashboard() {
             <ResponsiveContainer width="100%" height={400}>
               <BarChart data={funnelStats.conversionFunnel}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="step" label={{ value: 'Стъпка', position: 'insideBottom', offset: -5 }} />
-                <YAxis label={{ value: 'Потребители', angle: -90, position: 'insideLeft' }} />
+                <XAxis
+                  dataKey="step"
+                  label={{
+                    value: "Стъпка",
+                    position: "insideBottom",
+                    offset: -5,
+                  }}
+                />
+                <YAxis
+                  label={{
+                    value: "Потребители",
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
+                />
                 <Tooltip
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       return (
                         <div className="bg-background border rounded-lg p-3 shadow-lg">
-                          <p className="font-semibold">Стъпка {payload[0].payload.step}</p>
-                          <p className="text-sm">Посетители: {payload[0].payload.visitors}</p>
-                          <p className="text-sm">Rate: {payload[0].payload.conversionRate}%</p>
+                          <p className="font-semibold">
+                            Стъпка {payload[0].payload.step}
+                          </p>
+                          <p className="text-sm">
+                            Посетители: {payload[0].payload.visitors}
+                          </p>
+                          <p className="text-sm">
+                            Rate: {payload[0].payload.conversionRate}%
+                          </p>
                         </div>
                       );
                     }
@@ -472,7 +556,9 @@ export default function AnalyticsDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Напускане по Стъпки</CardTitle>
-              <CardDescription>Къде напускат най-много потребители</CardDescription>
+              <CardDescription>
+                Къде напускат най-много потребители
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -485,9 +571,15 @@ export default function AnalyticsDashboard() {
                       if (active && payload && payload.length) {
                         return (
                           <div className="bg-background border rounded-lg p-3 shadow-lg">
-                            <p className="font-semibold">Стъпка {payload[0].payload.step}</p>
-                            <p className="text-sm">Exits: {payload[0].payload.exits}</p>
-                            <p className="text-sm">{payload[0].payload.percentage}%</p>
+                            <p className="font-semibold">
+                              Стъпка {payload[0].payload.step}
+                            </p>
+                            <p className="text-sm">
+                              Exits: {payload[0].payload.exits}
+                            </p>
+                            <p className="text-sm">
+                              {payload[0].payload.percentage}%
+                            </p>
                           </div>
                         );
                       }
@@ -545,23 +637,47 @@ export default function AnalyticsDashboard() {
           <Card>
             <CardHeader>
               <CardTitle>Среден Time-on-Page</CardTitle>
-              <CardDescription>Колко време потребителите прекарват на всяка стъпка</CardDescription>
+              <CardDescription>
+                Колко време потребителите прекарват на всяка стъпка
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={timeSpentData.timeSpentData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="step" label={{ value: 'Стъпка', position: 'insideBottom', offset: -5 }} />
-                  <YAxis label={{ value: 'Секунди', angle: -90, position: 'insideLeft' }} />
+                  <XAxis
+                    dataKey="step"
+                    label={{
+                      value: "Стъпка",
+                      position: "insideBottom",
+                      offset: -5,
+                    }}
+                  />
+                  <YAxis
+                    label={{
+                      value: "Секунди",
+                      angle: -90,
+                      position: "insideLeft",
+                    }}
+                  />
                   <Tooltip
                     content={({ active, payload }) => {
                       if (active && payload && payload.length) {
                         return (
                           <div className="bg-background border rounded-lg p-3 shadow-lg">
-                            <p className="font-semibold">Стъпка {payload[0].payload.step}</p>
-                            <p className="text-sm">Среден: {formatTime(payload[0].payload.avgSeconds)}</p>
-                            <p className="text-sm">Min: {formatTime(payload[0].payload.minSeconds)}</p>
-                            <p className="text-sm">Max: {formatTime(payload[0].payload.maxSeconds)}</p>
+                            <p className="font-semibold">
+                              Стъпка {payload[0].payload.step}
+                            </p>
+                            <p className="text-sm">
+                              Среден:{" "}
+                              {formatTime(payload[0].payload.avgSeconds)}
+                            </p>
+                            <p className="text-sm">
+                              Min: {formatTime(payload[0].payload.minSeconds)}
+                            </p>
+                            <p className="text-sm">
+                              Max: {formatTime(payload[0].payload.maxSeconds)}
+                            </p>
                             <p className="text-xs text-muted-foreground mt-1">
                               {payload[0].payload.sampleSize} samples
                             </p>
@@ -571,7 +687,12 @@ export default function AnalyticsDashboard() {
                       return null;
                     }}
                   />
-                  <Line type="monotone" dataKey="avgSeconds" stroke="#10b981" strokeWidth={2} />
+                  <Line
+                    type="monotone"
+                    dataKey="avgSeconds"
+                    stroke="#10b981"
+                    strokeWidth={2}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </CardContent>
@@ -586,23 +707,36 @@ export default function AnalyticsDashboard() {
           <CardContent className="space-y-2">
             {funnelStats.stats.mostCommonExitStep && (
               <p className="text-sm">
-                🚪 <strong>Най-често напускане:</strong> Стъпка {funnelStats.stats.mostCommonExitStep}
+                🚪 <strong>Най-често напускане:</strong> Стъпка{" "}
+                {funnelStats.stats.mostCommonExitStep}
               </p>
             )}
             {funnelStats.conversionFunnel.length > 1 && (
               <p className="text-sm">
-                📉 <strong>Най-голямо намаление:</strong> От Стъпка{' '}
-                {funnelStats.conversionFunnel.reduce((prev, curr) =>
-                  (prev.conversionRate - (funnelStats.conversionFunnel[funnelStats.conversionFunnel.indexOf(prev) + 1]?.conversionRate || 0)) >
-                  (curr.conversionRate - (funnelStats.conversionFunnel[funnelStats.conversionFunnel.indexOf(curr) + 1]?.conversionRate || 0))
-                    ? prev
-                    : curr
-                ).step}
+                📉 <strong>Най-голямо намаление:</strong> От Стъпка{" "}
+                {
+                  funnelStats.conversionFunnel.reduce((prev, curr) =>
+                    prev.conversionRate -
+                      (funnelStats.conversionFunnel[
+                        funnelStats.conversionFunnel.indexOf(prev) + 1
+                      ]?.conversionRate || 0) >
+                    curr.conversionRate -
+                      (funnelStats.conversionFunnel[
+                        funnelStats.conversionFunnel.indexOf(curr) + 1
+                      ]?.conversionRate || 0)
+                      ? prev
+                      : curr,
+                  ).step
+                }
               </p>
             )}
             <p className="text-sm">
-              💎 <strong>Най-популярна оферта:</strong>{' '}
-              {Object.entries(funnelStats.offerPerformance).reduce((a, b) => (a[1] > b[1] ? a : b))[0]}
+              💎 <strong>Най-популярна оферта:</strong>{" "}
+              {
+                Object.entries(funnelStats.offerPerformance).reduce((a, b) =>
+                  a[1] > b[1] ? a : b,
+                )[0]
+              }
             </p>
           </CardContent>
         </Card>

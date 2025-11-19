@@ -1,12 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import AdminLayout from "@/components/admin/AdminLayout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
   User,
@@ -31,11 +37,11 @@ import {
   Flame,
   Trophy,
   Scale,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface TimelineEvent {
   id: string;
-  type: 'chat_session' | 'funnel_session' | 'funnel_event' | 'purchase';
+  type: "chat_session" | "funnel_session" | "funnel_event" | "purchase";
   timestamp: string;
   data: any;
 }
@@ -142,109 +148,116 @@ export default function UserProfilePage() {
     setIsLoading(true);
     try {
       // Fetch base profile data
-      const response = await fetch(`/api/admin/users/${encodeURIComponent(email)}`);
+      const response = await fetch(
+        `/api/admin/users/${encodeURIComponent(email)}`,
+      );
       const data: UserProfileData = await response.json();
 
       if (response.ok) {
         // Fetch app data
         try {
-          const appResponse = await fetch(`/api/admin/app-data/${encodeURIComponent(email)}`);
+          const appResponse = await fetch(
+            `/api/admin/app-data/${encodeURIComponent(email)}`,
+          );
           if (appResponse.ok) {
             const appData = await appResponse.json();
             data.appData = appData.stats;
           }
         } catch (err) {
-          console.error('Error fetching app data:', err);
+          console.error("Error fetching app data:", err);
         }
 
         // Fetch PRO data
         try {
-          const proResponse = await fetch(`/api/admin/pro-data/${encodeURIComponent(email)}`);
+          const proResponse = await fetch(
+            `/api/admin/pro-data/${encodeURIComponent(email)}`,
+          );
           if (proResponse.ok) {
             const proData = await proResponse.json();
             data.proData = proData.stats;
           }
         } catch (err) {
-          console.error('Error fetching PRO data:', err);
+          console.error("Error fetching PRO data:", err);
         }
 
         setProfileData(data);
       }
     } catch (error) {
-      console.error('Error fetching user profile:', error);
+      console.error("Error fetching user profile:", error);
     } finally {
       setIsLoading(false);
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('bg-BG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleString("bg-BG", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const formatTime = (dateString: string) => {
-    return new Date(dateString).toLocaleTimeString('bg-BG', {
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleTimeString("bg-BG", {
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
   const getEventIcon = (type: string, eventType?: string) => {
-    if (type === 'chat_session') return <MessageSquare className="h-4 w-4" />;
-    if (type === 'funnel_session') return <TrendingUp className="h-4 w-4" />;
-    if (type === 'purchase') return <ShoppingCart className="h-4 w-4" />;
-    if (eventType === 'offer_viewed') return <Eye className="h-4 w-4" />;
-    if (eventType === 'button_clicked') return <MousePointer className="h-4 w-4" />;
+    if (type === "chat_session") return <MessageSquare className="h-4 w-4" />;
+    if (type === "funnel_session") return <TrendingUp className="h-4 w-4" />;
+    if (type === "purchase") return <ShoppingCart className="h-4 w-4" />;
+    if (eventType === "offer_viewed") return <Eye className="h-4 w-4" />;
+    if (eventType === "button_clicked")
+      return <MousePointer className="h-4 w-4" />;
     return <FileText className="h-4 w-4" />;
   };
 
   const getEventTitle = (event: TimelineEvent) => {
-    if (event.type === 'chat_session') {
-      return 'Нова Chat Сесия';
+    if (event.type === "chat_session") {
+      return "Нова Chat Сесия";
     }
-    if (event.type === 'funnel_session') {
-      return event.data.completed ? 'Завършен Funnel' : 'Започнат Funnel';
+    if (event.type === "funnel_session") {
+      return event.data.completed ? "Завършен Funnel" : "Започнат Funnel";
     }
-    if (event.type === 'purchase') {
+    if (event.type === "purchase") {
       return `🎉 Покупка: ${event.data.product_name}`;
     }
-    if (event.type === 'funnel_event') {
+    if (event.type === "funnel_event") {
       const eventType = event.data.event_type;
-      if (eventType === 'offer_viewed') {
-        return `Видял ${event.data.metadata?.offerTier || ''} оферта`;
+      if (eventType === "offer_viewed") {
+        return `Видял ${event.data.metadata?.offerTier || ""} оферта`;
       }
-      if (eventType === 'button_clicked') {
-        return `Кликнал: ${event.data.metadata?.buttonText || 'бутон'}`;
+      if (eventType === "button_clicked") {
+        return `Кликнал: ${event.data.metadata?.buttonText || "бутон"}`;
       }
-      if (eventType === 'exit_intent') {
-        return 'Exit Intent Detection';
+      if (eventType === "exit_intent") {
+        return "Exit Intent Detection";
       }
     }
-    return 'Събитие';
+    return "Събитие";
   };
 
   const getEventDescription = (event: TimelineEvent) => {
-    if (event.type === 'chat_session') {
+    if (event.type === "chat_session") {
       return event.data.pdf_filename
         ? `PDF: ${event.data.pdf_filename}`
-        : 'Без PDF файл';
+        : "Без PDF файл";
     }
-    if (event.type === 'funnel_session') {
-      return `Offer: ${event.data.offer_tier || 'Няма'} | Step ${event.data.exit_step || 'N/A'}`;
+    if (event.type === "funnel_session") {
+      return `Offer: ${event.data.offer_tier || "Няма"} | Step ${event.data.exit_step || "N/A"}`;
     }
-    if (event.type === 'purchase') {
+    if (event.type === "purchase") {
       const apps = event.data.apps_included || [];
       return `${event.data.amount} ${event.data.currency} | ${apps.length} apps`;
     }
-    if (event.type === 'funnel_event') {
+    if (event.type === "funnel_event") {
       return `Step ${event.data.step_number}`;
     }
-    return '';
+    return "";
   };
 
   if (isLoading) {
@@ -262,7 +275,7 @@ export default function UserProfilePage() {
       <AdminLayout>
         <div className="text-center py-12">
           <p className="text-muted-foreground">Потребителят не е намерен</p>
-          <Button className="mt-4" onClick={() => router.push('/admin/users')}>
+          <Button className="mt-4" onClick={() => router.push("/admin/users")}>
             Обратно към потребителите
           </Button>
         </div>
@@ -272,18 +285,20 @@ export default function UserProfilePage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-3 sm:space-y-4 md:space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4">
           <Button
             variant="ghost"
             size="icon"
-            onClick={() => router.push('/admin/users')}
+            onClick={() => router.push("/admin/users")}
           >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold">User Profile</h1>
+            <h1 className="text-xl sm:text-2xl sm:text-3xl font-bold">
+              User Profile
+            </h1>
             <p className="text-muted-foreground mt-1">{email}</p>
           </div>
         </div>
@@ -298,7 +313,9 @@ export default function UserProfilePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{profileData.stats.totalChatSessions}</div>
+              <div className="text-xl sm:text-2xl font-bold">
+                {profileData.stats.totalChatSessions}
+              </div>
             </CardContent>
           </Card>
 
@@ -310,7 +327,9 @@ export default function UserProfilePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{profileData.stats.totalFunnelAttempts}</div>
+              <div className="text-xl sm:text-2xl font-bold">
+                {profileData.stats.totalFunnelAttempts}
+              </div>
             </CardContent>
           </Card>
 
@@ -322,7 +341,7 @@ export default function UserProfilePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-xl sm:text-2xl font-bold text-green-600">
                 {profileData.stats.completedFunnels}
               </div>
             </CardContent>
@@ -336,7 +355,7 @@ export default function UserProfilePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-xl sm:text-2xl font-bold text-green-600">
                 {profileData.stats.totalPurchases}
               </div>
             </CardContent>
@@ -350,7 +369,7 @@ export default function UserProfilePage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-xl sm:text-2xl font-bold text-green-600">
                 {profileData.stats.totalSpent} лв
               </div>
             </CardContent>
@@ -358,28 +377,29 @@ export default function UserProfilePage() {
         </div>
 
         {/* Active Apps */}
-        {profileData.stats.activeApps && profileData.stats.activeApps.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Активни Услуги
-              </CardTitle>
-              <CardDescription>
-                Apps до които потребителят има достъп
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2">
-                {profileData.stats.activeApps.map((app) => (
-                  <Badge key={app} variant="default" className="text-sm">
-                    {app}
-                  </Badge>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
+        {profileData.stats.activeApps &&
+          profileData.stats.activeApps.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Package className="h-5 w-5" />
+                  Активни Услуги
+                </CardTitle>
+                <CardDescription>
+                  Apps до които потребителят има достъп
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex flex-wrap gap-2">
+                  {profileData.stats.activeApps.map((app) => (
+                    <Badge key={app} variant="default" className="text-sm">
+                      {app}
+                    </Badge>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
         {/* Purchases History */}
         {profileData.purchases && profileData.purchases.length > 0 && (
@@ -407,8 +427,16 @@ export default function UserProfilePage() {
                           {purchase.productType}
                         </Badge>
                         <Badge
-                          variant={purchase.status === 'completed' ? 'default' : 'secondary'}
-                          className={purchase.status === 'completed' ? 'bg-green-600' : ''}
+                          variant={
+                            purchase.status === "completed"
+                              ? "default"
+                              : "secondary"
+                          }
+                          className={
+                            purchase.status === "completed"
+                              ? "bg-green-600"
+                              : ""
+                          }
                         >
                           {purchase.status}
                         </Badge>
@@ -416,15 +444,20 @@ export default function UserProfilePage() {
                       <p className="text-sm text-muted-foreground mt-1">
                         {formatDate(purchase.purchasedAt)}
                       </p>
-                      {purchase.appsIncluded && purchase.appsIncluded.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {purchase.appsIncluded.map((app) => (
-                            <Badge key={app} variant="secondary" className="text-xs">
-                              {app}
-                            </Badge>
-                          ))}
-                        </div>
-                      )}
+                      {purchase.appsIncluded &&
+                        purchase.appsIncluded.length > 0 && (
+                          <div className="flex flex-wrap gap-1 mt-2">
+                            {purchase.appsIncluded.map((app) => (
+                              <Badge
+                                key={app}
+                                variant="secondary"
+                                className="text-xs"
+                              >
+                                {app}
+                              </Badge>
+                            ))}
+                          </div>
+                        )}
                     </div>
                     <div className="text-right ml-4">
                       <p className="text-lg font-bold text-green-600">
@@ -449,22 +482,26 @@ export default function UserProfilePage() {
                     <Utensils className="h-5 w-5" />
                     Meal Planning
                   </CardTitle>
-                  <CardDescription>
-                    Активен meal plan
-                  </CardDescription>
+                  <CardDescription>Активен meal plan</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Създаден на:</span>
+                      <span className="text-sm text-muted-foreground">
+                        Създаден на:
+                      </span>
                       <Badge variant="outline">
                         {profileData.appData.mealPlan.createdAt
-                          ? new Date(profileData.appData.mealPlan.createdAt).toLocaleDateString('bg-BG')
-                          : 'N/A'}
+                          ? new Date(
+                              profileData.appData.mealPlan.createdAt,
+                            ).toLocaleDateString("bg-BG")
+                          : "N/A"}
                       </Badge>
                     </div>
                     <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Статус:</span>
+                      <span className="text-sm text-muted-foreground">
+                        Статус:
+                      </span>
                       <Badge className="bg-green-600">Активен План</Badge>
                     </div>
                   </div>
@@ -473,158 +510,221 @@ export default function UserProfilePage() {
             )}
 
             {/* Sleep Logs */}
-            {profileData.appData.sleepLogs && profileData.appData.sleepLogs.totalLogs > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Moon className="h-5 w-5" />
-                    Sleep Protocol
-                  </CardTitle>
-                  <CardDescription>
-                    Sleep tracking история
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Общо записи</p>
-                      <p className="text-2xl font-bold">{profileData.appData.sleepLogs.totalLogs}</p>
+            {profileData.appData.sleepLogs &&
+              profileData.appData.sleepLogs.totalLogs > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Moon className="h-5 w-5" />
+                      Sleep Protocol
+                    </CardTitle>
+                    <CardDescription>Sleep tracking история</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Общо записи
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold">
+                          {profileData.appData.sleepLogs.totalLogs}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Среден Quality
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold">
+                          {profileData.appData.sleepLogs.averageQuality?.toFixed(
+                            1,
+                          ) || "N/A"}
+                          /10
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Последен запис
+                        </p>
+                        <p className="text-sm font-medium">
+                          {profileData.appData.sleepLogs.lastLogDate
+                            ? new Date(
+                                profileData.appData.sleepLogs.lastLogDate,
+                              ).toLocaleDateString("bg-BG")
+                            : "N/A"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Среден Quality</p>
-                      <p className="text-2xl font-bold">
-                        {profileData.appData.sleepLogs.averageQuality?.toFixed(1) || 'N/A'}/10
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Последен запис</p>
-                      <p className="text-sm font-medium">
-                        {profileData.appData.sleepLogs.lastLogDate
-                          ? new Date(profileData.appData.sleepLogs.lastLogDate).toLocaleDateString('bg-BG')
-                          : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-                  {profileData.appData.sleepLogs.latestLogs.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Последни 5 записа:</p>
-                      {profileData.appData.sleepLogs.latestLogs.slice(0, 5).map((log: any, i: number) => (
-                        <div key={i} className="flex items-center justify-between text-sm p-2 bg-accent rounded">
-                          <span>{new Date(log.log_date).toLocaleDateString('bg-BG')}</span>
-                          <span>{log.bedtime} - {log.waketime}</span>
-                          <Badge variant="outline">Quality: {log.quality}/10</Badge>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                    {profileData.appData.sleepLogs.latestLogs.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Последни 5 записа:
+                        </p>
+                        {profileData.appData.sleepLogs.latestLogs
+                          .slice(0, 5)
+                          .map((log: any, i: number) => (
+                            <div
+                              key={i}
+                              className="flex items-center justify-between text-sm p-2 bg-accent rounded"
+                            >
+                              <span>
+                                {new Date(log.log_date).toLocaleDateString(
+                                  "bg-BG",
+                                )}
+                              </span>
+                              <span>
+                                {log.bedtime} - {log.waketime}
+                              </span>
+                              <Badge variant="outline">
+                                Quality: {log.quality}/10
+                              </Badge>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
             {/* Lab Results */}
-            {profileData.appData.labResults && profileData.appData.labResults.totalResults > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FlaskConical className="h-5 w-5" />
-                    Lab Results
-                  </CardTitle>
-                  <CardDescription>
-                    Лабораторни резултати история
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Общо тестове</p>
-                      <p className="text-2xl font-bold">{profileData.appData.labResults.totalResults}</p>
+            {profileData.appData.labResults &&
+              profileData.appData.labResults.totalResults > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <FlaskConical className="h-5 w-5" />
+                      Lab Results
+                    </CardTitle>
+                    <CardDescription>
+                      Лабораторни резултати история
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Общо тестове
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold">
+                          {profileData.appData.labResults.totalResults}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Последен тест
+                        </p>
+                        <p className="text-sm font-medium">
+                          {profileData.appData.labResults.lastTestDate
+                            ? new Date(
+                                profileData.appData.labResults.lastTestDate,
+                              ).toLocaleDateString("bg-BG")
+                            : "N/A"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Последен тест</p>
-                      <p className="text-sm font-medium">
-                        {profileData.appData.labResults.lastTestDate
-                          ? new Date(profileData.appData.labResults.lastTestDate).toLocaleDateString('bg-BG')
-                          : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-                  {profileData.appData.labResults.latestResults.length > 0 && (
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium text-muted-foreground">Последни резултати:</p>
-                      {profileData.appData.labResults.latestResults.slice(0, 3).map((result: any, i: number) => (
-                        <div key={i} className="p-3 bg-accent rounded space-y-1">
-                          <div className="flex justify-between">
-                            <span className="text-sm font-medium">{new Date(result.test_date).toLocaleDateString('bg-BG')}</span>
-                          </div>
-                          <div className="grid grid-cols-2 gap-2 text-xs">
-                            <div>Total T: {result.total_testosterone || 'N/A'}</div>
-                            <div>Free T: {result.free_testosterone || 'N/A'}</div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            )}
+                    {profileData.appData.labResults.latestResults.length >
+                      0 && (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-muted-foreground">
+                          Последни резултати:
+                        </p>
+                        {profileData.appData.labResults.latestResults
+                          .slice(0, 3)
+                          .map((result: any, i: number) => (
+                            <div
+                              key={i}
+                              className="p-3 bg-accent rounded space-y-1"
+                            >
+                              <div className="flex justify-between">
+                                <span className="text-sm font-medium">
+                                  {new Date(
+                                    result.test_date,
+                                  ).toLocaleDateString("bg-BG")}
+                                </span>
+                              </div>
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                                <div>
+                                  Total T: {result.total_testosterone || "N/A"}
+                                </div>
+                                <div>
+                                  Free T: {result.free_testosterone || "N/A"}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
 
             {/* Exercise Logs */}
-            {profileData.appData.exerciseLogs && profileData.appData.exerciseLogs.totalLogs > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Dumbbell className="h-5 w-5" />
-                    Exercise Activity
-                  </CardTitle>
-                  <CardDescription>
-                    Workout история
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Общо тренировки</p>
-                      <p className="text-2xl font-bold">{profileData.appData.exerciseLogs.totalLogs}</p>
+            {profileData.appData.exerciseLogs &&
+              profileData.appData.exerciseLogs.totalLogs > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Dumbbell className="h-5 w-5" />
+                      Exercise Activity
+                    </CardTitle>
+                    <CardDescription>Workout история</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Общо тренировки
+                        </p>
+                        <p className="text-xl sm:text-2xl font-bold">
+                          {profileData.appData.exerciseLogs.totalLogs}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-sm text-muted-foreground">
+                          Последна тренировка
+                        </p>
+                        <p className="text-sm font-medium">
+                          {profileData.appData.exerciseLogs.lastWorkoutDate
+                            ? new Date(
+                                profileData.appData.exerciseLogs.lastWorkoutDate,
+                              ).toLocaleDateString("bg-BG")
+                            : "N/A"}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">Последна тренировка</p>
-                      <p className="text-sm font-medium">
-                        {profileData.appData.exerciseLogs.lastWorkoutDate
-                          ? new Date(profileData.appData.exerciseLogs.lastWorkoutDate).toLocaleDateString('bg-BG')
-                          : 'N/A'}
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  </CardContent>
+                </Card>
+              )}
 
             {/* Analytics Events */}
-            {profileData.appData.analyticsEvents && profileData.appData.analyticsEvents.totalEvents > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="h-5 w-5" />
-                    App Activity
-                  </CardTitle>
-                  <CardDescription>
-                    Най-използвани features
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <p className="text-sm text-muted-foreground">Общо събития: {profileData.appData.analyticsEvents.totalEvents}</p>
-                    <div className="flex flex-wrap gap-2">
-                      {profileData.appData.analyticsEvents.mostUsedFeatures.map((feature) => (
-                        <Badge key={feature} variant="secondary">
-                          {feature}
-                        </Badge>
-                      ))}
+            {profileData.appData.analyticsEvents &&
+              profileData.appData.analyticsEvents.totalEvents > 0 && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Activity className="h-5 w-5" />
+                      App Activity
+                    </CardTitle>
+                    <CardDescription>Най-използвани features</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        Общо събития:{" "}
+                        {profileData.appData.analyticsEvents.totalEvents}
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {profileData.appData.analyticsEvents.mostUsedFeatures.map(
+                          (feature) => (
+                            <Badge key={feature} variant="secondary">
+                              {feature}
+                            </Badge>
+                          ),
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+                  </CardContent>
+                </Card>
+              )}
           </>
         )}
 
@@ -640,27 +740,39 @@ export default function UserProfilePage() {
                 Progress към подобряване на testosterone нивата
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-3 sm:space-y-4 md:space-y-6">
               {/* Protocol Overview */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="text-center p-3 bg-white rounded-lg">
                   <Calendar className="h-5 w-5 mx-auto mb-1 text-purple-600" />
-                  <p className="text-2xl font-bold text-purple-600">{profileData.proData.daysOnProtocol}</p>
-                  <p className="text-xs text-muted-foreground">Дни на протокол</p>
+                  <p className="text-xl sm:text-2xl font-bold text-purple-600">
+                    {profileData.proData.daysOnProtocol}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Дни на протокол
+                  </p>
                 </div>
                 <div className="text-center p-3 bg-white rounded-lg">
                   <Flame className="h-5 w-5 mx-auto mb-1 text-orange-500" />
-                  <p className="text-2xl font-bold text-orange-500">{profileData.proData.dailyEntries.currentStreak}</p>
+                  <p className="text-xl sm:text-2xl font-bold text-orange-500">
+                    {profileData.proData.dailyEntries.currentStreak}
+                  </p>
                   <p className="text-xs text-muted-foreground">Текущ streak</p>
                 </div>
                 <div className="text-center p-3 bg-white rounded-lg">
                   <Trophy className="h-5 w-5 mx-auto mb-1 text-yellow-500" />
-                  <p className="text-2xl font-bold text-yellow-500">{profileData.proData.dailyEntries.longestStreak}</p>
-                  <p className="text-xs text-muted-foreground">Най-дълъг streak</p>
+                  <p className="text-xl sm:text-2xl font-bold text-yellow-500">
+                    {profileData.proData.dailyEntries.longestStreak}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Най-дълъг streak
+                  </p>
                 </div>
                 <div className="text-center p-3 bg-white rounded-lg">
                   <CheckCircle className="h-5 w-5 mx-auto mb-1 text-green-600" />
-                  <p className="text-2xl font-bold text-green-600">{profileData.proData.dailyEntries.complianceRate}%</p>
+                  <p className="text-xl sm:text-2xl font-bold text-green-600">
+                    {profileData.proData.dailyEntries.complianceRate}%
+                  </p>
                   <p className="text-xs text-muted-foreground">Compliance</p>
                 </div>
               </div>
@@ -671,71 +783,104 @@ export default function UserProfilePage() {
                   <Activity className="h-4 w-4" />
                   Средни показатели
                 </h4>
-                <div className="grid grid-cols-3 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   <div className="p-3 bg-white rounded-lg">
-                    <p className="text-sm text-muted-foreground">Общо усещане</p>
+                    <p className="text-sm text-muted-foreground">
+                      Общо усещане
+                    </p>
                     <p className="text-xl font-bold">
-                      {profileData.proData.dailyEntries.averageFeeling?.toFixed(1) || 'N/A'}/10
+                      {profileData.proData.dailyEntries.averageFeeling?.toFixed(
+                        1,
+                      ) || "N/A"}
+                      /10
                     </p>
                   </div>
                   <div className="p-3 bg-white rounded-lg">
                     <p className="text-sm text-muted-foreground">Енергия</p>
                     <p className="text-xl font-bold">
-                      {profileData.proData.dailyEntries.averageEnergy?.toFixed(1) || 'N/A'}/10
+                      {profileData.proData.dailyEntries.averageEnergy?.toFixed(
+                        1,
+                      ) || "N/A"}
+                      /10
                     </p>
                   </div>
                   <div className="p-3 bg-white rounded-lg">
                     <p className="text-sm text-muted-foreground">Compliance</p>
                     <p className="text-xl font-bold">
-                      {profileData.proData.dailyEntries.averageCompliance?.toFixed(1) || 'N/A'}/10
+                      {profileData.proData.dailyEntries.averageCompliance?.toFixed(
+                        1,
+                      ) || "N/A"}
+                      /10
                     </p>
                   </div>
                 </div>
               </div>
 
               {/* Weight Tracking */}
-              {profileData.proData.weeklyMeasurements && profileData.proData.weeklyMeasurements.totalMeasurements > 0 && (
-                <div>
-                  <h4 className="font-medium mb-3 flex items-center gap-2">
-                    <Scale className="h-4 w-4" />
-                    Weight Tracking
-                  </h4>
-                  <div className="grid grid-cols-3 gap-3">
-                    <div className="p-3 bg-white rounded-lg">
-                      <p className="text-sm text-muted-foreground">Начално тегло</p>
-                      <p className="text-xl font-bold">
-                        {profileData.proData.weeklyMeasurements.startWeight?.toFixed(1) || 'N/A'} kg
-                      </p>
-                    </div>
-                    <div className="p-3 bg-white rounded-lg">
-                      <p className="text-sm text-muted-foreground">Текущо тегло</p>
-                      <p className="text-xl font-bold">
-                        {profileData.proData.weeklyMeasurements.currentWeight?.toFixed(1) || 'N/A'} kg
-                      </p>
-                    </div>
-                    <div className="p-3 bg-white rounded-lg">
-                      <p className="text-sm text-muted-foreground">Промяна</p>
-                      <p className={`text-xl font-bold ${
-                        (profileData.proData.weeklyMeasurements.weightChange || 0) > 0
-                          ? 'text-green-600'
-                          : 'text-red-600'
-                      }`}>
-                        {profileData.proData.weeklyMeasurements.weightChange?.toFixed(1) || 'N/A'} kg
-                      </p>
+              {profileData.proData.weeklyMeasurements &&
+                profileData.proData.weeklyMeasurements.totalMeasurements >
+                  0 && (
+                  <div>
+                    <h4 className="font-medium mb-3 flex items-center gap-2">
+                      <Scale className="h-4 w-4" />
+                      Weight Tracking
+                    </h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                      <div className="p-3 bg-white rounded-lg">
+                        <p className="text-sm text-muted-foreground">
+                          Начално тегло
+                        </p>
+                        <p className="text-xl font-bold">
+                          {profileData.proData.weeklyMeasurements.startWeight?.toFixed(
+                            1,
+                          ) || "N/A"}{" "}
+                          kg
+                        </p>
+                      </div>
+                      <div className="p-3 bg-white rounded-lg">
+                        <p className="text-sm text-muted-foreground">
+                          Текущо тегло
+                        </p>
+                        <p className="text-xl font-bold">
+                          {profileData.proData.weeklyMeasurements.currentWeight?.toFixed(
+                            1,
+                          ) || "N/A"}{" "}
+                          kg
+                        </p>
+                      </div>
+                      <div className="p-3 bg-white rounded-lg">
+                        <p className="text-sm text-muted-foreground">Промяна</p>
+                        <p
+                          className={`text-xl font-bold ${
+                            (profileData.proData.weeklyMeasurements
+                              .weightChange || 0) > 0
+                              ? "text-green-600"
+                              : "text-red-600"
+                          }`}
+                        >
+                          {profileData.proData.weeklyMeasurements.weightChange?.toFixed(
+                            1,
+                          ) || "N/A"}{" "}
+                          kg
+                        </p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
 
               {/* Missed Days Warning */}
-              {profileData.proData.dailyEntries && profileData.proData.dailyEntries.missedDays > 0 && (
-                <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <XCircle className="h-5 w-5 text-yellow-600" />
-                  <p className="text-sm">
-                    <span className="font-medium">{profileData.proData.dailyEntries.missedDays}</span> пропуснати дни tracking
-                  </p>
-                </div>
-              )}
+              {profileData.proData.dailyEntries &&
+                profileData.proData.dailyEntries.missedDays > 0 && (
+                  <div className="flex items-center gap-2 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <XCircle className="h-5 w-5 text-yellow-600" />
+                    <p className="text-sm">
+                      <span className="font-medium">
+                        {profileData.proData.dailyEntries.missedDays}
+                      </span>{" "}
+                      пропуснати дни tracking
+                    </p>
+                  </div>
+                )}
             </CardContent>
           </Card>
         )}
@@ -753,7 +898,7 @@ export default function UserProfilePage() {
           </CardHeader>
           <CardContent>
             {profileData.timeline.length === 0 ? (
-              <p className="text-center text-muted-foreground py-8">
+              <p className="text-center text-muted-foreground py-6 sm:py-8">
                 Няма записани активности
               </p>
             ) : (
@@ -764,13 +909,13 @@ export default function UserProfilePage() {
                     <div className="flex flex-col items-center">
                       <div
                         className={`flex items-center justify-center w-8 h-8 rounded-full ${
-                          event.type === 'chat_session'
-                            ? 'bg-blue-100 text-blue-600'
-                            : event.type === 'funnel_session'
-                            ? 'bg-purple-100 text-purple-600'
-                            : event.type === 'purchase'
-                            ? 'bg-green-100 text-green-600'
-                            : 'bg-gray-100 text-gray-600'
+                          event.type === "chat_session"
+                            ? "bg-blue-100 text-blue-600"
+                            : event.type === "funnel_session"
+                              ? "bg-purple-100 text-purple-600"
+                              : event.type === "purchase"
+                                ? "bg-green-100 text-green-600"
+                                : "bg-gray-100 text-gray-600"
                         }`}
                       >
                         {getEventIcon(event.type, event.data.event_type)}
@@ -784,7 +929,9 @@ export default function UserProfilePage() {
                     <div className="flex-1 pb-8">
                       <div className="flex items-start justify-between">
                         <div>
-                          <h4 className="font-medium">{getEventTitle(event)}</h4>
+                          <h4 className="font-medium">
+                            {getEventTitle(event)}
+                          </h4>
                           <p className="text-sm text-muted-foreground">
                             {getEventDescription(event)}
                           </p>

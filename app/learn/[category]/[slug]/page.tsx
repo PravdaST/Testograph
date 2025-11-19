@@ -220,33 +220,34 @@ function MostReadArticles({ currentSlug, category }: { currentSlug: string; cate
   }, [currentSlug]);
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-6">
-      <h3 className="text-lg font-bold text-gray-900 mb-4">Най-четени статии</h3>
-      <div className="space-y-4">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6">
+      <h3 className="text-base sm:text-lg font-bold text-gray-900 mb-3 sm:mb-4">Най-четени статии</h3>
+      <div className="space-y-3 sm:space-y-4">
         {articles.map((article) => (
           <Link
             key={article.slug}
             href={`/learn/${article.guide_category}/${article.slug}`}
-            className="flex gap-3 group"
+            className="flex gap-2.5 sm:gap-3 group touch-manipulation"
           >
             {/* Article Image */}
             {article.featured_image_url ? (
-              <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
+              <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg overflow-hidden bg-gray-100">
                 <img
                   src={article.featured_image_url}
                   alt={article.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  loading="lazy"
                 />
               </div>
             ) : (
-              <div className="flex-shrink-0 w-20 h-20 rounded-lg bg-gradient-to-br from-[#499167] to-[#5fb57e] flex items-center justify-center">
-                <FileText className="w-8 h-8 text-white" />
+              <div className="flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 rounded-lg bg-gradient-to-br from-[#499167] to-[#5fb57e] flex items-center justify-center">
+                <FileText className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
               </div>
             )}
 
             {/* Article Info */}
             <div className="flex-1 min-w-0">
-              <h4 className="text-sm font-medium text-gray-900 group-hover:text-[#499167] transition line-clamp-2 mb-1">
+              <h4 className="text-xs sm:text-sm font-medium text-gray-900 group-hover:text-[#499167] transition line-clamp-2 mb-1">
                 {article.title}
               </h4>
               <p className="text-xs text-gray-500 flex items-center gap-1">
@@ -806,12 +807,12 @@ export default function LearnGuidePage({ params }: PageProps) {
             src={guide.featured_image_url || "/testograph-background.webp"}
             alt={guide.title}
             className="w-full h-full object-cover opacity-30"
-            loading="lazy"
+            loading="eager"
           />
         </div>
 
-        {/* Wave Animation */}
-        <div className="absolute inset-0 z-5">
+        {/* Wave Animation - Hidden on mobile for performance */}
+        <div className="hidden md:block absolute inset-0 z-5">
           <WaveBackground color="#499167" opacity={0.08} />
         </div>
 

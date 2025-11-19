@@ -1,17 +1,19 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { EmailSidebar } from '@/components/admin/emails/EmailSidebar';
-import { EmailList } from '@/components/admin/emails/EmailList';
-import { EmailDetail } from '@/components/admin/emails/EmailDetail';
-import { AccountSelector } from '@/components/admin/emails/AccountSelector';
+import { useState } from "react";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { EmailSidebar } from "@/components/admin/emails/EmailSidebar";
+import { EmailList } from "@/components/admin/emails/EmailList";
+import { EmailDetail } from "@/components/admin/emails/EmailDetail";
+import { AccountSelector } from "@/components/admin/emails/AccountSelector";
 
-export type EmailFolder = 'inbox' | 'sent' | 'drafts' | 'spam' | 'trash';
+export type EmailFolder = "inbox" | "sent" | "drafts" | "spam" | "trash";
 
 export default function EmailsPage() {
-  const [selectedAccount, setSelectedAccount] = useState('contact@testograph.eu');
-  const [currentFolder, setCurrentFolder] = useState<EmailFolder>('inbox');
+  const [selectedAccount, setSelectedAccount] = useState(
+    "contact@testograph.eu",
+  );
+  const [currentFolder, setCurrentFolder] = useState<EmailFolder>("inbox");
   const [selectedEmailId, setSelectedEmailId] = useState<string | null>(null);
   const [showCompose, setShowCompose] = useState(false);
 

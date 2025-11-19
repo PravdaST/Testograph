@@ -1,15 +1,21 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { getCurrentAdminUser } from '@/lib/admin/auth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { getCurrentAdminUser } from "@/lib/admin/auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -17,7 +23,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +31,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,14 +39,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Settings as SettingsIcon,
   Shield,
@@ -50,20 +56,20 @@ import {
   Trash2,
   Loader2,
   Search,
-  AlertCircle
-} from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-import { useToast } from '@/hooks/use-toast';
+  AlertCircle,
+} from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
+import { useToast } from "@/hooks/use-toast";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
 interface Admin {
   id: string;
   email: string;
-  role: 'superadmin' | 'admin' | 'viewer';
+  role: "superadmin" | "admin" | "viewer";
   permissions: string[];
   created_at: string;
   created_by: string | null;
@@ -77,14 +83,14 @@ interface User {
 }
 
 const ALL_PERMISSIONS = [
-  { value: 'manage_users', label: 'Управление на потребители' },
-  { value: 'manage_purchases', label: 'Управление на покупки' },
-  { value: 'view_analytics', label: 'Преглед на анализи' },
-  { value: 'send_emails', label: 'Изпращане на emails' },
-  { value: 'manage_pro_access', label: 'Управление на PRO достъп' },
-  { value: 'manage_admins', label: 'Управление на админи' },
-  { value: 'view_audit_logs', label: 'Преглед на audit logs' },
-  { value: 'manage_app_data', label: 'Управление на app данни' },
+  { value: "manage_users", label: "Управление на потребители" },
+  { value: "manage_purchases", label: "Управление на покупки" },
+  { value: "view_analytics", label: "Преглед на анализи" },
+  { value: "send_emails", label: "Изпращане на emails" },
+  { value: "manage_pro_access", label: "Управление на PRO достъп" },
+  { value: "manage_admins", label: "Управление на админи" },
+  { value: "view_audit_logs", label: "Преглед на audit logs" },
+  { value: "manage_app_data", label: "Управление на app данни" },
 ];
 
 export default function SettingsPage() {
@@ -93,7 +99,7 @@ export default function SettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [admins, setAdmins] = useState<Admin[]>([]);
   const [allUsers, setAllUsers] = useState<User[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Admin user authentication
   const [adminId, setAdminId] = useState<string | null>(null);
@@ -101,15 +107,19 @@ export default function SettingsPage() {
 
   // Add Admin Modal
   const [addAdminModal, setAddAdminModal] = useState(false);
-  const [selectedUserId, setSelectedUserId] = useState('');
-  const [selectedRole, setSelectedRole] = useState<'admin' | 'viewer'>('admin');
-  const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(new Set());
-  const [adminNotes, setAdminNotes] = useState('');
+  const [selectedUserId, setSelectedUserId] = useState("");
+  const [selectedRole, setSelectedRole] = useState<"admin" | "viewer">("admin");
+  const [selectedPermissions, setSelectedPermissions] = useState<Set<string>>(
+    new Set(),
+  );
+  const [adminNotes, setAdminNotes] = useState("");
 
   // Edit Role Modal
   const [editRoleModal, setEditRoleModal] = useState(false);
   const [editingAdmin, setEditingAdmin] = useState<Admin | null>(null);
-  const [newRole, setNewRole] = useState<'superadmin' | 'admin' | 'viewer'>('admin');
+  const [newRole, setNewRole] = useState<"superadmin" | "admin" | "viewer">(
+    "admin",
+  );
 
   // Edit Permissions Modal
   const [editPermissionsModal, setEditPermissionsModal] = useState(false);
@@ -127,7 +137,7 @@ export default function SettingsPage() {
         setAdminEmail(email);
       } else {
         // Not authenticated as admin - redirect to login
-        router.push('/admin');
+        router.push("/admin");
       }
     };
     fetchAdminUser();
@@ -142,45 +152,45 @@ export default function SettingsPage() {
 
   const fetchAdmins = async () => {
     try {
-      const response = await fetch('/api/admin/settings/admins');
+      const response = await fetch("/api/admin/settings/admins");
       const data = await response.json();
 
       if (response.ok) {
         setAdmins(data.admins || []);
       }
     } catch (error) {
-      console.error('Error fetching admins:', error);
+      console.error("Error fetching admins:", error);
     }
   };
 
   const fetchAllUsers = async () => {
     try {
-      const response = await fetch('/api/admin/access/users');
+      const response = await fetch("/api/admin/access/users");
       const data = await response.json();
 
       if (response.ok) {
         setAllUsers(data.users || []);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
     }
   };
 
   const handleAddAdmin = async () => {
     if (!selectedUserId || selectedPermissions.size === 0) {
       toast({
-        title: 'Грешка',
-        description: 'Моля изберете потребител и поне 1 permission',
-        variant: 'destructive',
+        title: "Грешка",
+        description: "Моля изберете потребител и поне 1 permission",
+        variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/admin/settings/admins/add', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/settings/admins/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUserId,
           role: selectedRole,
@@ -195,23 +205,23 @@ export default function SettingsPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех!',
+          title: "Успех!",
           description: data.message,
         });
         setAddAdminModal(false);
-        setSelectedUserId('');
-        setSelectedRole('admin');
+        setSelectedUserId("");
+        setSelectedRole("admin");
         setSelectedPermissions(new Set());
-        setAdminNotes('');
+        setAdminNotes("");
         fetchAdmins();
       } else {
         throw new Error(data.error);
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно добавяне на админ',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно добавяне на админ",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -223,9 +233,9 @@ export default function SettingsPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/admin/settings/admins/update-role', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/settings/admins/update-role", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: editingAdmin.id,
           role: newRole,
@@ -238,7 +248,7 @@ export default function SettingsPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех!',
+          title: "Успех!",
           description: data.message,
         });
         setEditRoleModal(false);
@@ -249,9 +259,9 @@ export default function SettingsPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешна промяна на роля',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешна промяна на роля",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -261,31 +271,34 @@ export default function SettingsPage() {
   const handleEditPermissions = async () => {
     if (!editingAdmin || newPermissions.size === 0) {
       toast({
-        title: 'Грешка',
-        description: 'Изберете поне 1 permission',
-        variant: 'destructive',
+        title: "Грешка",
+        description: "Изберете поне 1 permission",
+        variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/admin/settings/admins/update-permissions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: editingAdmin.id,
-          permissions: Array.from(newPermissions),
-          adminId,
-          adminEmail,
-        }),
-      });
+      const response = await fetch(
+        "/api/admin/settings/admins/update-permissions",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: editingAdmin.id,
+            permissions: Array.from(newPermissions),
+            adminId,
+            adminEmail,
+          }),
+        },
+      );
 
       const data = await response.json();
 
       if (response.ok) {
         toast({
-          title: 'Успех!',
+          title: "Успех!",
           description: data.message,
         });
         setEditPermissionsModal(false);
@@ -297,9 +310,9 @@ export default function SettingsPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешна промяна на permissions',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешна промяна на permissions",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -311,9 +324,9 @@ export default function SettingsPage() {
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/admin/settings/admins/remove', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/settings/admins/remove", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: editingAdmin.id,
           adminId,
@@ -325,7 +338,7 @@ export default function SettingsPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех!',
+          title: "Успех!",
           description: data.message,
         });
         setRemoveAdminModal(false);
@@ -336,9 +349,9 @@ export default function SettingsPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно премахване на админ',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно премахване на админ",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -384,21 +397,26 @@ export default function SettingsPage() {
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
-      case 'superadmin': return 'bg-purple-600';
-      case 'admin': return 'bg-blue-600';
-      case 'viewer': return 'bg-gray-600';
-      default: return 'bg-gray-600';
+      case "superadmin":
+        return "bg-purple-600";
+      case "admin":
+        return "bg-blue-600";
+      case "viewer":
+        return "bg-gray-600";
+      default:
+        return "bg-gray-600";
     }
   };
 
-  const filteredAdmins = admins.filter(admin =>
-    searchQuery === '' ||
-    admin.email.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredAdmins = admins.filter(
+    (admin) =>
+      searchQuery === "" ||
+      admin.email.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // Filter out users who are already admins
-  const availableUsers = allUsers.filter(user =>
-    !admins.some(admin => admin.id === user.id)
+  const availableUsers = allUsers.filter(
+    (user) => !admins.some((admin) => admin.id === user.id),
   );
 
   return (
@@ -458,7 +476,10 @@ export default function SettingsPage() {
                 <TableBody>
                   {filteredAdmins.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-8 text-muted-foreground"
+                      >
                         Няма намерени админи
                       </TableCell>
                     </TableRow>
@@ -479,8 +500,13 @@ export default function SettingsPage() {
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {admin.permissions.slice(0, 3).map((perm) => (
-                              <Badge key={perm} variant="outline" className="text-xs">
-                                {ALL_PERMISSIONS.find(p => p.value === perm)?.label || perm}
+                              <Badge
+                                key={perm}
+                                variant="outline"
+                                className="text-xs"
+                              >
+                                {ALL_PERMISSIONS.find((p) => p.value === perm)
+                                  ?.label || perm}
                               </Badge>
                             ))}
                             {admin.permissions.length > 3 && (
@@ -492,8 +518,10 @@ export default function SettingsPage() {
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {admin.last_active_at
-                            ? new Date(admin.last_active_at).toLocaleString('bg-BG')
-                            : '—'}
+                            ? new Date(admin.last_active_at).toLocaleString(
+                                "bg-BG",
+                              )
+                            : "—"}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
@@ -505,11 +533,15 @@ export default function SettingsPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Действия</DropdownMenuLabel>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => openEditRoleModal(admin)}>
+                              <DropdownMenuItem
+                                onClick={() => openEditRoleModal(admin)}
+                              >
                                 <Edit className="h-4 w-4 mr-2" />
                                 Промени Роля
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openEditPermissionsModal(admin)}>
+                              <DropdownMenuItem
+                                onClick={() => openEditPermissionsModal(admin)}
+                              >
                                 <Shield className="h-4 w-4 mr-2" />
                                 Промени Permissions
                               </DropdownMenuItem>
@@ -543,11 +575,23 @@ export default function SettingsPage() {
             </CardTitle>
           </CardHeader>
           <CardContent className="text-blue-800 text-sm space-y-2">
-            <p><strong>Superadmin:</strong> Пълен достъп, включително управление на други админи</p>
-            <p><strong>Admin:</strong> Може да управлява потребители, покупки, изпраща emails</p>
-            <p><strong>Viewer:</strong> Само преглед на данни в админ панела</p>
-            <p className="pt-2">• Superadmin има автоматично всички permissions</p>
-            <p>• Не можете да промените вашата собствена роля или permissions</p>
+            <p>
+              <strong>Superadmin:</strong> Пълен достъп, включително управление
+              на други админи
+            </p>
+            <p>
+              <strong>Admin:</strong> Може да управлява потребители, покупки,
+              изпраща emails
+            </p>
+            <p>
+              <strong>Viewer:</strong> Само преглед на данни в админ панела
+            </p>
+            <p className="pt-2">
+              • Superadmin има автоматично всички permissions
+            </p>
+            <p>
+              • Не можете да промените вашата собствена роля или permissions
+            </p>
             <p>• Не можете да премахнете последния superadmin</p>
           </CardContent>
         </Card>
@@ -581,7 +625,10 @@ export default function SettingsPage() {
 
             <div className="space-y-2">
               <Label>Роля</Label>
-              <Select value={selectedRole} onValueChange={(v: any) => setSelectedRole(v)}>
+              <Select
+                value={selectedRole}
+                onValueChange={(v: any) => setSelectedRole(v)}
+              >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -629,7 +676,7 @@ export default function SettingsPage() {
                   Добавяне...
                 </>
               ) : (
-                'Добави Админ'
+                "Добави Админ"
               )}
             </Button>
           </DialogFooter>
@@ -671,7 +718,7 @@ export default function SettingsPage() {
                   Запазване...
                 </>
               ) : (
-                'Запази'
+                "Запази"
               )}
             </Button>
           </DialogFooter>
@@ -679,7 +726,10 @@ export default function SettingsPage() {
       </Dialog>
 
       {/* Edit Permissions Modal */}
-      <Dialog open={editPermissionsModal} onOpenChange={setEditPermissionsModal}>
+      <Dialog
+        open={editPermissionsModal}
+        onOpenChange={setEditPermissionsModal}
+      >
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Промени Permissions</DialogTitle>
@@ -695,15 +745,16 @@ export default function SettingsPage() {
                     checked={newPermissions.has(perm.value)}
                     onCheckedChange={() => toggleEditPermission(perm.value)}
                   />
-                  <label className="text-sm cursor-pointer">
-                    {perm.label}
-                  </label>
+                  <label className="text-sm cursor-pointer">{perm.label}</label>
                 </div>
               ))}
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditPermissionsModal(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setEditPermissionsModal(false)}
+            >
               Отказ
             </Button>
             <Button onClick={handleEditPermissions} disabled={isLoading}>
@@ -713,7 +764,7 @@ export default function SettingsPage() {
                   Запазване...
                 </>
               ) : (
-                'Запази'
+                "Запази"
               )}
             </Button>
           </DialogFooter>
@@ -726,27 +777,35 @@ export default function SettingsPage() {
           <DialogHeader>
             <DialogTitle>Премахни Админ</DialogTitle>
             <DialogDescription>
-              Сигурни ли сте, че искате да премахнете админ достъпа на {editingAdmin?.email}?
+              Сигурни ли сте, че искате да премахнете админ достъпа на{" "}
+              {editingAdmin?.email}?
             </DialogDescription>
           </DialogHeader>
           <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
             <p className="text-sm text-red-800">
-              <strong>Внимание:</strong> Това действие ще премахне всички админ права на потребителя.
-              Той няма да има достъп до админ панела.
+              <strong>Внимание:</strong> Това действие ще премахне всички админ
+              права на потребителя. Той няма да има достъп до админ панела.
             </p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setRemoveAdminModal(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setRemoveAdminModal(false)}
+            >
               Отказ
             </Button>
-            <Button variant="destructive" onClick={handleRemoveAdmin} disabled={isLoading}>
+            <Button
+              variant="destructive"
+              onClick={handleRemoveAdmin}
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Премахване...
                 </>
               ) : (
-                'Премахни Админ'
+                "Премахни Админ"
               )}
             </Button>
           </DialogFooter>

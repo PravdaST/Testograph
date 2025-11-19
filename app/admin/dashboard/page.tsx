@@ -1,17 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { useRouter } from 'next/navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { StatCard } from '@/components/admin/StatCard';
-import { SkeletonCard, SkeletonTable } from '@/components/admin/SkeletonCard';
-import { EmptyState } from '@/components/admin/EmptyState';
-import { SearchBar } from '@/components/admin/SearchBar';
-import { UsersGrowthChart } from '@/components/admin/UsersGrowthChart';
-import { RevenueTrendChart } from '@/components/admin/RevenueTrendChart';
-import { getCurrentAdminUser } from '@/lib/admin/auth';
-import { adminFetch } from '@/lib/admin/api';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { StatCard } from "@/components/admin/StatCard";
+import { SkeletonCard, SkeletonTable } from "@/components/admin/SkeletonCard";
+import { EmptyState } from "@/components/admin/EmptyState";
+import { SearchBar } from "@/components/admin/SearchBar";
+import { UsersGrowthChart } from "@/components/admin/UsersGrowthChart";
+import { RevenueTrendChart } from "@/components/admin/RevenueTrendChart";
+import { getCurrentAdminUser } from "@/lib/admin/auth";
+import { adminFetch } from "@/lib/admin/api";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -19,19 +25,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
-import { useToast } from '@/hooks/use-toast';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { useToast } from "@/hooks/use-toast";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -39,7 +45,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   MessageSquare,
   TrendingUp,
@@ -66,7 +72,7 @@ import {
   Clock,
   Trash2,
   AlertTriangle,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface DashboardStats {
   quiz: {
@@ -150,7 +156,7 @@ export default function DashboardPage() {
   const [activities, setActivities] = useState<ActivityEvent[]>([]);
   const [recentPurchases, setRecentPurchases] = useState<RecentPurchase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -159,13 +165,13 @@ export default function DashboardPage() {
   const [adminEmail, setAdminEmail] = useState<string | null>(null);
 
   // New states for enhancements
-  const [timeRange, setTimeRange] = useState<string>('30');
+  const [timeRange, setTimeRange] = useState<string>("30");
   const [autoRefresh, setAutoRefresh] = useState(false);
   const [usersGrowthData, setUsersGrowthData] = useState<any[]>([]);
   const [revenueData, setRevenueData] = useState<any[]>([]);
   const [chartsLoading, setChartsLoading] = useState(true);
   const [systemHealth, setSystemHealth] = useState({
-    dbStatus: 'healthy',
+    dbStatus: "healthy",
     apiResponseTime: 0,
     activeSessions: 0,
   });
@@ -173,7 +179,7 @@ export default function DashboardPage() {
 
   // Clear test data states
   const [clearDataModal, setClearDataModal] = useState(false);
-  const [confirmText, setConfirmText] = useState('');
+  const [confirmText, setConfirmText] = useState("");
   const [confirmChecked, setConfirmChecked] = useState(false);
   const [isClearingData, setIsClearingData] = useState(false);
 
@@ -182,11 +188,15 @@ export default function DashboardPage() {
   // so we only need to get user data here (no redirect needed)
   useEffect(() => {
     const fetchAdminUser = async () => {
-      console.log('[DEBUG Dashboard] Fetching admin user data...');
+      console.log("[DEBUG Dashboard] Fetching admin user data...");
       const { adminUser, userId, email } = await getCurrentAdminUser();
-      console.log('[DEBUG Dashboard] getCurrentAdminUser returned:', { hasAdminUser: !!adminUser, userId, email });
+      console.log("[DEBUG Dashboard] getCurrentAdminUser returned:", {
+        hasAdminUser: !!adminUser,
+        userId,
+        email,
+      });
       if (adminUser) {
-        console.log('[DEBUG Dashboard] Admin user found, setting state');
+        console.log("[DEBUG Dashboard] Admin user found, setting state");
         setAdminId(userId);
         setAdminEmail(email);
       }
@@ -216,22 +226,22 @@ export default function DashboardPage() {
     }
     try {
       // Fetch activity feed
-      const activityRes = await adminFetch('/api/admin/activity?limit=10');
+      const activityRes = await adminFetch("/api/admin/activity?limit=10");
       const activityData = await activityRes.json();
       if (activityRes.ok) {
         setActivities(activityData.activities);
       }
 
       // Fetch comprehensive app stats from testograph-v2
-      const appStatsRes = await adminFetch('/api/admin/app-stats');
+      const appStatsRes = await adminFetch("/api/admin/app-stats");
       const appStatsData = await appStatsRes.json();
 
       // Fetch purchases
-      const purchasesRes = await adminFetch('/api/admin/purchases?limit=10');
+      const purchasesRes = await adminFetch("/api/admin/purchases?limit=10");
       const purchasesData = await purchasesRes.json();
 
       // Fetch trends data
-      const trendsRes = await adminFetch('/api/admin/stats/trends');
+      const trendsRes = await adminFetch("/api/admin/stats/trends");
       const trendsData = await trendsRes.json();
 
       if (appStatsRes.ok && purchasesRes.ok) {
@@ -242,7 +252,12 @@ export default function DashboardPage() {
             categoryPercentages: { energy: 0, libido: 0, muscle: 0 },
             averageScore: 0,
             workoutLocationBreakdown: { gym: 0, home: 0 },
-            dietaryPreferences: { omnivor: 0, vegetarian: 0, vegan: 0, pescatarian: 0 },
+            dietaryPreferences: {
+              omnivor: 0,
+              vegetarian: 0,
+              vegan: 0,
+              pescatarian: 0,
+            },
           },
           users: appStatsData.users || {
             total: 0,
@@ -251,7 +266,7 @@ export default function DashboardPage() {
             proUsers: 0,
           },
           engagement: appStatsData.engagement || {
-            period: '30 days',
+            period: "30 days",
             mealLogs: 0,
             workoutSessions: 0,
             sleepEntries: 0,
@@ -270,13 +285,14 @@ export default function DashboardPage() {
             completedPrograms: 0,
             activePrograms: 0,
           },
-          trends: (trendsRes.ok && trendsData?.trends) ? trendsData.trends : undefined,
+          trends:
+            trendsRes.ok && trendsData?.trends ? trendsData.trends : undefined,
         });
 
         setRecentPurchases(purchasesData.purchases || []);
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error("Error fetching dashboard data:", error);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -311,7 +327,9 @@ export default function DashboardPage() {
     setChartsLoading(true);
     try {
       const startTime = Date.now();
-      const response = await adminFetch(`/api/admin/stats/growth?days=${timeRange}`);
+      const response = await adminFetch(
+        `/api/admin/stats/growth?days=${timeRange}`,
+      );
       const apiResponseTime = Date.now() - startTime;
 
       const data = await response.json();
@@ -322,15 +340,16 @@ export default function DashboardPage() {
         // Database is healthy if API returned data successfully
         const dbIsHealthy = data.usersGrowth || data.revenueData;
         setSystemHealth({
-          dbStatus: dbIsHealthy ? 'healthy' : 'degraded',
+          dbStatus: dbIsHealthy ? "healthy" : "degraded",
           apiResponseTime,
-          activeSessions: data.usersGrowth?.[data.usersGrowth.length - 1]?.users || 0,
+          activeSessions:
+            data.usersGrowth?.[data.usersGrowth.length - 1]?.users || 0,
         });
       }
     } catch (error) {
-      console.error('Error fetching charts data:', error);
+      console.error("Error fetching charts data:", error);
       setSystemHealth({
-        dbStatus: 'error',
+        dbStatus: "error",
         apiResponseTime: 0,
         activeSessions: 0,
       });
@@ -341,20 +360,20 @@ export default function DashboardPage() {
 
   // Clear test data handler
   const handleClearData = async () => {
-    if (confirmText !== 'DELETE ALL' || !confirmChecked) {
+    if (confirmText !== "DELETE ALL" || !confirmChecked) {
       toast({
-        title: 'Грешка',
-        description: 'Моля, потвърдете действието',
-        variant: 'destructive',
+        title: "Грешка",
+        description: "Моля, потвърдете действието",
+        variant: "destructive",
       });
       return;
     }
 
     setIsClearingData(true);
     try {
-      const response = await adminFetch('/api/admin/clear-test-data', {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await adminFetch("/api/admin/clear-test-data", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           adminId,
           adminEmail,
@@ -366,11 +385,11 @@ export default function DashboardPage() {
 
       if (response.ok) {
         toast({
-          title: 'Успех',
+          title: "Успех",
           description: `Изтрити ${data.stats.deletedUsers} потребители и всички техни данни`,
         });
         setClearDataModal(false);
-        setConfirmText('');
+        setConfirmText("");
         setConfirmChecked(false);
         // Refresh dashboard data
         fetchDashboardData();
@@ -380,9 +399,9 @@ export default function DashboardPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно изтриване на данни',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно изтриване на данни",
+        variant: "destructive",
       });
     } finally {
       setIsClearingData(false);
@@ -395,7 +414,7 @@ export default function DashboardPage() {
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffMins < 1) return 'Току-що';
+    if (diffMins < 1) return "Току-що";
     if (diffMins < 60) return `Преди ${diffMins} мин`;
 
     const diffHours = Math.floor(diffMins / 60);
@@ -404,53 +423,60 @@ export default function DashboardPage() {
     const diffDays = Math.floor(diffHours / 24);
     if (diffDays < 7) return `Преди ${diffDays} дни`;
 
-    return date.toLocaleDateString('bg-BG');
+    return date.toLocaleDateString("bg-BG");
   };
 
   const getActivityIcon = (type: string) => {
-    if (type === 'chat_session') return <MessageSquare className="h-4 w-4" />;
-    if (type === 'funnel_session') return <TrendingUp className="h-4 w-4" />;
+    if (type === "chat_session") return <MessageSquare className="h-4 w-4" />;
+    if (type === "funnel_session") return <TrendingUp className="h-4 w-4" />;
     return <Activity className="h-4 w-4" />;
   };
 
   const formatTimestamp = (date: Date | null) => {
-    if (!date) return '';
+    if (!date) return "";
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffMins < 1) return 'току-що';
+    if (diffMins < 1) return "току-що";
     if (diffMins < 60) return `преди ${diffMins} мин`;
 
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `преди ${diffHours} ч`;
 
-    return date.toLocaleDateString('bg-BG', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleDateString("bg-BG", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   // Filter purchases and activities based on search
-  const filteredPurchases = recentPurchases.filter(p =>
-    searchQuery === '' ||
-    p.userEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.userName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.productName.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredPurchases = recentPurchases.filter(
+    (p) =>
+      searchQuery === "" ||
+      p.userEmail.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.userName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      p.productName.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const filteredActivities = activities.filter(a =>
-    searchQuery === '' ||
-    a.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    a.description.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredActivities = activities.filter(
+    (a) =>
+      searchQuery === "" ||
+      a.user.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      a.description.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="space-y-8">
+        <div className="space-y-4 sm:space-y-3 sm:space-y-4 md:space-y-6 md:space-y-8">
           <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground mt-1">
-              Зареждане на данни...
-            </p>
+            <h1 className="text-xl sm:text-2xl sm:text-3xl font-bold">
+              Dashboard
+            </h1>
+            <p className="text-muted-foreground mt-1">Зареждане на данни...</p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -468,7 +494,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
             <Card className="shadow-sm">
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">Recent Purchases</CardTitle>
@@ -493,14 +519,17 @@ export default function DashboardPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-8">
+      <div className="space-y-4 sm:space-y-3 sm:space-y-4 md:space-y-6 md:space-y-8">
         {/* Header with Search and Refresh */}
         <div className="flex flex-col gap-4">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold">Табло за Управление</h1>
+              <h1 className="text-xl sm:text-2xl sm:text-3xl font-bold">
+                Табло за Управление
+              </h1>
               <p className="text-muted-foreground mt-1">
-                {lastUpdated && `Последна актуализация: ${formatTimestamp(lastUpdated)}`}
+                {lastUpdated &&
+                  `Последна актуализация: ${formatTimestamp(lastUpdated)}`}
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -529,7 +558,9 @@ export default function DashboardPage() {
                 }}
                 disabled={isRefreshing}
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+                />
                 Обнови
               </Button>
             </div>
@@ -540,7 +571,10 @@ export default function DashboardPage() {
               onCheckedChange={(checked) => setAutoRefresh(checked as boolean)}
               id="auto-refresh"
             />
-            <label htmlFor="auto-refresh" className="cursor-pointer text-muted-foreground">
+            <label
+              htmlFor="auto-refresh"
+              className="cursor-pointer text-muted-foreground"
+            >
               Автоматично обновяване (на всеки 60 сек)
             </label>
           </div>
@@ -578,7 +612,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Quick Actions & System Health */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           {/* Quick Actions */}
           <Card>
             <CardHeader>
@@ -586,14 +620,16 @@ export default function DashboardPage() {
                 <Zap className="h-5 w-5" />
                 Бързи Действия
               </CardTitle>
-              <CardDescription>Shortcuts към често използвани функции</CardDescription>
+              <CardDescription>
+                Shortcuts към често използвани функции
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2"
-                  onClick={() => router.push('/admin/communication')}
+                  onClick={() => router.push("/admin/communication")}
                 >
                   <Mail className="h-6 w-6 text-primary" />
                   <span className="text-sm">Изпрати Email</span>
@@ -601,7 +637,7 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2"
-                  onClick={() => router.push('/admin/settings')}
+                  onClick={() => router.push("/admin/settings")}
                 >
                   <Shield className="h-6 w-6 text-primary" />
                   <span className="text-sm">Добави Админ</span>
@@ -609,7 +645,7 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2"
-                  onClick={() => router.push('/admin/audit-logs')}
+                  onClick={() => router.push("/admin/audit-logs")}
                 >
                   <ClipboardList className="h-6 w-6 text-primary" />
                   <span className="text-sm">Audit Logs</span>
@@ -617,7 +653,7 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2"
-                  onClick={() => router.push('/admin/access')}
+                  onClick={() => router.push("/admin/access")}
                 >
                   <Target className="h-6 w-6 text-primary" />
                   <span className="text-sm">PRO Достъп</span>
@@ -633,7 +669,9 @@ export default function DashboardPage() {
                 <Server className="h-5 w-5" />
                 Състояние на Системата
               </CardTitle>
-              <CardDescription>Real-time system health indicators</CardDescription>
+              <CardDescription>
+                Real-time system health indicators
+              </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
@@ -642,10 +680,16 @@ export default function DashboardPage() {
                   <span className="text-sm">Database Status</span>
                 </div>
                 <Badge
-                  variant={systemHealth.dbStatus === 'healthy' ? 'default' : 'destructive'}
-                  className={systemHealth.dbStatus === 'healthy' ? 'bg-green-600' : ''}
+                  variant={
+                    systemHealth.dbStatus === "healthy"
+                      ? "default"
+                      : "destructive"
+                  }
+                  className={
+                    systemHealth.dbStatus === "healthy" ? "bg-green-600" : ""
+                  }
                 >
-                  {systemHealth.dbStatus === 'healthy' ? 'Healthy' : 'Error'}
+                  {systemHealth.dbStatus === "healthy" ? "Healthy" : "Error"}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
@@ -653,7 +697,9 @@ export default function DashboardPage() {
                   <Activity className="h-4 w-4 text-muted-foreground" />
                   <span className="text-sm">API Response Time</span>
                 </div>
-                <Badge variant="outline">{systemHealth.apiResponseTime}ms</Badge>
+                <Badge variant="outline">
+                  {systemHealth.apiResponseTime}ms
+                </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
@@ -668,7 +714,7 @@ export default function DashboardPage() {
                   <span className="text-sm">Last Update</span>
                 </div>
                 <span className="text-xs text-muted-foreground">
-                  {lastUpdated ? formatTimestamp(lastUpdated) : '—'}
+                  {lastUpdated ? formatTimestamp(lastUpdated) : "—"}
                 </span>
               </div>
             </CardContent>
@@ -681,17 +727,23 @@ export default function DashboardPage() {
                 <AlertTriangle className="h-5 w-5" />
                 Danger Zone
               </CardTitle>
-              <CardDescription>Необратими действия - използвайте с повишено внимание</CardDescription>
+              <CardDescription>
+                Необратими действия - използвайте с повишено внимание
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
                 <div className="flex items-start gap-3 p-4 bg-destructive/10 rounded-lg border border-destructive/20">
                   <Trash2 className="h-5 w-5 text-destructive mt-0.5 flex-shrink-0" />
                   <div className="flex-1">
-                    <h3 className="font-semibold text-sm mb-1">Clear Test Data</h3>
+                    <h3 className="font-semibold text-sm mb-1">
+                      Clear Test Data
+                    </h3>
                     <p className="text-xs text-muted-foreground mb-3">
-                      Изтрива ВСИЧКИ потребители и техни данни от базата (quiz results, profiles, purchases, tracking data, PRO entries).
-                      Admin user-ът ({adminEmail || 'текущия админ'}) ще бъде запазен.
+                      Изтрива ВСИЧКИ потребители и техни данни от базата (quiz
+                      results, profiles, purchases, tracking data, PRO entries).
+                      Admin user-ът ({adminEmail || "текущия админ"}) ще бъде
+                      запазен.
                     </p>
                     <Button
                       variant="destructive"
@@ -710,7 +762,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Charts */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           <UsersGrowthChart data={usersGrowthData} isLoading={chartsLoading} />
           <RevenueTrendChart data={revenueData} isLoading={chartsLoading} />
         </div>
@@ -719,7 +771,9 @@ export default function DashboardPage() {
         {stats && (
           <>
             <div>
-              <h2 className="text-xl font-semibold">Анализ на Quiz Резултати</h2>
+              <h2 className="text-xl font-semibold">
+                Анализ на Quiz Резултати
+              </h2>
               <p className="text-sm text-muted-foreground mt-1">
                 Разпределение по категории и предпочитания на потребителите
               </p>
@@ -733,8 +787,12 @@ export default function DashboardPage() {
                     <Zap className="h-4 w-4 text-orange-600" />
                     <span className="font-medium">Energy (Енергия)</span>
                   </div>
-                  <div className="text-2xl font-bold text-orange-600">{stats.quiz.categoryBreakdown.energy}</div>
-                  <p className="text-xs text-muted-foreground mt-1">{stats.quiz.categoryPercentages.energy}% от всички</p>
+                  <div className="text-xl sm:text-2xl font-bold text-orange-600">
+                    {stats.quiz.categoryBreakdown.energy}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.quiz.categoryPercentages.energy}% от всички
+                  </p>
                 </CardContent>
               </Card>
               <Card className="border-l-4 border-l-pink-500 shadow-sm">
@@ -743,8 +801,12 @@ export default function DashboardPage() {
                     <Target className="h-4 w-4 text-pink-600" />
                     <span className="font-medium">Libido (Либидо)</span>
                   </div>
-                  <div className="text-2xl font-bold text-pink-600">{stats.quiz.categoryBreakdown.libido}</div>
-                  <p className="text-xs text-muted-foreground mt-1">{stats.quiz.categoryPercentages.libido}% от всички</p>
+                  <div className="text-xl sm:text-2xl font-bold text-pink-600">
+                    {stats.quiz.categoryBreakdown.libido}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.quiz.categoryPercentages.libido}% от всички
+                  </p>
                 </CardContent>
               </Card>
               <Card className="border-l-4 border-l-blue-500 shadow-sm">
@@ -753,17 +815,24 @@ export default function DashboardPage() {
                     <Dumbbell className="h-4 w-4 text-blue-600" />
                     <span className="font-medium">Muscle (Мускули)</span>
                   </div>
-                  <div className="text-2xl font-bold text-blue-600">{stats.quiz.categoryBreakdown.muscle}</div>
-                  <p className="text-xs text-muted-foreground mt-1">{stats.quiz.categoryPercentages.muscle}% от всички</p>
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                    {stats.quiz.categoryBreakdown.muscle}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.quiz.categoryPercentages.muscle}% от всички
+                  </p>
                 </CardContent>
               </Card>
             </div>
 
             {/* Engagement Metrics */}
             <div>
-              <h2 className="text-xl font-semibold">Engagement Метрики (30 дни)</h2>
+              <h2 className="text-xl font-semibold">
+                Engagement Метрики (30 дни)
+              </h2>
               <p className="text-sm text-muted-foreground mt-1">
-                Активност на потребителите в последните {stats.engagement.period}
+                Активност на потребителите в последните{" "}
+                {stats.engagement.period}
               </p>
             </div>
 
@@ -774,8 +843,12 @@ export default function DashboardPage() {
                     <Utensils className="h-4 w-4" />
                     <span className="font-medium">Хранителни Записи</span>
                   </div>
-                  <div className="text-2xl font-bold">{stats.engagement.mealLogs}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Последни 30д</p>
+                  <div className="text-xl sm:text-2xl font-bold">
+                    {stats.engagement.mealLogs}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Последни 30д
+                  </p>
                 </CardContent>
               </Card>
               <Card className="shadow-sm">
@@ -784,8 +857,12 @@ export default function DashboardPage() {
                     <Dumbbell className="h-4 w-4" />
                     <span className="font-medium">Тренировки</span>
                   </div>
-                  <div className="text-2xl font-bold">{stats.engagement.workoutSessions}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Последни 30д</p>
+                  <div className="text-xl sm:text-2xl font-bold">
+                    {stats.engagement.workoutSessions}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Последни 30д
+                  </p>
                 </CardContent>
               </Card>
               <Card className="shadow-sm">
@@ -794,8 +871,12 @@ export default function DashboardPage() {
                     <Moon className="h-4 w-4" />
                     <span className="font-medium">Записи за Сън</span>
                   </div>
-                  <div className="text-2xl font-bold">{stats.engagement.sleepEntries}</div>
-                  <p className="text-xs text-muted-foreground mt-1">Последни 30д</p>
+                  <div className="text-xl sm:text-2xl font-bold">
+                    {stats.engagement.sleepEntries}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Последни 30д
+                  </p>
                 </CardContent>
               </Card>
               <Card className="shadow-sm">
@@ -804,14 +885,18 @@ export default function DashboardPage() {
                     <FlaskConical className="h-4 w-4" />
                     <span className="font-medium">TestoUP Compliance</span>
                   </div>
-                  <div className="text-2xl font-bold text-green-600">{stats.engagement.testoUpCompliance}%</div>
-                  <p className="text-xs text-muted-foreground mt-1">Средно спазване</p>
+                  <div className="text-xl sm:text-2xl font-bold text-green-600">
+                    {stats.engagement.testoUpCompliance}%
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Средно спазване
+                  </p>
                 </CardContent>
               </Card>
             </div>
 
             {/* PRO Stats & User Preferences */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
               {/* PRO Users */}
               <Card>
                 <CardHeader>
@@ -827,21 +912,33 @@ export default function DashboardPage() {
                       <Users className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">PRO Потребители</span>
                     </div>
-                    <Badge variant="outline" className="text-purple-600 border-purple-600">{stats.users.proUsers}</Badge>
+                    <Badge
+                      variant="outline"
+                      className="text-purple-600 border-purple-600"
+                    >
+                      {stats.users.proUsers}
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Flame className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">Дневни Записи (30д)</span>
                     </div>
-                    <Badge variant="outline">{stats.engagement.proDailyEntries}</Badge>
+                    <Badge variant="outline">
+                      {stats.engagement.proDailyEntries}
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CheckCircle className="h-4 w-4 text-muted-foreground" />
                       <span className="text-sm">Средна Дисциплина</span>
                     </div>
-                    <Badge variant="outline" className="text-green-600 border-green-600">{stats.engagement.proCompliance}/10</Badge>
+                    <Badge
+                      variant="outline"
+                      className="text-green-600 border-green-600"
+                    >
+                      {stats.engagement.proCompliance}/10
+                    </Badge>
                   </div>
                 </CardContent>
               </Card>
@@ -853,44 +950,68 @@ export default function DashboardPage() {
                     <Users className="h-5 w-5" />
                     Предпочитания на Потребителите
                   </CardTitle>
-                  <CardDescription>Тренировъчна локация и диета</CardDescription>
+                  <CardDescription>
+                    Тренировъчна локация и диета
+                  </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Тренировъчна Локация</span>
+                      <span className="text-sm font-medium">
+                        Тренировъчна Локация
+                      </span>
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">🏋️ Gym</span>
-                        <Badge variant="outline">{stats.quiz.workoutLocationBreakdown.gym}</Badge>
+                        <Badge variant="outline">
+                          {stats.quiz.workoutLocationBreakdown.gym}
+                        </Badge>
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">🏠 Home</span>
-                        <Badge variant="outline">{stats.quiz.workoutLocationBreakdown.home}</Badge>
+                        <Badge variant="outline">
+                          {stats.quiz.workoutLocationBreakdown.home}
+                        </Badge>
                       </div>
                     </div>
                   </div>
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <span className="text-sm font-medium">Хранителни Предпочитания</span>
+                      <span className="text-sm font-medium">
+                        Хранителни Предпочитания
+                      </span>
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">🍖 Omnivor</span>
-                        <Badge variant="outline">{stats.quiz.dietaryPreferences.omnivor}</Badge>
+                        <span className="text-muted-foreground">
+                          🍖 Omnivor
+                        </span>
+                        <Badge variant="outline">
+                          {stats.quiz.dietaryPreferences.omnivor}
+                        </Badge>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">🥬 Vegetarian</span>
-                        <Badge variant="outline">{stats.quiz.dietaryPreferences.vegetarian}</Badge>
+                        <span className="text-muted-foreground">
+                          🥬 Vegetarian
+                        </span>
+                        <Badge variant="outline">
+                          {stats.quiz.dietaryPreferences.vegetarian}
+                        </Badge>
                       </div>
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">🌱 Vegan</span>
-                        <Badge variant="outline">{stats.quiz.dietaryPreferences.vegan}</Badge>
+                        <Badge variant="outline">
+                          {stats.quiz.dietaryPreferences.vegan}
+                        </Badge>
                       </div>
                       <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">🐟 Pescatarian</span>
-                        <Badge variant="outline">{stats.quiz.dietaryPreferences.pescatarian}</Badge>
+                        <span className="text-muted-foreground">
+                          🐟 Pescatarian
+                        </span>
+                        <Badge variant="outline">
+                          {stats.quiz.dietaryPreferences.pescatarian}
+                        </Badge>
                       </div>
                     </div>
                   </div>
@@ -901,7 +1022,7 @@ export default function DashboardPage() {
         )}
 
         {/* Revenue & Activity */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
           {/* Recent Purchases */}
           <Card className="shadow-sm">
             <CardHeader className="pb-3">
@@ -911,7 +1032,8 @@ export default function DashboardPage() {
               </CardTitle>
               {searchQuery && (
                 <p className="text-xs text-muted-foreground">
-                  Показвам {filteredPurchases.length} от {recentPurchases.length} покупки
+                  Показвам {filteredPurchases.length} от{" "}
+                  {recentPurchases.length} покупки
                 </p>
               )}
             </CardHeader>
@@ -937,7 +1059,9 @@ export default function DashboardPage() {
                       <TableRow>
                         <TableHead className="h-10">User</TableHead>
                         <TableHead className="h-10">Product</TableHead>
-                        <TableHead className="h-10 text-right">Amount</TableHead>
+                        <TableHead className="h-10 text-right">
+                          Amount
+                        </TableHead>
                         <TableHead className="h-10 text-right">Date</TableHead>
                       </TableRow>
                     </TableHeader>
@@ -946,9 +1070,13 @@ export default function DashboardPage() {
                         <TableRow
                           key={purchase.id}
                           className={`h-10 cursor-pointer transition-colors ${
-                            index % 2 === 0 ? '' : 'bg-muted/30'
+                            index % 2 === 0 ? "" : "bg-muted/30"
                           }`}
-                          onClick={() => router.push(`/admin/users/${encodeURIComponent(purchase.userEmail)}`)}
+                          onClick={() =>
+                            router.push(
+                              `/admin/users/${encodeURIComponent(purchase.userEmail)}`,
+                            )
+                          }
                         >
                           <TableCell className="font-medium text-sm py-2">
                             {purchase.userName || purchase.userEmail}
@@ -980,7 +1108,8 @@ export default function DashboardPage() {
               </CardTitle>
               {searchQuery && (
                 <p className="text-xs text-muted-foreground">
-                  Показвам {filteredActivities.length} от {activities.length} активности
+                  Показвам {filteredActivities.length} от {activities.length}{" "}
+                  активности
                 </p>
               )}
             </CardHeader>
@@ -1015,23 +1144,25 @@ export default function DashboardPage() {
                         <TableRow
                           key={activity.id}
                           className={`h-10 transition-colors ${
-                            index % 2 === 0 ? '' : 'bg-muted/30'
+                            index % 2 === 0 ? "" : "bg-muted/30"
                           }`}
                         >
                           <TableCell className="py-2">
                             <div
                               className={`flex items-center justify-center w-7 h-7 rounded-full ${
-                                activity.type === 'chat_session'
-                                  ? 'bg-blue-100 text-blue-600'
-                                  : activity.type === 'funnel_session'
-                                  ? 'bg-purple-100 text-purple-600'
-                                  : 'bg-gray-100 text-gray-600'
+                                activity.type === "chat_session"
+                                  ? "bg-blue-100 text-blue-600"
+                                  : activity.type === "funnel_session"
+                                    ? "bg-purple-100 text-purple-600"
+                                    : "bg-gray-100 text-gray-600"
                               }`}
                             >
                               {getActivityIcon(activity.type)}
                             </div>
                           </TableCell>
-                          <TableCell className="font-medium text-sm py-2">{activity.user}</TableCell>
+                          <TableCell className="font-medium text-sm py-2">
+                            {activity.user}
+                          </TableCell>
                           <TableCell className="text-xs text-muted-foreground py-2">
                             {activity.description}
                           </TableCell>
@@ -1059,7 +1190,8 @@ export default function DashboardPage() {
                 Внимание! Необратимо действие
               </DialogTitle>
               <DialogDescription>
-                Това действие ще изтрие ВСИЧКИ потребители и техните данни от базата данни. Това включва:
+                Това действие ще изтрие ВСИЧКИ потребители и техните данни от
+                базата данни. Това включва:
               </DialogDescription>
             </DialogHeader>
 
@@ -1067,7 +1199,9 @@ export default function DashboardPage() {
               {/* Warning list */}
               <div className="bg-destructive/10 p-3 rounded-lg border border-destructive/20">
                 <ul className="text-xs space-y-1 text-muted-foreground">
-                  <li>• Всички auth users (освен {adminEmail || 'текущия админ'})</li>
+                  <li>
+                    • Всички auth users (освен {adminEmail || "текущия админ"})
+                  </li>
                   <li>• Profiles</li>
                   <li>• Quiz Results (quiz_results_v2)</li>
                   <li>• Purchases</li>
@@ -1083,7 +1217,9 @@ export default function DashboardPage() {
                 <Checkbox
                   id="confirm-clear"
                   checked={confirmChecked}
-                  onCheckedChange={(checked) => setConfirmChecked(checked as boolean)}
+                  onCheckedChange={(checked) =>
+                    setConfirmChecked(checked as boolean)
+                  }
                 />
                 <label
                   htmlFor="confirm-clear"
@@ -1096,7 +1232,11 @@ export default function DashboardPage() {
               {/* Confirmation text input */}
               <div className="space-y-2">
                 <label className="text-sm font-medium">
-                  Напиши <code className="bg-muted px-1 py-0.5 rounded text-destructive">DELETE ALL</code> за потвърждение:
+                  Напиши{" "}
+                  <code className="bg-muted px-1 py-0.5 rounded text-destructive">
+                    DELETE ALL
+                  </code>{" "}
+                  за потвърждение:
                 </label>
                 <Input
                   type="text"
@@ -1113,7 +1253,7 @@ export default function DashboardPage() {
                 variant="outline"
                 onClick={() => {
                   setClearDataModal(false);
-                  setConfirmText('');
+                  setConfirmText("");
                   setConfirmChecked(false);
                 }}
                 disabled={isClearingData}
@@ -1123,7 +1263,11 @@ export default function DashboardPage() {
               <Button
                 variant="destructive"
                 onClick={handleClearData}
-                disabled={!confirmChecked || confirmText !== 'DELETE ALL' || isClearingData}
+                disabled={
+                  !confirmChecked ||
+                  confirmText !== "DELETE ALL" ||
+                  isClearingData
+                }
               >
                 {isClearingData ? (
                   <>

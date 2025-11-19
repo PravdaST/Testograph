@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AdminLayout from "@/components/admin/AdminLayout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -13,9 +19,17 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Search, FileText, MessageSquare, ChevronLeft, ChevronRight, Loader2, Download } from 'lucide-react';
-import { exportToCSV } from '@/lib/utils/exportToCSV';
+} from "@/components/ui/table";
+import {
+  Search,
+  FileText,
+  MessageSquare,
+  ChevronLeft,
+  ChevronRight,
+  Loader2,
+  Download,
+} from "lucide-react";
+import { exportToCSV } from "@/lib/utils/exportToCSV";
 
 interface ChatSession {
   id: string;
@@ -39,7 +53,7 @@ export default function ChatSessionsPage() {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const limit = 20;
 
@@ -65,7 +79,7 @@ export default function ChatSessionsPage() {
         setTotal(data.total);
       }
     } catch (error) {
-      console.error('Error fetching chat sessions:', error);
+      console.error("Error fetching chat sessions:", error);
     } finally {
       setIsLoading(false);
     }
@@ -77,12 +91,12 @@ export default function ChatSessionsPage() {
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleString('bg-BG', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
+    return new Date(dateString).toLocaleString("bg-BG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -91,13 +105,16 @@ export default function ChatSessionsPage() {
   const handleExport = () => {
     const exportData = sessions.map((session) => ({
       Email: session.email,
-      'PDF Filename': session.pdf_filename || 'N/A',
-      'Message Count': session.message_count,
-      'Created At': formatDate(session.created_at),
-      'Last Activity': formatDate(session.updated_at),
+      "PDF Filename": session.pdf_filename || "N/A",
+      "Message Count": session.message_count,
+      "Created At": formatDate(session.created_at),
+      "Last Activity": formatDate(session.updated_at),
     }));
 
-    exportToCSV(exportData, `chat-sessions-${new Date().toISOString().split('T')[0]}`);
+    exportToCSV(
+      exportData,
+      `chat-sessions-${new Date().toISOString().split("T")[0]}`,
+    );
   };
 
   return (
@@ -116,7 +133,7 @@ export default function ChatSessionsPage() {
               <div>
                 <CardTitle>Всички Сесии</CardTitle>
                 <CardDescription>
-                  Общо {total} {total === 1 ? 'сесия' : 'сесии'}
+                  Общо {total} {total === 1 ? "сесия" : "сесии"}
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -149,7 +166,7 @@ export default function ChatSessionsPage() {
               <div className="text-center py-12">
                 <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
-                  {search ? 'Няма намерени сесии' : 'Още няма chat сесии'}
+                  {search ? "Няма намерени сесии" : "Още няма chat сесии"}
                 </p>
               </div>
             ) : (
@@ -171,9 +188,13 @@ export default function ChatSessionsPage() {
                         <TableRow
                           key={session.id}
                           className="cursor-pointer hover:bg-accent"
-                          onClick={() => router.push(`/admin/chat-sessions/${session.id}`)}
+                          onClick={() =>
+                            router.push(`/admin/chat-sessions/${session.id}`)
+                          }
                         >
-                          <TableCell className="font-medium">{session.email}</TableCell>
+                          <TableCell className="font-medium">
+                            {session.email}
+                          </TableCell>
                           <TableCell>
                             {session.pdf_filename ? (
                               <div className="flex items-center gap-2">
@@ -183,7 +204,9 @@ export default function ChatSessionsPage() {
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-muted-foreground text-sm">Няма PDF</span>
+                              <span className="text-muted-foreground text-sm">
+                                Няма PDF
+                              </span>
                             )}
                           </TableCell>
                           <TableCell className="text-center">
@@ -204,7 +227,9 @@ export default function ChatSessionsPage() {
                               size="sm"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                router.push(`/admin/chat-sessions/${session.id}`);
+                                router.push(
+                                  `/admin/chat-sessions/${session.id}`,
+                                );
                               }}
                             >
                               Виж детайли

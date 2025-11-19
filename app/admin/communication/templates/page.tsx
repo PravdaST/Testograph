@@ -1,15 +1,21 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { getCurrentAdminUser } from '@/lib/admin/auth';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { getCurrentAdminUser } from "@/lib/admin/auth";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -17,7 +23,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -25,7 +31,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,14 +39,14 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Mail,
   Plus,
@@ -51,23 +57,23 @@ import {
   Loader2,
   Search,
   FileText,
-  Copy
-} from 'lucide-react';
-import { createClient } from '@supabase/supabase-js';
-import { useToast } from '@/hooks/use-toast';
+  Copy,
+} from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
+import { useToast } from "@/hooks/use-toast";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
 const CATEGORIES = [
-  { value: 'general', label: 'Общи', color: 'bg-gray-600' },
-  { value: 'welcome', label: 'Добре дошли', color: 'bg-blue-600' },
-  { value: 'promo', label: 'Промоции', color: 'bg-purple-600' },
-  { value: 'notification', label: 'Нотификации', color: 'bg-yellow-600' },
-  { value: 'reminder', label: 'Напомняния', color: 'bg-orange-600' },
-  { value: 'other', label: 'Други', color: 'bg-gray-500' },
+  { value: "general", label: "Общи", color: "bg-gray-600" },
+  { value: "welcome", label: "Добре дошли", color: "bg-blue-600" },
+  { value: "promo", label: "Промоции", color: "bg-purple-600" },
+  { value: "notification", label: "Нотификации", color: "bg-yellow-600" },
+  { value: "reminder", label: "Напомняния", color: "bg-orange-600" },
+  { value: "other", label: "Други", color: "bg-gray-500" },
 ];
 
 interface EmailTemplate {
@@ -90,8 +96,8 @@ export default function TemplatesPage() {
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [templates, setTemplates] = useState<EmailTemplate[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   // Admin user authentication
   const [adminId, setAdminId] = useState<string | null>(null);
@@ -102,16 +108,17 @@ export default function TemplatesPage() {
   const [editModal, setEditModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
   const [previewModal, setPreviewModal] = useState(false);
-  const [selectedTemplate, setSelectedTemplate] = useState<EmailTemplate | null>(null);
+  const [selectedTemplate, setSelectedTemplate] =
+    useState<EmailTemplate | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
-    name: '',
-    subject: '',
-    body: '',
-    category: 'general',
+    name: "",
+    subject: "",
+    body: "",
+    category: "general",
     is_active: true,
-    notes: ''
+    notes: "",
   });
 
   // Fetch admin user on mount
@@ -123,7 +130,7 @@ export default function TemplatesPage() {
         setAdminEmail(email);
       } else {
         // Not authenticated as admin - redirect to login
-        router.push('/admin');
+        router.push("/admin");
       }
     };
     fetchAdminUser();
@@ -137,9 +144,10 @@ export default function TemplatesPage() {
 
   const fetchTemplates = async () => {
     try {
-      const url = categoryFilter === 'all'
-        ? '/api/admin/communication/templates'
-        : `/api/admin/communication/templates?category=${categoryFilter}`;
+      const url =
+        categoryFilter === "all"
+          ? "/api/admin/communication/templates"
+          : `/api/admin/communication/templates?category=${categoryFilter}`;
 
       const response = await fetch(url);
       const data = await response.json();
@@ -148,7 +156,7 @@ export default function TemplatesPage() {
         setTemplates(data.templates || []);
       }
     } catch (error) {
-      console.error('Error fetching templates:', error);
+      console.error("Error fetching templates:", error);
     }
   };
 
@@ -167,30 +175,33 @@ export default function TemplatesPage() {
   const handleCreate = async () => {
     if (!formData.name || !formData.subject || !formData.body) {
       toast({
-        title: 'Грешка',
-        description: 'Моля попълнете всички задължителни полета',
-        variant: 'destructive',
+        title: "Грешка",
+        description: "Моля попълнете всички задължителни полета",
+        variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch('/api/admin/communication/templates/create', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          adminId,
-          adminEmail,
-        }),
-      });
+      const response = await fetch(
+        "/api/admin/communication/templates/create",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...formData,
+            adminId,
+            adminEmail,
+          }),
+        },
+      );
 
       const data = await response.json();
 
       if (response.ok) {
         toast({
-          title: 'Успех!',
+          title: "Успех!",
           description: data.message,
         });
         setCreateModal(false);
@@ -201,9 +212,9 @@ export default function TemplatesPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно създаване на template',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно създаване на template",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -211,32 +222,40 @@ export default function TemplatesPage() {
   };
 
   const handleEdit = async () => {
-    if (!selectedTemplate || !formData.name || !formData.subject || !formData.body) {
+    if (
+      !selectedTemplate ||
+      !formData.name ||
+      !formData.subject ||
+      !formData.body
+    ) {
       toast({
-        title: 'Грешка',
-        description: 'Моля попълнете всички задължителни полета',
-        variant: 'destructive',
+        title: "Грешка",
+        description: "Моля попълнете всички задължителни полета",
+        variant: "destructive",
       });
       return;
     }
 
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/admin/communication/templates/${selectedTemplate.id}/update`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          adminId,
-          adminEmail,
-        }),
-      });
+      const response = await fetch(
+        `/api/admin/communication/templates/${selectedTemplate.id}/update`,
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...formData,
+            adminId,
+            adminEmail,
+          }),
+        },
+      );
 
       const data = await response.json();
 
       if (response.ok) {
         toast({
-          title: 'Успех!',
+          title: "Успех!",
           description: data.message,
         });
         setEditModal(false);
@@ -248,9 +267,9 @@ export default function TemplatesPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно обновяване на template',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно обновяване на template",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -264,14 +283,14 @@ export default function TemplatesPage() {
     try {
       const response = await fetch(
         `/api/admin/communication/templates/${selectedTemplate.id}/delete?adminId=${adminId}&adminEmail=${adminEmail}`,
-        { method: 'DELETE' }
+        { method: "DELETE" },
       );
 
       const data = await response.json();
 
       if (response.ok) {
         toast({
-          title: 'Успех!',
+          title: "Успех!",
           description: data.message,
         });
         setDeleteModal(false);
@@ -282,9 +301,9 @@ export default function TemplatesPage() {
       }
     } catch (error: any) {
       toast({
-        title: 'Грешка',
-        description: error.message || 'Неуспешно изтриване на template',
-        variant: 'destructive',
+        title: "Грешка",
+        description: error.message || "Неуспешно изтриване на template",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -304,7 +323,7 @@ export default function TemplatesPage() {
       body: template.body,
       category: template.category,
       is_active: template.is_active,
-      notes: template.notes || ''
+      notes: template.notes || "",
     });
     setEditModal(true);
   };
@@ -326,48 +345,49 @@ export default function TemplatesPage() {
       body: template.body,
       category: template.category,
       is_active: true,
-      notes: template.notes || ''
+      notes: template.notes || "",
     });
     setCreateModal(true);
   };
 
   const resetForm = () => {
     setFormData({
-      name: '',
-      subject: '',
-      body: '',
-      category: 'general',
+      name: "",
+      subject: "",
+      body: "",
+      category: "general",
       is_active: true,
-      notes: ''
+      notes: "",
     });
   };
 
   const getCategoryColor = (category: string) => {
-    return CATEGORIES.find(c => c.value === category)?.color || 'bg-gray-600';
+    return CATEGORIES.find((c) => c.value === category)?.color || "bg-gray-600";
   };
 
   const getCategoryLabel = (category: string) => {
-    return CATEGORIES.find(c => c.value === category)?.label || category;
+    return CATEGORIES.find((c) => c.value === category)?.label || category;
   };
 
-  const filteredTemplates = templates.filter(template =>
-    searchQuery === '' ||
-    template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    template.subject.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredTemplates = templates.filter(
+    (template) =>
+      searchQuery === "" ||
+      template.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      template.subject.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   // Preview with sample data
   const renderPreview = (body: string) => {
     let preview = body;
     const sampleData: Record<string, string> = {
-      name: 'Иван Иванов',
-      email: 'ivan@example.com',
-      date: new Date().toLocaleDateString('bg-BG'),
-      company: 'Testograph',
+      name: "Иван Иванов",
+      email: "ivan@example.com",
+      date: new Date().toLocaleDateString("bg-BG"),
+      company: "Testograph",
     };
 
     Object.entries(sampleData).forEach(([key, value]) => {
-      preview = preview.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), value);
+      preview = preview.replace(new RegExp(`\\{\\{${key}\\}\\}`, "g"), value);
     });
 
     return preview;
@@ -377,10 +397,10 @@ export default function TemplatesPage() {
 
   return (
     <AdminLayout>
-      <div className="space-y-6">
+      <div className="space-y-3 sm:space-y-4 md:space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-bold flex items-center gap-2">
+          <h1 className="text-xl sm:text-2xl sm:text-3xl font-bold flex items-center gap-2">
             <FileText className="h-8 w-8" />
             Email Templates
           </h1>
@@ -403,13 +423,16 @@ export default function TemplatesPage() {
                     className="pl-10"
                   />
                 </div>
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                <Select
+                  value={categoryFilter}
+                  onValueChange={setCategoryFilter}
+                >
                   <SelectTrigger className="w-40">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Всички</SelectItem>
-                    {CATEGORIES.map(cat => (
+                    {CATEGORIES.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value}>
                         {cat.label}
                       </SelectItem>
@@ -450,24 +473,37 @@ export default function TemplatesPage() {
                 <TableBody>
                   {filteredTemplates.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
+                      <TableCell
+                        colSpan={7}
+                        className="text-center py-6 sm:py-8 text-muted-foreground"
+                      >
                         Няма намерени templates
                       </TableCell>
                     </TableRow>
                   ) : (
                     filteredTemplates.map((template) => (
                       <TableRow key={template.id}>
-                        <TableCell className="font-medium">{template.name}</TableCell>
-                        <TableCell className="max-w-xs truncate">{template.subject}</TableCell>
+                        <TableCell className="font-medium">
+                          {template.name}
+                        </TableCell>
+                        <TableCell className="max-w-xs truncate">
+                          {template.subject}
+                        </TableCell>
                         <TableCell>
-                          <Badge className={getCategoryColor(template.category)}>
+                          <Badge
+                            className={getCategoryColor(template.category)}
+                          >
                             {getCategoryLabel(template.category)}
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex flex-wrap gap-1">
                             {template.variables.slice(0, 3).map((variable) => (
-                              <Badge key={variable} variant="outline" className="text-xs">
+                              <Badge
+                                key={variable}
+                                variant="outline"
+                                className="text-xs"
+                              >
                                 {`{{${variable}}}`}
                               </Badge>
                             ))}
@@ -480,8 +516,12 @@ export default function TemplatesPage() {
                         </TableCell>
                         <TableCell>{template.usage_count}</TableCell>
                         <TableCell>
-                          <Badge variant={template.is_active ? 'default' : 'secondary'}>
-                            {template.is_active ? 'Активен' : 'Неактивен'}
+                          <Badge
+                            variant={
+                              template.is_active ? "default" : "secondary"
+                            }
+                          >
+                            {template.is_active ? "Активен" : "Неактивен"}
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right">
@@ -494,15 +534,21 @@ export default function TemplatesPage() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuLabel>Действия</DropdownMenuLabel>
                               <DropdownMenuSeparator />
-                              <DropdownMenuItem onClick={() => openPreviewModal(template)}>
+                              <DropdownMenuItem
+                                onClick={() => openPreviewModal(template)}
+                              >
                                 <Eye className="h-4 w-4 mr-2" />
                                 Preview
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => openEditModal(template)}>
+                              <DropdownMenuItem
+                                onClick={() => openEditModal(template)}
+                              >
                                 <Edit className="h-4 w-4 mr-2" />
                                 Редактирай
                               </DropdownMenuItem>
-                              <DropdownMenuItem onClick={() => cloneTemplate(template)}>
+                              <DropdownMenuItem
+                                onClick={() => cloneTemplate(template)}
+                              >
                                 <Copy className="h-4 w-4 mr-2" />
                                 Клонирай
                               </DropdownMenuItem>
@@ -533,17 +579,20 @@ export default function TemplatesPage() {
           <DialogHeader>
             <DialogTitle>Създай Нов Template</DialogTitle>
             <DialogDescription>
-              Създайте reusable email template. Използвайте {'{{variable}}'} за динамични данни.
+              Създайте reusable email template. Използвайте {"{{variable}}"} за
+              динамични данни.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Име *</Label>
                 <Input
                   placeholder="Напр. Welcome Email"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -551,17 +600,24 @@ export default function TemplatesPage() {
                 <Input
                   placeholder="Email subject"
                   value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, subject: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label>Категория</Label>
-                <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                <Select
+                  value={formData.category}
+                  onValueChange={(v) =>
+                    setFormData({ ...formData, category: v })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIES.map(cat => (
+                    {CATEGORIES.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value}>
                         {cat.label}
                       </SelectItem>
@@ -574,7 +630,9 @@ export default function TemplatesPage() {
                 <Textarea
                   placeholder="Email body with HTML. Use {{name}}, {{email}}, etc."
                   value={formData.body}
-                  onChange={(e) => setFormData({ ...formData, body: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, body: e.target.value })
+                  }
                   rows={12}
                   className="font-mono text-sm"
                 />
@@ -584,7 +642,9 @@ export default function TemplatesPage() {
                 <Input
                   placeholder="Optional notes"
                   value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, notes: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -593,7 +653,9 @@ export default function TemplatesPage() {
                 <Label>Detected Variables</Label>
                 <div className="flex flex-wrap gap-2 p-3 border rounded-lg min-h-[60px]">
                   {detectedVariables.length === 0 ? (
-                    <span className="text-sm text-muted-foreground">Няма намерени variables</span>
+                    <span className="text-sm text-muted-foreground">
+                      Няма намерени variables
+                    </span>
                   ) : (
                     detectedVariables.map((variable) => (
                       <Badge key={variable} variant="secondary">
@@ -607,7 +669,11 @@ export default function TemplatesPage() {
                 <Label>Preview</Label>
                 <div
                   className="p-4 border rounded-lg max-h-[400px] overflow-y-auto bg-gray-50"
-                  dangerouslySetInnerHTML={{ __html: renderPreview(formData.body) || '<p class="text-muted-foreground text-sm">Няма съдържание</p>' }}
+                  dangerouslySetInnerHTML={{
+                    __html:
+                      renderPreview(formData.body) ||
+                      '<p class="text-muted-foreground text-sm">Няма съдържание</p>',
+                  }}
                 />
               </div>
             </div>
@@ -623,7 +689,7 @@ export default function TemplatesPage() {
                   Създаване...
                 </>
               ) : (
-                'Създай Template'
+                "Създай Template"
               )}
             </Button>
           </DialogFooter>
@@ -639,30 +705,39 @@ export default function TemplatesPage() {
               Променете съдържанието на template-а
             </DialogDescription>
           </DialogHeader>
-          <div className="grid grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Име *</Label>
                 <Input
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label>Тема *</Label>
                 <Input
                   value={formData.subject}
-                  onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, subject: e.target.value })
+                  }
                 />
               </div>
               <div className="space-y-2">
                 <Label>Категория</Label>
-                <Select value={formData.category} onValueChange={(v) => setFormData({ ...formData, category: v })}>
+                <Select
+                  value={formData.category}
+                  onValueChange={(v) =>
+                    setFormData({ ...formData, category: v })
+                  }
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {CATEGORIES.map(cat => (
+                    {CATEGORIES.map((cat) => (
                       <SelectItem key={cat.value} value={cat.value}>
                         {cat.label}
                       </SelectItem>
@@ -674,7 +749,9 @@ export default function TemplatesPage() {
                 <Label>Body (HTML) *</Label>
                 <Textarea
                   value={formData.body}
-                  onChange={(e) => setFormData({ ...formData, body: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, body: e.target.value })
+                  }
                   rows={12}
                   className="font-mono text-sm"
                 />
@@ -683,7 +760,9 @@ export default function TemplatesPage() {
                 <Label>Бележки</Label>
                 <Input
                   value={formData.notes}
-                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  onChange={(e) =>
+                    setFormData({ ...formData, notes: e.target.value })
+                  }
                 />
               </div>
             </div>
@@ -692,7 +771,9 @@ export default function TemplatesPage() {
                 <Label>Detected Variables</Label>
                 <div className="flex flex-wrap gap-2 p-3 border rounded-lg min-h-[60px]">
                   {detectedVariables.length === 0 ? (
-                    <span className="text-sm text-muted-foreground">Няма намерени variables</span>
+                    <span className="text-sm text-muted-foreground">
+                      Няма намерени variables
+                    </span>
                   ) : (
                     detectedVariables.map((variable) => (
                       <Badge key={variable} variant="secondary">
@@ -706,7 +787,9 @@ export default function TemplatesPage() {
                 <Label>Preview</Label>
                 <div
                   className="p-4 border rounded-lg max-h-[400px] overflow-y-auto bg-gray-50"
-                  dangerouslySetInnerHTML={{ __html: renderPreview(formData.body) }}
+                  dangerouslySetInnerHTML={{
+                    __html: renderPreview(formData.body),
+                  }}
                 />
               </div>
             </div>
@@ -722,7 +805,7 @@ export default function TemplatesPage() {
                   Запазване...
                 </>
               ) : (
-                'Запази Промените'
+                "Запази Промените"
               )}
             </Button>
           </DialogFooter>
@@ -735,13 +818,15 @@ export default function TemplatesPage() {
           <DialogHeader>
             <DialogTitle>Изтрий Template</DialogTitle>
             <DialogDescription>
-              Сигурни ли сте, че искате да изтриете template-а "{selectedTemplate?.name}"?
+              Сигурни ли сте, че искате да изтриете template-а "
+              {selectedTemplate?.name}"?
             </DialogDescription>
           </DialogHeader>
           {selectedTemplate && selectedTemplate.usage_count > 0 && (
             <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
               <p className="text-sm text-yellow-800">
-                <strong>Внимание:</strong> Този template е бил използван {selectedTemplate.usage_count} пъти.
+                <strong>Внимание:</strong> Този template е бил използван{" "}
+                {selectedTemplate.usage_count} пъти.
               </p>
             </div>
           )}
@@ -749,14 +834,18 @@ export default function TemplatesPage() {
             <Button variant="outline" onClick={() => setDeleteModal(false)}>
               Отказ
             </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={isLoading}>
+            <Button
+              variant="destructive"
+              onClick={handleDelete}
+              disabled={isLoading}
+            >
               {isLoading ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Изтриване...
                 </>
               ) : (
-                'Изтрий Template'
+                "Изтрий Template"
               )}
             </Button>
           </DialogFooter>
@@ -768,9 +857,7 @@ export default function TemplatesPage() {
         <DialogContent className="max-w-3xl">
           <DialogHeader>
             <DialogTitle>Preview: {selectedTemplate?.name}</DialogTitle>
-            <DialogDescription>
-              Sample email with test data
-            </DialogDescription>
+            <DialogDescription>Sample email with test data</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -783,7 +870,11 @@ export default function TemplatesPage() {
               <Label>Body</Label>
               <div
                 className="p-4 bg-gray-50 border rounded-lg mt-2 max-h-96 overflow-y-auto"
-                dangerouslySetInnerHTML={{ __html: selectedTemplate ? renderPreview(selectedTemplate.body) : '' }}
+                dangerouslySetInnerHTML={{
+                  __html: selectedTemplate
+                    ? renderPreview(selectedTemplate.body)
+                    : "",
+                }}
               />
             </div>
             <div>

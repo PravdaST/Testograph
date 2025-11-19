@@ -1,12 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AdminLayout from "@/components/admin/AdminLayout";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
 import {
   Table,
   TableBody,
@@ -14,7 +20,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Dialog,
   DialogContent,
@@ -22,23 +28,32 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Shield, ShieldOff, Plus, Edit, Search, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
-import { SearchBar } from '@/components/admin/SearchBar';
-import { createClient } from '@supabase/supabase-js';
+} from "@/components/ui/select";
+import {
+  Shield,
+  ShieldOff,
+  Plus,
+  Edit,
+  Search,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
+import { SearchBar } from "@/components/admin/SearchBar";
+import { createClient } from "@supabase/supabase-js";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
 );
 
 interface User {
@@ -69,11 +84,11 @@ export default function AccessControlPage() {
 
   // Users state
   const [users, setUsers] = useState<User[]>([]);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Purchases state
   const [purchases, setPurchases] = useState<Purchase[]>([]);
-  const [purchaseSearch, setPurchaseSearch] = useState('');
+  const [purchaseSearch, setPurchaseSearch] = useState("");
 
   // Modal states
   const [grantProModal, setGrantProModal] = useState(false);
@@ -83,21 +98,23 @@ export default function AccessControlPage() {
 
   // Selected items
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(null);
+  const [selectedPurchase, setSelectedPurchase] = useState<Purchase | null>(
+    null,
+  );
 
   // Form states
-  const [proStartDate, setProStartDate] = useState('');
-  const [revokeReason, setRevokeReason] = useState('');
+  const [proStartDate, setProStartDate] = useState("");
+  const [revokeReason, setRevokeReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Purchase form
   const [purchaseForm, setPurchaseForm] = useState({
-    productName: '',
-    productType: 'testograph-app',
+    productName: "",
+    productType: "testograph-app",
     appsIncluded: [] as string[],
-    amount: '',
-    currency: 'BGN',
-    status: 'completed'
+    amount: "",
+    currency: "BGN",
+    status: "completed",
   });
 
   useEffect(() => {
@@ -112,9 +129,11 @@ export default function AccessControlPage() {
   }, [adminUser]);
 
   const checkAuth = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
     if (!user) {
-      router.push('/admin');
+      router.push("/admin");
       return;
     }
     setAdminUser(user);
@@ -123,26 +142,26 @@ export default function AccessControlPage() {
 
   const fetchUsers = async () => {
     try {
-      const response = await fetch('/api/admin/access/users');
+      const response = await fetch("/api/admin/access/users");
       const data = await response.json();
 
       if (response.ok) {
         setUsers(data.users || []);
       } else {
-        console.error('Error fetching users:', data.error);
+        console.error("Error fetching users:", data.error);
       }
     } catch (error) {
-      console.error('Error fetching users:', error);
+      console.error("Error fetching users:", error);
     }
   };
 
   const fetchPurchases = async () => {
     try {
-      const response = await fetch('/api/admin/purchases');
+      const response = await fetch("/api/admin/purchases");
       const data = await response.json();
       setPurchases(data.purchases || []);
     } catch (error) {
-      console.error('Error fetching purchases:', error);
+      console.error("Error fetching purchases:", error);
     }
   };
 
@@ -151,25 +170,25 @@ export default function AccessControlPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/admin/access/grant-pro', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/access/grant-pro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUser.id,
           startDate: proStartDate,
           adminId: adminUser.id,
-          adminEmail: adminUser.email
-        })
+          adminEmail: adminUser.email,
+        }),
       });
 
-      if (!response.ok) throw new Error('Failed to grant PRO access');
+      if (!response.ok) throw new Error("Failed to grant PRO access");
 
       await fetchUsers();
       setGrantProModal(false);
-      setProStartDate('');
-      alert('✅ PRO достъп даден успешно!');
+      setProStartDate("");
+      alert("✅ PRO достъп даден успешно!");
     } catch (error) {
-      alert('❌ Грешка при даване на PRO достъп');
+      alert("❌ Грешка при даване на PRO достъп");
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -181,25 +200,25 @@ export default function AccessControlPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/admin/access/revoke-pro', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/access/revoke-pro", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUser.id,
           reason: revokeReason,
           adminId: adminUser.id,
-          adminEmail: adminUser.email
-        })
+          adminEmail: adminUser.email,
+        }),
       });
 
-      if (!response.ok) throw new Error('Failed to revoke PRO access');
+      if (!response.ok) throw new Error("Failed to revoke PRO access");
 
       await fetchUsers();
       setRevokeProModal(false);
-      setRevokeReason('');
-      alert('✅ PRO достъп премахнат успешно!');
+      setRevokeReason("");
+      alert("✅ PRO достъп премахнат успешно!");
     } catch (error) {
-      alert('❌ Грешка при премахване на PRO достъп');
+      alert("❌ Грешка при премахване на PRO достъп");
       console.error(error);
     } finally {
       setIsSubmitting(false);
@@ -208,54 +227,60 @@ export default function AccessControlPage() {
 
   const handleCreatePurchase = async () => {
     if (!selectedUser || !purchaseForm.productName || !purchaseForm.amount) {
-      alert('Моля попълнете всички задължителни полета');
+      alert("Моля попълнете всички задължителни полета");
       return;
     }
 
     setIsSubmitting(true);
     try {
-      const response = await fetch('/api/admin/access/create-purchase', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/admin/access/create-purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: selectedUser.id,
           ...purchaseForm,
           adminId: adminUser.id,
-          adminEmail: adminUser.email
-        })
+          adminEmail: adminUser.email,
+        }),
       });
 
-      if (!response.ok) throw new Error('Failed to create purchase');
+      if (!response.ok) throw new Error("Failed to create purchase");
 
       await fetchPurchases();
       setCreatePurchaseModal(false);
       setPurchaseForm({
-        productName: '',
-        productType: 'testograph-app',
+        productName: "",
+        productType: "testograph-app",
         appsIncluded: [],
-        amount: '',
-        currency: 'BGN',
-        status: 'completed'
+        amount: "",
+        currency: "BGN",
+        status: "completed",
       });
-      alert('✅ Покупката е създадена успешно!');
+      alert("✅ Покупката е създадена успешно!");
     } catch (error) {
-      alert('❌ Грешка при създаване на покупка');
+      alert("❌ Грешка при създаване на покупка");
       console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    searchQuery === '' ||
-    user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    user.name?.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredUsers = users.filter(
+    (user) =>
+      searchQuery === "" ||
+      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const filteredPurchases = purchases.filter(purchase =>
-    purchaseSearch === '' ||
-    purchase.user_email.toLowerCase().includes(purchaseSearch.toLowerCase()) ||
-    purchase.product_name.toLowerCase().includes(purchaseSearch.toLowerCase())
+  const filteredPurchases = purchases.filter(
+    (purchase) =>
+      purchaseSearch === "" ||
+      purchase.user_email
+        .toLowerCase()
+        .includes(purchaseSearch.toLowerCase()) ||
+      purchase.product_name
+        .toLowerCase()
+        .includes(purchaseSearch.toLowerCase()),
   );
 
   if (isLoading) {
@@ -309,10 +334,12 @@ export default function AccessControlPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredUsers.map(user => (
+                  {filteredUsers.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className="font-medium">{user.email}</TableCell>
-                      <TableCell>{user.name || '—'}</TableCell>
+                      <TableCell className="font-medium">
+                        {user.email}
+                      </TableCell>
+                      <TableCell>{user.name || "—"}</TableCell>
                       <TableCell>
                         {user.protocol_start_date_pro ? (
                           <Badge variant="default" className="bg-green-600">
@@ -327,7 +354,7 @@ export default function AccessControlPage() {
                         )}
                       </TableCell>
                       <TableCell>
-                        {user.protocol_start_date_pro || '—'}
+                        {user.protocol_start_date_pro || "—"}
                       </TableCell>
                       <TableCell className="text-right">
                         {user.protocol_start_date_pro ? (
@@ -348,7 +375,9 @@ export default function AccessControlPage() {
                             size="sm"
                             onClick={() => {
                               setSelectedUser(user);
-                              setProStartDate(new Date().toISOString().split('T')[0]);
+                              setProStartDate(
+                                new Date().toISOString().split("T")[0],
+                              );
                               setGrantProModal(true);
                             }}
                           >
@@ -409,14 +438,20 @@ export default function AccessControlPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredPurchases.map(purchase => (
+                  {filteredPurchases.map((purchase) => (
                     <TableRow key={purchase.id}>
-                      <TableCell className="font-medium">{purchase.userEmail}</TableCell>
+                      <TableCell className="font-medium">
+                        {purchase.userEmail}
+                      </TableCell>
                       <TableCell>{purchase.product_name}</TableCell>
                       <TableCell>
                         <div className="flex gap-1">
-                          {purchase.apps_included.slice(0, 2).map(app => (
-                            <Badge key={app} variant="outline" className="text-xs">
+                          {purchase.apps_included.slice(0, 2).map((app) => (
+                            <Badge
+                              key={app}
+                              variant="outline"
+                              className="text-xs"
+                            >
                               {app}
                             </Badge>
                           ))}
@@ -427,17 +462,29 @@ export default function AccessControlPage() {
                           )}
                         </div>
                       </TableCell>
-                      <TableCell>{purchase.amount} {purchase.currency}</TableCell>
+                      <TableCell>
+                        {purchase.amount} {purchase.currency}
+                      </TableCell>
                       <TableCell>
                         <Badge
-                          variant={purchase.status === 'completed' ? 'default' : 'secondary'}
-                          className={purchase.status === 'completed' ? 'bg-green-600' : ''}
+                          variant={
+                            purchase.status === "completed"
+                              ? "default"
+                              : "secondary"
+                          }
+                          className={
+                            purchase.status === "completed"
+                              ? "bg-green-600"
+                              : ""
+                          }
                         >
                           {purchase.status}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {new Date(purchase.purchased_at).toLocaleDateString('bg-BG')}
+                        {new Date(purchase.purchased_at).toLocaleDateString(
+                          "bg-BG",
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <Button
@@ -483,14 +530,17 @@ export default function AccessControlPage() {
               <Button variant="outline" onClick={() => setGrantProModal(false)}>
                 Откажи
               </Button>
-              <Button onClick={handleGrantPro} disabled={isSubmitting || !proStartDate}>
+              <Button
+                onClick={handleGrantPro}
+                disabled={isSubmitting || !proStartDate}
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Обработка...
                   </>
                 ) : (
-                  'Дай Достъп'
+                  "Дай Достъп"
                 )}
               </Button>
             </DialogFooter>
@@ -518,17 +568,24 @@ export default function AccessControlPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setRevokeProModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setRevokeProModal(false)}
+              >
                 Откажи
               </Button>
-              <Button variant="destructive" onClick={handleRevokePro} disabled={isSubmitting}>
+              <Button
+                variant="destructive"
+                onClick={handleRevokePro}
+                disabled={isSubmitting}
+              >
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Обработка...
                   </>
                 ) : (
-                  'Премахни Достъп'
+                  "Премахни Достъп"
                 )}
               </Button>
             </DialogFooter>
@@ -536,7 +593,10 @@ export default function AccessControlPage() {
         </Dialog>
 
         {/* Create Purchase Modal */}
-        <Dialog open={createPurchaseModal} onOpenChange={setCreatePurchaseModal}>
+        <Dialog
+          open={createPurchaseModal}
+          onOpenChange={setCreatePurchaseModal}
+        >
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Създай Ръчна Покупка</DialogTitle>
@@ -549,7 +609,7 @@ export default function AccessControlPage() {
                 <Label>Потребител Email</Label>
                 <Input
                   placeholder="user@example.com"
-                  value={selectedUser?.email || ''}
+                  value={selectedUser?.email || ""}
                   readOnly
                 />
               </div>
@@ -558,7 +618,12 @@ export default function AccessControlPage() {
                 <Input
                   placeholder="Testograph Apps Bundle"
                   value={purchaseForm.productName}
-                  onChange={(e) => setPurchaseForm({...purchaseForm, productName: e.target.value})}
+                  onChange={(e) =>
+                    setPurchaseForm({
+                      ...purchaseForm,
+                      productName: e.target.value,
+                    })
+                  }
                 />
               </div>
               <div className="space-y-2">
@@ -568,12 +633,19 @@ export default function AccessControlPage() {
                     type="number"
                     placeholder="99.00"
                     value={purchaseForm.amount}
-                    onChange={(e) => setPurchaseForm({...purchaseForm, amount: e.target.value})}
+                    onChange={(e) =>
+                      setPurchaseForm({
+                        ...purchaseForm,
+                        amount: e.target.value,
+                      })
+                    }
                     className="flex-1"
                   />
                   <Select
                     value={purchaseForm.currency}
-                    onValueChange={(value) => setPurchaseForm({...purchaseForm, currency: value})}
+                    onValueChange={(value) =>
+                      setPurchaseForm({ ...purchaseForm, currency: value })
+                    }
                   >
                     <SelectTrigger className="w-24">
                       <SelectValue />
@@ -590,7 +662,9 @@ export default function AccessControlPage() {
                 <Label>Status</Label>
                 <Select
                   value={purchaseForm.status}
-                  onValueChange={(value) => setPurchaseForm({...purchaseForm, status: value})}
+                  onValueChange={(value) =>
+                    setPurchaseForm({ ...purchaseForm, status: value })
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -604,7 +678,10 @@ export default function AccessControlPage() {
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setCreatePurchaseModal(false)}>
+              <Button
+                variant="outline"
+                onClick={() => setCreatePurchaseModal(false)}
+              >
                 Откажи
               </Button>
               <Button onClick={handleCreatePurchase} disabled={isSubmitting}>
@@ -614,7 +691,7 @@ export default function AccessControlPage() {
                     Създаване...
                   </>
                 ) : (
-                  'Създай Покупка'
+                  "Създай Покупка"
                 )}
               </Button>
             </DialogFooter>

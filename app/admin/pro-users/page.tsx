@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { SearchBar } from '@/components/admin/SearchBar';
-import { SkeletonTable } from '@/components/admin/SkeletonCard';
-import { EmptyState } from '@/components/admin/EmptyState';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { SearchBar } from "@/components/admin/SearchBar";
+import { SkeletonTable } from "@/components/admin/SkeletonCard";
+import { EmptyState } from "@/components/admin/EmptyState";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -14,16 +14,16 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   PieChart,
   Pie,
@@ -36,7 +36,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from 'recharts';
+} from "recharts";
 import {
   Target,
   RefreshCw,
@@ -48,8 +48,8 @@ import {
   Activity,
   Download,
   Filter,
-} from 'lucide-react';
-import { cn } from '@/lib/utils';
+} from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface ProUserData {
   userId: string;
@@ -71,23 +71,29 @@ interface ProUserData {
   lastActivityDate: string | null;
 }
 
-type SortField = 'email' | 'daysOnProtocol' | 'currentStreak' | 'complianceRate' | 'weightChange';
-type SortDirection = 'asc' | 'desc';
-type ComplianceFilter = 'all' | 'high' | 'medium' | 'low';
-type ActivityFilter = 'all' | 'active' | 'inactive';
+type SortField =
+  | "email"
+  | "daysOnProtocol"
+  | "currentStreak"
+  | "complianceRate"
+  | "weightChange";
+type SortDirection = "asc" | "desc";
+type ComplianceFilter = "all" | "high" | "medium" | "low";
+type ActivityFilter = "all" | "active" | "inactive";
 
-const COLORS = ['#10b981', '#f59e0b', '#ef4444'];
+const COLORS = ["#10b981", "#f59e0b", "#ef4444"];
 
 export default function ProUsersPage() {
   const router = useRouter();
   const [users, setUsers] = useState<ProUserData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortField, setSortField] = useState<SortField>('complianceRate');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
-  const [complianceFilter, setComplianceFilter] = useState<ComplianceFilter>('all');
-  const [activityFilter, setActivityFilter] = useState<ActivityFilter>('all');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortField, setSortField] = useState<SortField>("complianceRate");
+  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
+  const [complianceFilter, setComplianceFilter] =
+    useState<ComplianceFilter>("all");
+  const [activityFilter, setActivityFilter] = useState<ActivityFilter>("all");
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
   useEffect(() => {
@@ -102,7 +108,7 @@ export default function ProUsersPage() {
     }
 
     try {
-      const response = await fetch('/api/admin/pro-users');
+      const response = await fetch("/api/admin/pro-users");
       const data = await response.json();
 
       if (response.ok) {
@@ -110,7 +116,7 @@ export default function ProUsersPage() {
         setLastUpdated(new Date());
       }
     } catch (error) {
-      console.error('Error fetching PRO users:', error);
+      console.error("Error fetching PRO users:", error);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -119,120 +125,132 @@ export default function ProUsersPage() {
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
       setSortField(field);
-      setSortDirection('desc');
+      setSortDirection("desc");
     }
   };
 
   const formatTimestamp = (date: Date | null) => {
-    if (!date) return '';
+    if (!date) return "";
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffMins = Math.floor(diffMs / 60000);
 
-    if (diffMins < 1) return 'току-що';
+    if (diffMins < 1) return "току-що";
     if (diffMins < 60) return `преди ${diffMins} мин`;
 
     const diffHours = Math.floor(diffMins / 60);
     if (diffHours < 24) return `преди ${diffHours} ч`;
 
-    return date.toLocaleDateString('bg-BG', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleDateString("bg-BG", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const getComplianceColor = (rate: number) => {
-    if (rate >= 80) return 'text-green-600';
-    if (rate >= 60) return 'text-yellow-600';
-    return 'text-red-600';
+    if (rate >= 80) return "text-green-600";
+    if (rate >= 60) return "text-yellow-600";
+    return "text-red-600";
   };
 
   const getComplianceStatus = (rate: number) => {
-    if (rate >= 80) return { label: 'Отлично', variant: 'default' as const };
-    if (rate >= 60) return { label: 'Добре', variant: 'secondary' as const };
-    return { label: 'Ниско', variant: 'destructive' as const };
+    if (rate >= 80) return { label: "Отлично", variant: "default" as const };
+    if (rate >= 60) return { label: "Добре", variant: "secondary" as const };
+    return { label: "Ниско", variant: "destructive" as const };
   };
 
   const exportToCSV = () => {
     if (sortedUsers.length === 0) return;
 
     const headers = [
-      'Email',
-      'Name',
-      'Days on Protocol',
-      'Current Streak',
-      'Longest Streak',
-      'Compliance %',
-      'Total Entries',
-      'Missed Days',
-      'Avg Feeling',
-      'Avg Energy',
-      'Avg Compliance',
-      'Start Weight (kg)',
-      'Current Weight (kg)',
-      'Weight Change (kg)',
-      'Last Activity',
+      "Email",
+      "Name",
+      "Days on Protocol",
+      "Current Streak",
+      "Longest Streak",
+      "Compliance %",
+      "Total Entries",
+      "Missed Days",
+      "Avg Feeling",
+      "Avg Energy",
+      "Avg Compliance",
+      "Start Weight (kg)",
+      "Current Weight (kg)",
+      "Weight Change (kg)",
+      "Last Activity",
     ];
 
-    const csvData = sortedUsers.map(user => [
+    const csvData = sortedUsers.map((user) => [
       user.email,
-      user.name || '',
+      user.name || "",
       user.daysOnProtocol,
       user.currentStreak,
       user.longestStreak,
       user.complianceRate,
       user.totalEntries,
       user.missedDays,
-      user.averageFeeling?.toFixed(1) || '',
-      user.averageEnergy?.toFixed(1) || '',
-      user.averageCompliance?.toFixed(1) || '',
-      user.startWeight?.toFixed(1) || '',
-      user.currentWeight?.toFixed(1) || '',
-      user.weightChange?.toFixed(1) || '',
-      user.lastActivityDate || '',
+      user.averageFeeling?.toFixed(1) || "",
+      user.averageEnergy?.toFixed(1) || "",
+      user.averageCompliance?.toFixed(1) || "",
+      user.startWeight?.toFixed(1) || "",
+      user.currentWeight?.toFixed(1) || "",
+      user.weightChange?.toFixed(1) || "",
+      user.lastActivityDate || "",
     ]);
 
     const csv = [
-      headers.join(','),
-      ...csvData.map(row => row.join(','))
-    ].join('\n');
+      headers.join(","),
+      ...csvData.map((row) => row.join(",")),
+    ].join("\n");
 
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
+    const link = document.createElement("a");
     link.href = url;
-    link.download = `testograph-pro-users-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `testograph-pro-users-${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
 
   // Filter users based on search, compliance, and activity
-  let filteredUsers = users.filter(user => {
+  let filteredUsers = users.filter((user) => {
     // Search filter
-    const matchesSearch = searchQuery === '' ||
+    const matchesSearch =
+      searchQuery === "" ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
     // Compliance filter
     let matchesCompliance = true;
-    if (complianceFilter === 'high') {
+    if (complianceFilter === "high") {
       matchesCompliance = user.complianceRate >= 80;
-    } else if (complianceFilter === 'medium') {
+    } else if (complianceFilter === "medium") {
       matchesCompliance = user.complianceRate >= 60 && user.complianceRate < 80;
-    } else if (complianceFilter === 'low') {
+    } else if (complianceFilter === "low") {
       matchesCompliance = user.complianceRate < 60;
     }
 
     // Activity filter
     let matchesActivity = true;
-    if (activityFilter === 'active') {
+    if (activityFilter === "active") {
       const daysSinceActivity = user.lastActivityDate
-        ? Math.floor((new Date().getTime() - new Date(user.lastActivityDate).getTime()) / (1000 * 60 * 60 * 24))
+        ? Math.floor(
+            (new Date().getTime() - new Date(user.lastActivityDate).getTime()) /
+              (1000 * 60 * 60 * 24),
+          )
         : 999;
       matchesActivity = daysSinceActivity <= 3;
-    } else if (activityFilter === 'inactive') {
+    } else if (activityFilter === "inactive") {
       const daysSinceActivity = user.lastActivityDate
-        ? Math.floor((new Date().getTime() - new Date(user.lastActivityDate).getTime()) / (1000 * 60 * 60 * 24))
+        ? Math.floor(
+            (new Date().getTime() - new Date(user.lastActivityDate).getTime()) /
+              (1000 * 60 * 60 * 24),
+          )
         : 999;
       matchesActivity = daysSinceActivity > 3;
     }
@@ -248,7 +266,7 @@ export default function ProUsersPage() {
     if (aValue === null) return 1;
     if (bValue === null) return -1;
 
-    if (sortDirection === 'asc') {
+    if (sortDirection === "asc") {
       return aValue > bValue ? 1 : -1;
     } else {
       return aValue < bValue ? 1 : -1;
@@ -257,17 +275,43 @@ export default function ProUsersPage() {
 
   // Chart data
   const complianceDistribution = [
-    { name: 'Високо (≥80%)', value: users.filter(u => u.complianceRate >= 80).length, color: '#10b981' },
-    { name: 'Средно (60-79%)', value: users.filter(u => u.complianceRate >= 60 && u.complianceRate < 80).length, color: '#f59e0b' },
-    { name: 'Ниско (<60%)', value: users.filter(u => u.complianceRate < 60).length, color: '#ef4444' },
+    {
+      name: "Високо (≥80%)",
+      value: users.filter((u) => u.complianceRate >= 80).length,
+      color: "#10b981",
+    },
+    {
+      name: "Средно (60-79%)",
+      value: users.filter(
+        (u) => u.complianceRate >= 60 && u.complianceRate < 80,
+      ).length,
+      color: "#f59e0b",
+    },
+    {
+      name: "Ниско (<60%)",
+      value: users.filter((u) => u.complianceRate < 60).length,
+      color: "#ef4444",
+    },
   ];
 
   const streakDistribution = [
-    { range: '0', count: users.filter(u => u.currentStreak === 0).length },
-    { range: '1-5', count: users.filter(u => u.currentStreak >= 1 && u.currentStreak <= 5).length },
-    { range: '6-10', count: users.filter(u => u.currentStreak >= 6 && u.currentStreak <= 10).length },
-    { range: '11-20', count: users.filter(u => u.currentStreak >= 11 && u.currentStreak <= 20).length },
-    { range: '20+', count: users.filter(u => u.currentStreak > 20).length },
+    { range: "0", count: users.filter((u) => u.currentStreak === 0).length },
+    {
+      range: "1-5",
+      count: users.filter((u) => u.currentStreak >= 1 && u.currentStreak <= 5)
+        .length,
+    },
+    {
+      range: "6-10",
+      count: users.filter((u) => u.currentStreak >= 6 && u.currentStreak <= 10)
+        .length,
+    },
+    {
+      range: "11-20",
+      count: users.filter((u) => u.currentStreak >= 11 && u.currentStreak <= 20)
+        .length,
+    },
+    { range: "20+", count: users.filter((u) => u.currentStreak > 20).length },
   ];
 
   if (isLoading) {
@@ -303,7 +347,9 @@ export default function ProUsersPage() {
                 Testograph PRO Users
               </h1>
               <p className="text-muted-foreground mt-1">
-                {lastUpdated && `Последна актуализация: ${formatTimestamp(lastUpdated)}`} • {users.length} активни потребители
+                {lastUpdated &&
+                  `Последна актуализация: ${formatTimestamp(lastUpdated)}`}{" "}
+                • {users.length} активни потребители
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -322,7 +368,9 @@ export default function ProUsersPage() {
                 onClick={() => fetchProUsers(true)}
                 disabled={isRefreshing}
               >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+                <RefreshCw
+                  className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+                />
                 Обнови
               </Button>
             </div>
@@ -336,7 +384,12 @@ export default function ProUsersPage() {
               placeholder="Търси по имейл или име..."
               className="w-full md:w-64"
             />
-            <Select value={complianceFilter} onValueChange={(value: ComplianceFilter) => setComplianceFilter(value)}>
+            <Select
+              value={complianceFilter}
+              onValueChange={(value: ComplianceFilter) =>
+                setComplianceFilter(value)
+              }
+            >
               <SelectTrigger className="w-[180px]">
                 <Filter className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Дисциплина" />
@@ -348,7 +401,12 @@ export default function ProUsersPage() {
                 <SelectItem value="low">Ниска (&lt;60%)</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={activityFilter} onValueChange={(value: ActivityFilter) => setActivityFilter(value)}>
+            <Select
+              value={activityFilter}
+              onValueChange={(value: ActivityFilter) =>
+                setActivityFilter(value)
+              }
+            >
               <SelectTrigger className="w-[160px]">
                 <Activity className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Активност" />
@@ -359,14 +417,16 @@ export default function ProUsersPage() {
                 <SelectItem value="inactive">Неактивни (&gt;3д)</SelectItem>
               </SelectContent>
             </Select>
-            {(complianceFilter !== 'all' || activityFilter !== 'all' || searchQuery) && (
+            {(complianceFilter !== "all" ||
+              activityFilter !== "all" ||
+              searchQuery) && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setComplianceFilter('all');
-                  setActivityFilter('all');
-                  setSearchQuery('');
+                  setComplianceFilter("all");
+                  setActivityFilter("all");
+                  setSearchQuery("");
                 }}
               >
                 Изчисти Филтри
@@ -383,7 +443,9 @@ export default function ProUsersPage() {
                 <Target className="h-4 w-4" />
                 <span className="font-medium">Общо PRO Потребители</span>
               </div>
-              <div className="text-2xl font-bold text-purple-600">{users.length}</div>
+              <div className="text-2xl font-bold text-purple-600">
+                {users.length}
+              </div>
             </CardContent>
           </Card>
 
@@ -395,7 +457,10 @@ export default function ProUsersPage() {
               </div>
               <div className="text-2xl font-bold">
                 {users.length > 0
-                  ? Math.round(users.reduce((sum, u) => sum + u.currentStreak, 0) / users.length)
+                  ? Math.round(
+                      users.reduce((sum, u) => sum + u.currentStreak, 0) /
+                        users.length,
+                    )
                   : 0}
               </div>
             </CardContent>
@@ -409,8 +474,12 @@ export default function ProUsersPage() {
               </div>
               <div className="text-2xl font-bold text-green-600">
                 {users.length > 0
-                  ? Math.round(users.reduce((sum, u) => sum + u.complianceRate, 0) / users.length)
-                  : 0}%
+                  ? Math.round(
+                      users.reduce((sum, u) => sum + u.complianceRate, 0) /
+                        users.length,
+                    )
+                  : 0}
+                %
               </div>
             </CardContent>
           </Card>
@@ -423,8 +492,12 @@ export default function ProUsersPage() {
               </div>
               <div className="text-2xl font-bold">
                 {users.length > 0
-                  ? Math.round(users.reduce((sum, u) => sum + u.daysOnProtocol, 0) / users.length)
-                  : 0}д
+                  ? Math.round(
+                      users.reduce((sum, u) => sum + u.daysOnProtocol, 0) /
+                        users.length,
+                    )
+                  : 0}
+                д
               </div>
             </CardContent>
           </Card>
@@ -436,7 +509,9 @@ export default function ProUsersPage() {
             {/* Compliance Distribution */}
             <Card className="shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Разпределение на Дисциплината</CardTitle>
+                <CardTitle className="text-lg">
+                  Разпределение на Дисциплината
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
@@ -464,14 +539,29 @@ export default function ProUsersPage() {
             {/* Streak Distribution */}
             <Card className="shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Разпределение на Текущите Серии</CardTitle>
+                <CardTitle className="text-lg">
+                  Разпределение на Текущите Серии
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={streakDistribution}>
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="range" label={{ value: 'Days', position: 'insideBottom', offset: -5 }} />
-                    <YAxis label={{ value: 'Users', angle: -90, position: 'insideLeft' }} />
+                    <XAxis
+                      dataKey="range"
+                      label={{
+                        value: "Days",
+                        position: "insideBottom",
+                        offset: -5,
+                      }}
+                    />
+                    <YAxis
+                      label={{
+                        value: "Users",
+                        angle: -90,
+                        position: "insideLeft",
+                      }}
+                    />
                     <Tooltip />
                     <Bar dataKey="count" fill="#f97316" />
                   </BarChart>
@@ -515,7 +605,7 @@ export default function ProUsersPage() {
                     <TableRow>
                       <TableHead
                         className="h-10 cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleSort('email')}
+                        onClick={() => handleSort("email")}
                       >
                         <div className="flex items-center gap-1">
                           Потребител
@@ -524,7 +614,7 @@ export default function ProUsersPage() {
                       </TableHead>
                       <TableHead
                         className="h-10 cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleSort('daysOnProtocol')}
+                        onClick={() => handleSort("daysOnProtocol")}
                       >
                         <div className="flex items-center gap-1">
                           Дни
@@ -533,7 +623,7 @@ export default function ProUsersPage() {
                       </TableHead>
                       <TableHead
                         className="h-10 cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleSort('currentStreak')}
+                        onClick={() => handleSort("currentStreak")}
                       >
                         <div className="flex items-center gap-1">
                           Серия
@@ -542,7 +632,7 @@ export default function ProUsersPage() {
                       </TableHead>
                       <TableHead
                         className="h-10 cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleSort('complianceRate')}
+                        onClick={() => handleSort("complianceRate")}
                       >
                         <div className="flex items-center gap-1">
                           Дисциплина
@@ -551,7 +641,7 @@ export default function ProUsersPage() {
                       </TableHead>
                       <TableHead
                         className="h-10 cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleSort('weightChange')}
+                        onClick={() => handleSort("weightChange")}
                       >
                         <div className="flex items-center gap-1">
                           Тегло Δ
@@ -559,7 +649,9 @@ export default function ProUsersPage() {
                         </div>
                       </TableHead>
                       <TableHead className="h-10">Статус</TableHead>
-                      <TableHead className="h-10 text-right">Последна Активност</TableHead>
+                      <TableHead className="h-10 text-right">
+                        Последна Активност
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -569,16 +661,22 @@ export default function ProUsersPage() {
                         <TableRow
                           key={user.userId}
                           className={cn(
-                            'h-12 cursor-pointer transition-colors',
-                            index % 2 === 0 ? '' : 'bg-muted/30'
+                            "h-12 cursor-pointer transition-colors",
+                            index % 2 === 0 ? "" : "bg-muted/30",
                           )}
-                          onClick={() => router.push(`/admin/users/${encodeURIComponent(user.email)}`)}
+                          onClick={() =>
+                            router.push(
+                              `/admin/users/${encodeURIComponent(user.email)}`,
+                            )
+                          }
                         >
                           <TableCell className="font-medium text-sm py-2">
                             <div>
                               <div>{user.name || user.email}</div>
                               {user.name && (
-                                <div className="text-xs text-muted-foreground">{user.email}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {user.email}
+                                </div>
                               )}
                             </div>
                           </TableCell>
@@ -589,7 +687,9 @@ export default function ProUsersPage() {
                             {user.currentStreak > 0 ? (
                               <div className="flex items-center gap-1">
                                 <Flame className="h-4 w-4 text-orange-500" />
-                                <span className="font-semibold">{user.currentStreak}</span>
+                                <span className="font-semibold">
+                                  {user.currentStreak}
+                                </span>
                               </div>
                             ) : (
                               <span className="text-muted-foreground">-</span>
@@ -597,7 +697,12 @@ export default function ProUsersPage() {
                           </TableCell>
                           <TableCell className="py-2">
                             <div className="flex items-center gap-2">
-                              <span className={cn('font-semibold text-sm', getComplianceColor(user.complianceRate))}>
+                              <span
+                                className={cn(
+                                  "font-semibold text-sm",
+                                  getComplianceColor(user.complianceRate),
+                                )}
+                              >
                                 {user.complianceRate}%
                               </span>
                             </div>
@@ -610,11 +715,18 @@ export default function ProUsersPage() {
                                 ) : user.weightChange < 0 ? (
                                   <TrendingDown className="h-4 w-4 text-green-500" />
                                 ) : null}
-                                <span className={cn(
-                                  'font-semibold text-sm',
-                                  user.weightChange > 0 ? 'text-red-500' : user.weightChange < 0 ? 'text-green-500' : ''
-                                )}>
-                                  {user.weightChange > 0 ? '+' : ''}{user.weightChange} kg
+                                <span
+                                  className={cn(
+                                    "font-semibold text-sm",
+                                    user.weightChange > 0
+                                      ? "text-red-500"
+                                      : user.weightChange < 0
+                                        ? "text-green-500"
+                                        : "",
+                                  )}
+                                >
+                                  {user.weightChange > 0 ? "+" : ""}
+                                  {user.weightChange} kg
                                 </span>
                               </div>
                             ) : (
@@ -627,7 +739,7 @@ export default function ProUsersPage() {
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right text-xs text-muted-foreground py-2">
-                            {user.lastActivityDate || 'N/A'}
+                            {user.lastActivityDate || "N/A"}
                           </TableCell>
                         </TableRow>
                       );

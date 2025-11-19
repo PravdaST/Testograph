@@ -1,9 +1,15 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import AdminLayout from "@/components/admin/AdminLayout";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import {
   LineChart,
   Line,
@@ -18,7 +24,7 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-} from 'recharts';
+} from "recharts";
 import {
   DollarSign,
   TrendingUp,
@@ -30,7 +36,7 @@ import {
   Download,
   Mail,
   Target,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface BusinessAnalytics {
   revenue: {
@@ -71,7 +77,14 @@ interface BusinessAnalytics {
   };
 }
 
-const COLORS = ['#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#ec4899'];
+const COLORS = [
+  "#8b5cf6",
+  "#3b82f6",
+  "#10b981",
+  "#f59e0b",
+  "#ef4444",
+  "#ec4899",
+];
 
 export default function BusinessAnalyticsPage() {
   const [data, setData] = useState<BusinessAnalytics | null>(null);
@@ -85,12 +98,14 @@ export default function BusinessAnalyticsPage() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/business-analytics?days=${selectedDays}`);
-      if (!res.ok) throw new Error('Failed to fetch');
+      const res = await fetch(
+        `/api/admin/business-analytics?days=${selectedDays}`,
+      );
+      if (!res.ok) throw new Error("Failed to fetch");
       const analytics = await res.json();
       setData(analytics);
     } catch (error) {
-      console.error('Error fetching business analytics:', error);
+      console.error("Error fetching business analytics:", error);
     } finally {
       setLoading(false);
     }
@@ -100,26 +115,26 @@ export default function BusinessAnalyticsPage() {
     if (!data) return;
 
     const csv = [
-      'Business Analytics Report',
-      '',
-      'Revenue Metrics',
+      "Business Analytics Report",
+      "",
+      "Revenue Metrics",
       `Total Revenue,${data.revenue.total} BGN`,
       `MRR,${data.revenue.mrr} BGN`,
       `Average Order Value,${data.revenue.averageOrderValue} BGN`,
       `Total Purchases,${data.revenue.totalPurchases}`,
       `Refunds,${data.revenue.refunds.total} BGN (${data.revenue.refunds.count} refunds)`,
-      '',
-      'Retention Metrics',
+      "",
+      "Retention Metrics",
       `Active Users,${data.retention.activeUsers}`,
       `Inactive Users,${data.retention.inactiveUsers}`,
       `Churn Rate,${data.retention.churnRate}%`,
-    ].join('\n');
+    ].join("\n");
 
-    const blob = new Blob([csv], { type: 'text/csv' });
+    const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
-    a.download = `business-analytics-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `business-analytics-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
   };
 
@@ -144,9 +159,9 @@ export default function BusinessAnalyticsPage() {
   }
 
   // Prepare revenue by product chart data
-  const revenueByProductData = Object.entries(data.revenue.revenueByProduct).map(
-    ([name, value]) => ({ name, value: Math.round(value * 100) / 100 })
-  );
+  const revenueByProductData = Object.entries(
+    data.revenue.revenueByProduct,
+  ).map(([name, value]) => ({ name, value: Math.round(value * 100) / 100 }));
 
   return (
     <AdminLayout>
@@ -154,7 +169,9 @@ export default function BusinessAnalyticsPage() {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h1 className="text-3xl md:text-4xl font-bold text-foreground">Business Analytics</h1>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+              Business Analytics
+            </h1>
             <p className="text-muted-foreground mt-1">
               Revenue, Retention & Growth Metrics
             </p>
@@ -166,7 +183,7 @@ export default function BusinessAnalyticsPage() {
               {[7, 30, 90].map((days) => (
                 <Button
                   key={days}
-                  variant={selectedDays === days ? 'default' : 'outline'}
+                  variant={selectedDays === days ? "default" : "outline"}
                   size="sm"
                   onClick={() => setSelectedDays(days)}
                 >
@@ -227,7 +244,9 @@ export default function BusinessAnalyticsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">{data.revenue.averageOrderValue} BGN</div>
+              <div className="text-3xl font-bold">
+                {data.revenue.averageOrderValue} BGN
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Average Order Value
               </p>
@@ -242,7 +261,9 @@ export default function BusinessAnalyticsPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-red-500">{data.revenue.refunds.total} BGN</div>
+              <div className="text-3xl font-bold text-red-500">
+                {data.revenue.refunds.total} BGN
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {data.revenue.refunds.count} refunds
               </p>
@@ -254,19 +275,50 @@ export default function BusinessAnalyticsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Revenue Trend (Last 12 Months)</CardTitle>
-            <CardDescription>Monthly revenue and purchase count</CardDescription>
+            <CardDescription>
+              Monthly revenue and purchase count
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={400}>
               <LineChart data={data.revenue.revenueTrend}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="month" />
-                <YAxis yAxisId="left" label={{ value: 'Revenue (BGN)', angle: -90, position: 'insideLeft' }} />
-                <YAxis yAxisId="right" orientation="right" label={{ value: 'Purchases', angle: 90, position: 'insideRight' }} />
+                <YAxis
+                  yAxisId="left"
+                  label={{
+                    value: "Revenue (BGN)",
+                    angle: -90,
+                    position: "insideLeft",
+                  }}
+                />
+                <YAxis
+                  yAxisId="right"
+                  orientation="right"
+                  label={{
+                    value: "Purchases",
+                    angle: 90,
+                    position: "insideRight",
+                  }}
+                />
                 <Tooltip />
                 <Legend />
-                <Line yAxisId="left" type="monotone" dataKey="revenue" stroke="#8b5cf6" strokeWidth={2} name="Revenue" />
-                <Line yAxisId="right" type="monotone" dataKey="purchases" stroke="#10b981" strokeWidth={2} name="Purchases" />
+                <Line
+                  yAxisId="left"
+                  type="monotone"
+                  dataKey="revenue"
+                  stroke="#8b5cf6"
+                  strokeWidth={2}
+                  name="Revenue"
+                />
+                <Line
+                  yAxisId="right"
+                  type="monotone"
+                  dataKey="purchases"
+                  stroke="#10b981"
+                  strokeWidth={2}
+                  name="Purchases"
+                />
               </LineChart>
             </ResponsiveContainer>
           </CardContent>
@@ -278,7 +330,9 @@ export default function BusinessAnalyticsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Revenue by Product</CardTitle>
-              <CardDescription>Distribution across product types</CardDescription>
+              <CardDescription>
+                Distribution across product types
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
@@ -294,7 +348,10 @@ export default function BusinessAnalyticsPage() {
                     dataKey="value"
                   >
                     {revenueByProductData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
                     ))}
                   </Pie>
                   <Tooltip />
@@ -307,16 +364,22 @@ export default function BusinessAnalyticsPage() {
           <Card>
             <CardHeader>
               <CardTitle>User Retention Overview</CardTitle>
-              <CardDescription>Activity-based retention metrics</CardDescription>
+              <CardDescription>
+                Activity-based retention metrics
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-green-500" />
-                    <span className="text-sm font-medium">Active Users (30d)</span>
+                    <span className="text-sm font-medium">
+                      Active Users (30d)
+                    </span>
                   </div>
-                  <span className="text-2xl font-bold text-green-500">{data.retention.activeUsers}</span>
+                  <span className="text-2xl font-bold text-green-500">
+                    {data.retention.activeUsers}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -324,7 +387,9 @@ export default function BusinessAnalyticsPage() {
                     <UserMinus className="w-5 h-5 text-red-500" />
                     <span className="text-sm font-medium">Inactive Users</span>
                   </div>
-                  <span className="text-2xl font-bold text-red-500">{data.retention.inactiveUsers}</span>
+                  <span className="text-2xl font-bold text-red-500">
+                    {data.retention.inactiveUsers}
+                  </span>
                 </div>
 
                 <div className="flex items-center justify-between">
@@ -332,17 +397,23 @@ export default function BusinessAnalyticsPage() {
                     <Target className="w-5 h-5" />
                     <span className="text-sm font-medium">Total Users</span>
                   </div>
-                  <span className="text-2xl font-bold">{data.retention.totalUsers}</span>
+                  <span className="text-2xl font-bold">
+                    {data.retention.totalUsers}
+                  </span>
                 </div>
 
                 <div className="pt-4 border-t">
                   <div className="flex items-center justify-between">
                     <span className="text-sm font-medium">Churn Rate</span>
-                    <span className={`text-3xl font-bold ${
-                      data.retention.churnRate > 20 ? 'text-red-500' :
-                      data.retention.churnRate > 10 ? 'text-yellow-500' :
-                      'text-green-500'
-                    }`}>
+                    <span
+                      className={`text-3xl font-bold ${
+                        data.retention.churnRate > 20
+                          ? "text-red-500"
+                          : data.retention.churnRate > 10
+                            ? "text-yellow-500"
+                            : "text-green-500"
+                      }`}
+                    >
                       {data.retention.churnRate}%
                     </span>
                   </div>
@@ -379,7 +450,10 @@ export default function BusinessAnalyticsPage() {
                 </thead>
                 <tbody>
                   {data.retention.cohortAnalysis.map((cohort) => (
-                    <tr key={cohort.month} className="border-b hover:bg-muted/50">
+                    <tr
+                      key={cohort.month}
+                      className="border-b hover:bg-muted/50"
+                    >
                       <td className="p-2 font-medium">{cohort.month}</td>
                       <td className="text-center p-2">{cohort.totalUsers}</td>
                       {[0, 1, 2, 3, 4, 5, 6].map((month) => {
@@ -390,7 +464,7 @@ export default function BusinessAnalyticsPage() {
                             className="text-center p-2"
                             style={{
                               backgroundColor: `rgba(139, 92, 246, ${rate / 100})`,
-                              color: rate > 50 ? 'white' : 'inherit',
+                              color: rate > 50 ? "white" : "inherit",
                             }}
                           >
                             {rate}%
@@ -403,7 +477,8 @@ export default function BusinessAnalyticsPage() {
               </table>
             </div>
             <p className="text-xs text-muted-foreground mt-4">
-              M0 = signup month, M1 = 1 month later, etc. Darker = higher retention rate.
+              M0 = signup month, M1 = 1 month later, etc. Darker = higher
+              retention rate.
             </p>
           </CardContent>
         </Card>
@@ -422,7 +497,8 @@ export default function BusinessAnalyticsPage() {
               <Mail className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
               <p className="text-muted-foreground">{data.email.note}</p>
               <p className="text-sm text-muted-foreground mt-2">
-                To enable email tracking, integrate webhooks from your email provider (SendGrid, Mailgun, etc.)
+                To enable email tracking, integrate webhooks from your email
+                provider (SendGrid, Mailgun, etc.)
               </p>
             </div>
           </CardContent>

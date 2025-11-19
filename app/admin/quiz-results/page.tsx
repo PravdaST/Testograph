@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { StatCard } from '@/components/admin/StatCard';
-import { SearchBar } from '@/components/admin/SearchBar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { StatCard } from "@/components/admin/StatCard";
+import { SearchBar } from "@/components/admin/SearchBar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -13,25 +19,25 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
+} from "@/components/ui/dialog";
 import {
   ClipboardCheck,
   Download,
@@ -42,7 +48,7 @@ import {
   TrendingUp,
   Filter,
   X,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface QuizResult {
   id: string;
@@ -99,11 +105,12 @@ export default function QuizResultsPage() {
   const [totalCount, setTotalCount] = useState(0);
 
   // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [riskLevelFilter, setRiskLevelFilter] = useState<string>('all');
-  const [testosteroneCategoryFilter, setTestosteroneCategoryFilter] = useState<string>('all');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [riskLevelFilter, setRiskLevelFilter] = useState<string>("all");
+  const [testosteroneCategoryFilter, setTestosteroneCategoryFilter] =
+    useState<string>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(0);
@@ -115,7 +122,14 @@ export default function QuizResultsPage() {
 
   useEffect(() => {
     fetchQuizResults();
-  }, [currentPage, searchQuery, riskLevelFilter, testosteroneCategoryFilter, dateFrom, dateTo]);
+  }, [
+    currentPage,
+    searchQuery,
+    riskLevelFilter,
+    testosteroneCategoryFilter,
+    dateFrom,
+    dateTo,
+  ]);
 
   const fetchQuizResults = async (isRefresh = false) => {
     if (isRefresh) {
@@ -130,13 +144,17 @@ export default function QuizResultsPage() {
         offset: (currentPage * limit).toString(),
       });
 
-      if (searchQuery) params.append('search', searchQuery);
-      if (riskLevelFilter !== 'all') params.append('riskLevel', riskLevelFilter);
-      if (testosteroneCategoryFilter !== 'all') params.append('testosteroneCategory', testosteroneCategoryFilter);
-      if (dateFrom) params.append('dateFrom', dateFrom);
-      if (dateTo) params.append('dateTo', dateTo);
+      if (searchQuery) params.append("search", searchQuery);
+      if (riskLevelFilter !== "all")
+        params.append("riskLevel", riskLevelFilter);
+      if (testosteroneCategoryFilter !== "all")
+        params.append("testosteroneCategory", testosteroneCategoryFilter);
+      if (dateFrom) params.append("dateFrom", dateFrom);
+      if (dateTo) params.append("dateTo", dateTo);
 
-      const response = await fetch(`/api/admin/quiz-results?${params.toString()}`);
+      const response = await fetch(
+        `/api/admin/quiz-results?${params.toString()}`,
+      );
       const data = await response.json();
 
       if (response.ok) {
@@ -145,7 +163,7 @@ export default function QuizResultsPage() {
         setTotalCount(data.count || 0);
       }
     } catch (error) {
-      console.error('Error fetching quiz results:', error);
+      console.error("Error fetching quiz results:", error);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -157,108 +175,115 @@ export default function QuizResultsPage() {
 
     // CSV headers
     const headers = [
-      'Дата',
-      'Име',
-      'Email',
-      'Възраст',
-      'Височина',
-      'Тегло',
-      'Рисков индекс',
-      'Тестостерон (nmol/L)',
-      'Категория тестостерон',
-      'Рисково ниво',
-      'Сън (часа)',
-      'Алкохол',
-      'Никотин',
-      'Диета',
-      'Стрес (1-10)',
-      'Тренировки/седмица',
-      'Тип тренировки',
-      'Възстановяване',
-      'Добавки',
-      'Либидо (1-10)',
-      'Сутрешна ерекция',
-      'Сутрешна енергия (1-10)',
-      'Концентрация (1-10)',
-      'Настроение',
-      'Мускулна маса'
+      "Дата",
+      "Име",
+      "Email",
+      "Възраст",
+      "Височина",
+      "Тегло",
+      "Рисков индекс",
+      "Тестостерон (nmol/L)",
+      "Категория тестостерон",
+      "Рисково ниво",
+      "Сън (часа)",
+      "Алкохол",
+      "Никотин",
+      "Диета",
+      "Стрес (1-10)",
+      "Тренировки/седмица",
+      "Тип тренировки",
+      "Възстановяване",
+      "Добавки",
+      "Либидо (1-10)",
+      "Сутрешна ерекция",
+      "Сутрешна енергия (1-10)",
+      "Концентрация (1-10)",
+      "Настроение",
+      "Мускулна маса",
     ];
 
     // CSV rows
-    const rows = results.map(r => [
-      new Date(r.created_at).toLocaleDateString('bg-BG'),
-      r.first_name || '',
-      r.email || '',
-      r.age || '',
-      r.height || '',
-      r.weight || '',
-      r.score || '',
-      r.testosterone_level || '',
-      r.testosterone_category || '',
-      r.risk_level || '',
-      r.sleep || '',
-      r.alcohol || '',
-      r.nicotine || '',
-      r.diet || '',
-      r.stress || '',
-      r.training_frequency || '',
-      r.training_type || '',
-      r.recovery || '',
-      r.supplements || '',
-      r.libido || '',
-      r.morning_erection || '',
-      r.morning_energy || '',
-      r.concentration || '',
-      r.mood || '',
-      r.muscle_mass || ''
+    const rows = results.map((r) => [
+      new Date(r.created_at).toLocaleDateString("bg-BG"),
+      r.first_name || "",
+      r.email || "",
+      r.age || "",
+      r.height || "",
+      r.weight || "",
+      r.score || "",
+      r.testosterone_level || "",
+      r.testosterone_category || "",
+      r.risk_level || "",
+      r.sleep || "",
+      r.alcohol || "",
+      r.nicotine || "",
+      r.diet || "",
+      r.stress || "",
+      r.training_frequency || "",
+      r.training_type || "",
+      r.recovery || "",
+      r.supplements || "",
+      r.libido || "",
+      r.morning_erection || "",
+      r.morning_energy || "",
+      r.concentration || "",
+      r.mood || "",
+      r.muscle_mass || "",
     ]);
 
     // Create CSV string
     const csvContent = [
-      headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(','))
-    ].join('\n');
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n");
 
     // Download
-    const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
+    const blob = new Blob(["\ufeff" + csvContent], {
+      type: "text/csv;charset=utf-8;",
+    });
+    const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = `quiz-results-${new Date().toISOString().split('T')[0]}.csv`;
+    link.download = `quiz-results-${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
   };
 
   const clearFilters = () => {
-    setSearchQuery('');
-    setRiskLevelFilter('all');
-    setTestosteroneCategoryFilter('all');
-    setDateFrom('');
-    setDateTo('');
+    setSearchQuery("");
+    setRiskLevelFilter("all");
+    setTestosteroneCategoryFilter("all");
+    setDateFrom("");
+    setDateTo("");
     setCurrentPage(0);
   };
 
-  const hasActiveFilters = searchQuery || riskLevelFilter !== 'all' || testosteroneCategoryFilter !== 'all' || dateFrom || dateTo;
+  const hasActiveFilters =
+    searchQuery ||
+    riskLevelFilter !== "all" ||
+    testosteroneCategoryFilter !== "all" ||
+    dateFrom ||
+    dateTo;
 
   const getRiskBadgeColor = (level: string) => {
-    if (level === 'good') return 'bg-green-500 text-white';
-    if (level === 'moderate') return 'bg-yellow-500 text-white';
-    if (level === 'critical') return 'bg-red-500 text-white';
-    return 'bg-gray-500 text-white';
+    if (level === "good") return "bg-green-500 text-white";
+    if (level === "moderate") return "bg-yellow-500 text-white";
+    if (level === "critical") return "bg-red-500 text-white";
+    return "bg-gray-500 text-white";
   };
 
   const getTestosteroneBadgeColor = (category: string) => {
-    if (category === 'high') return 'bg-green-500 text-white';
-    if (category === 'normal') return 'bg-yellow-500 text-white';
-    if (category === 'low') return 'bg-red-500 text-white';
-    return 'bg-gray-500 text-white';
+    if (category === "high") return "bg-green-500 text-white";
+    if (category === "normal") return "bg-yellow-500 text-white";
+    if (category === "low") return "bg-red-500 text-white";
+    return "bg-gray-500 text-white";
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('bg-BG', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("bg-BG", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -295,7 +320,9 @@ export default function QuizResultsPage() {
               onClick={() => fetchQuizResults(true)}
               disabled={isRefreshing}
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+              />
               Обнови
             </Button>
             <Button
@@ -342,15 +369,21 @@ export default function QuizResultsPage() {
                 <div className="space-y-1 text-xs">
                   <div className="flex justify-between">
                     <span>🟢 Добро:</span>
-                    <span className="font-semibold">{stats.byRiskLevel.good}</span>
+                    <span className="font-semibold">
+                      {stats.byRiskLevel.good}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>🟡 Умерено:</span>
-                    <span className="font-semibold">{stats.byRiskLevel.moderate}</span>
+                    <span className="font-semibold">
+                      {stats.byRiskLevel.moderate}
+                    </span>
                   </div>
                   <div className="flex justify-between">
                     <span>🔴 Критично:</span>
-                    <span className="font-semibold">{stats.byRiskLevel.critical}</span>
+                    <span className="font-semibold">
+                      {stats.byRiskLevel.critical}
+                    </span>
                   </div>
                 </div>
               </CardContent>
@@ -380,7 +413,9 @@ export default function QuizResultsPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="lg:col-span-2">
-                <Label htmlFor="search" className="text-xs mb-1">Търсене (име/email)</Label>
+                <Label htmlFor="search" className="text-xs mb-1">
+                  Търсене (име/email)
+                </Label>
                 <SearchBar
                   value={searchQuery}
                   onChange={setSearchQuery}
@@ -390,8 +425,13 @@ export default function QuizResultsPage() {
               </div>
 
               <div>
-                <Label htmlFor="risk-level" className="text-xs mb-1">Рисково ниво</Label>
-                <Select value={riskLevelFilter} onValueChange={setRiskLevelFilter}>
+                <Label htmlFor="risk-level" className="text-xs mb-1">
+                  Рисково ниво
+                </Label>
+                <Select
+                  value={riskLevelFilter}
+                  onValueChange={setRiskLevelFilter}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -405,8 +445,13 @@ export default function QuizResultsPage() {
               </div>
 
               <div>
-                <Label htmlFor="testosterone" className="text-xs mb-1">Тестостерон</Label>
-                <Select value={testosteroneCategoryFilter} onValueChange={setTestosteroneCategoryFilter}>
+                <Label htmlFor="testosterone" className="text-xs mb-1">
+                  Тестостерон
+                </Label>
+                <Select
+                  value={testosteroneCategoryFilter}
+                  onValueChange={setTestosteroneCategoryFilter}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -421,7 +466,9 @@ export default function QuizResultsPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label htmlFor="date-from" className="text-xs mb-1">От дата</Label>
+                  <Label htmlFor="date-from" className="text-xs mb-1">
+                    От дата
+                  </Label>
                   <Input
                     id="date-from"
                     type="date"
@@ -431,7 +478,9 @@ export default function QuizResultsPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="date-to" className="text-xs mb-1">До дата</Label>
+                  <Label htmlFor="date-to" className="text-xs mb-1">
+                    До дата
+                  </Label>
                   <Input
                     id="date-to"
                     type="date"
@@ -448,9 +497,7 @@ export default function QuizResultsPage() {
         {/* Results Table */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">
-              Резултати ({totalCount})
-            </CardTitle>
+            <CardTitle className="text-lg">Резултати ({totalCount})</CardTitle>
             <CardDescription>
               Показани {results.length} от {totalCount} submissions
             </CardDescription>
@@ -461,7 +508,9 @@ export default function QuizResultsPage() {
                 <ClipboardCheck className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
                 <p className="text-lg font-semibold">Няма резултати</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {hasActiveFilters ? 'Пробвай да промениш филтрите' : 'Още няма submissions от quiz-a'}
+                  {hasActiveFilters
+                    ? "Пробвай да промениш филтрите"
+                    : "Още няма submissions от quiz-a"}
                 </p>
               </div>
             ) : (
@@ -494,7 +543,7 @@ export default function QuizResultsPage() {
                           {formatDate(result.created_at)}
                         </TableCell>
                         <TableCell className="font-medium">
-                          {result.first_name || '—'}
+                          {result.first_name || "—"}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {result.email}
@@ -506,20 +555,32 @@ export default function QuizResultsPage() {
                           {result.score}
                         </TableCell>
                         <TableCell className="text-right font-semibold">
-                          {result.testosterone_level} <span className="text-xs text-muted-foreground">nmol/L</span>
+                          {result.testosterone_level}{" "}
+                          <span className="text-xs text-muted-foreground">
+                            nmol/L
+                          </span>
                         </TableCell>
                         <TableCell>
-                          <Badge className={getRiskBadgeColor(result.risk_level)}>
-                            {result.risk_level === 'good' && '🟢 Добро'}
-                            {result.risk_level === 'moderate' && '🟡 Умерено'}
-                            {result.risk_level === 'critical' && '🔴 Критично'}
+                          <Badge
+                            className={getRiskBadgeColor(result.risk_level)}
+                          >
+                            {result.risk_level === "good" && "🟢 Добро"}
+                            {result.risk_level === "moderate" && "🟡 Умерено"}
+                            {result.risk_level === "critical" && "🔴 Критично"}
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Badge className={getTestosteroneBadgeColor(result.testosterone_category)}>
-                            {result.testosterone_category === 'high' && '⭐ Високо'}
-                            {result.testosterone_category === 'normal' && '✓ Нормално'}
-                            {result.testosterone_category === 'low' && '⚠️ Ниско'}
+                          <Badge
+                            className={getTestosteroneBadgeColor(
+                              result.testosterone_category,
+                            )}
+                          >
+                            {result.testosterone_category === "high" &&
+                              "⭐ Високо"}
+                            {result.testosterone_category === "normal" &&
+                              "✓ Нормално"}
+                            {result.testosterone_category === "low" &&
+                              "⚠️ Ниско"}
                           </Badge>
                         </TableCell>
                         <TableCell>
@@ -560,7 +621,9 @@ export default function QuizResultsPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages - 1, currentPage + 1))
+                    }
                     disabled={currentPage === totalPages - 1}
                   >
                     Следваща →
@@ -603,7 +666,10 @@ export default function QuizResultsPage() {
                   <div>
                     <span className="text-muted-foreground">BMI:</span>
                     <p className="font-semibold">
-                      {((selectedResult.weight / Math.pow(selectedResult.height / 100, 2))).toFixed(1)}
+                      {(
+                        selectedResult.weight /
+                        Math.pow(selectedResult.height / 100, 2)
+                      ).toFixed(1)}
                     </p>
                   </div>
                 </div>
@@ -616,22 +682,32 @@ export default function QuizResultsPage() {
                 </h3>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
                   <div>
-                    <span className="text-muted-foreground">Рисков индекс:</span>
+                    <span className="text-muted-foreground">
+                      Рисков индекс:
+                    </span>
                     <p className="font-bold text-xl">{selectedResult.score}</p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Тестостерон:</span>
-                    <p className="font-bold text-xl">{selectedResult.testosterone_level} nmol/L</p>
+                    <p className="font-bold text-xl">
+                      {selectedResult.testosterone_level} nmol/L
+                    </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Рисково ниво:</span>
-                    <Badge className={getRiskBadgeColor(selectedResult.risk_level)}>
+                    <Badge
+                      className={getRiskBadgeColor(selectedResult.risk_level)}
+                    >
                       {selectedResult.risk_level}
                     </Badge>
                   </div>
                   <div>
                     <span className="text-muted-foreground">T-категория:</span>
-                    <Badge className={getTestosteroneBadgeColor(selectedResult.testosterone_category)}>
+                    <Badge
+                      className={getTestosteroneBadgeColor(
+                        selectedResult.testosterone_category,
+                      )}
+                    >
                       {selectedResult.testosterone_category}
                     </Badge>
                   </div>
@@ -650,15 +726,21 @@ export default function QuizResultsPage() {
                   </div>
                   <div>
                     <span className="text-muted-foreground">Алкохол:</span>
-                    <p className="font-semibold">{selectedResult.alcohol || '—'}</p>
+                    <p className="font-semibold">
+                      {selectedResult.alcohol || "—"}
+                    </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Никотин:</span>
-                    <p className="font-semibold">{selectedResult.nicotine || '—'}</p>
+                    <p className="font-semibold">
+                      {selectedResult.nicotine || "—"}
+                    </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Диета:</span>
-                    <p className="font-semibold">{selectedResult.diet || '—'}</p>
+                    <p className="font-semibold">
+                      {selectedResult.diet || "—"}
+                    </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Стрес:</span>
@@ -675,19 +757,29 @@ export default function QuizResultsPage() {
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-sm">
                   <div>
                     <span className="text-muted-foreground">Честота:</span>
-                    <p className="font-semibold">{selectedResult.training_frequency || '—'}</p>
+                    <p className="font-semibold">
+                      {selectedResult.training_frequency || "—"}
+                    </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Тип:</span>
-                    <p className="font-semibold">{selectedResult.training_type || '—'}</p>
+                    <p className="font-semibold">
+                      {selectedResult.training_type || "—"}
+                    </p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Възстановяване:</span>
-                    <p className="font-semibold">{selectedResult.recovery || '—'}</p>
+                    <span className="text-muted-foreground">
+                      Възстановяване:
+                    </span>
+                    <p className="font-semibold">
+                      {selectedResult.recovery || "—"}
+                    </p>
                   </div>
                   <div className="col-span-2 md:col-span-3">
                     <span className="text-muted-foreground">Добавки:</span>
-                    <p className="font-semibold">{selectedResult.supplements || 'Няма'}</p>
+                    <p className="font-semibold">
+                      {selectedResult.supplements || "Няма"}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -703,24 +795,40 @@ export default function QuizResultsPage() {
                     <p className="font-semibold">{selectedResult.libido}/10</p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Сутрешна ерекция:</span>
-                    <p className="font-semibold">{selectedResult.morning_erection || '—'}</p>
+                    <span className="text-muted-foreground">
+                      Сутрешна ерекция:
+                    </span>
+                    <p className="font-semibold">
+                      {selectedResult.morning_erection || "—"}
+                    </p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Сутрешна енергия:</span>
-                    <p className="font-semibold">{selectedResult.morning_energy}/10</p>
+                    <span className="text-muted-foreground">
+                      Сутрешна енергия:
+                    </span>
+                    <p className="font-semibold">
+                      {selectedResult.morning_energy}/10
+                    </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Концентрация:</span>
-                    <p className="font-semibold">{selectedResult.concentration}/10</p>
+                    <p className="font-semibold">
+                      {selectedResult.concentration}/10
+                    </p>
                   </div>
                   <div>
                     <span className="text-muted-foreground">Настроение:</span>
-                    <p className="font-semibold">{selectedResult.mood || '—'}</p>
+                    <p className="font-semibold">
+                      {selectedResult.mood || "—"}
+                    </p>
                   </div>
                   <div>
-                    <span className="text-muted-foreground">Мускулна маса:</span>
-                    <p className="font-semibold">{selectedResult.muscle_mass || '—'}</p>
+                    <span className="text-muted-foreground">
+                      Мускулна маса:
+                    </span>
+                    <p className="font-semibold">
+                      {selectedResult.muscle_mass || "—"}
+                    </p>
                   </div>
                 </div>
               </div>

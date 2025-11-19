@@ -1,11 +1,17 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import AdminLayout from '@/components/admin/AdminLayout';
-import { StatCard } from '@/components/admin/StatCard';
-import { SearchBar } from '@/components/admin/SearchBar';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { StatCard } from "@/components/admin/StatCard";
+import { SearchBar } from "@/components/admin/SearchBar";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -13,18 +19,18 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Dialog,
   DialogContent,
@@ -32,8 +38,8 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
-} from '@/components/ui/dialog';
-import { Textarea } from '@/components/ui/textarea';
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Handshake,
   RefreshCw,
@@ -45,7 +51,7 @@ import {
   X,
   UserCheck,
   UserX,
-} from 'lucide-react';
+} from "lucide-react";
 
 interface AffiliateApplication {
   id: string;
@@ -59,7 +65,7 @@ interface AffiliateApplication {
     products: string[];
     motivation: string;
   };
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   admin_notes?: string;
   commission_rate?: number;
   created_at: string;
@@ -82,22 +88,25 @@ export default function AffiliatesPage() {
   const [totalCount, setTotalCount] = useState(0);
 
   // Filters
-  const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(0);
   const [limit] = useState(50);
 
   // Detail & approval modal
-  const [selectedApplication, setSelectedApplication] = useState<AffiliateApplication | null>(null);
+  const [selectedApplication, setSelectedApplication] =
+    useState<AffiliateApplication | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [isApprovalModalOpen, setIsApprovalModalOpen] = useState(false);
-  const [approvalAction, setApprovalAction] = useState<'approve' | 'reject'>('approve');
-  const [commissionRate, setCommissionRate] = useState('5');
-  const [adminNotes, setAdminNotes] = useState('');
+  const [approvalAction, setApprovalAction] = useState<"approve" | "reject">(
+    "approve",
+  );
+  const [commissionRate, setCommissionRate] = useState("5");
+  const [adminNotes, setAdminNotes] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
@@ -117,12 +126,14 @@ export default function AffiliatesPage() {
         offset: (currentPage * limit).toString(),
       });
 
-      if (searchQuery) params.append('search', searchQuery);
-      if (statusFilter !== 'all') params.append('status', statusFilter);
-      if (dateFrom) params.append('dateFrom', dateFrom);
-      if (dateTo) params.append('dateTo', dateTo);
+      if (searchQuery) params.append("search", searchQuery);
+      if (statusFilter !== "all") params.append("status", statusFilter);
+      if (dateFrom) params.append("dateFrom", dateFrom);
+      if (dateTo) params.append("dateTo", dateTo);
 
-      const response = await fetch(`/api/admin/affiliate-applications?${params.toString()}`);
+      const response = await fetch(
+        `/api/admin/affiliate-applications?${params.toString()}`,
+      );
       const data = await response.json();
 
       if (response.ok) {
@@ -131,7 +142,7 @@ export default function AffiliatesPage() {
         setTotalCount(data.count || 0);
       }
     } catch (error) {
-      console.error('Error fetching affiliate applications:', error);
+      console.error("Error fetching affiliate applications:", error);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -143,69 +154,79 @@ export default function AffiliatesPage() {
 
     setIsProcessing(true);
     try {
-      const response = await fetch(`/api/admin/affiliate-applications/${selectedApplication.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          status: approvalAction === 'approve' ? 'approved' : 'rejected',
-          commission_rate: approvalAction === 'approve' ? parseFloat(commissionRate) : undefined,
-          admin_notes: adminNotes || undefined,
-        }),
-      });
+      const response = await fetch(
+        `/api/admin/affiliate-applications/${selectedApplication.id}`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            status: approvalAction === "approve" ? "approved" : "rejected",
+            commission_rate:
+              approvalAction === "approve"
+                ? parseFloat(commissionRate)
+                : undefined,
+            admin_notes: adminNotes || undefined,
+          }),
+        },
+      );
 
       if (response.ok) {
         // Refresh data
         await fetchApplications(true);
         setIsApprovalModalOpen(false);
         setIsDetailModalOpen(false);
-        setAdminNotes('');
-        setCommissionRate('5');
+        setAdminNotes("");
+        setCommissionRate("5");
       }
     } catch (error) {
-      console.error('Error updating application:', error);
+      console.error("Error updating application:", error);
     } finally {
       setIsProcessing(false);
     }
   };
 
-  const openApprovalModal = (application: AffiliateApplication, action: 'approve' | 'reject') => {
+  const openApprovalModal = (
+    application: AffiliateApplication,
+    action: "approve" | "reject",
+  ) => {
     setSelectedApplication(application);
     setApprovalAction(action);
-    setAdminNotes(application.admin_notes || '');
-    setCommissionRate(application.commission_rate?.toString() || '5');
+    setAdminNotes(application.admin_notes || "");
+    setCommissionRate(application.commission_rate?.toString() || "5");
     setIsApprovalModalOpen(true);
   };
 
   const clearFilters = () => {
-    setSearchQuery('');
-    setStatusFilter('all');
-    setDateFrom('');
-    setDateTo('');
+    setSearchQuery("");
+    setStatusFilter("all");
+    setDateFrom("");
+    setDateTo("");
     setCurrentPage(0);
   };
 
-  const hasActiveFilters = searchQuery || statusFilter !== 'all' || dateFrom || dateTo;
+  const hasActiveFilters =
+    searchQuery || statusFilter !== "all" || dateFrom || dateTo;
 
   const getStatusBadgeColor = (status: string) => {
-    if (status === 'approved') return 'bg-green-500 text-white';
-    if (status === 'rejected') return 'bg-red-500 text-white';
-    if (status === 'pending') return 'bg-yellow-500 text-white';
-    return 'bg-gray-500 text-white';
+    if (status === "approved") return "bg-green-500 text-white";
+    if (status === "rejected") return "bg-red-500 text-white";
+    if (status === "pending") return "bg-yellow-500 text-white";
+    return "bg-gray-500 text-white";
   };
 
   const getStatusIcon = (status: string) => {
-    if (status === 'approved') return <CheckCircle className="h-4 w-4" />;
-    if (status === 'rejected') return <XCircle className="h-4 w-4" />;
+    if (status === "approved") return <CheckCircle className="h-4 w-4" />;
+    if (status === "rejected") return <XCircle className="h-4 w-4" />;
     return <Clock className="h-4 w-4" />;
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('bg-BG', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+    return new Date(dateString).toLocaleDateString("bg-BG", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -242,7 +263,9 @@ export default function AffiliatesPage() {
               onClick={() => fetchApplications(true)}
               disabled={isRefreshing}
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`h-4 w-4 mr-2 ${isRefreshing ? "animate-spin" : ""}`}
+              />
               Обнови
             </Button>
           </div>
@@ -303,7 +326,9 @@ export default function AffiliatesPage() {
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="lg:col-span-2">
-                <Label htmlFor="search" className="text-xs mb-1">Търсене (име/email)</Label>
+                <Label htmlFor="search" className="text-xs mb-1">
+                  Търсене (име/email)
+                </Label>
                 <SearchBar
                   value={searchQuery}
                   onChange={setSearchQuery}
@@ -313,7 +338,9 @@ export default function AffiliatesPage() {
               </div>
 
               <div>
-                <Label htmlFor="status" className="text-xs mb-1">Статус</Label>
+                <Label htmlFor="status" className="text-xs mb-1">
+                  Статус
+                </Label>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger>
                     <SelectValue />
@@ -329,7 +356,9 @@ export default function AffiliatesPage() {
 
               <div className="grid grid-cols-2 gap-2">
                 <div>
-                  <Label htmlFor="date-from" className="text-xs mb-1">От дата</Label>
+                  <Label htmlFor="date-from" className="text-xs mb-1">
+                    От дата
+                  </Label>
                   <Input
                     id="date-from"
                     type="date"
@@ -339,7 +368,9 @@ export default function AffiliatesPage() {
                   />
                 </div>
                 <div>
-                  <Label htmlFor="date-to" className="text-xs mb-1">До дата</Label>
+                  <Label htmlFor="date-to" className="text-xs mb-1">
+                    До дата
+                  </Label>
                   <Input
                     id="date-to"
                     type="date"
@@ -356,9 +387,7 @@ export default function AffiliatesPage() {
         {/* Applications Table */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">
-              Заявки ({totalCount})
-            </CardTitle>
+            <CardTitle className="text-lg">Заявки ({totalCount})</CardTitle>
             <CardDescription>
               Показани {applications.length} от {totalCount} заявки
             </CardDescription>
@@ -369,7 +398,9 @@ export default function AffiliatesPage() {
                 <Handshake className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
                 <p className="text-lg font-semibold">Няма заявки</p>
                 <p className="text-sm text-muted-foreground mt-1">
-                  {hasActiveFilters ? 'Пробвай да промениш филтрите' : 'Още няма submissions'}
+                  {hasActiveFilters
+                    ? "Пробвай да промениш филтрите"
+                    : "Още няма submissions"}
                 </p>
               </div>
             ) : (
@@ -407,9 +438,11 @@ export default function AffiliatesPage() {
                           {app.email}
                         </TableCell>
                         <TableCell className="text-sm">
-                          {app.quiz_data.experience === 'professional' && '👔 Професионалист'}
-                          {app.quiz_data.experience === 'hobby' && '🎯 Хоби'}
-                          {app.quiz_data.experience === 'beginner' && '🌱 Начинаещ'}
+                          {app.quiz_data.experience === "professional" &&
+                            "👔 Професионалист"}
+                          {app.quiz_data.experience === "hobby" && "🎯 Хоби"}
+                          {app.quiz_data.experience === "beginner" &&
+                            "🌱 Начинаещ"}
                         </TableCell>
                         <TableCell className="text-sm">
                           {app.quiz_data.channels.length} канал(а)
@@ -421,22 +454,22 @@ export default function AffiliatesPage() {
                           <Badge className={getStatusBadgeColor(app.status)}>
                             {getStatusIcon(app.status)}
                             <span className="ml-1">
-                              {app.status === 'pending' && 'Чакащ'}
-                              {app.status === 'approved' && 'Одобрен'}
-                              {app.status === 'rejected' && 'Отхвърлен'}
+                              {app.status === "pending" && "Чакащ"}
+                              {app.status === "approved" && "Одобрен"}
+                              {app.status === "rejected" && "Отхвърлен"}
                             </span>
                           </Badge>
                         </TableCell>
                         <TableCell>
                           <div className="flex gap-1">
-                            {app.status === 'pending' && (
+                            {app.status === "pending" && (
                               <>
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    openApprovalModal(app, 'approve');
+                                    openApprovalModal(app, "approve");
                                   }}
                                   className="text-green-600 hover:text-green-700"
                                 >
@@ -447,7 +480,7 @@ export default function AffiliatesPage() {
                                   size="sm"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    openApprovalModal(app, 'reject');
+                                    openApprovalModal(app, "reject");
                                   }}
                                   className="text-red-600 hover:text-red-700"
                                 >
@@ -493,7 +526,9 @@ export default function AffiliatesPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage(Math.min(totalPages - 1, currentPage + 1))}
+                    onClick={() =>
+                      setCurrentPage(Math.min(totalPages - 1, currentPage + 1))
+                    }
                     disabled={currentPage === totalPages - 1}
                   >
                     Следваща →
@@ -509,7 +544,9 @@ export default function AffiliatesPage() {
       <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Заявка от {selectedApplication?.full_name}</DialogTitle>
+            <DialogTitle>
+              Заявка от {selectedApplication?.full_name}
+            </DialogTitle>
             <DialogDescription>{selectedApplication?.email}</DialogDescription>
           </DialogHeader>
 
@@ -521,19 +558,22 @@ export default function AffiliatesPage() {
                   📊 Статус
                 </h3>
                 <div className="flex items-center gap-2">
-                  <Badge className={getStatusBadgeColor(selectedApplication.status)}>
+                  <Badge
+                    className={getStatusBadgeColor(selectedApplication.status)}
+                  >
                     {getStatusIcon(selectedApplication.status)}
                     <span className="ml-1">
-                      {selectedApplication.status === 'pending' && 'Чакащ'}
-                      {selectedApplication.status === 'approved' && 'Одобрен'}
-                      {selectedApplication.status === 'rejected' && 'Отхвърлен'}
+                      {selectedApplication.status === "pending" && "Чакащ"}
+                      {selectedApplication.status === "approved" && "Одобрен"}
+                      {selectedApplication.status === "rejected" && "Отхвърлен"}
                     </span>
                   </Badge>
-                  {selectedApplication.status === 'approved' && selectedApplication.commission_rate && (
-                    <Badge variant="outline">
-                      Комисионна: {selectedApplication.commission_rate}%
-                    </Badge>
-                  )}
+                  {selectedApplication.status === "approved" &&
+                    selectedApplication.commission_rate && (
+                      <Badge variant="outline">
+                        Комисионна: {selectedApplication.commission_rate}%
+                      </Badge>
+                    )}
                 </div>
               </div>
 
@@ -546,32 +586,51 @@ export default function AffiliatesPage() {
                   <div>
                     <span className="text-muted-foreground">Опит:</span>
                     <p className="font-medium">
-                      {selectedApplication.quiz_data.experience === 'professional' && '👔 Професионален афилиейт'}
-                      {selectedApplication.quiz_data.experience === 'hobby' && '🎯 Правя го като хоби'}
-                      {selectedApplication.quiz_data.experience === 'beginner' && '🌱 Започвам сега'}
+                      {selectedApplication.quiz_data.experience ===
+                        "professional" && "👔 Професионален афилиейт"}
+                      {selectedApplication.quiz_data.experience === "hobby" &&
+                        "🎯 Правя го като хоби"}
+                      {selectedApplication.quiz_data.experience ===
+                        "beginner" && "🌱 Започвам сега"}
                     </p>
                   </div>
 
                   <div>
-                    <span className="text-muted-foreground">Канали за промоция:</span>
+                    <span className="text-muted-foreground">
+                      Канали за промоция:
+                    </span>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {selectedApplication.quiz_data.channels.map((channel, idx) => (
-                        <Badge key={idx} variant="secondary">{channel}</Badge>
-                      ))}
+                      {selectedApplication.quiz_data.channels.map(
+                        (channel, idx) => (
+                          <Badge key={idx} variant="secondary">
+                            {channel}
+                          </Badge>
+                        ),
+                      )}
                     </div>
                   </div>
 
                   <div>
-                    <span className="text-muted-foreground">Размер на аудиторията:</span>
-                    <p className="font-medium">{selectedApplication.quiz_data.audienceSize}</p>
+                    <span className="text-muted-foreground">
+                      Размер на аудиторията:
+                    </span>
+                    <p className="font-medium">
+                      {selectedApplication.quiz_data.audienceSize}
+                    </p>
                   </div>
 
                   <div>
-                    <span className="text-muted-foreground">Интерес към продукти:</span>
+                    <span className="text-muted-foreground">
+                      Интерес към продукти:
+                    </span>
                     <div className="flex flex-wrap gap-1 mt-1">
-                      {selectedApplication.quiz_data.products.map((product, idx) => (
-                        <Badge key={idx} variant="secondary">{product}</Badge>
-                      ))}
+                      {selectedApplication.quiz_data.products.map(
+                        (product, idx) => (
+                          <Badge key={idx} variant="secondary">
+                            {product}
+                          </Badge>
+                        ),
+                      )}
                     </div>
                   </div>
 
@@ -600,21 +659,27 @@ export default function AffiliatesPage() {
               <div className="pt-4 border-t text-xs text-muted-foreground">
                 <p>Заявка ID: {selectedApplication.id}</p>
                 <p>Подадена: {formatDate(selectedApplication.created_at)}</p>
-                <p>Последна промяна: {formatDate(selectedApplication.updated_at)}</p>
+                <p>
+                  Последна промяна: {formatDate(selectedApplication.updated_at)}
+                </p>
               </div>
 
               {/* Actions */}
-              {selectedApplication.status === 'pending' && (
+              {selectedApplication.status === "pending" && (
                 <div className="flex gap-2 pt-4 border-t">
                   <Button
-                    onClick={() => openApprovalModal(selectedApplication, 'approve')}
+                    onClick={() =>
+                      openApprovalModal(selectedApplication, "approve")
+                    }
                     className="flex-1"
                   >
                     <UserCheck className="h-4 w-4 mr-2" />
                     Одобри
                   </Button>
                   <Button
-                    onClick={() => openApprovalModal(selectedApplication, 'reject')}
+                    onClick={() =>
+                      openApprovalModal(selectedApplication, "reject")
+                    }
                     variant="destructive"
                     className="flex-1"
                   >
@@ -633,7 +698,9 @@ export default function AffiliatesPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {approvalAction === 'approve' ? 'Одобри афилиейт заявка' : 'Отхвърли заявка'}
+              {approvalAction === "approve"
+                ? "Одобри афилиейт заявка"
+                : "Отхвърли заявка"}
             </DialogTitle>
             <DialogDescription>
               {selectedApplication?.full_name} ({selectedApplication?.email})
@@ -641,10 +708,13 @@ export default function AffiliatesPage() {
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            {approvalAction === 'approve' && (
+            {approvalAction === "approve" && (
               <div>
                 <Label htmlFor="commission">Комисионна (%)</Label>
-                <Select value={commissionRate} onValueChange={setCommissionRate}>
+                <Select
+                  value={commissionRate}
+                  onValueChange={setCommissionRate}
+                >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
@@ -670,22 +740,25 @@ export default function AffiliatesPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsApprovalModalOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setIsApprovalModalOpen(false)}
+            >
               Отказ
             </Button>
             <Button
               onClick={handleApprovalSubmit}
               disabled={isProcessing}
-              variant={approvalAction === 'approve' ? 'default' : 'destructive'}
+              variant={approvalAction === "approve" ? "default" : "destructive"}
             >
               {isProcessing ? (
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-              ) : approvalAction === 'approve' ? (
+              ) : approvalAction === "approve" ? (
                 <UserCheck className="h-4 w-4 mr-2" />
               ) : (
                 <UserX className="h-4 w-4 mr-2" />
               )}
-              {approvalAction === 'approve' ? 'Одобри' : 'Отхвърли'}
+              {approvalAction === "approve" ? "Одобри" : "Отхвърли"}
             </Button>
           </DialogFooter>
         </DialogContent>
