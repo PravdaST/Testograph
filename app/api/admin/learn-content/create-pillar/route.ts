@@ -403,7 +403,7 @@ ${keywords ? `Keywords: ${keywords}` : ''}
         published_at: published_at || null,
         word_count: wordCount,
         reading_time: readingTime,
-        keywords: keywords || ''
+        keywords: keywords ? keywords.split(',').map((k: string) => k.trim()).filter((k: string) => k) : []
       })
       .select()
       .single();
