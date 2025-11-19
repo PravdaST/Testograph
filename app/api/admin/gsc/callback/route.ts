@@ -32,7 +32,7 @@ export async function GET(request: Request) {
   if (!user || authError) {
     console.error('[GSC Callback] Unauthorized:', authError);
     return NextResponse.redirect(
-      new URL('/admin/login?redirect=/admin/keywords', request.url)
+      new URL('/admin?redirect=/admin/keywords', request.url)
     );
   }
 
