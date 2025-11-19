@@ -116,10 +116,10 @@ export function LearnContentDashboard() {
 
       toast({
         title: '✅ Пилърът е създаден!',
-        description: `"${data.guide.title}" е готов`,
+        description: `"${data.guide.title}" е готов и е премахнат от списъка с липсващи`,
       });
 
-      // Refresh data
+      // Refresh data to show updated structure
       fetchData();
     } catch (error: any) {
       console.error('Pillar creation error:', error);
@@ -143,6 +143,18 @@ export function LearnContentDashboard() {
       lifestyle: '🌿',
     };
     return map[category] || '📚';
+  };
+
+  const getCategoryLabel = (category: string) => {
+    const map: Record<string, string> = {
+      testosterone: 'Тестостерон',
+      potency: 'Потенция',
+      fitness: 'Фитнес',
+      nutrition: 'Хранене',
+      supplements: 'Добавки',
+      lifestyle: 'Начин на живот',
+    };
+    return map[category] || category;
   };
 
   if (loading) {
@@ -238,30 +250,32 @@ export function LearnContentDashboard() {
                 return (
                   <div
                     key={cluster.id}
-                    className="border border-zinc-800 rounded-lg overflow-hidden"
+                    className="border border-slate-300 rounded-lg overflow-hidden shadow-md bg-white"
                   >
                     {/* Cluster Header */}
                     <button
                       onClick={() => toggleCluster(cluster.id)}
-                      className="w-full flex items-center gap-3 p-4 hover:bg-zinc-900/50 transition-colors"
+                      className="w-full flex items-center gap-3 p-4 hover:bg-slate-50 transition-colors"
                     >
                       {isExpanded ? (
-                        <ChevronDown className="w-4 h-4 text-zinc-400" />
+                        <ChevronDown className="w-4 h-4 text-slate-500" />
                       ) : (
-                        <ChevronRight className="w-4 h-4 text-zinc-400" />
+                        <ChevronRight className="w-4 h-4 text-slate-500" />
                       )}
                       <span className="text-lg">
                         {getCategoryEmoji(cluster.category)}
                       </span>
                       <div className="flex-1 text-left">
                         <div className="font-semibold">{cluster.title}</div>
-                        <div className="text-sm text-zinc-500">
+                        <div className="text-sm text-slate-500">
+                          <span className="text-blue-600 font-medium">{getCategoryLabel(cluster.category)}</span>
+                          {' • '}
                           {cluster.pillars.length} pillars •{' '}
                           {cluster.missing_pillars.length} липсващи
                         </div>
                       </div>
                       {cluster.is_published ? (
-                        <Badge variant="secondary" className="bg-green-500/20 text-green-400">
+                        <Badge variant="secondary" className="bg-green-100 text-green-700">
                           Публикуван
                         </Badge>
                       ) : (
@@ -271,24 +285,24 @@ export function LearnContentDashboard() {
 
                     {/* Pillars List */}
                     {isExpanded && (
-                      <div className="border-t border-zinc-800 bg-zinc-900/30 p-4 space-y-2">
+                      <div className="border-t border-slate-200 bg-slate-50/50 p-4 space-y-2">
                         {/* Existing Pillars */}
                         {cluster.pillars.length > 0 && (
                           <div className="space-y-2">
-                            <div className="text-sm font-semibold text-zinc-400">
+                            <div className="text-sm font-semibold text-slate-600">
                               Създадени Pillars:
                             </div>
                             {cluster.pillars.map((pillar) => (
                               <div
                                 key={pillar.id}
-                                className="flex items-center gap-2 p-2 rounded bg-zinc-800/50"
+                                className="flex items-center gap-2 p-2 rounded bg-slate-100"
                               >
-                                <FileText className="w-4 h-4 text-blue-400" />
-                                <span className="flex-1 text-sm">
+                                <FileText className="w-4 h-4 text-blue-500" />
+                                <span className="flex-1 text-sm text-slate-800">
                                   {pillar.title}
                                 </span>
                                 {pillar.is_published ? (
-                                  <Badge variant="secondary" className="text-xs bg-green-500/20 text-green-400">
+                                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
                                     Публикуван
                                   </Badge>
                                 ) : (
@@ -304,7 +318,7 @@ export function LearnContentDashboard() {
                         {/* Missing Pillars */}
                         {cluster.missing_pillars.length > 0 && (
                           <div className="space-y-2 mt-4">
-                            <div className="text-sm font-semibold text-orange-400">
+                            <div className="text-sm font-semibold text-orange-500">
                               Липсващи Pillars (AI предложения):
                             </div>
                             {cluster.missing_pillars.map((pillarTitle, idx) => {
@@ -316,8 +330,8 @@ export function LearnContentDashboard() {
                                   key={idx}
                                   className="flex items-center gap-2 p-2 rounded bg-orange-500/10 border border-orange-500/20"
                                 >
-                                  <AlertCircle className="w-4 h-4 text-orange-400" />
-                                  <span className="flex-1 text-sm text-zinc-300">
+                                  <AlertCircle className="w-4 h-4 text-orange-500" />
+                                  <span className="flex-1 text-sm text-slate-700">
                                     {pillarTitle}
                                   </span>
                                   <Button
@@ -353,7 +367,7 @@ export function LearnContentDashboard() {
 
                         {cluster.pillars.length === 0 &&
                           cluster.missing_pillars.length === 0 && (
-                            <div className="text-center py-4 text-sm text-zinc-500">
+                            <div className="text-center py-4 text-sm text-slate-500">
                               Няма pillars за този cluster
                             </div>
                           )}

@@ -7,6 +7,7 @@ import {
   calculateReadingTime,
   extractExcerpt
 } from '@/lib/utils/insert-images';
+import { addSmartInternalLinks } from '@/lib/utils/smart-linking';
 
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 const CONTENT_MODEL = 'google/gemini-2.5-pro';
@@ -449,6 +450,35 @@ Pillar теми за споменаване: ${suggestedPillars.join(', ')}
     }
 
     console.log('[Cluster] ✅ Created:', savedGuide.slug);
+
+    // Step 10: Add smart internal links
+    try {
+      console.log('[Cluster] Adding smart internal links...');
+
+      // Fetch all published guides for linking
+      const { data: allGuides } = await supabase
+        .from('blog_posts')
+        .select('id, slug, title, guide_type, guide_category, parent_cluster_slug, suggested_pillars')
+        .eq('category', 'learn-guide')
+        .eq('is_published', true);
+
+      if (allGuides && allGuides.length > 0) {
+        const contentWithLinks = addSmartInternalLinks(savedGuide, allGuides);
+
+        // Update content with links if it changed
+        if (contentWithLinks !== savedGuide.content) {
+          await supabase
+            .from('blog_posts')
+            .update({ content: contentWithLinks })
+            .eq('id', savedGuide.id);
+
+          console.log('[Cluster] ✅ Internal links added');
+        }
+      }
+    } catch (linkError) {
+      console.error('[Cluster] ⚠️ Failed to add internal links:', linkError);
+      // Don't fail the whole operation if linking fails
+    }
 
     return NextResponse.json({
       success: true,

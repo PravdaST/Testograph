@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Clock, Calendar, Award, Check, Shield, Share2, Facebook, Twitter, Linkedin, MessageCircle, List, Mail } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, Award, Check, Shield, Share2, Facebook, Twitter, Linkedin, MessageCircle, List, Mail, Eye, FileText, ArrowRight } from 'lucide-react';
 import Image from 'next/image';
 import { insertImagesIntoContent } from '@/lib/utils/insert-images';
 
@@ -208,7 +208,7 @@ function MostReadArticles({ currentSlug, category }: { currentSlug: string; cate
     async function loadMostRead() {
       const { data } = await supabase
         .from('blog_posts')
-        .select('title, slug, guide_category, views')
+        .select('title, slug, guide_category, views, featured_image_url')
         .eq('is_published', true)
         .neq('slug', currentSlug)
         .order('views', { ascending: false })
@@ -222,23 +222,92 @@ function MostReadArticles({ currentSlug, category }: { currentSlug: string; cate
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
       <h3 className="text-lg font-bold text-gray-900 mb-4">Най-четени статии</h3>
-      <div className="space-y-3">
+      <div className="space-y-4">
         {articles.map((article) => (
           <Link
             key={article.slug}
             href={`/learn/${article.guide_category}/${article.slug}`}
-            className="block group"
+            className="flex gap-3 group"
           >
-            <h4 className="text-sm font-medium text-gray-900 group-hover:text-[#499167] transition line-clamp-2">
-              {article.title}
-            </h4>
-            <p className="text-xs text-gray-500 mt-1">
-              {article.views || 0} преглеждания
-            </p>
+            {/* Article Image */}
+            {article.featured_image_url ? (
+              <div className="flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden bg-gray-100">
+                <img
+                  src={article.featured_image_url}
+                  alt={article.title}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+              </div>
+            ) : (
+              <div className="flex-shrink-0 w-20 h-20 rounded-lg bg-gradient-to-br from-[#499167] to-[#5fb57e] flex items-center justify-center">
+                <FileText className="w-8 h-8 text-white" />
+              </div>
+            )}
+
+            {/* Article Info */}
+            <div className="flex-1 min-w-0">
+              <h4 className="text-sm font-medium text-gray-900 group-hover:text-[#499167] transition line-clamp-2 mb-1">
+                {article.title}
+              </h4>
+              <p className="text-xs text-gray-500 flex items-center gap-1">
+                <Eye className="w-3 h-3" />
+                {article.views || 0} преглеждания
+              </p>
+            </div>
           </Link>
         ))}
       </div>
     </div>
+  );
+}
+
+function ProductBanner() {
+  return (
+    <a
+      href="https://shop.testograph.eu/products/testoup"
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block bg-gradient-to-br from-[#499167] to-[#5fb57e] rounded-lg overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 group"
+    >
+      {/* Product Image */}
+      <div className="relative h-48 overflow-hidden bg-white">
+        <img
+          src="/Product image/77.webp"
+          alt="TestoUP - Тестостеронов бустер"
+          className="w-full h-full object-contain p-4 group-hover:scale-105 transition-transform duration-300"
+        />
+      </div>
+
+      {/* Product Info */}
+      <div className="p-5 text-white">
+        <h3 className="text-lg font-bold mb-2">TestoUP</h3>
+        <p className="text-sm text-white/90 mb-3">
+          Естествен тестостеронов бустер с клинично доказани съставки
+        </p>
+
+        {/* Features */}
+        <div className="space-y-1.5 mb-4">
+          <div className="flex items-center gap-2 text-xs">
+            <Check className="w-4 h-4 flex-shrink-0" />
+            <span>100% натурални съставки</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <Check className="w-4 h-4 flex-shrink-0" />
+            <span>Сертифицирано от БАБХ</span>
+          </div>
+          <div className="flex items-center gap-2 text-xs">
+            <Check className="w-4 h-4 flex-shrink-0" />
+            <span>Произведено в ЕС</span>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <div className="flex items-center justify-between pt-3 border-t border-white/20">
+          <span className="text-sm font-semibold">Виж продукта</span>
+          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+        </div>
+      </div>
+    </a>
   );
 }
 
@@ -887,6 +956,9 @@ export default function LearnGuidePage({ params }: PageProps) {
             <aside className="space-y-6">
               {/* Most Read Articles */}
               <MostReadArticles currentSlug={guide.slug} category={guide.guide_category} />
+
+              {/* TestoUP Product Banner */}
+              <ProductBanner />
 
               {/* Categories */}
               <CategoriesWidget />

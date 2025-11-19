@@ -21,9 +21,11 @@ if (!supabaseUrl || !supabaseAnonKey) {
  *
  * If Authorization header is present (admin API routes), use direct client with token
  * Otherwise use cookie-based SSR client (server components)
+ *
+ * Note: Next.js 16 - headers() and cookies() are synchronous (no await needed)
  */
 export async function createClient() {
-  const headersList = await headers();
+  const headersList = headers();
   const authorization = headersList.get('authorization');
 
   console.log('[createClient] Authorization header:', authorization ? 'present' : 'missing');
@@ -49,7 +51,7 @@ export async function createClient() {
 
   // For server components, use cookie-based SSR client
   console.log('[createClient] Using cookie-based SSR client');
-  const cookieStore = await cookies();
+  const cookieStore = cookies();
 
   return createServerClient<Database>(
     supabaseUrl,

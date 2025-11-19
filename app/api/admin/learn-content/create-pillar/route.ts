@@ -79,9 +79,18 @@ export async function POST(request: Request) {
   try {
     const { title, parent_cluster_slug, category, keywords, is_published, published_at } = await request.json();
 
-    console.log('[Pillar] Starting:', { title, parent_cluster_slug, category, is_published, published_at });
+    console.log('\n═══════════════════════════════════════════════');
+    console.log('🚀 [Pillar] Starting generation');
+    console.log('═══════════════════════════════════════════════');
+    console.log('Title:', title);
+    console.log('Parent:', parent_cluster_slug);
+    console.log('Category:', category);
+    console.log('Published:', is_published);
+    console.log('Publish date:', published_at || 'not scheduled');
+    console.log('═══════════════════════════════════════════════\n');
 
     // Step 1: Fetch parent cluster
+    console.log('[Step 1] Fetching parent cluster...');
     const { data: parentCluster, error: clusterError } = await supabase
       .from('blog_posts')
       .select('*')
@@ -92,146 +101,175 @@ export async function POST(request: Request) {
     if (clusterError || !parentCluster) {
       throw new Error('Parent cluster not found');
     }
+    console.log('[Step 1] ✅ Parent cluster:', parentCluster.title);
 
-    // Step 2: Fetch sibling pillars
+    // Step 2: Fetch sibling pillars for internal linking
+    console.log('[Step 2] Fetching sibling pillars...');
     const { data: siblingPillars } = await supabase
       .from('blog_posts')
       .select('title, slug')
       .eq('parent_cluster_slug', parent_cluster_slug)
       .eq('guide_type', 'pillar');
 
+    console.log(`[Step 2] ✅ Found ${siblingPillars?.length || 0} sibling pillars`);
+
     // Step 3: Generate content
+    const siblingLinks = siblingPillars && siblingPillars.length > 0
+      ? `\nSibling pillars за internal linking:\n${siblingPillars.map((s: any) => `- ${s.title} (/learn/${category}/${s.slug})`).join('\n')}`
+      : '';
+
     const contentPrompt = [
       {
         role: 'system',
-        content: `Ти си ЕКСПЕРТЕН специалист по мъжко здраве, тестостерон, фитнес и хранене. Пишеш ЗАДЪЛБОЧЕНИ образователни статии на ЕСТЕСТВЕН БЪЛГАРСКИ ЕЗИК.
+        content: `Ти си експертен специалист по мъжко здраве, тестостерон, фитнес и хранене. Създаваш задълбочени образователни статии на естествен български език.
 
-КРИТИЧНО - ЕСТЕСТВЕН БЪЛГАРСКИ:
-- Пиши на естествен разговорен български (НЕ директни преводи!)
-- Тон: професионален, научен, но приятелски като личен лекар/треньор
-- Граматически перфектен
+═══════════════════════════════════════════════
+ЕЗИК И ТОН
+═══════════════════════════════════════════════
+✅ Естествен разговорен български (НЕ директни преводи)
+✅ Професионален, научен, но приятелски тон
+✅ Като личен лекар/треньор
+✅ Граматически перфектен
 
-HTML ФОРМАТ:
+═══════════════════════════════════════════════
+HTML ФОРМАТ
+═══════════════════════════════════════════════
+✅ РАЗРЕШЕНИ: <p>, <h2>, <h3>, <ul>, <li>, <strong>, <a>
+❌ ЗАБРАНЕНИ: Емотикони, <h1> тагове, complex markup
 
-❌ ЗАБРАНЕНО:
-- Емотикони
-- H1 тагове
-- H2 със заглавието в началото
-- Complex markup
+СПЕЦИАЛНИ СЕКЦИИ:
+<div class="tldr-section"> - за TLDR
+<div class="faq-section"> - за FAQ
+<div class="faq-item"> - за всеки въпрос
 
-✅ РАЗРЕШЕНО:
-- <p>, <h2>, <h3>
-- <ul>, <li>
-- <strong>
-- <div class="tldr-section">
+═══════════════════════════════════════════════
+СТРУКТУРА (5,500+ думи)
+═══════════════════════════════════════════════
+1. TLDR (200 думи)
+   - Списък с ключови моменти
+   - <div class="tldr-section">
 
-СТРУКТУРА (5,500 думи):
+2. Въведение (400 думи)
+   - Защо е важна темата
+   - Какво ще научи читателят
+   - Link към parent cluster естествено в текста
 
-1. TLDR (200 думи) - Ключови моменти
-2. Въведение (400 думи) - Контекст и важност
-3. Задълбочен анализ (2,000 думи) - Детайлна информация
-4. Научна обосновка (1,000 думи) - Изследвания, механизми
-5. Практически съвети (1,200 думи) - Конкретни действия
-6. Често задавани въпроси (400 думи) - 5-6 FAQs
-7. Заключение (300 думи) - Резюме
+3. Задълбочен анализ (2,000 думи)
+   - 3-4 под-секции с <h2>
+   - Детайлни обяснения
+   - Научни факти
 
-TLDR ФОРМАТ:
-<div class="tldr-section">
-  <h3>Ключови моменти</h3>
-  <ul>
-    <li><strong>Точка 1:</strong> Обяснение</li>
-    <li><strong>Точка 2:</strong> Обяснение</li>
-  </ul>
-</div>
+4. Научна обосновка (1,000 думи)
+   - Изследвания и studies
+   - Механизми на действие
+   - БЕЗ pseudo-science
 
-FAQ ФОРМАТ:
-<div class="faq-section">
-  <h2>Често задавани въпроси</h2>
-  <div class="faq-item">
-    <h3>Въпрос 1?</h3>
-    <p>Отговор на въпрос 1...</p>
-  </div>
-  <div class="faq-item">
-    <h3>Въпрос 2?</h3>
-    <p>Отговор на въпрос 2...</p>
-  </div>
-</div>
+5. Практически съвети (1,200 думи)
+   - Конкретни действия
+   - Списъци с препоръки
+   - Може естествено да споменеш TestoUP
 
-INTERNAL LINKING:
-- Link към parent cluster: <a href="/learn/${category}/${parent_cluster_slug}">${parentCluster.title}</a>
-${siblingPillars && siblingPillars.length > 0 ? `- Link към sibling pillars: ${siblingPillars.map((s: any) => `<a href="/learn/${category}/${s.slug}">${s.title}</a>`).join(', ')}` : ''}
+6. FAQ секция (400 думи)
+   - 5-6 въпроса
+   - <div class="faq-section">
 
-НАУЧНА ТОЧНОСТ:
-- Базирай се на реални медицински изследвания
-- Споменавай studies естествено
-- БЕЗ pseudo-science
+7. Заключение (300 думи)
+   - Резюме на ключовите точки
+   - Мотивация за действие
 
-SUBTLE PRODUCT MENTIONS:
-- Можеш да споменеш TestoUP естествено
-- БЕЗ агресивен marketing
-- Фокус: образование
+═══════════════════════════════════════════════
+INTERNAL LINKING
+═══════════════════════════════════════════════
+Parent cluster: ${parentCluster.title}
+Link: <a href="/learn/${category}/${parent_cluster_slug}">${parentCluster.title}</a>${siblingLinks}
 
-ВАЖНО:
-- 5,500 думи минимум
-- Задълбочена информация
-- Научно точен + практичен`
+Вгради линковете ЕСТЕСТВЕНО в текста, не на едно място.
+
+═══════════════════════════════════════════════
+ИЗИСКВАНИЯ
+═══════════════════════════════════════════════
+✓ Минимум 5,500 думи
+✓ Научна точност
+✓ Практическа стойност
+✓ Subtle product mentions (не агресивен marketing)
+✓ БЕЗ H2 със заглавието в началото`
       },
       {
         role: 'user',
-        content: `Създай PILLAR guide за: "${title}"
-Parent cluster: "${parentCluster.title}"
-Категория: ${category}
-Keywords: ${keywords || 'няма'}
+        content: `Създай PILLAR guide:
 
-Генерирай пълно HTML съдържание (5,500 думи) на естествен български език.`
+Заглавие: ${title}
+Parent cluster: ${parentCluster.title}
+Категория: ${category}
+${keywords ? `Keywords: ${keywords}` : ''}
+
+Генерирай пълното HTML съдържание (5,500+ думи) на естествен български език.`
       }
     ];
 
+    console.log('[Step 3] Generating content with AI (5,500+ words)...');
     let content = await callOpenRouter(contentPrompt, 0.7, 25000);
+    console.log('[Step 3] ✅ Content generated');
 
-    // Clean AI-generated markdown artifacts and introductory text
-    content = content.trim();
+    // Clean AI-generated markdown artifacts
+    console.log('[Step 3] Cleaning AI artifacts...');
+    content = content
+      .trim()
+      // Remove markdown code fences
+      .replace(/^```html\s*/i, '')
+      .replace(/^```\s*/, '')
+      .replace(/\s*```\s*$/g, '')
+      // Remove markdown asterisks
+      .replace(/^\*+\s*/gm, '')
+      .trim();
 
-    // Remove markdown code fences
-    content = content.replace(/^```html\s*/i, '').replace(/^```\s*/, '').replace(/\s*```\s*$/g, '');
-
-    // Remove AI introductory/meta text (anything before first HTML tag)
-    // Look for common AI intro patterns and remove them
+    // Remove AI introductory text (anything before first HTML tag)
     const htmlTagMatch = content.match(/<(div|p|h2|h3|ul|article)/i);
-    if (htmlTagMatch && htmlTagMatch.index && htmlTagMatch.index > 0) {
-      // There's text before the first HTML tag - remove it
+    if (htmlTagMatch?.index && htmlTagMatch.index > 0) {
       content = content.substring(htmlTagMatch.index);
     }
 
-    // Additional cleanup: remove any remaining markdown artifacts
-    content = content.replace(/^\*+\s*/gm, ''); // Remove asterisks at line start
-    content = content.trim();
-
     // Step 4: Generate metadata
+    console.log('[Metadata] Generating SEO metadata...');
+
     const metaPrompt = [
       {
         role: 'system',
-        content: `Генерирай SEO metadata. Върни САМО JSON:
+        content: `Генерирай SEO-оптимизирано metadata за статия. Върни САМО валиден JSON без допълнителен текст:
+
 {
-  "meta_title": "SEO заглавие (50-60 символа)",
-  "meta_description": "SEO описание (150-160 символа)",
-  "slug": "url-slug-latinica"
-}`
+  "meta_title": "SEO заглавие (50-60 символа, включва ключова дума)",
+  "meta_description": "SEO описание (150-160 символа, ангажиращо и информативно)",
+  "slug": "url-slug-v-latinica-kebab-case"
+}
+
+Изисквания:
+- meta_title: кратко, ясно, с ключова дума
+- meta_description: накара да кликнат, включи полза
+- slug: само латински букви, цифри и тире`
       },
       {
         role: 'user',
-        content: `Заглавие: ${title}`
+        content: `Заглавие: ${title}
+Категория: ${category}`
       }
     ];
 
-    const metaResponse = await callOpenRouter(metaPrompt, 0.5, 500, SUGGESTION_MODEL);
     let metadata;
     try {
-      metadata = JSON.parse(metaResponse.trim().replace(/^```json\s*/, '').replace(/\s*```$/, ''));
+      const metaResponse = await callOpenRouter(metaPrompt, 0.5, 500, SUGGESTION_MODEL);
+      const cleaned = metaResponse.trim().replace(/^```json\s*/, '').replace(/\s*```$/, '');
+      metadata = JSON.parse(cleaned);
+
+      // Validate and fix slug if contains cyrillic
       if (/[\u0400-\u04FF]/.test(metadata.slug)) {
+        console.log('[Metadata] ⚠️ Slug contains cyrillic, using slugify fallback');
         metadata.slug = slugify(title);
       }
+
+      console.log('[Metadata] ✅ Generated:', metadata.slug);
     } catch (e) {
+      console.log('[Metadata] ⚠️ JSON parse failed, using fallback');
       metadata = {
         meta_title: title,
         meta_description: title,
@@ -265,6 +303,7 @@ Keywords: ${keywords || 'няма'}
     }
 
     // Step 6: Fetch related guides for internal linking
+    console.log('[Step 6] Fetching related guides for internal linking...');
     const { data: relatedGuides } = await supabase
       .from('blog_posts')
       .select('title, slug, guide_category, keywords')
@@ -273,7 +312,10 @@ Keywords: ${keywords || 'няма'}
       .neq('slug', metadata.slug)
       .limit(20);
 
+    console.log(`[Step 6] ✅ Found ${relatedGuides?.length || 0} related guides`);
+
     // Step 7: Insert internal links to related guides
+    console.log('[Step 7] Adding keyword-based internal links...');
     let finalContent = content;
     if (relatedGuides && relatedGuides.length > 0) {
       finalContent = insertInternalLinks({
@@ -287,29 +329,37 @@ Keywords: ${keywords || 'няма'}
         currentSlug: metadata.slug,
         maxLinks: 5
       });
-      console.log(`[Internal Links] ✅ Added keyword-based links to related guides`);
+      console.log('[Step 7] ✅ Internal links added');
+    } else {
+      console.log('[Step 7] ⚠️ No related guides for linking');
     }
 
     // Step 8: Insert article images into content
+    console.log('[Step 8] Inserting images into content...');
     if (articleImageUrls.length > 0) {
       finalContent = insertImagesIntoContent({
         content: finalContent,
         imageUrls: articleImageUrls,
         imageAlts: articleImageUrls.map((_, idx) => `${title} - illustration ${idx + 1}`)
       });
-      console.log(`[Content] ✅ Inserted ${articleImageUrls.length} images into HTML`);
+      console.log(`[Step 8] ✅ Inserted ${articleImageUrls.length} images`);
+    } else {
+      console.log('[Step 8] ⚠️ No images to insert');
     }
 
     // Step 9: Calculate word count & reading time
+    console.log('[Step 9] Calculating analytics...');
     const wordCount = countWords(finalContent);
     const readingTime = calculateReadingTime(finalContent);
-
-    console.log(`[Analytics] Word count: ${wordCount} | Reading time: ${readingTime} min`);
+    console.log(`[Step 9] ✅ Word count: ${wordCount} | Reading time: ${readingTime} min`);
 
     // Step 10: Extract excerpt
+    console.log('[Step 10] Extracting excerpt...');
     const excerpt = extractExcerpt(finalContent, 200);
+    console.log('[Step 10] ✅ Excerpt extracted');
 
     // Step 11: Check for duplicate by slug
+    console.log('[Step 11] Checking for duplicates...');
     const { data: existingGuide } = await supabase
       .from('blog_posts')
       .select('id, title, slug')
@@ -317,7 +367,7 @@ Keywords: ${keywords || 'няма'}
       .single();
 
     if (existingGuide) {
-      console.log('[Pillar] ❌ Duplicate detected:', existingGuide.slug);
+      console.log('[Step 11] ❌ DUPLICATE DETECTED:', existingGuide.slug);
       return NextResponse.json(
         {
           error: 'Pillar вече съществува',
@@ -327,11 +377,13 @@ Keywords: ${keywords || 'няма'}
             slug: existingGuide.slug
           }
         },
-        { status: 409 } // Conflict
+        { status: 409 }
       );
     }
+    console.log('[Step 11] ✅ No duplicates found');
 
-    // Step 12: Save to database with new fields
+    // Step 12: Save to database
+    console.log('[Step 12] Saving to database...');
     const { data: savedGuide, error: saveError } = await supabase
       .from('blog_posts')
       .insert({
@@ -348,16 +400,59 @@ Keywords: ${keywords || 'няма'}
         featured_image_url: heroImageUrl,
         author_id: user.id,
         is_published: is_published || false,
-        published_at: published_at || null
+        published_at: published_at || null,
+        word_count: wordCount,
+        reading_time: readingTime,
+        keywords: keywords || ''
       })
       .select()
       .single();
 
     if (saveError) {
-      throw new Error(`Database: ${saveError.message}`);
+      throw new Error(`Database save failed: ${saveError.message}`);
+    }
+    console.log('[Step 12] ✅ Saved to database:', savedGuide.slug);
+
+    // Step 13: Remove pillar from parent cluster's suggested_pillars
+    console.log('[Step 13] Cleaning up parent cluster suggested_pillars...');
+    try {
+      const { data: parentClusterData } = await supabase
+        .from('blog_posts')
+        .select('suggested_pillars')
+        .eq('slug', parent_cluster_slug)
+        .eq('guide_type', 'cluster')
+        .single();
+
+      if (parentClusterData?.suggested_pillars) {
+        const originalCount = parentClusterData.suggested_pillars.length;
+        const updatedSuggestedPillars = parentClusterData.suggested_pillars.filter(
+          (suggestedTitle: string) => suggestedTitle.toLowerCase().trim() !== title.toLowerCase().trim()
+        );
+
+        if (updatedSuggestedPillars.length < originalCount) {
+          await supabase
+            .from('blog_posts')
+            .update({ suggested_pillars: updatedSuggestedPillars })
+            .eq('slug', parent_cluster_slug)
+            .eq('guide_type', 'cluster');
+
+          console.log('[Step 13] ✅ Removed from suggested_pillars');
+        } else {
+          console.log('[Step 13] ℹ️ Not found in suggested_pillars');
+        }
+      }
+    } catch (clusterUpdateError) {
+      console.error('[Step 13] ⚠️ Cleanup failed:', clusterUpdateError);
     }
 
-    console.log('[Pillar] ✅ Created:', savedGuide.slug);
+    console.log('\n═══════════════════════════════════════════════');
+    console.log('✅ [Pillar] SUCCESSFULLY CREATED');
+    console.log('═══════════════════════════════════════════════');
+    console.log('Slug:', savedGuide.slug);
+    console.log('Words:', wordCount);
+    console.log('Reading time:', readingTime, 'min');
+    console.log('Published:', savedGuide.is_published);
+    console.log('═══════════════════════════════════════════════\n');
 
     return NextResponse.json({
       success: true,
@@ -365,9 +460,18 @@ Keywords: ${keywords || 'няма'}
     });
 
   } catch (error: any) {
-    console.error('[Pillar] ❌', error);
+    console.error('\n═══════════════════════════════════════════════');
+    console.error('❌ [Pillar] GENERATION FAILED');
+    console.error('═══════════════════════════════════════════════');
+    console.error('Error:', error.message || error);
+    console.error('Stack:', error.stack);
+    console.error('═══════════════════════════════════════════════\n');
+
     return NextResponse.json(
-      { error: error.message || 'Failed to generate pillar' },
+      {
+        error: error.message || 'Failed to generate pillar',
+        details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+      },
       { status: 500 }
     );
   }

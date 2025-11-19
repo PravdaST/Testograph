@@ -164,7 +164,7 @@ export default function LearnPage() {
         .from('blog_posts')
         .select('*')
         .eq('category', 'learn-guide')
-        .eq('status', 'published')
+        .eq('is_published', true)
         .order('published_at', { ascending: false });
 
       setGuides(data || []);

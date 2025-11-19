@@ -45,14 +45,51 @@ export async function GET(request: Request) {
 
     if (pillarsError) throw pillarsError;
 
-    // Calculate missing pillars
-    const existingPillarSlugs = new Set((pillars || []).map(p => p.slug));
+    // Create a Set of existing pillar titles (normalized for case-insensitive comparison)
+    const existingPillarTitles = new Set(
+      (pillars || []).map(p => p.title.toLowerCase().trim())
+    );
+
+    // Auto-cleanup: Remove existing pillars from suggested_pillars arrays
+    let cleanupCount = 0;
+    for (const cluster of clusters || []) {
+      if (cluster.suggested_pillars && Array.isArray(cluster.suggested_pillars)) {
+        const originalCount = cluster.suggested_pillars.length;
+
+        // Filter out titles that match existing pillars (case-insensitive)
+        const cleanedSuggestedPillars = cluster.suggested_pillars.filter(
+          (suggestedTitle: string) => !existingPillarTitles.has(suggestedTitle.toLowerCase().trim())
+        );
+
+        // If we removed any, update the database
+        if (cleanedSuggestedPillars.length < originalCount) {
+          await supabase
+            .from('blog_posts')
+            .update({ suggested_pillars: cleanedSuggestedPillars })
+            .eq('id', cluster.id);
+
+          console.log(`[Stats] ✅ Cleaned ${originalCount - cleanedSuggestedPillars.length} pillars from cluster "${cluster.title}"`);
+          cleanupCount++;
+
+          // Update the cluster object for the response
+          cluster.suggested_pillars = cleanedSuggestedPillars;
+        }
+      }
+    }
+
+    if (cleanupCount > 0) {
+      console.log(`[Stats] ✅ Auto-cleanup completed for ${cleanupCount} clusters`);
+    }
+
+    // Calculate missing pillars (using cleaned data)
     let missingPillarsCount = 0;
     const missingPillarsByCluster: any[] = [];
 
     (clusters || []).forEach(cluster => {
       if (cluster.suggested_pillars && Array.isArray(cluster.suggested_pillars)) {
-        const missing = cluster.suggested_pillars.filter((slug: string) => !existingPillarSlugs.has(slug));
+        const missing = cluster.suggested_pillars.filter(
+          (suggestedTitle: string) => !existingPillarTitles.has(suggestedTitle.toLowerCase().trim())
+        );
         if (missing.length > 0) {
           missingPillarsCount += missing.length;
           missingPillarsByCluster.push({
@@ -87,7 +124,9 @@ export async function GET(request: Request) {
         })),
       suggested_pillars: cluster.suggested_pillars || [],
       missing_pillars: cluster.suggested_pillars
-        ? cluster.suggested_pillars.filter((slug: string) => !existingPillarSlugs.has(slug))
+        ? cluster.suggested_pillars.filter(
+            (suggestedTitle: string) => !existingPillarTitles.has(suggestedTitle.toLowerCase().trim())
+          )
         : []
     }));
 

@@ -29,6 +29,8 @@ import {
   Trash2,
   CheckCircle2,
   XCircle,
+  Link2,
+  RefreshCw,
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
@@ -62,6 +64,8 @@ export function LearnContentGuidesTable() {
   const [guides, setGuides] = useState<Guide[]>([]);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [linkingId, setLinkingId] = useState<string | null>(null);
+  const [updatingAllLinks, setUpdatingAllLinks] = useState(false);
 
   const fetchGuides = async () => {
     setLoading(true);
@@ -156,6 +160,72 @@ export function LearnContentGuidesTable() {
     }
   };
 
+  const handleUpdateLinks = async (guideId: string) => {
+    setLinkingId(guideId);
+    try {
+      const response = await adminFetch('/api/admin/learn-content/update-links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ guide_id: guideId }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update links');
+
+      const result = await response.json();
+
+      toast({
+        title: 'Успешно!',
+        description: `Линковете са обновени за "${result.guide_slug}"`,
+      });
+    } catch (error) {
+      console.error('Update links error:', error);
+      toast({
+        title: 'Грешка',
+        description: 'Неуспешно обновяване на линкове',
+        variant: 'destructive',
+      });
+    } finally {
+      setLinkingId(null);
+    }
+  };
+
+  const handleUpdateAllLinks = async () => {
+    if (
+      !confirm(
+        `Това ще обнови вътрешните линкове за всички ${stats?.total || 0} публикувани статии. Продължаваш?`
+      )
+    ) {
+      return;
+    }
+
+    setUpdatingAllLinks(true);
+    try {
+      const response = await adminFetch('/api/admin/learn-content/update-links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ update_all: true }),
+      });
+
+      if (!response.ok) throw new Error('Failed to update all links');
+
+      const result = await response.json();
+
+      toast({
+        title: 'Успешно!',
+        description: `Обновени ${result.updated_count} от ${result.total_guides} статии`,
+      });
+    } catch (error) {
+      console.error('Update all links error:', error);
+      toast({
+        title: 'Грешка',
+        description: 'Неуспешно обновяване на всички линкове',
+        variant: 'destructive',
+      });
+    } finally {
+      setUpdatingAllLinks(false);
+    }
+  };
+
   const getCategoryEmoji = (category: string) => {
     const map: Record<string, string> = {
       testosterone: '🧬',
@@ -229,8 +299,27 @@ export function LearnContentGuidesTable() {
 
       {/* Guides Table */}
       <Card>
-        <CardHeader>
+        <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>Всички Guides</CardTitle>
+          <Button
+            onClick={handleUpdateAllLinks}
+            disabled={updatingAllLinks || guides.length === 0}
+            variant="outline"
+            size="sm"
+            className="gap-2"
+          >
+            {updatingAllLinks ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Обновяване...
+              </>
+            ) : (
+              <>
+                <RefreshCw className="w-4 h-4" />
+                Обнови всички линкове
+              </>
+            )}
+          </Button>
         </CardHeader>
         <CardContent>
           <div className="rounded-md border">
@@ -241,6 +330,7 @@ export function LearnContentGuidesTable() {
                   <TableHead>Категория</TableHead>
                   <TableHead>Тип</TableHead>
                   <TableHead>Статус</TableHead>
+                  <TableHead>Публикувана</TableHead>
                   <TableHead className="text-right">Прегледи</TableHead>
                   <TableHead className="text-right">Думи</TableHead>
                   <TableHead>Създадена</TableHead>
@@ -250,7 +340,7 @@ export function LearnContentGuidesTable() {
               <TableBody>
                 {guides.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8">
+                    <TableCell colSpan={9} className="text-center py-8">
                       <FileText className="w-12 h-12 mx-auto text-zinc-600 mb-2" />
                       <p className="text-zinc-400">Все още няма създадени guides</p>
                     </TableCell>
@@ -286,6 +376,16 @@ export function LearnContentGuidesTable() {
                           </Badge>
                         ) : (
                           <Badge variant="secondary">Чернова</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm text-zinc-500">
+                        {guide.published_at ? (
+                          formatDistanceToNow(new Date(guide.published_at), {
+                            addSuffix: true,
+                            locale: bg,
+                          })
+                        ) : (
+                          <span className="text-zinc-600">—</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">
@@ -338,6 +438,22 @@ export function LearnContentGuidesTable() {
                                     <CheckCircle2 className="w-4 h-4 mr-2" />
                                   )}
                                   {guide.is_published ? 'Скрий' : 'Публикувай'}
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => handleUpdateLinks(guide.id)}
+                              disabled={linkingId === guide.id}
+                            >
+                              {linkingId === guide.id ? (
+                                <>
+                                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                  Обновяване линкове...
+                                </>
+                              ) : (
+                                <>
+                                  <Link2 className="w-4 h-4 mr-2" />
+                                  Обнови линкове
                                 </>
                               )}
                             </DropdownMenuItem>
