@@ -66,7 +66,7 @@ export async function GET(request: Request) {
     // Check if user has GSC tokens
     const { data: authTokens } = await supabase
       .from('gsc_auth_tokens')
-      .select('property_url, expires_at')
+      .select('property_url, expires_at, refresh_token')
       .eq('user_id', user.id)
       .single();
 
@@ -76,11 +76,12 @@ export async function GET(request: Request) {
       });
     }
 
-    // Check if token is expired
-    const isExpired = new Date(authTokens.expires_at) < new Date();
+    // Connection is valid if we have a refresh token
+    // Access token can be refreshed automatically, so expiry doesn't matter
+    const isConnected = !!authTokens.refresh_token;
 
     return NextResponse.json({
-      connected: !isExpired,
+      connected: isConnected,
       propertyUrl: authTokens.property_url,
       expiresAt: authTokens.expires_at
     });
