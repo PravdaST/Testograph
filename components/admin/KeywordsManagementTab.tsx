@@ -1,14 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Target, TrendingUp, BarChart3, Link as LinkIcon, Sparkles, CheckCircle, ExternalLink } from "lucide-react";
+import { Target, TrendingUp, BarChart3, Link as LinkIcon, Sparkles, CheckCircle, ExternalLink, FileSearch } from "lucide-react";
 import { KeywordsManager } from "./keywords/KeywordsManager";
 import { GSCPerformance } from "./keywords/GSCPerformance";
 import { TrendingQueries } from "./keywords/TrendingQueries";
 import { AIKeywordSuggestions } from "./keywords/AIKeywordSuggestions";
+import { OnSiteAnalysis } from "./keywords/OnSiteAnalysis";
 import { adminFetch } from "@/lib/admin/api";
 
-type TabMode = "keywords" | "performance" | "trending" | "ai-suggestions";
+type TabMode = "keywords" | "performance" | "trending" | "ai-suggestions" | "on-site";
 
 export function KeywordsManagementTab() {
   const [mode, setMode] = useState<TabMode>("keywords");
@@ -91,7 +92,7 @@ export function KeywordsManagementTab() {
               {gscConnected ? (
                 <>Свързан с {gscPropertyUrl || 'GSC'}</>
               ) : (
-                <>Свържи се с GSC за автоматично синхронизиране на keyword performance данни</>
+                <>Свържи се с GSC за автоматично синхронизиране на данни за представянето на ключовите думи.</>
               )}
             </p>
           </div>
@@ -102,11 +103,11 @@ export function KeywordsManagementTab() {
               className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2 disabled:opacity-50"
             >
               {connecting ? (
-                <>Connecting...</>
+                <>Свързване...</>
               ) : (
                 <>
                   <ExternalLink className="w-4 h-4" />
-                  Connect GSC
+                  Свързване с GSC
                 </>
               )}
             </button>
@@ -127,7 +128,7 @@ export function KeywordsManagementTab() {
           >
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4" />
-              <span>Target Keywords</span>
+              <span>Целеви ключови думи</span>
             </div>
           </button>
 
@@ -141,7 +142,7 @@ export function KeywordsManagementTab() {
           >
             <div className="flex items-center gap-2">
               <BarChart3 className="w-4 h-4" />
-              <span>GSC Performance</span>
+              <span>Представяне в GSC</span>
             </div>
           </button>
 
@@ -155,7 +156,7 @@ export function KeywordsManagementTab() {
           >
             <div className="flex items-center gap-2">
               <TrendingUp className="w-4 h-4" />
-              <span>Trending Queries</span>
+              <span>Набиращи популярност заявки</span>
             </div>
           </button>
 
@@ -169,7 +170,21 @@ export function KeywordsManagementTab() {
           >
             <div className="flex items-center gap-2">
               <Sparkles className="w-4 h-4" />
-              <span>AI Suggestions</span>
+              <span>AI Предложения</span>
+            </div>
+          </button>
+
+          <button
+            onClick={() => setMode("on-site")}
+            className={`px-6 py-3 font-medium transition-all relative whitespace-nowrap hover:text-gray-900 ${
+              mode === "on-site"
+                ? "text-gray-900 border-b-2 border-accent-500"
+                : "text-gray-600 border-b-2 border-transparent"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <FileSearch className="w-4 h-4" />
+              <span>On-Site Анализ</span>
             </div>
           </button>
         </div>
@@ -181,6 +196,7 @@ export function KeywordsManagementTab() {
         {mode === "performance" && <GSCPerformance />}
         {mode === "trending" && <TrendingQueries />}
         {mode === "ai-suggestions" && <AIKeywordSuggestions />}
+        {mode === "on-site" && <OnSiteAnalysis />}
       </div>
     </div>
   );

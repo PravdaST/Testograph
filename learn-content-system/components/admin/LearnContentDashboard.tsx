@@ -18,6 +18,11 @@ type BlogPost = {
   created_at: string;
   content: string;
   suggested_pillars?: string[];
+  // Keywords integration fields
+  target_keyword_id?: string | null;
+  secondary_keyword_ids?: string[];
+  seo_optimization_score?: number | null;
+  seo_optimized_for_keyword?: boolean;
 };
 
 type ClusterGroup = {

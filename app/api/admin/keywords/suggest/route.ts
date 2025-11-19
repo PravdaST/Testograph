@@ -121,7 +121,14 @@ export async function POST(request: Request) {
 4. Competition level - keywords които са възможни за rank
 5. Commercial intent - keywords които водят до conversions
 
-ФОРМАТ НА ОТГОВОРА (само JSON, без markdown):
+КРИТИЧНО ВАЖНО - ФОРМАТ НА ОТГОВОРА:
+- Върни САМО валиден JSON обект
+- БЕЗ markdown code blocks
+- БЕЗ допълнителен текст преди или след JSON-а
+- БЕЗ коментари в JSON-а
+- Използвай само double quotes за strings (не single quotes)
+
+JSON формат:
 {
   "suggestions": [
     {
@@ -168,7 +175,8 @@ ${focus_area ? `\n## FOCUS AREA: ${focus_area}\nФокусирай препор�
 4. Са специфични за българския пазар и аудитория
 5. Са long-tail и имат по-малка конкуренция
 
-ВЪРНИ САМО ВАЛИДЕН JSON - без markdown code blocks!`;
+КРИТИЧНО: Отговорът трябва да започва ДИРЕКТНО с { и да завършва с }
+Без markdown, без обяснения, без коментари - само чист JSON обект!`;
 
     // Call OpenRouter API with Gemini
     const aiContent = await callOpenRouter([
@@ -184,13 +192,30 @@ ${focus_area ? `\n## FOCUS AREA: ${focus_area}\nФокусирай препор�
 
     console.log('[Keyword Suggestions] AI response length:', aiContent.length);
 
-    // Clean up response (remove markdown code blocks if present)
+    // Clean up response - handle multiple formats
     let cleanedContent = aiContent.trim();
+
+    // Remove markdown code blocks
     if (cleanedContent.startsWith('```')) {
       cleanedContent = cleanedContent.replace(/^```(?:json)?\n?/, '').replace(/\n?```$/, '');
     }
 
-    const aiData = JSON.parse(cleanedContent);
+    // Try to extract JSON from text (in case AI adds explanation before/after)
+    const jsonMatch = cleanedContent.match(/\{[\s\S]*\}/);
+    if (jsonMatch) {
+      cleanedContent = jsonMatch[0];
+    }
+
+    // Parse JSON with error handling
+    let aiData;
+    try {
+      aiData = JSON.parse(cleanedContent);
+    } catch (parseError: any) {
+      console.error('[Keyword Suggestions] JSON parse failed:', parseError.message);
+      console.error('[Keyword Suggestions] Raw AI content (first 1000 chars):', aiContent.substring(0, 1000));
+      console.error('[Keyword Suggestions] Cleaned content (first 1000 chars):', cleanedContent.substring(0, 1000));
+      throw new Error(`AI върна невалиден JSON формат: ${parseError.message}`);
+    }
 
     console.log('[Keyword Suggestions] ✅ Generated', aiData.suggestions?.length || 0, 'suggestions');
 

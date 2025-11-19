@@ -95,7 +95,7 @@ export async function POST(request: Request) {
 
   try {
     const body = await request.json();
-    const { keyword, priority, category, focus_score, notes } = body;
+    const { keyword, priority, category, focus_score, notes, target_url } = body;
 
     // Validation
     if (!keyword || !keyword.trim()) {
@@ -135,6 +135,7 @@ export async function POST(request: Request) {
         category: category || null,
         focus_score: focus_score || 0,
         notes: notes || null,
+        target_url: target_url || null,
         created_by: user.id
       })
       .select()

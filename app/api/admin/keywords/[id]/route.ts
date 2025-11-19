@@ -32,7 +32,7 @@ export async function PATCH(
 
   try {
     const body = await request.json();
-    const { keyword, priority, category, focus_score, notes } = body;
+    const { keyword, priority, category, focus_score, notes, target_url } = body;
 
     // Build update object
     const updates: any = {};
@@ -70,6 +70,10 @@ export async function PATCH(
 
     if (notes !== undefined) {
       updates.notes = notes || null;
+    }
+
+    if (target_url !== undefined) {
+      updates.target_url = target_url || null;
     }
 
     if (Object.keys(updates).length === 0) {
