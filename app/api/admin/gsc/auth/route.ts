@@ -98,6 +98,33 @@ export async function GET(request: Request) {
   });
 
   try {
+    // Generate secure random state token for OAuth
+    const stateToken = crypto.randomUUID();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    console.log('[GSC Auth] Generating OAuth state token:', {
+      stateToken,
+      userId: user.id,
+      expiresAt: expiresAt.toISOString()
+    });
+
+    // Store state token in database
+    const { error: stateError } = await supabase
+      .from('oauth_state_tokens')
+      .insert({
+        state_token: stateToken,
+        user_id: user.id,
+        provider: 'google_search_console',
+        expires_at: expiresAt.toISOString()
+      });
+
+    if (stateError) {
+      console.error('[GSC Auth] ❌ Failed to store state token:', stateError);
+      throw new Error('Failed to create OAuth state token');
+    }
+
+    console.log('[GSC Auth] ✅ State token stored in database');
+
     // Get the base URL from the request
     const url = new URL(request.url);
     const baseUrl = `${url.protocol}//${url.host}`;
@@ -107,7 +134,8 @@ export async function GET(request: Request) {
       baseUrl,
       redirectUri,
       hasClientId: !!process.env.GOOGLE_CLIENT_ID,
-      hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET
+      hasClientSecret: !!process.env.GOOGLE_CLIENT_SECRET,
+      stateToken
     });
 
     // Initialize OAuth2 client
@@ -117,23 +145,25 @@ export async function GET(request: Request) {
       redirectUri
     );
 
-    console.log('[GSC Auth] Generating authorization URL...');
+    console.log('[GSC Auth] Generating authorization URL with state parameter...');
 
-    // Generate authorization URL
+    // Generate authorization URL with state parameter
     const authUrl = oauth2Client.generateAuthUrl({
       access_type: 'offline', // Request refresh token
       scope: ['https://www.googleapis.com/auth/webmasters.readonly'],
       prompt: 'consent', // Force consent screen to get refresh token
+      state: stateToken, // Pass state token - Google will return it in callback
     });
 
     console.log('[GSC Auth] ✅ Authorization URL generated:', {
       authUrlLength: authUrl.length,
-      authUrlDomain: new URL(authUrl).hostname
+      authUrlDomain: new URL(authUrl).hostname,
+      hasStateParam: authUrl.includes('state=')
     });
 
     console.log('[GSC Auth] ========================================');
-    console.log('[GSC Auth] ⚠️ IMPORTANT: Session must persist during OAuth redirect!');
-    console.log('[GSC Auth] User will be redirected to Google, then back to callback endpoint');
+    console.log('[GSC Auth] ✅ Using OAuth state parameter for session-less authentication');
+    console.log('[GSC Auth] State token will be validated in callback to identify user');
     console.log('[GSC Auth] ========================================');
 
     // Return the auth URL as JSON so the client can navigate to it
