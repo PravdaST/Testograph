@@ -1,7 +1,8 @@
-import { createClient } from '@/lib/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 import { notFound } from 'next/navigation';
 import { Metadata } from 'next';
 import LearnGuideClient from './LearnGuideClient';
+import type { Database } from '@/integrations/supabase/types';
 
 interface PageProps {
   params: Promise<{
@@ -33,10 +34,14 @@ interface BlogPost {
   views?: number;
 }
 
+// Create anonymous Supabase client for public data
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+
+const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+
 // Fetch guide data - reusable function
 async function getGuideData(category: string, slug: string): Promise<BlogPost | null> {
-  const supabase = await createClient();
-
   const { data, error } = await supabase
     .from('blog_posts')
     .select('*')
@@ -46,6 +51,7 @@ async function getGuideData(category: string, slug: string): Promise<BlogPost | 
     .single();
 
   if (error || !data) {
+    console.error('[getGuideData] Error:', error);
     return null;
   }
 
