@@ -292,7 +292,7 @@ function ValueProp({ text }: { text: string }) {
 }
 
 // ============================================
-// SECTION 3: REVIEWS SECTION (Mobile Optimized)
+// SECTION 3: REVIEWS SECTION (Horizontal Slider - Mobile Optimized)
 // ============================================
 function ReviewsSection() {
   const reviews = [
@@ -322,17 +322,7 @@ function ReviewsSection() {
 
 След шест седмици съм напълно различен човек. Промяната не е само в либидото, а цялостна.
 Енергията ми е стабилна през целия ден, а настроението ми е значително по-добро.
-Жена ми казва, че съм по-присъстващ и жизнен. Пробвал съм три различни добавки преди Testograph, но без никакъв резултат.
-
-С вашата формула усетих разлика още на петия-шестия ден.
-Сутрешните ерекции се върнаха, либидото ми се повиши - честно казано, не очаквах толкова бърз ефект.
-
-След това започнах да следвам и плановете в приложението - за тренировки, хранене и сън.
-
-Един месец по-късно съм буквално различен човек - в залата, в леглото, дори на работа.
-Имам повече енергия, по-добра концентрация и се чувствам отново на 25.
-
-Добавката действа бързо, но цялата програма наистина те преобразява.`
+Жена ми казва, че съм по-присъстващ и жизнен.`
     },
     {
       name: "Петър, 41г.",
@@ -358,24 +348,53 @@ function ReviewsSection() {
           Реални Резултати от Мъже Използващи TestoUP Тестостеронов Бустер
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 max-w-7xl mx-auto">
-          {reviews.map((review, idx) => (
-            <div key={idx} className="bg-[#e6e6e6] rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-              <div className="flex items-center gap-1 mb-3 sm:mb-4">
-                {[...Array(5)].map((_, i) => (
-                  <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 fill-yellow-400 text-yellow-400" />
-                ))}
-              </div>
-              <p className="text-sm sm:text-base text-gray-700 whitespace-pre-line mb-4 sm:mb-6 leading-relaxed">
-                {review.review}
-              </p>
-              <div className="border-t pt-3 sm:pt-4">
-                <p className="font-bold text-sm sm:text-base text-gray-900">{review.name}</p>
-                <p className="text-xs sm:text-sm text-gray-500">{review.subtitle}</p>
-              </div>
+        {/* Horizontal Slider */}
+        <div className="relative max-w-7xl mx-auto">
+          <div className="overflow-x-auto pb-4 scrollbar-hide">
+            <div className="flex gap-4 sm:gap-6 snap-x snap-mandatory">
+              {reviews.map((review, idx) => (
+                <div
+                  key={idx}
+                  className="flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-[45vw] lg:w-[30vw] snap-center bg-[#e6e6e6] rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-shadow border border-gray-100"
+                >
+                  <div className="flex items-center gap-1 mb-3 sm:mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 fill-yellow-400 text-yellow-400" />
+                    ))}
+                  </div>
+                  <p className="text-sm sm:text-base text-gray-700 whitespace-pre-line mb-4 sm:mb-6 leading-relaxed">
+                    {review.review}
+                  </p>
+                  <div className="border-t pt-3 sm:pt-4">
+                    <p className="font-bold text-sm sm:text-base text-gray-900">{review.name}</p>
+                    <p className="text-xs sm:text-sm text-gray-500">{review.subtitle}</p>
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Scroll Indicator */}
+          <div className="flex justify-center gap-2 mt-4 sm:mt-6">
+            {reviews.map((_, idx) => (
+              <div
+                key={idx}
+                className="w-2 h-2 rounded-full bg-gray-300"
+              />
+            ))}
+          </div>
         </div>
+
+        {/* CSS for hiding scrollbar but keeping functionality */}
+        <style jsx>{`
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+        `}</style>
       </div>
     </section>
   );
