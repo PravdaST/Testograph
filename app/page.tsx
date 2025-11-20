@@ -178,25 +178,25 @@ function TrustBadgesBar() {
   return (
     <div className="bg-[#e6e6e6] border-b border-gray-200 py-2 sm:py-3">
       <div className="container mx-auto px-4 sm:px-6">
-        <div className="flex flex-wrap items-center justify-center gap-3 sm:gap-6 text-xs sm:text-sm">
+        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-6 text-xs sm:text-sm">
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#499167] flex-shrink-0" />
-            <span className="font-semibold text-gray-800">Сертифицирано от БАБХ</span>
+            <span className="font-semibold text-gray-800"><span className="hidden sm:inline">Сертифицирано от </span>БАБХ</span>
           </div>
-          <div className="hidden sm:block w-px h-4 bg-gray-300" />
+          <div className="hidden md:block w-px h-4 bg-gray-300" />
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#499167] flex-shrink-0" />
-            <span className="font-semibold text-gray-800">GMP стандарт на производство</span>
+            <span className="font-semibold text-gray-800">GMP стандарт</span>
           </div>
-          <div className="hidden sm:block w-px h-4 bg-gray-300" />
+          <div className="hidden md:block w-px h-4 bg-gray-300" />
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#499167] flex-shrink-0" />
-            <span className="font-semibold text-gray-800">Произведено в Европейския съюз</span>
+            <span className="font-semibold text-gray-800"><span className="hidden sm:inline">Произведено в </span>ЕС</span>
           </div>
-          <div className="hidden sm:block w-px h-4 bg-gray-300" />
+          <div className="hidden md:block w-px h-4 bg-gray-300" />
           <div className="flex items-center gap-1.5 sm:gap-2">
             <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#499167] flex-shrink-0" />
-            <span className="font-semibold text-gray-800">HACCP система за качество</span>
+            <span className="font-semibold text-gray-800">HACCP<span className="hidden sm:inline"> качество</span></span>
           </div>
         </div>
       </div>
