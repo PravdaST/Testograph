@@ -9,14 +9,22 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     {
       url: baseUrl,
       lastModified: new Date(),
-      changeFrequency: 'daily' as const,
-      priority: 1,
     },
     {
       url: `${baseUrl}/learn`,
       lastModified: new Date(),
-      changeFrequency: 'weekly' as const,
-      priority: 0.9,
+    },
+    {
+      url: `${baseUrl}/privacy`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/terms`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/cookies`,
+      lastModified: new Date(),
     },
   ];
 
@@ -32,8 +40,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const learnPages = (guides || []).map((guide) => ({
     url: `${baseUrl}/learn/${guide.guide_category}/${guide.slug}`,
     lastModified: new Date(guide.updated_at),
-    changeFrequency: 'monthly' as const,
-    priority: 0.8,
   }));
 
   return [...staticPages, ...learnPages];
