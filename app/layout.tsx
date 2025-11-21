@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Montserrat } from 'next/font/google'
+import { Inter, Space_Grotesk } from 'next/font/google'
 import '@/app/globals.css'
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as Sonner } from "@/components/ui/sonner"
@@ -8,11 +8,18 @@ import { QueryProvider } from '@/components/providers/query-provider'
 import { CookieConsent } from "@/components/CookieConsent"
 import { AnalyticsScripts } from "@/components/AnalyticsScripts"
 
-const montserrat = Montserrat({
+const inter = Inter({
   subsets: ['latin', 'cyrillic'],
   display: 'swap',
-  variable: '--font-montserrat',
-  weight: ['300', '400', '500', '600', '700', '800', '900'],
+  variable: '--font-inter',
+  weight: ['300', '400', '500', '600', '800'],
+})
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-display',
+  weight: ['400', '500', '700'],
 })
 
 // Mobile-first viewport configuration
@@ -85,7 +92,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="bg" className={montserrat.variable}>
+    <html lang="bg" className={`${inter.variable} ${spaceGrotesk.variable} scroll-smooth`}>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -148,7 +155,7 @@ export default function RootLayout({
 
         {/* Analytics scripts handled by AnalyticsScripts component */}
       </head>
-      <body className={montserrat.className} suppressHydrationWarning>
+      <body className={`${inter.className} antialiased`} suppressHydrationWarning>
         <QueryProvider>
           <TooltipProvider>
             {children}

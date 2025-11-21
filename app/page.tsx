@@ -1,159 +1,111 @@
 'use client'
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { Shield, Check, Star, TrendingUp, Zap, Moon, Activity, ChevronRight, Award, Users, Clock, ShoppingCart, Smartphone, Package, Truck, Lock } from "lucide-react";
+import { Shield, Check, Star, TrendingUp, Zap, Activity, ChevronRight, Award, Users, Lock, Truck, ShoppingCart, Smartphone, Package, Brain, UtensilsCrossed, Dumbbell, LineChart, Sparkles, Target } from "lucide-react";
 import ChatAssistant from "@/components/ChatAssistant";
 
-// Wave Separator Component
-function WaveSeparator({ className = "" }: { className?: string }) {
+// ============================================
+// NOISE OVERLAY COMPONENT (Swiss Style)
+// ============================================
+function NoiseOverlay() {
   return (
-    <div className={`relative w-full h-16 overflow-hidden ${className}`}>
-      <svg
-        className="absolute bottom-0 left-0 w-full h-full"
-        viewBox="0 0 1440 100"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <path
-          d="M0,50 C240,80 480,20 720,50 C960,80 1200,20 1440,50 L1440,100 L0,100 Z"
-          fill="#499167"
-          fillOpacity="0.1"
-        />
-        <path
-          d="M0,70 C360,40 720,90 1080,60 C1260,45 1380,70 1440,80 L1440,100 L0,100 Z"
-          fill="#499167"
-          fillOpacity="0.05"
-        />
-      </svg>
+    <div
+      className="fixed inset-0 pointer-events-none z-50 opacity-[0.03]"
+      style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`
+      }}
+    />
+  );
+}
+
+// ============================================
+// BENTO CARD COMPONENT (Reusable)
+// ============================================
+function BentoCard({ children, className = "", hover = true, onClick }: { children: React.ReactNode; className?: string; hover?: boolean; onClick?: () => void }) {
+  const hoverClasses = hover ? "hover:-translate-y-1 hover:scale-[1.005] hover:shadow-2xl hover:shadow-brand-green/10 hover:border-brand-green/30" : "";
+  const clickableClasses = onClick ? "cursor-pointer" : "";
+
+  return (
+    <div
+      className={`bg-white/70 backdrop-blur-[16px] border border-white/60 shadow-lg rounded-3xl transition-all duration-500 ease-[cubic-bezier(0.25,0.8,0.25,1)] relative overflow-hidden ${hoverClasses} ${clickableClasses} ${className}`}
+      onClick={onClick}
+    >
+      {children}
     </div>
   );
 }
 
-// Wave Animation Component
-function WaveBackground({ color = "#499167", opacity = 0.1 }: { color?: string; opacity?: number }) {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      <svg
-        className="absolute w-full h-full"
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 1440 320"
-        preserveAspectRatio="none"
-      >
-        <defs>
-          <linearGradient id="wave-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" style={{ stopColor: color, stopOpacity: opacity }} />
-            <stop offset="50%" style={{ stopColor: color, stopOpacity: opacity * 1.5 }} />
-            <stop offset="100%" style={{ stopColor: color, stopOpacity: opacity }} />
-          </linearGradient>
-        </defs>
-        {/* Wave 1 */}
-        <path
-          fill="url(#wave-gradient)"
-          d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-          style={{
-            animation: 'wave1 15s ease-in-out infinite',
-            transformOrigin: 'center'
-          }}
-        />
-        {/* Wave 2 */}
-        <path
-          fill={color}
-          fillOpacity={opacity * 0.7}
-          d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-          style={{
-            animation: 'wave2 20s ease-in-out infinite',
-            animationDelay: '-5s',
-            transformOrigin: 'center'
-          }}
-        />
-        {/* Wave 3 */}
-        <path
-          fill={color}
-          fillOpacity={opacity * 0.5}
-          d="M0,160L48,165.3C96,171,192,181,288,186.7C384,192,480,192,576,181.3C672,171,768,149,864,144C960,139,1056,149,1152,160C1248,171,1344,181,1392,186.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
-          style={{
-            animation: 'wave3 25s ease-in-out infinite',
-            animationDelay: '-10s',
-            transformOrigin: 'center'
-          }}
-        />
-      </svg>
-      <style jsx>{`
-        @keyframes wave1 {
-          0%, 100% { transform: translateX(0) translateY(0); }
-          50% { transform: translateX(-25px) translateY(-10px); }
-        }
-        @keyframes wave2 {
-          0%, 100% { transform: translateX(0) translateY(0); }
-          50% { transform: translateX(25px) translateY(10px); }
-        }
-        @keyframes wave3 {
-          0%, 100% { transform: translateX(0) translateY(0); }
-          50% { transform: translateX(-20px) translateY(5px); }
-        }
-      `}</style>
-    </div>
-  );
-}
+// ============================================
+// REVEAL ON SCROLL HOOK
+// ============================================
+function useRevealOnScroll() {
+  useEffect(() => {
+    const revealElements = document.querySelectorAll('.reveal');
 
-// Floating Particles Component
-function FloatingParticles({ color = "#499167" }: { color?: string }) {
-  return (
-    <div className="absolute inset-0 overflow-hidden pointer-events-none">
-      {[...Array(15)].map((_, i) => (
-        <div
-          key={i}
-          className="absolute rounded-full"
-          style={{
-            width: Math.random() * 6 + 2 + 'px',
-            height: Math.random() * 6 + 2 + 'px',
-            backgroundColor: color,
-            opacity: Math.random() * 0.3 + 0.1,
-            left: Math.random() * 100 + '%',
-            top: Math.random() * 100 + '%',
-            animation: `float ${Math.random() * 10 + 10}s ease-in-out infinite`,
-            animationDelay: `${Math.random() * 5}s`
-          }}
-        />
-      ))}
-      <style jsx>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0) translateX(0); }
-          25% { transform: translateY(-20px) translateX(10px); }
-          50% { transform: translateY(-10px) translateX(-10px); }
-          75% { transform: translateY(-30px) translateX(5px); }
+    const revealOnScroll = () => {
+      const windowHeight = window.innerHeight;
+      const elementVisible = 100;
+
+      revealElements.forEach((reveal) => {
+        const elementTop = reveal.getBoundingClientRect().top;
+        if (elementTop < windowHeight - elementVisible) {
+          reveal.classList.add('active');
         }
-      `}</style>
-    </div>
-  );
+      });
+    };
+
+    window.addEventListener('scroll', revealOnScroll);
+    revealOnScroll(); // Trigger once on load
+
+    return () => window.removeEventListener('scroll', revealOnScroll);
+  }, []);
 }
 
 export default function HomePage() {
-  return (
-    <div className="min-h-screen bg-white">
-      {/* Trust Badges Bar */}
-      <TrustBadgesBar />
+  useRevealOnScroll();
 
-      {/* Hero Section with Video Background */}
+  return (
+    <div className="min-h-screen bg-brand-surface">
+      {/* Noise Texture Overlay */}
+      <NoiseOverlay />
+
+      {/* Background gradients */}
+      <div className="fixed inset-0 -z-10">
+        <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-br from-brand-green/[0.08] via-transparent to-brand-green/[0.08]" />
+      </div>
+
+      {/* Floating Glass Navigation */}
+      <FloatingNav />
+
+      {/* Hero Section with Bento Grid */}
       <HeroSection />
 
-      {/* Reviews Section */}
+      {/* Trust Badges Bento */}
+      <TrustBadgesBento />
+
+      {/* Reviews Section (Horizontal Slider) */}
       <ReviewsSection />
 
-      {/* App Showcase Section */}
-      <AppShowcaseSection />
+      {/* Video Testimonials Section */}
+      <VideoTestimonialsSection />
 
-      {/* How It Works Section */}
+      {/* Testograph V2 App Section */}
+      <TestographV2Section />
+
+      {/* Ecosystem Section (Hardware + Software) */}
+      <EcosystemSection />
+
+      {/* How It Works */}
       <HowItWorksSection />
 
       {/* Clinical Proof Section */}
       <ClinicalProofSection />
 
-      {/* Product Packages Section */}
+      {/* Product Packages (Bento Cards) */}
       <ProductPackagesSection />
 
-      {/* Member Testimonials Section */}
+      {/* Member Testimonials Grid */}
       <MemberTestimonialsSection />
 
       {/* Guarantee Section */}
@@ -162,143 +114,399 @@ export default function HomePage() {
       {/* FAQ Section */}
       <FAQSection />
 
-      {/* Footer */}
+      {/* Minimal Footer */}
       <Footer />
 
       {/* Chat Assistant */}
       <ChatAssistant />
+
+      {/* Global Reveal Styles */}
+      <style jsx global>{`
+        .reveal {
+          opacity: 0;
+          transform: translateY(20px);
+          transition: all 0.8s ease;
+        }
+        .reveal.active {
+          opacity: 1;
+          transform: translateY(0);
+        }
+        .reveal.delay-75 {
+          transition-delay: 75ms;
+        }
+        .reveal.delay-100 {
+          transition-delay: 100ms;
+        }
+        .reveal.delay-150 {
+          transition-delay: 150ms;
+        }
+        .reveal.delay-200 {
+          transition-delay: 200ms;
+        }
+      `}</style>
     </div>
   );
 }
 
 // ============================================
-// SECTION 1: TRUST BADGES BAR (Mobile Optimized)
+// FLOATING GLASS NAVIGATION
 // ============================================
-function TrustBadgesBar() {
+function FloatingNav() {
   return (
-    <div className="bg-[#e6e6e6] border-b border-gray-200 py-2 sm:py-3">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-6 text-xs sm:text-sm">
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Award className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#499167] flex-shrink-0" />
-            <span className="font-semibold text-gray-800"><span className="hidden sm:inline">Сертифицирано от </span>БАБХ</span>
-          </div>
-          <div className="hidden md:block w-px h-4 bg-gray-300" />
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#499167] flex-shrink-0" />
-            <span className="font-semibold text-gray-800">GMP стандарт</span>
-          </div>
-          <div className="hidden md:block w-px h-4 bg-gray-300" />
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Shield className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#499167] flex-shrink-0" />
-            <span className="font-semibold text-gray-800"><span className="hidden sm:inline">Произведено в </span>ЕС</span>
-          </div>
-          <div className="hidden md:block w-px h-4 bg-gray-300" />
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#499167] flex-shrink-0" />
-            <span className="font-semibold text-gray-800">HACCP<span className="hidden sm:inline"> качество</span></span>
-          </div>
+    <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-40 w-[90%] max-w-5xl">
+      <BentoCard className="!rounded-full px-6 py-4 flex justify-between items-center shadow-xl bg-white/80">
+        <div className="flex items-center gap-2">
+          <div className="w-3 h-3 bg-brand-green rounded-full animate-pulse" />
+          <span className="font-display font-bold text-lg tracking-tight">TESTOGRAPH</span>
         </div>
-      </div>
-    </div>
+
+        <div className="hidden md:flex gap-8 text-sm font-medium text-brand-dark/70">
+          <a href="#system" className="hover:text-brand-green transition-colors">Системата</a>
+          <a href="#clinical-proof" className="hover:text-brand-green transition-colors">Формула</a>
+          <a href="#pricing" className="hover:text-brand-green transition-colors">Цени</a>
+          <Link href="/learn" className="hover:text-brand-green transition-colors">Научи повече</Link>
+        </div>
+
+        <a href="https://shop.testograph.eu/products/testoup" className="bg-brand-dark text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-brand-green transition-colors">
+          Поръчай
+        </a>
+      </BentoCard>
+    </nav>
   );
 }
 
 // ============================================
-// SECTION 2: HERO SECTION (Mobile Optimized)
+// HERO SECTION (Bento Grid Layout)
 // ============================================
 function HeroSection() {
   return (
-    <section className="relative min-h-[70vh] sm:min-h-[75vh] md:min-h-[80vh] flex items-center overflow-hidden bg-gradient-to-br from-gray-900 via-gray-800 to-black">
-      {/* Background Image */}
-      <div className="absolute inset-0 z-0">
-        <img
-          src="/testograph-background.webp"
-          alt="Натурален тестостеронов бустер и цялостна програма за мъжко здраве TestoUP"
-          className="w-full h-full object-cover"
-          loading="eager"
-        />
-      </div>
-
-      {/* Subtle Wave Animation - Hidden on mobile for performance */}
-      <div className="hidden md:block absolute inset-0 z-5">
-        <WaveBackground color="#499167" opacity={0.08} />
-      </div>
-
-      {/* Overlay */}
-      <div className="absolute inset-0 bg-black/40 z-10" />
-
-      {/* Content */}
-      <div className="relative z-20 container mx-auto px-4 sm:px-6 py-10 sm:py-12 md:py-16">
-        {/* Trust Line */}
-        <div className="text-center mb-6 sm:mb-8">
-          <p className="text-[#5fb57e] font-semibold text-sm sm:text-base md:text-lg">
-            Над 2,438 мъже вече подобриха хормоналния си баланс с Testograph
-          </p>
-          <p className="text-gray-400 text-xs sm:text-sm mt-1 sm:mt-2">
-            Само 47 опаковки остават на тази цена
-          </p>
-        </div>
-
-        {/* Headline - Mobile First Typography */}
-        <div className="max-w-4xl mx-auto text-center mb-8 sm:mb-10 md:mb-12">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black text-white mb-4 sm:mb-5 md:mb-6 leading-tight">
-            TestoUP: Натурален Тестостеронов Бустер и Цялостна Програма за Мъжко Здраве
-          </h1>
-          <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-gray-300 font-bold mb-3 sm:mb-4">
-            Персонални планове. Хранителни режими. Проследяване на възстановяването. Клинично тествана формула.
-          </p>
-          <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-3xl mx-auto">
-            Всичко, от което се нуждаеш за естествено повишаване на тестостерона, събрано в едно: персонализиран дигитален треньор и клинично доказана хранителна добавка.
-          </p>
-        </div>
-
-        {/* Value Props - Mobile First Grid */}
-        <div className="max-w-3xl mx-auto grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-8 sm:mb-10 md:mb-12">
-          <ValueProp text="Формула с 12 клинично доказани съставки" />
-          <ValueProp text="Оптимални дози за реален ефект" />
-          <ValueProp text="Поръчай добавката и отключи достъп до приложението" />
-          <ValueProp text="Следвай програмата за гарантирани резултати" />
-        </div>
-
-        {/* Buttons - Mobile First with proper touch targets */}
-        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-center items-stretch sm:items-center">
-          <a
-            href="https://shop.testograph.eu/products/testoup"
-            className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-4 bg-gradient-to-r from-[#499167] to-[#3a7450] hover:from-[#3a7450] hover:to-[#2d5a3e] text-white font-bold text-base sm:text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl touch-manipulation"
+    <>
+      {/* Animated Wave Background - Full Width */}
+      <div className="absolute left-0 right-0 top-0 h-screen overflow-hidden pointer-events-none opacity-[0.06] z-0">
+        <svg
+          className="absolute w-full h-full"
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 1440 320"
+          preserveAspectRatio="none"
+        >
+          {/* Wave 1 */}
+          <path
+            fill="#499167"
+            d="M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
           >
-            Започни своята трансформация
-            <ChevronRight className="w-5 h-5 flex-shrink-0" />
-          </a>
-          <a href="/learn" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold text-base sm:text-lg rounded-full border-2 border-white/30 transition-all duration-300 touch-manipulation">
-            Научни статии
-          </a>
-          <a href="#clinical-proof" className="inline-flex items-center justify-center gap-2 px-6 sm:px-8 py-4 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-white font-semibold text-base sm:text-lg rounded-full border-2 border-white/30 transition-all duration-300 touch-manipulation">
-            Научи повече
-          </a>
+            <animate
+              attributeName="d"
+              dur="10s"
+              repeatCount="indefinite"
+              values="
+                M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+                M0,128L48,138.7C96,149,192,171,288,165.3C384,160,480,128,576,133.3C672,139,768,181,864,181.3C960,181,1056,139,1152,128C1248,117,1344,139,1392,149.3L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+                M0,96L48,112C96,128,192,160,288,160C384,160,480,128,576,122.7C672,117,768,139,864,149.3C960,160,1056,160,1152,138.7C1248,117,1344,75,1392,53.3L1440,32L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </path>
+          {/* Wave 2 */}
+          <path
+            fill="#499167"
+            fillOpacity="0.7"
+            d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+          >
+            <animate
+              attributeName="d"
+              dur="15s"
+              repeatCount="indefinite"
+              values="
+                M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+                M0,192L48,197.3C96,203,192,213,288,208C384,203,480,181,576,181.3C672,181,768,203,864,213.3C960,224,1056,224,1152,213.3C1248,203,1344,181,1392,170.7L1440,160L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+                M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </path>
+        </svg>
+      </div>
+
+      <section className="pt-40 pb-20 px-6 max-w-7xl mx-auto relative z-10">
+      <div className="grid lg:grid-cols-12 gap-6 relative z-10">
+
+        {/* Main Hero Text (Span 8) */}
+        <div className="lg:col-span-8 flex flex-col justify-center reveal">
+          <div className="flex items-center gap-3 mb-6">
+            <span className="px-3 py-1 rounded-md border border-brand-green/20 text-brand-green text-xs font-bold uppercase tracking-wider bg-brand-green/5">
+              Science-Backed Protocol
+            </span>
+            <span className="text-brand-dark/40 text-xs font-mono">V.2.0.25</span>
+          </div>
+
+          <h1 className="font-display font-bold text-5xl md:text-7xl leading-[0.95] text-brand-dark mb-8">
+            ОПТИМИЗИРАЙ <br />
+            <span className="text-brand-green italic">ТЕСТОСТЕРОНА</span> СИ.
+          </h1>
+
+          <p className="text-lg text-brand-dark/60 max-w-xl leading-relaxed mb-10">
+            Повиши тестостерона, подобри либидото и върни мъжкото здраве с първата хибридна система в България: Фармацевтично чиста добавка + Алгоритмичен коучинг.
+          </p>
+
+          <div className="flex flex-wrap gap-4">
+            <a href="https://shop.testograph.eu/products/testoup" className="bg-brand-green text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-brand-dark transition-all shadow-xl shadow-brand-green/20">
+              Стартирай протокола
+            </a>
+            <a href="#system" className="bg-white border border-gray-200 text-brand-dark px-8 py-4 rounded-2xl font-bold text-lg hover:border-brand-green transition-all">
+              Как работи?
+            </a>
+          </div>
+        </div>
+
+        {/* Stats Card (Span 4) */}
+        <div className="lg:col-span-4 lg:row-span-2 h-full reveal delay-100">
+          <BentoCard className="h-full p-8 flex flex-col justify-between min-h-[400px] relative overflow-hidden group">
+            {/* Product Image Background */}
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 opacity-[0.15] group-hover:opacity-[0.25] transition-opacity duration-500">
+              <img
+                src="/product/testoup-3.png"
+                alt="TestoUP Bottle"
+                className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-500"
+              />
+            </div>
+
+            {/* Decor */}
+            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-green/10 rounded-full blur-2xl -translate-y-1/2 translate-x-1/2" />
+
+            <div className="relative z-10">
+              <h3 className="text-brand-dark/50 text-sm font-mono mb-2">КЛИНИЧНА ЕФЕКТИВНОСТ</h3>
+              <div className="text-6xl font-display font-bold text-brand-green mb-2">+27%</div>
+              <p className="text-sm font-medium">Средно увеличение на свободния тестостерон след 90 дни.</p>
+            </div>
+
+            {/* Animated Progress Chart */}
+            <div className="relative z-10">
+              <h4 className="text-xs font-mono text-brand-dark/50 mb-3 uppercase tracking-wider">Прогресивно Подобрение</h4>
+              <div className="flex items-end justify-between gap-2 h-20">
+                <div className="flex-1 flex flex-col items-center">
+                  <span className="text-[10px] font-bold text-gray-400 mb-1">0%</span>
+                  <div className="w-full bg-gray-200 rounded-t-lg overflow-hidden relative" style={{ height: '60px' }}>
+                    <div className="w-full bg-gray-300 h-full flex items-center justify-center">
+                      <span className="text-[10px] text-gray-600 font-bold">Baseline</span>
+                    </div>
+                  </div>
+                  <span className="text-[9px] text-gray-500 mt-1">Ден 0</span>
+                </div>
+                <div className="flex-1 flex flex-col items-center">
+                  <span className="text-[10px] font-bold text-brand-green mb-1 opacity-0 animate-[fadeIn_0.5s_ease-out_1s_forwards]">+9%</span>
+                  <div className="w-full bg-gray-200 rounded-t-lg overflow-hidden relative" style={{ height: '66px' }}>
+                    <div className="w-full bg-brand-green/50 h-full animate-[slideUp_1.2s_ease-out_forwards]"></div>
+                  </div>
+                  <span className="text-[9px] text-gray-500 mt-1">Ден 30</span>
+                </div>
+                <div className="flex-1 flex flex-col items-center">
+                  <span className="text-[10px] font-bold text-brand-green mb-1 opacity-0 animate-[fadeIn_0.5s_ease-out_1.3s_forwards]">+18%</span>
+                  <div className="w-full bg-gray-200 rounded-t-lg overflow-hidden relative" style={{ height: '72px' }}>
+                    <div className="w-full bg-brand-green/70 h-full animate-[slideUp_1.4s_ease-out_forwards]"></div>
+                  </div>
+                  <span className="text-[9px] text-gray-500 mt-1">Ден 60</span>
+                </div>
+                <div className="flex-1 flex flex-col items-center relative">
+                  <div className="absolute -top-7 left-1/2 -translate-x-1/2 opacity-0 animate-[fadeIn_0.5s_ease-out_1.6s_forwards]">
+                    <TrendingUp className="w-4 h-4 text-brand-green animate-bounce" />
+                  </div>
+                  <span className="text-[10px] font-bold text-brand-green mb-1 opacity-0 animate-[fadeIn_0.5s_ease-out_1.6s_forwards]">+27%</span>
+                  <div className="w-full bg-gray-200 rounded-t-lg overflow-hidden relative" style={{ height: '78px' }}>
+                    <div className="w-full bg-brand-green h-full animate-[slideUp_1.6s_ease-out_forwards]"></div>
+                  </div>
+                  <span className="text-[9px] font-bold text-brand-green mt-1">Ден 90</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="absolute bottom-6 right-6 opacity-20 group-hover:opacity-100 transition-opacity z-10">
+              <Zap className="w-10 h-10 text-brand-green" />
+            </div>
+          </BentoCard>
+        </div>
+
+        {/* Ingredients Slider (Full Width) */}
+        <div className="lg:col-span-8 mt-6 lg:mt-0 reveal delay-200">
+          <BentoCard className="p-6" hover={false}>
+            <h4 className="text-sm font-mono text-brand-dark/50 mb-4 uppercase tracking-wider">12 Активни Съставки</h4>
+            <div className="overflow-hidden">
+              <div className="flex gap-4 animate-[slide_30s_linear_infinite]">
+                {/* All 12 ingredients */}
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/vitamin-D.webp" alt="Vitamin D3" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Витамин Д3</p>
+                    <p className="text-xs text-gray-500">2400 МЕ</p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/zinc-img.webp" alt="Zinc" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Цинк</p>
+                    <p className="text-xs text-gray-500">50мг</p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/ashwagandha-img.webp" alt="Ashwagandha" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Ашваганда</p>
+                    <p className="text-xs text-gray-500">400мг</p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/magnesium-img.webp" alt="Magnesium" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Магнезий</p>
+                    <p className="text-xs text-gray-500">400мг</p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/tribulus-terestris-img.webp" alt="Tribulus" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Трибулус</p>
+                    <p className="text-xs text-gray-500">500мг</p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/selenium-img.webp" alt="Selenium" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Selenium</p>
+                    <p className="text-xs text-gray-500">100mcg</p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/vitamin-C.webp" alt="Vitamin C" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Vitamin C</p>
+                    <p className="text-xs text-gray-500">200mg</p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/vitamin-E.webp" alt="Vitamin E" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Vitamin E</p>
+                    <p className="text-xs text-gray-500">30mg</p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/vitamin-K2.webp" alt="Vitamin K2" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Vitamin K2</p>
+                    <p className="text-xs text-gray-500">100mcg</p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/vitamin-B6.webp" alt="Vitamin B6" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Vitamin B6</p>
+                    <p className="text-xs text-gray-500">5mg</p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/vitamin-B12.webp" alt="Vitamin B12" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Vitamin B12</p>
+                    <p className="text-xs text-gray-500">10mcg</p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/vitamin-B9.webp" alt="Vitamin B9" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Vitamin B9</p>
+                    <p className="text-xs text-gray-500">400mcg</p>
+                  </div>
+                </div>
+                {/* Duplicate for infinite loop */}
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/vitamin-D.webp" alt="Vitamin D3" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Витамин Д3</p>
+                    <p className="text-xs text-gray-500">2400 МЕ</p>
+                  </div>
+                </div>
+                <div className="flex-shrink-0 bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-white/60 flex items-center gap-3 min-w-[180px]">
+                  <div className="w-12 h-12 rounded-full overflow-hidden bg-white">
+                    <img src="/Testoup formula/zinc-img.webp" alt="Zinc" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-bold">Цинк</p>
+                    <p className="text-xs text-gray-500">50мг</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </BentoCard>
+        </div>
+      </div>
+      </section>
+    </>
+  );
+}
+
+// ============================================
+// TRUST BADGES BENTO
+// ============================================
+function TrustBadgesBento() {
+  return (
+    <section className="py-6 px-6 bg-brand-green">
+      <div className="container mx-auto max-w-5xl">
+        <div className="flex flex-wrap items-center justify-center gap-6 text-sm">
+          <div className="flex items-center gap-2">
+            <Award className="w-4 h-4 text-white" />
+            <span className="font-semibold text-white">Сертифицирано от БАБХ</span>
+          </div>
+          <div className="w-px h-4 bg-white/30" />
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-white" />
+            <span className="font-semibold text-white">GMP стандарт</span>
+          </div>
+          <div className="w-px h-4 bg-white/30" />
+          <div className="flex items-center gap-2">
+            <Shield className="w-4 h-4 text-white" />
+            <span className="font-semibold text-white">Произведено в ЕС</span>
+          </div>
+          <div className="w-px h-4 bg-white/30" />
+          <div className="flex items-center gap-2">
+            <Check className="w-4 h-4 text-white" />
+            <span className="font-semibold text-white">HACCP качество</span>
+          </div>
         </div>
       </div>
     </section>
   );
 }
 
-function ValueProp({ text }: { text: string }) {
-  return (
-    <div className="flex items-center gap-2 sm:gap-3 bg-white/10 backdrop-blur-sm rounded-lg px-3 sm:px-4 py-2.5 sm:py-3 border border-white/20">
-      <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[#5fb57e] flex-shrink-0" />
-      <span className="text-white text-xs sm:text-sm font-medium">{text}</span>
-    </div>
-  );
-}
-
 // ============================================
-// SECTION 3: REVIEWS SECTION (Horizontal Slider - Mobile Optimized)
+// REVIEWS SECTION (Horizontal Slider)
 // ============================================
 function ReviewsSection() {
   const reviews = [
     {
       name: "Иван, 32г.",
       subtitle: "Фитнес ентусиаст",
+      avatar: "/funnel/ivan-avatar.jpg",
       review: `Пробвал съм три различни добавки преди Testograph, но без никакъв резултат.
 
 С вашата формула усетих разлика още на петия-шестия ден.
@@ -314,6 +522,7 @@ function ReviewsSection() {
     {
       name: "Георги, 38г.",
       subtitle: "Вечно уморен",
+      avatar: "/funnel/georgi-avatar.jpg",
       review: `Още на четвъртия ден се събудих с ерекция, което не ми се беше случвало от месеци.
 Веднага си помислих: "Добре, това работи".
 
@@ -327,6 +536,7 @@ function ReviewsSection() {
     {
       name: "Петър, 41г.",
       subtitle: "В търсене на искрата",
+      avatar: "/funnel/petar-avatar.jpg",
       review: `Още през първата седмица либидото ми скочи. Буквално я желаех отново.
 Не осъзнавах колко ми е липсвало това чувство, докато не се върна.
 
@@ -342,50 +552,54 @@ function ReviewsSection() {
   ];
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 bg-white">
-      <div className="container mx-auto px-4 sm:px-6">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-center mb-8 sm:mb-12 md:mb-16">
-          Реални Резултати от Мъже Използващи TestoUP Тестостеронов Бустер
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-6">
+        <h2 className="text-4xl md:text-5xl font-display font-bold text-center mb-16 reveal">
+          Реални Резултати от Мъже Използващи TestoUP
         </h2>
 
-        {/* Horizontal Slider */}
         <div className="relative max-w-7xl mx-auto">
           <div className="overflow-x-auto pb-4 scrollbar-hide">
-            <div className="flex gap-4 sm:gap-6 snap-x snap-mandatory">
+            <div className="flex gap-6 snap-x snap-mandatory">
               {reviews.map((review, idx) => (
                 <div
                   key={idx}
-                  className="flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-[45vw] lg:w-[30vw] snap-center bg-[#e6e6e6] rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-xl transition-shadow border border-gray-100"
+                  className="flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-[45vw] lg:w-[30vw] snap-center reveal"
+                  style={{ transitionDelay: `${idx * 100}ms` }}
                 >
-                  <div className="flex items-center gap-1 mb-3 sm:mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 sm:w-5 sm:h-5 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-sm sm:text-base text-gray-700 whitespace-pre-line mb-4 sm:mb-6 leading-relaxed">
-                    {review.review}
-                  </p>
-                  <div className="border-t pt-3 sm:pt-4">
-                    <p className="font-bold text-sm sm:text-base text-gray-900">{review.name}</p>
-                    <p className="text-xs sm:text-sm text-gray-500">{review.subtitle}</p>
-                  </div>
+                  <BentoCard className="p-8 h-full">
+                    <div className="flex items-center gap-1 mb-4">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+                      ))}
+                    </div>
+                    <p className="text-base text-gray-700 whitespace-pre-line mb-6 leading-relaxed">
+                      {review.review}
+                    </p>
+                    <div className="border-t pt-4 flex items-center gap-4">
+                      <img
+                        src={review.avatar}
+                        alt={review.name}
+                        className="w-14 h-14 rounded-full object-cover border-2 border-brand-green/20"
+                      />
+                      <div>
+                        <p className="font-bold text-base text-gray-900">{review.name}</p>
+                        <p className="text-sm text-gray-500">{review.subtitle}</p>
+                      </div>
+                    </div>
+                  </BentoCard>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Scroll Indicator */}
-          <div className="flex justify-center gap-2 mt-4 sm:mt-6">
+          <div className="flex justify-center gap-2 mt-6">
             {reviews.map((_, idx) => (
-              <div
-                key={idx}
-                className="w-2 h-2 rounded-full bg-gray-300"
-              />
+              <div key={idx} className="w-2 h-2 rounded-full bg-gray-300" />
             ))}
           </div>
         </div>
 
-        {/* CSS for hiding scrollbar but keeping functionality */}
         <style jsx>{`
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
@@ -401,187 +615,634 @@ function ReviewsSection() {
 }
 
 // ============================================
-// SECTION 4: APP SHOWCASE SECTION (Mobile Optimized)
+// VIDEO TESTIMONIALS SECTION
 // ============================================
-function AppShowcaseSection() {
+function VideoTestimonialsSection() {
+  const [activeCategory, setActiveCategory] = useState("ЛИБИДО");
+
+  const videos = [
+    {
+      src: "/testimonials/TestoUp - Libido 1.mp4",
+      title: "Подобрено либидо след 2 седмици",
+      category: "ЛИБИДО"
+    },
+    {
+      src: "/testimonials/TestoUP - LIBIDO 2.mp4",
+      title: "Връщане на сексуалната енергия",
+      category: "ЛИБИДО"
+    },
+    {
+      src: "/testimonials/TestoUP - Libido 3.mp4",
+      title: "По-силно желание и увереност",
+      category: "ЛИБИДО"
+    },
+    {
+      src: "/testimonials/TestoUp - Pregmant 1.mp4",
+      title: "Успешна бременност след години опити",
+      category: "ФЕРТИЛНОСТ"
+    },
+    {
+      src: "/testimonials/TestoUp - Pregmant 2.mp4",
+      title: "Подобрени параметри и зачатие",
+      category: "ФЕРТИЛНОСТ"
+    },
+    {
+      src: "/testimonials/TestoUp - Pregmant 3.mp4",
+      title: "Реална промяна в качеството",
+      category: "ФЕРТИЛНОСТ"
+    }
+  ];
+
+  const filteredVideos = videos.filter(video => video.category === activeCategory);
+
   return (
-    <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-[#f0f9f4] to-[#e8f5ed]">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="text-center mb-8 sm:mb-10 md:mb-12">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-3 sm:mb-4">
-            TestoUP: Не Просто Добавка - Цялостна Програма за Повишаване на Тестостерона
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-12 reveal">
+          <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
+            Реални Истории от Нашите Клиенти
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto px-4">
-            С всяка поръчка получаваш незабавен достъп до нашето приложение. Попълни кратък въпросник и само след 10 минути ще имаш свой персонализиран план за действие.
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
+            Вижте как TestoUP промени живота на стотици мъже в България
           </p>
         </div>
 
-        <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-10 md:gap-12 items-center">
-          {/* Left: Features */}
-          <div className="space-y-4 sm:space-y-6">
-            <FeatureBox
-              icon={<Activity className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-[#499167]" />}
-              title="Твоят персонален план"
-              items={[
-                "Създаден за твоята цел (либидо, фитнес, енергия)",
-                "Готов само за 10 минути",
-                "Базиран на твоите отговори"
-              ]}
-            />
-            <FeatureBox
-              icon={<Zap className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-[#499167]" />}
-              title="Тренировки, хранене и сън"
-              items={[
-                "Персонални тренировъчни планове",
-                "Насоки какво и кога да ядеш",
-                "Стратегии за оптимизиране на съня"
-              ]}
-            />
-            <FeatureBox
-              icon={<TrendingUp className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-[#499167]" />}
-              title="Проследяване и напомняния"
-              items={[
-                "Визуализирай своя прогрес",
-                "Получавай напомняния какво и кога да правиш",
-                "Следи резултатите си в реално време"
-              ]}
-            />
-          </div>
-
-          {/* Right: Phone Mockup with Auto-Scrolling Screenshot */}
-          <div className="flex justify-center">
-            <div className="relative w-[280px] h-[560px] sm:w-[320px] sm:h-[640px]">
-              {/* Phone Frame Shadow */}
-              <div className="absolute inset-0 bg-gradient-to-br from-gray-900 to-black rounded-[2.5rem] sm:rounded-[3rem] shadow-2xl"></div>
-
-              {/* App Screenshot - Auto Scrolling */}
-              <div className="relative w-full h-full p-2.5 sm:p-3">
-                <div className="w-full h-full rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden bg-white shadow-inner">
-                  <div className="w-full h-full overflow-hidden relative">
-                    <img
-                      src="/Application-fullpage-scroll.png"
-                      alt="Testograph мобилно приложение за персонализиран план за повишаване на тестостерона"
-                      className="w-full h-auto"
-                      loading="lazy"
-                      style={{
-                        animation: 'scrollApp 20s ease-in-out infinite',
-                        position: 'absolute',
-                        top: 0,
-                        left: 0
-                      }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Phone Notch */}
-              <div className="absolute top-0 left-1/2 transform -translate-x-1/2 w-28 h-6 sm:w-32 sm:h-7 bg-black rounded-b-3xl z-10"></div>
-            </div>
-          </div>
-
-          {/* Inline CSS for scroll animation */}
-          <style jsx>{`
-            @keyframes scrollApp {
-              0% {
-                transform: translateY(0);
-              }
-              45% {
-                transform: translateY(calc(-100% + 614px));
-              }
-              55% {
-                transform: translateY(calc(-100% + 614px));
-              }
-              100% {
-                transform: translateY(0);
-              }
-            }
-          `}</style>
+        {/* Category Pills */}
+        <div className="flex justify-center gap-3 mb-12 reveal">
+          <button
+            onClick={() => setActiveCategory("ЛИБИДО")}
+            className={`px-6 py-3 rounded-full font-bold text-sm uppercase tracking-wider transition-all duration-300 ${
+              activeCategory === "ЛИБИДО"
+                ? "bg-brand-green text-white shadow-lg shadow-brand-green/30"
+                : "bg-white border-2 border-gray-200 text-gray-600 hover:border-brand-green hover:text-brand-green"
+            }`}
+          >
+            💪 Либидо
+          </button>
+          <button
+            onClick={() => setActiveCategory("ФЕРТИЛНОСТ")}
+            className={`px-6 py-3 rounded-full font-bold text-sm uppercase tracking-wider transition-all duration-300 ${
+              activeCategory === "ФЕРТИЛНОСТ"
+                ? "bg-brand-green text-white shadow-lg shadow-brand-green/30"
+                : "bg-white border-2 border-gray-200 text-gray-600 hover:border-brand-green hover:text-brand-green"
+            }`}
+          >
+            👶 Фертилност
+          </button>
         </div>
 
-        <div className="text-center mt-8 sm:mt-10 md:mt-12">
-          <a
-            href="https://shop.testograph.eu/products/testoup"
-            className="inline-flex items-center gap-2 px-6 sm:px-8 py-4 bg-gradient-to-r from-[#499167] to-[#3a7450] hover:from-[#3a7450] hover:to-[#2d5a3e] text-white font-bold text-base sm:text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl touch-manipulation"
-          >
-            Започни своята трансформация
-            <ChevronRight className="w-5 h-5 flex-shrink-0" />
-          </a>
+        {/* Videos Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
+          {filteredVideos.map((video, idx) => (
+            <div
+              key={video.src}
+              className="reveal opacity-0 animate-[fadeIn_0.5s_ease-out_forwards]"
+              style={{ animationDelay: `${idx * 100}ms` }}
+            >
+              <BentoCard className="p-0 overflow-hidden group h-full">
+                <div className="relative aspect-[9/16] bg-gray-100">
+                  <video
+                    className="w-full h-full object-cover"
+                    controls
+                    preload="metadata"
+                  >
+                    <source src={video.src} type="video/mp4" />
+                    Вашият браузър не поддържа видео елемент.
+                  </video>
+
+                  {/* Category Badge */}
+                  <div className="absolute top-4 left-4 z-10">
+                    <span className="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-brand-green/90 backdrop-blur-sm text-white">
+                      {video.category}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-4">
+                  <h3 className="font-bold text-base text-gray-900">{video.title}</h3>
+                </div>
+              </BentoCard>
+            </div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-function FeatureBox({ icon, title, items }: { icon: React.ReactNode; title: string; items: string[] }) {
+// ============================================
+// TESTOGRAPH V2 APP SECTION (Swiss Bento Glass)
+// ============================================
+function TestographV2Section() {
   return (
-    <div className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 border-2 border-gray-200 hover:border-[#499167] transition-colors">
-      <div className="flex items-start gap-3 sm:gap-4 mb-3 sm:mb-4">
-        {icon}
-        <h3 className="text-lg sm:text-xl font-bold text-gray-900">{title}</h3>
+    <section className="py-20 px-6 max-w-7xl mx-auto">
+
+      {/* Section Header */}
+      <div className="mb-16 reveal">
+        <div className="inline-flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-full text-sm font-medium mb-4">
+          <Target className="w-4 h-4" />
+          Уморени ли сте да не виждате резултати?
+        </div>
+        <h2 className="font-display font-bold text-4xl md:text-5xl text-brand-dark mb-4">
+          Testograph
+        </h2>
+        <p className="text-xl text-gray-600 max-w-3xl mb-6">
+          Вашата програма: Хранителна, Тренировъчна и Релакс програма
+        </p>
+        <div className="inline-flex items-center gap-3 bg-gradient-to-r from-brand-green/10 to-brand-green/5 border border-brand-green/20 px-6 py-4 rounded-2xl">
+          <div className="w-10 h-10 rounded-full bg-brand-green/20 flex items-center justify-center flex-shrink-0">
+            <Smartphone className="w-5 h-5 text-brand-green" />
+          </div>
+          <div className="text-left">
+            <p className="font-bold text-brand-dark text-sm">Безплатен достъп до приложението</p>
+            <p className="text-xs text-gray-600">При закупуване на TestoUP получавате достъп за толкова дни, колкото капсули имате</p>
+          </div>
+        </div>
       </div>
-      <ul className="space-y-1.5 sm:space-y-2">
-        {items.map((item, idx) => (
-          <li key={idx} className="flex items-start gap-2 text-sm sm:text-base text-gray-700">
-            <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[#499167] flex-shrink-0 mt-0.5" />
-            <span>{item}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
+
+      {/* Bento Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 auto-rows-auto gap-6">
+
+        {/* Phone Mockup - Large Card */}
+        <div className="md:col-span-2 md:row-span-3 reveal">
+          <BentoCard className="p-8 relative overflow-hidden h-full bg-gradient-to-br from-brand-dark via-brand-dark to-brand-green/20">
+            <div className="absolute top-6 left-6 bg-brand-green text-white text-xs font-bold px-3 py-1 rounded-full z-20">
+              LIVE PREVIEW
+            </div>
+
+            {/* Phone Container */}
+            <div className="relative h-full flex items-center justify-center">
+              {/* Phone Frame */}
+              <div className="relative w-[280px] h-[580px] bg-gray-900 rounded-[40px] p-3 shadow-2xl">
+                {/* Screen */}
+                <div className="w-full h-full bg-white rounded-[32px] overflow-hidden relative">
+                  {/* Scrolling Content */}
+                  <div className="absolute top-0 left-0 w-full animate-[slowScroll_40s_linear_infinite]">
+                    <img
+                      src="/Application-fullpage-scroll.png"
+                      alt="Testograph App"
+                      className="w-full h-auto"
+                    />
+                  </div>
+                </div>
+
+                {/* Notch */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-6 bg-gray-900 rounded-b-2xl z-10" />
+              </div>
+
+              {/* Floating Labels */}
+              <div className="absolute top-8 right-4 bg-white/10 backdrop-blur-md border border-white/20 px-3 py-2 rounded-lg text-white text-xs font-mono">
+                <Smartphone className="w-4 h-4 inline mr-1" />
+                iOS & Android
+              </div>
+
+              <div className="absolute bottom-8 left-4 bg-brand-green/20 backdrop-blur-md border border-brand-green/40 px-3 py-2 rounded-lg text-white text-xs font-bold">
+                <Sparkles className="w-4 h-4 inline mr-1" />
+                AI-Powered
+              </div>
+            </div>
+
+            <div className="absolute bottom-8 right-8 text-9xl font-display font-bold text-white/5 select-none">V2</div>
+          </BentoCard>
+        </div>
+
+        {/* Problem Card */}
+        <div className="lg:col-span-2 reveal delay-100">
+          <BentoCard className="p-8 bg-brand-surface hover:bg-white transition-colors h-full">
+            <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mb-4">
+              <Target className="w-6 h-6" />
+            </div>
+            <h3 className="font-bold text-2xl mb-3 text-gray-900">Проблемът не е във вашите усилия</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Инвестирате време и пари в тренировки и добавки, но усещате застой. Енергията е ниска, напредъкът бавен.
+              Проблемът е в липсата на персонализирана система, която обединява хранене, тренировки, добавки и почивка.
+            </p>
+          </BentoCard>
+        </div>
+
+        {/* Feature 1: Personalized Plan */}
+        <div className="reveal delay-150">
+          <BentoCard className="p-6 bg-brand-surface hover:bg-white transition-colors h-full group">
+            <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <Brain className="w-5 h-5" />
+            </div>
+            <h4 className="font-bold text-lg mb-2 text-gray-900">Персонализиран План</h4>
+            <p className="text-sm text-gray-600">
+              AI въпросник избира една от 9 програми, 100% съобразени с вашето тяло.
+            </p>
+          </BentoCard>
+        </div>
+
+        {/* Feature 2: Nutrition */}
+        <div className="reveal delay-200">
+          <BentoCard className="p-6 bg-brand-surface hover:bg-white transition-colors h-full group">
+            <div className="w-10 h-10 rounded-xl bg-green-100 text-green-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <UtensilsCrossed className="w-5 h-5" />
+            </div>
+            <h4 className="font-bold text-lg mb-2 text-gray-900">Хранителни Режими</h4>
+            <p className="text-sm text-gray-600">
+              Седмични планове с точни грамажи и макроси за оптимален тестостерон.
+            </p>
+          </BentoCard>
+        </div>
+
+        {/* Feature 3: Workouts */}
+        <div className="lg:col-span-2 reveal delay-250">
+          <BentoCard className="p-8 bg-brand-surface hover:bg-white transition-colors h-full relative overflow-hidden group">
+            <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10">
+              <Dumbbell className="w-6 h-6" />
+            </div>
+            <h4 className="font-bold text-2xl mb-3 text-gray-900 relative z-10">Тренировъчни Програми</h4>
+            <p className="text-gray-600 leading-relaxed mb-4 relative z-10">
+              5,000+ упражнения с видео демонстрации на български. Вкъщи, в залата или йога - имате всичко необходимо.
+            </p>
+            <div className="flex items-center gap-2 text-sm font-medium text-brand-green relative z-10">
+              <Check className="w-4 h-4" />
+              Правилна техника, безопасност, максимален ефект
+            </div>
+
+            <div className="absolute -right-4 -bottom-4 w-32 h-32 bg-orange-100 rounded-full opacity-20 group-hover:scale-150 transition-transform" />
+          </BentoCard>
+        </div>
+
+        {/* Feature 4: Tracking */}
+        <div className="reveal delay-300">
+          <BentoCard className="p-6 bg-brand-surface hover:bg-white transition-colors h-full group">
+            <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+              <LineChart className="w-5 h-5" />
+            </div>
+            <h4 className="font-bold text-lg mb-2 text-gray-900">Проследяване</h4>
+            <p className="text-sm text-gray-600">
+              Напомняния за TestoUP, записване на тегло и прогрес в реално време.
+            </p>
+          </BentoCard>
+        </div>
+
+        {/* Transformation Card - Full Width */}
+        <div className="lg:col-span-4 reveal delay-350">
+          <BentoCard className="p-8 bg-gradient-to-r from-brand-green/10 via-brand-surface to-brand-green/10 hover:bg-white transition-colors">
+            <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+              <div className="flex-1">
+                <h4 className="text-3xl font-display font-bold text-gray-900 mb-4">
+                  Повече от Добавка – Цялостна Трансформация
+                </h4>
+                <p className="text-lg text-gray-600 mb-6">
+                  С Testograph, TestoUP престава да бъде просто добавка. Той се превръща в катализатор на цялостна система.
+                </p>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-6">
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
+                    <span>Увеличете енергията и виталността</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
+                    <span>Пробиете застоя във фитнеса</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
+                    <span>Подобрете либидото и увереността</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-gray-700">
+                    <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
+                    <span>Пълен контрол над здравето</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex-shrink-0">
+                <a
+                  href="https://shop.testograph.eu/products/testoup"
+                  className="inline-flex items-center gap-2 px-8 py-4 bg-brand-green text-white font-bold text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl shadow-brand-green/20 hover:bg-brand-dark"
+                >
+                  Започни сега
+                  <ChevronRight className="w-5 h-5" />
+                </a>
+              </div>
+            </div>
+          </BentoCard>
+        </div>
+
+      </div>
+    </section>
   );
 }
 
 // ============================================
-// SECTION 5: HOW IT WORKS (Mobile Optimized)
+// ANIMATED CHAT CARD (Cycling Conversations)
+// ============================================
+function AnimatedChatCard() {
+  const [activeChat, setActiveChat] = useState(0);
+  const [animationStep, setAnimationStep] = useState<'user' | 'typing' | 'ai'>('user');
+
+  const conversations = [
+    {
+      userMsg: "Колко време отнема да видя резултати?",
+      aiMsg: "Първите ефекти (повишено либидо, повече енергия) се усещат в рамките на 3-7 дни. За пълна трансформация препоръчвам 60-90 дни следване на програмата."
+    },
+    {
+      userMsg: "Как получавам достъп до приложението?",
+      aiMsg: "Веднага след поръчката ще получиш имейл с линк за регистрация. Попълваш кратък въпросник (10 мин) и получаваш своя персонализиран план."
+    },
+    {
+      userMsg: "Безопасна ли е добавката TestoUP?",
+      aiMsg: "Абсолютно. Всички съставки са натурални и клинично тествани. Произвежда се в ЕС със сертификати GMP, HACCP и от БАБХ."
+    },
+    {
+      userMsg: "Трябва ли да посещавам фитнес зала?",
+      aiMsg: "Не е задължително. Приложението предлага тренировки за всякакви нива - от начинаещи до напреднали. Можеш да тренираш у дома или във фитнеса."
+    }
+  ];
+
+  useEffect(() => {
+    // Reset animation when chat changes
+    setAnimationStep('user');
+
+    const userTimer = setTimeout(() => setAnimationStep('typing'), 800);
+    const typingTimer = setTimeout(() => setAnimationStep('ai'), 2500);
+    const nextChatTimer = setTimeout(() => {
+      setActiveChat((prev) => (prev + 1) % conversations.length);
+    }, 8000);
+
+    return () => {
+      clearTimeout(userTimer);
+      clearTimeout(typingTimer);
+      clearTimeout(nextChatTimer);
+    };
+  }, [activeChat, conversations.length]);
+
+  return (
+    <BentoCard className="p-6 bg-brand-dark text-white relative overflow-hidden group h-full">
+      <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full z-20">ПРИЛОЖЕНИЕ</div>
+
+      <div className="relative z-10 h-full flex flex-col">
+        <div className="mb-4">
+          <h3 className="font-display font-bold text-xl mb-1">Изкуствен Интелект</h3>
+          <p className="text-gray-400 text-xs">Твоят дигитален ендокринолог 24/7</p>
+        </div>
+
+        {/* Chat Container */}
+        <div className="flex-1 bg-white/5 backdrop-blur-sm rounded-2xl p-4 overflow-hidden relative">
+          <div className="space-y-3">
+            {/* User Message */}
+            <div
+              className={`flex justify-end transition-all duration-500 ${
+                animationStep === 'user' || animationStep === 'typing' || animationStep === 'ai'
+                  ? 'opacity-100 translate-y-0'
+                  : 'opacity-0 translate-y-4'
+              }`}
+            >
+              <div className="bg-purple-100 rounded-2xl rounded-tr-sm px-3 py-2 max-w-[80%] border border-purple-200">
+                <p className="text-xs text-gray-900">{conversations[activeChat].userMsg}</p>
+              </div>
+            </div>
+
+            {/* Typing Indicator */}
+            {animationStep === 'typing' && (
+              <div className="flex justify-start animate-[fadeIn_0.3s_ease-out]">
+                <div className="bg-green-100 rounded-2xl rounded-tl-sm px-4 py-2 border border-green-200">
+                  <div className="flex gap-1">
+                    <div className="w-2 h-2 bg-brand-green rounded-full animate-[bounce_1s_ease-in-out_infinite]" />
+                    <div className="w-2 h-2 bg-brand-green rounded-full animate-[bounce_1s_ease-in-out_0.2s_infinite]" />
+                    <div className="w-2 h-2 bg-brand-green rounded-full animate-[bounce_1s_ease-in-out_0.4s_infinite]" />
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* AI Message */}
+            {animationStep === 'ai' && (
+              <div className="flex justify-start animate-[fadeIn_0.5s_ease-out]">
+                <div className="bg-green-100 rounded-2xl rounded-tl-sm px-3 py-2 max-w-[85%] border border-green-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Brain className="w-3 h-3 text-brand-green" />
+                    <span className="text-[10px] font-bold text-brand-green">Изкуствен Интелект</span>
+                  </div>
+                  <p className="text-xs leading-relaxed text-gray-900">{conversations[activeChat].aiMsg}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Chat Input (Disabled) */}
+        <div className="mt-3 bg-white/5 rounded-xl px-3 py-2 flex items-center gap-2">
+          <input
+            type="text"
+            placeholder="Задай въпрос..."
+            disabled
+            className="flex-1 bg-transparent text-xs text-white/40 placeholder:text-white/30 outline-none cursor-not-allowed"
+          />
+          <Brain className="w-4 h-4 text-brand-green" />
+        </div>
+
+        {/* Conversation Indicator Dots */}
+        <div className="flex justify-center gap-1.5 mt-3">
+          {conversations.map((_, idx) => (
+            <div
+              key={idx}
+              className={`w-1.5 h-1.5 rounded-full transition-all duration-300 ${
+                activeChat === idx ? 'bg-brand-green w-4' : 'bg-white/20'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      <div className="absolute bottom-0 right-0 w-48 h-48 bg-gradient-to-tl from-brand-green/20 to-transparent opacity-30 pointer-events-none" />
+      <div className="absolute bottom-2 right-2 text-6xl font-display font-bold text-white/5 select-none pointer-events-none">02</div>
+    </BentoCard>
+  );
+}
+
+// ============================================
+// ECOSYSTEM SECTION (Big Bento Grid)
+// ============================================
+function EcosystemSection() {
+  return (
+    <section id="system" className="py-20 px-6 max-w-7xl mx-auto">
+      <div className="mb-12 flex items-end justify-between reveal">
+        <div>
+          <h2 className="font-display font-bold text-4xl text-brand-dark">Екосистемата</h2>
+          <p className="text-gray-500 mt-2">Хардуер (Тяло) + Софтуер (Навици)</p>
+        </div>
+        <div className="hidden md:block h-px flex-1 bg-brand-dark/10 ml-8 mb-4" />
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 auto-rows-auto gap-6 min-h-[600px]">
+
+        {/* Card 1: The Supplement (Large) */}
+        <div className="md:col-span-2 md:row-span-2 reveal">
+          <BentoCard className="p-8 relative group h-full overflow-hidden">
+            <div className="absolute top-6 left-6 bg-brand-green text-white text-xs font-bold px-3 py-1 rounded-full z-20">ДОБАВКА</div>
+
+            <div className="h-full flex flex-col justify-center relative z-10">
+              <h3 className="font-display font-bold text-3xl mb-4">Формула TestoUP</h3>
+              <p className="text-gray-600 mb-8 max-w-xs">
+                12 активни съставки в синергична матрица. Цинк, Витамин Д3, Магнезий и Ашваганда КСМ-66.
+              </p>
+              <ul className="space-y-3 text-sm font-medium text-gray-700">
+                <li className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-brand-green rounded-full" /> 60 капсули на опаковка
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-brand-green rounded-full" /> Дозировка: 2 капсули дневно
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-brand-green rounded-full" /> Без пълнители
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-brand-green rounded-full" /> Висока бионаличност
+                </li>
+                <li className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 bg-brand-green rounded-full" /> Веган капсули
+                </li>
+              </ul>
+            </div>
+
+            {/* Product Image */}
+            <div className="absolute -right-8 bottom-0 w-64 h-64 opacity-30 group-hover:opacity-50 transition-opacity duration-500">
+              <img
+                src="/product/testoup-3.png"
+                alt="TestoUP Complex"
+                className="w-full h-full object-contain transform group-hover:scale-110 transition-transform duration-500"
+              />
+            </div>
+
+            <div className="absolute bottom-0 right-0 w-64 h-64 bg-gradient-to-tl from-brand-green/20 to-transparent rounded-tl-full transition-transform group-hover:scale-110 duration-500" />
+            <div className="absolute bottom-8 right-8 text-9xl font-display font-bold text-brand-dark/5 select-none">01</div>
+          </BentoCard>
+        </div>
+
+        {/* Card 2: The App (Medium) - Animated Chat */}
+        <div className="md:col-span-1 lg:col-span-2 reveal delay-100">
+          <AnimatedChatCard />
+        </div>
+
+        {/* Card 3: Ingredient Highlight (Small) */}
+        <div className="reveal delay-150">
+          <BentoCard className="p-6 flex flex-col justify-between h-full hover:bg-white transition-colors group relative overflow-hidden">
+            {/* Full Background Image */}
+            <div className="absolute inset-0 opacity-[0.07] group-hover:opacity-[0.14] transition-opacity">
+              <img
+                src="/Testoup formula/ashwagandha-img.webp"
+                alt="Ashwagandha KSM-66"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {/* Ingredient Bubble */}
+            <div className="absolute top-4 right-4 w-20 h-20 rounded-full overflow-hidden bg-white/80 backdrop-blur-sm border border-white/60 shadow-lg z-10">
+              <img
+                src="/Testoup formula/ashwagandha-img.webp"
+                alt="Ashwagandha"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="w-10 h-10 rounded-full bg-orange-100 text-orange-600 flex items-center justify-center mb-4 relative z-10">
+              <Activity className="w-5 h-5" />
+            </div>
+            <div className="relative z-10">
+              <h4 className="font-bold text-lg leading-tight">
+                Ашваганда КСМ-66<br />
+                <span className="text-base font-normal text-gray-600">(400мг)</span>
+              </h4>
+              <p className="text-xs text-gray-500 mt-2">Клиничен екстракт от ашваганда за намаляване на стреса.</p>
+            </div>
+          </BentoCard>
+        </div>
+
+        {/* Card 4: Ingredient Highlight (Small) */}
+        <div className="reveal delay-200">
+          <BentoCard className="p-6 flex flex-col justify-between h-full hover:bg-white transition-colors group relative overflow-hidden">
+            {/* Full Background Image */}
+            <div className="absolute inset-0 opacity-[0.07] group-hover:opacity-[0.14] transition-opacity">
+              <img
+                src="/Testoup formula/zinc-img.webp"
+                alt="Zinc"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            {/* Ingredient Bubble */}
+            <div className="absolute top-4 right-4 w-20 h-20 rounded-full overflow-hidden bg-white/80 backdrop-blur-sm border border-white/60 shadow-lg z-10">
+              <img
+                src="/Testoup formula/zinc-img.webp"
+                alt="Zinc"
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div className="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-4 relative z-10">
+              <TrendingUp className="w-5 h-5" />
+            </div>
+            <div className="relative z-10">
+              <h4 className="font-bold text-lg leading-tight">
+                Цинк + Магнезий<br />
+                <span className="text-base font-normal text-gray-600">(50мг + 400мг)</span>
+              </h4>
+              <p className="text-xs text-gray-500 mt-2">Цинк и Магнезий за дълбок сън и възстановяване.</p>
+            </div>
+          </BentoCard>
+        </div>
+
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// HOW IT WORKS SECTION
 // ============================================
 function HowItWorksSection() {
   const steps = [
     {
-      icon: <ShoppingCart className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-[#499167]" />,
+      icon: <ShoppingCart className="w-16 h-16 text-brand-green" />,
       title: "1. Поръчай добавката",
       description: "С поръчката си получаваш незабавен достъп до приложението Testograph."
     },
     {
-      icon: <Smartphone className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-[#499167]" />,
+      icon: <Smartphone className="w-16 h-16 text-brand-green" />,
       title: "2. Следвай твоя план",
       description: "Вътре те очаква персонализиран план за тренировки, хранене, сън и прием на добавката."
     },
     {
-      icon: <TrendingUp className="w-12 h-12 sm:w-14 sm:h-14 md:w-16 md:h-16 text-[#499167]" />,
+      icon: <TrendingUp className="w-16 h-16 text-brand-green" />,
       title: "3. Постигни резултати",
       description: "Седмица 1: Повишено либидо и по-добри ерекции.\nМесец 1: Повече енергия и по-бързо възстановяване.\nМесец 2: Цялостна трансформация."
     }
   ];
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 bg-white">
-      <div className="container mx-auto px-4 sm:px-6 relative z-10">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-center mb-10 sm:mb-12 md:mb-16">
-          Как Работи TestoUP Програмата за Оптимизиране на Тестостерона?
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-6">
+        <h2 className="text-4xl md:text-5xl font-display font-bold text-center mb-16 reveal">
+          Как Работи TestoUP Програмата?
         </h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
+        <div className="flex flex-col md:flex-row items-stretch max-w-5xl mx-auto">
           {steps.map((step, idx) => (
-            <div key={idx} className="bg-[#e6e6e6] rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg text-center relative flex flex-col items-center border border-gray-100">
+            <React.Fragment key={idx}>
+              <div className="flex-1 reveal" style={{ transitionDelay: `${idx * 100}ms` }}>
+                <BentoCard className="p-8 text-center flex flex-col items-center h-full">
+                  <div className="mb-4">{step.icon}</div>
+                  <h3 className="text-2xl font-bold mb-3 text-gray-900">{step.title}</h3>
+                  <p className="text-base text-gray-600 whitespace-pre-line leading-relaxed">{step.description}</p>
+                </BentoCard>
+              </div>
               {idx < steps.length - 1 && (
-                <div className="hidden md:block absolute top-1/2 -right-4 transform -translate-y-1/2">
-                  <ChevronRight className="w-8 h-8 text-[#499167]" />
+                <div className="hidden md:flex items-center justify-center px-4 flex-shrink-0">
+                  <ChevronRight className="w-8 h-8 text-brand-green" />
                 </div>
               )}
-              <div className="mb-3 sm:mb-4">{step.icon}</div>
-              <h3 className="text-lg sm:text-xl md:text-2xl font-bold mb-2 sm:mb-3 text-gray-900">{step.title}</h3>
-              <p className="text-sm sm:text-base text-gray-600 whitespace-pre-line leading-relaxed">{step.description}</p>
-            </div>
+            </React.Fragment>
           ))}
         </div>
 
-        <div className="text-center mt-8 sm:mt-10 md:mt-12">
+        <div className="text-center mt-12">
           <a
             href="#clinical-proof"
-            className="inline-flex items-center gap-2 px-6 sm:px-8 py-4 bg-white hover:bg-[#e6e6e6] text-gray-900 font-bold text-base sm:text-lg rounded-full border-2 border-gray-300 transition-all duration-300 hover:scale-105 touch-manipulation"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-white hover:bg-gray-50 text-gray-900 font-bold text-lg rounded-full border-2 border-gray-300 transition-all duration-300 hover:scale-105"
           >
             Виж съставките
-            <ChevronRight className="w-5 h-5 flex-shrink-0" />
+            <ChevronRight className="w-5 h-5" />
           </a>
         </div>
       </div>
@@ -590,57 +1251,103 @@ function HowItWorksSection() {
 }
 
 // ============================================
-// SECTION 6: CLINICAL PROOF (Mobile Optimized)
+// CLINICAL PROOF SECTION
 // ============================================
 function ClinicalProofSection() {
   return (
-    <section id="clinical-proof" className="py-12 sm:py-16 md:py-20 bg-[#e6e6e6]">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="text-center mb-10 sm:mb-12 md:mb-16">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-3 sm:mb-4">
-            Клинично Доказана Формула за Естествено Повишаване на Тестостерона
+    <section id="clinical-proof" className="py-20 bg-brand-surface">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-16 reveal">
+          <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
+            Клинично Доказана Формула
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-gray-600 max-w-3xl mx-auto">
+          <p className="text-xl text-gray-600 max-w-3xl mx-auto">
             Нашата формула съдържа 12 активни съставки, подкрепени от над 50 публикувани клинични проучвания.
           </p>
         </div>
 
-        {/* Show 4 featured researchers */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto mb-8 sm:mb-10 md:mb-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto mb-12">
           <ResearcherCard
-            ingredient="Vitamin D3 (2400 IU)"
+            ingredient="Витамин Д3 (2400 МЕ)"
             researcher="Д-р Майкъл Холик"
             institution="Бостънски университет"
             quote="Дефицитът на витамин D е пряко свързан с ниските нива на тестостерон. Суплементирането с витамин D доказано ги повишава."
           />
           <ResearcherCard
-            ingredient="Zinc (50mg)"
+            ingredient="Цинк (50мг)"
             researcher="Д-р Ананда Прасад"
             institution="Щатски университет 'Уейн'"
             quote="Дефицитът на цинк директно намалява производството на тестостерон. Приемът му като добавка нормализира нивата в рамките на 3 до 6 месеца."
           />
           <ResearcherCard
-            ingredient="Ashwagandha (400mg)"
+            ingredient="Ашваганда (400мг)"
             researcher="Д-р Биджасвит Оди"
             institution="Институт за клинични изследвания, Индия"
             quote="Доказано повишава тестостерона с до 15% и намалява кортизола (хормона на стреса) с до 40% при възрастни, подложени на стрес."
           />
           <ResearcherCard
-            ingredient="Magnesium (400mg)"
+            ingredient="Магнезий (400мг)"
             researcher="Д-р Джовани Чеда"
             institution="Университет на Парма"
             quote="Магнезият повишава както свободния, така и общия тестостерон, особено когато се комбинира с редовна физическа активност."
           />
+          <ResearcherCard
+            ingredient="Трибулус Терестрис (500мг)"
+            researcher="Д-р Антонио Дзоло"
+            institution="Институт по спортна медицина, Италия"
+            quote="Трибулус терестрис стимулира естественото производство на тестостерон и значително увеличава силата и мускулната маса при атлети."
+          />
+          <ResearcherCard
+            ingredient="Селен (100мкг)"
+            researcher="Д-р Маргарет Рейман"
+            institution="Университет на Съри"
+            quote="Селенът е критичен за производството на сперматозоиди и защитава клетките от оксидативен стрес, свързан с възрастта."
+          />
+          <ResearcherCard
+            ingredient="Витамин Ц (200мг)"
+            researcher="Д-р Балз Фрей"
+            institution="Институт Линус Полинг"
+            quote="Витамин C намалява ефектите от стреса върху организма и защитава клетките от оксидативни увреждания."
+          />
+          <ResearcherCard
+            ingredient="Витамин Е (30мг)"
+            researcher="Д-р Ишваран Балачандран"
+            institution="Университет на Кералa"
+            quote="Витамин E подобрява кръвообращението и клетъчното здраве, като поддържа нормални хормонални нива."
+          />
+          <ResearcherCard
+            ingredient="Витамин К2 (100мкг)"
+            researcher="Д-р Сис Вермеер"
+            institution="Университет Маастрихт"
+            quote="Витамин K2 подсилва костите, оптимизира усвояването на калций и участва активно в хормоналната регулация."
+          />
+          <ResearcherCard
+            ingredient="Vitamin B6 (5mg)"
+            researcher="Д-р Джон Дакс"
+            institution="Университет на Алабама"
+            quote="Витамин B6 стимулира метаболизма, подпомага синтеза на тестостерон и значително намалява чувството на умора."
+          />
+          <ResearcherCard
+            ingredient="Vitamin B12 (10mcg)"
+            researcher="Д-р Джошуа Миллър"
+            institution="Ръткърс университет"
+            quote="B12 повишава енергията, издръжливостта и концентрацията, като поддържа оптимално функциониране на нервната система."
+          />
+          <ResearcherCard
+            ingredient="Vitamin B9 (400mcg)"
+            researcher="Д-р Паул Жак"
+            institution="Министерство на земеделието на САЩ"
+            quote="Фолиевата киселина подобрява клетъчния растеж, кръвообращението и е основна за репродуктивната функция."
+          />
         </div>
 
-        <div className="text-center">
-          <p className="text-sm sm:text-base text-gray-600 mb-4 sm:mb-6">+ още 8 клинично тествани съставки</p>
+        <div className="text-center reveal">
           <a
             href="https://shop.testograph.eu/products/testoup"
-            className="inline-flex items-center gap-2 px-6 sm:px-8 py-4 bg-gradient-to-r from-[#499167] to-[#3a7450] hover:from-[#3a7450] hover:to-[#2d5a3e] text-white font-bold text-base sm:text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl touch-manipulation"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-green text-white font-bold text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl shadow-brand-green/20 hover:bg-brand-dark"
           >
             Виж пълния състав
-            <ChevronRight className="w-5 h-5 flex-shrink-0" />
+            <ChevronRight className="w-5 h-5" />
           </a>
         </div>
       </div>
@@ -649,212 +1356,303 @@ function ClinicalProofSection() {
 }
 
 function ResearcherCard({ ingredient, researcher, institution, quote }: { ingredient: string; researcher: string; institution: string; quote: string }) {
+  // Map ingredients to their image paths
+  const ingredientImages: { [key: string]: string } = {
+    "Vitamin D3 (2400 IU)": "/Testoup formula/vitamin-D.webp",
+    "Zinc (50mg)": "/Testoup formula/zinc-img.webp",
+    "Ashwagandha (400mg)": "/Testoup formula/ashwagandha-img.webp",
+    "Magnesium (400mg)": "/Testoup formula/magnesium-img.webp",
+    "Tribulus Terrestris (500mg)": "/Testoup formula/tribulus-terestris-img.webp",
+    "Selenium (100mcg)": "/Testoup formula/selenium-img.webp",
+    "Vitamin C (200mg)": "/Testoup formula/vitamin-C.webp",
+    "Vitamin E (30mg)": "/Testoup formula/vitamin-E.webp",
+    "Vitamin K2 (100mcg)": "/Testoup formula/vitamin-K2.webp",
+    "Vitamin B6 (5mg)": "/Testoup formula/vitamin-B6.webp",
+    "Vitamin B12 (10mcg)": "/Testoup formula/vitamin-B12.webp",
+    "Vitamin B9 (400mcg)": "/Testoup formula/vitamin-B9.webp",
+  };
+
+  const imagePath = ingredientImages[ingredient];
+
   return (
-    <div className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 border-2 border-gray-200 hover:shadow-lg transition-all">
-      <div className="mb-3 sm:mb-4">
-        <h4 className="font-bold text-gray-900 text-base sm:text-lg mb-1">{ingredient}</h4>
-        <p className="text-xs sm:text-sm font-semibold text-[#3a7450]">{researcher}</p>
-        <p className="text-xs text-gray-600">{institution}</p>
-      </div>
-      <blockquote className="text-xs sm:text-sm text-gray-700 italic leading-relaxed">
-        "{quote}"
-      </blockquote>
+    <div className="reveal">
+      <BentoCard className="p-6 h-full group relative overflow-hidden">
+        {/* Full Background Ingredient Image */}
+        {imagePath && (
+          <div className="absolute inset-0 opacity-[0.07] group-hover:opacity-[0.14] transition-opacity">
+            <img
+              src={imagePath}
+              alt={ingredient}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+        {/* Ingredient Bubble */}
+        {imagePath && (
+          <div className="absolute top-4 right-4 w-20 h-20 rounded-full overflow-hidden bg-white/80 backdrop-blur-sm border border-white/60 shadow-lg z-10">
+            <img
+              src={imagePath}
+              alt={ingredient}
+              className="w-full h-full object-cover"
+            />
+          </div>
+        )}
+        <div className="mb-4 relative z-10">
+          <h4 className="font-bold text-gray-900 text-lg leading-tight mb-1">
+            {ingredient.split(' (')[0]}<br />
+            <span className="text-base font-normal text-gray-600">({ingredient.split(' (')[1]}</span>
+          </h4>
+          <p className="text-sm font-semibold text-brand-green">{researcher}</p>
+          <p className="text-xs text-gray-600">{institution}</p>
+        </div>
+        <blockquote className="text-sm text-gray-700 italic leading-relaxed relative z-10">
+          "{quote}"
+        </blockquote>
+      </BentoCard>
     </div>
   );
 }
 
 // ============================================
-// SECTION 7: PRODUCT PACKAGES (Mobile Optimized)
+// PRODUCT PACKAGES SECTION (Swiss Bento Grid)
 // ============================================
 function ProductPackagesSection() {
-  const packages = [
-    {
-      bottles: 1,
-      duration: "1-месечен план",
-      price: "67.00",
-      priceEur: "34.26",
-      totalPrice: "67.00",
-      savings: null,
-      popular: false,
-      image: "/product/testoup-bottle.webp"
-    },
-    {
-      bottles: 2,
-      duration: "2-месечен план",
-      price: "57.00",
-      priceEur: "29.13",
-      totalPrice: "114.00",
-      savings: "20 лв.",
-      popular: true,
-      image: "/product/testoup-bottle_v1.webp"
-    },
-    {
-      bottles: 3,
-      duration: "3-месечен план",
-      price: "50.00",
-      priceEur: "25.55",
-      totalPrice: "150.00",
-      savings: "51 лв.",
-      popular: false,
-      bestValue: true,
-      image: "/product/testoup-bottle_v2.webp"
-    }
-  ];
-
   return (
-    <section className="py-12 sm:py-16 md:py-20 bg-white">
-      <div className="container mx-auto px-4 sm:px-6 relative z-10">
-        <div className="text-center mb-8 sm:mb-10 md:mb-12">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-3 sm:mb-4">
-            Избери TestoUP План за Повишаване на Тестостерона
-          </h2>
-          <p className="text-base sm:text-lg md:text-xl text-gray-600 mb-3">
-            Всеки план включва пълен достъп до приложението Testograph.
-          </p>
-          <div className="inline-flex items-center gap-2 bg-[#499167] text-white px-4 sm:px-6 py-2 sm:py-3 rounded-full font-semibold text-sm sm:text-base">
-            <span>⚡</span>
-            <span>Специална цена - валидна до изчерпване на stock-а</span>
-          </div>
+    <section id="pricing" className="py-20 px-6 max-w-7xl mx-auto">
+
+      {/* Section Header */}
+      <div className="mb-16 text-center reveal">
+        <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
+          Избери <span className="text-brand-green">Твоя План</span>
+        </h2>
+      </div>
+
+      {/* Bento Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-4 auto-rows-auto gap-6">
+
+        {/* 1-Month Plan */}
+        <div className="reveal">
+          <BentoCard className="p-6 h-full hover:bg-white transition-all group">
+            <div className="text-center mb-4">
+              <div className="w-20 h-20 mx-auto mb-3">
+                <img src="/product/testoup-1.png" alt="1 месец" className="w-full h-full object-contain" />
+              </div>
+              <h3 className="text-xl font-bold text-gray-900 mb-1">1 Месец</h3>
+              <p className="text-3xl font-black text-brand-green mb-1">67 лв.</p>
+              <p className="text-sm text-gray-500">(34.26 €)</p>
+            </div>
+            <div className="space-y-2 mb-4 text-sm">
+              <div className="flex items-center gap-2 text-gray-700">
+                <Check className="w-4 h-4 text-brand-green flex-shrink-0" />
+                <span>1 опаковка (30 дни)</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <Check className="w-4 h-4 text-brand-green flex-shrink-0" />
+                <span>30 дни достъп до приложението</span>
+              </div>
+            </div>
+            <a
+              href="https://shop.testograph.eu/products/testoup"
+              className="block w-full text-center py-3 rounded-full font-bold text-base bg-gray-100 hover:bg-gray-200 text-gray-900 border-2 border-gray-300 transition-all duration-300 hover:scale-105"
+            >
+              Избери →
+            </a>
+          </BentoCard>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mb-8 sm:mb-10 md:mb-12">
-          {packages.map((pkg, idx) => (
-            <PackageCard key={idx} {...pkg} />
-          ))}
+        {/* 2-Month Plan (Popular - Large) */}
+        <div className="md:col-span-2 md:row-span-2 reveal delay-100">
+          <BentoCard className="p-8 h-full relative overflow-hidden border-4 border-brand-green bg-gradient-to-br from-brand-green/5 to-transparent hover:bg-white transition-all group">
+            <div className="absolute top-4 right-4 bg-brand-green text-white px-4 py-1 rounded-full text-xs font-bold">
+              НАЙ-ПОПУЛЯРЕН
+            </div>
+
+            <div className="relative z-10">
+              <div className="text-center mb-6">
+                <div className="w-32 h-32 mx-auto mb-4">
+                  <img src="/product/testoup-2.png" alt="2 месеца" className="w-full h-full object-contain" />
+                </div>
+                <h3 className="text-3xl font-bold text-gray-900 mb-2">2-Месечен План</h3>
+                <div className="mb-4">
+                  <p className="text-5xl font-black text-brand-green mb-1">57 лв./месец</p>
+                  <p className="text-base text-gray-600">(общо 114 лв.)</p>
+                  <p className="text-sm text-gray-500">(29.13 € на месец)</p>
+                </div>
+                <div className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-bold mb-6">
+                  <span>Спестяваш 20 лв.</span>
+                </div>
+              </div>
+
+              <div className="space-y-3 mb-6">
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
+                  <span className="font-medium">2 опаковки (60 дни)</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
+                  <span className="font-medium">60 дни достъп до приложението</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
+                  <span className="font-medium">Персонализиран план</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Check className="w-5 h-5 text-brand-green flex-shrink-0" />
+                  <span className="font-medium">30-дневна гаранция</span>
+                </div>
+              </div>
+
+              <a
+                href="https://shop.testograph.eu/products/testoup"
+                className="block w-full text-center py-4 rounded-full font-bold text-lg bg-brand-green hover:bg-brand-dark text-white shadow-xl shadow-brand-green/20 transition-all duration-300 hover:scale-105"
+              >
+                Избери план →
+              </a>
+            </div>
+
+            <div className="absolute -right-8 -bottom-8 w-40 h-40 bg-brand-green/10 rounded-full blur-2xl" />
+          </BentoCard>
         </div>
 
-        <div className="text-center space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-600">
-          <p className="flex items-center justify-center gap-2"><Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#499167]" /> Безплатна доставка над 50 лв.</p>
-          <p className="flex items-center justify-center gap-2"><Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#499167]" /> Сигурно плащане</p>
-          <p className="flex items-center justify-center gap-2"><Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#499167]" /> Дискретна опаковка</p>
-          <p className="flex items-center justify-center gap-2"><Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#499167]" /> 30-дневна гаранция за връщане на парите</p>
+        {/* 3-Month Plan (Best Value) */}
+        <div className="reveal delay-200">
+          <BentoCard className="p-6 h-full relative overflow-hidden border-4 border-orange-500 bg-gradient-to-br from-orange-50 to-transparent hover:bg-white transition-all group">
+            <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+              НАЙ-ИЗГОДЕН
+            </div>
+
+            <div className="relative z-10">
+              <div className="text-center mb-4">
+                <div className="w-20 h-20 mx-auto mb-3">
+                  <img src="/product/testoup-3.png" alt="3 месеца" className="w-full h-full object-contain" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-1">3 Месеца</h3>
+                <p className="text-3xl font-black text-orange-600 mb-1">50 лв./месец</p>
+                <p className="text-xs text-gray-600">(общо 150 лв.)</p>
+                <p className="text-xs text-gray-500 mb-2">(25.55 €)</p>
+                <div className="inline-flex items-center gap-1 bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-bold">
+                  Спестяваш 51 лв.
+                </div>
+              </div>
+
+              <div className="space-y-2 mb-4 text-sm">
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Check className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                  <span>3 опаковки (90 дни)</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Check className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                  <span>90 дни достъп до приложението</span>
+                </div>
+                <div className="flex items-center gap-2 text-gray-700">
+                  <Check className="w-4 h-4 text-orange-600 flex-shrink-0" />
+                  <span>Максимални резултати</span>
+                </div>
+              </div>
+
+              <a
+                href="https://shop.testograph.eu/products/testoup"
+                className="block w-full text-center py-3 rounded-full font-bold text-base bg-orange-500 hover:bg-orange-600 text-white shadow-xl shadow-orange-500/20 transition-all duration-300 hover:scale-105"
+              >
+                Избери →
+              </a>
+            </div>
+          </BentoCard>
         </div>
+
+        {/* Benefits Card */}
+        <div className="md:col-span-2 reveal delay-300">
+          <BentoCard className="p-6 bg-brand-surface hover:bg-white transition-colors">
+            <h4 className="font-bold text-lg mb-4 text-gray-900">Какво получаваш:</h4>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div className="flex items-center gap-2 text-gray-700">
+                <Check className="w-4 h-4 text-brand-green flex-shrink-0" />
+                <span>Безплатна доставка над 100 лв.</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <Check className="w-4 h-4 text-brand-green flex-shrink-0" />
+                <span>Сигурно плащане</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <Check className="w-4 h-4 text-brand-green flex-shrink-0" />
+                <span>Дискретна опаковка</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-700">
+                <Check className="w-4 h-4 text-brand-green flex-shrink-0" />
+                <span>30-дневна гаранция</span>
+              </div>
+            </div>
+          </BentoCard>
+        </div>
+
+        {/* Social Proof Card */}
+        <div className="md:col-span-2 reveal delay-350">
+          <BentoCard className="p-6 bg-gradient-to-r from-brand-green/10 via-brand-surface to-brand-green/10 hover:bg-white transition-colors">
+            <div className="flex items-center justify-center gap-3">
+              <Users className="w-6 h-6 text-brand-green" />
+              <span className="font-bold text-lg text-gray-900">Над 2,438 доволни клиенти в България</span>
+            </div>
+          </BentoCard>
+        </div>
+
       </div>
     </section>
   );
 }
 
-interface PackageCardProps {
-  bottles: number;
-  duration: string;
-  price: string;
-  priceEur: string;
-  totalPrice: string;
-  savings: string | null;
-  popular?: boolean;
-  bestValue?: boolean;
-  image: string;
-}
-
-function PackageCard({ bottles, duration, price, priceEur, totalPrice, savings, popular, bestValue, image }: PackageCardProps) {
-  return (
-    <div className={`relative bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 shadow-lg hover:shadow-2xl transition-all ${popular || bestValue ? 'border-4 border-[#499167] md:transform md:scale-105' : 'border-2 border-gray-200'}`}>
-      {popular && (
-        <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2 bg-[#499167] text-white px-4 sm:px-6 py-1 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap">
-          НАЙ-ПОПУЛЯРЕН
-        </div>
-      )}
-      {bestValue && (
-        <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2 bg-orange-500 text-white px-4 sm:px-6 py-1 rounded-full text-xs sm:text-sm font-bold whitespace-nowrap">
-          НАЙ-ИЗГОДЕН
-        </div>
-      )}
-
-      <div className="text-center mb-4 sm:mb-6">
-        <img
-          src={image}
-          alt={`TestoUP тестостеронов бустер - ${bottles} опаковки за ${duration.toLowerCase()}`}
-          className="w-24 h-24 sm:w-32 sm:h-32 mx-auto object-contain mb-3 sm:mb-4"
-          loading="lazy"
-        />
-        <h3 className="text-xl sm:text-2xl font-black text-gray-900 mb-2">{duration}</h3>
-        <div className="mb-3 sm:mb-4">
-          <p className="text-3xl sm:text-4xl font-black text-[#499167]">{price} лв./месец</p>
-          <p className="text-xs sm:text-sm text-gray-500">({priceEur} €)</p>
-          {totalPrice !== price && (
-            <p className="text-base sm:text-lg text-gray-700 mt-1 sm:mt-2">(общо {totalPrice} лв.)</p>
-          )}
-        </div>
-        {savings && (
-          <p className="text-[#499167] font-bold text-xs sm:text-sm mb-2">
-            Спестяваш {savings}
-          </p>
-        )}
-      </div>
-
-      <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
-        <li className="flex items-center gap-2 text-sm sm:text-base text-gray-700">
-          <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[#499167] flex-shrink-0" />
-          <span>{bottles} {bottles === 1 ? 'опаковка' : 'опаковки'} ({bottles * 30} дни)</span>
-        </li>
-        <li className="flex items-center gap-2 text-sm sm:text-base text-gray-700">
-          <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[#499167] flex-shrink-0" />
-          <span>Безплатен достъп до приложението</span>
-        </li>
-        <li className="flex items-center gap-2 text-sm sm:text-base text-gray-700">
-          <Check className="w-4 h-4 sm:w-5 sm:h-5 text-[#499167] flex-shrink-0" />
-          <span>30-дневна гаранция за връщане на парите</span>
-        </li>
-      </ul>
-
-      <a
-        href="https://shop.testograph.eu/products/testoup"
-        className={`block w-full text-center py-3 sm:py-4 rounded-full font-bold text-base sm:text-lg transition-all duration-300 hover:scale-105 touch-manipulation ${
-          popular || bestValue
-            ? 'bg-gradient-to-r from-[#499167] to-[#3a7450] hover:from-[#3a7450] hover:to-[#2d5a3e] text-white shadow-xl'
-            : 'bg-gray-100 hover:bg-gray-200 text-gray-900 border-2 border-gray-300'
-        }`}
-      >
-        Избери план →
-      </a>
-    </div>
-  );
-}
-
 // ============================================
-// SECTION 8: MEMBER TESTIMONIALS (Mobile Optimized)
+// MEMBER TESTIMONIALS SECTION
 // ============================================
 function MemberTestimonialsSection() {
   const testimonials = [
-    { text: "Първите две седмици бях скептичен. След това обаче забелязах, че приключвам работния ден без да съм напълно изтощен. Това е огромна промяна за мен.", author: "Стоян, 34г., София" },
-    { text: "На четвъртия ден се появи сутрешна ерекция, което не ми се беше случвало от месеци. Жена ми забеляза, че нещо се променя, още преди да ѝ кажа.", author: "Димитър, 40г., Пловдив" },
-    { text: "Без приложението нямаше да знам какво да правя. Особено частта за съня - промених часа си на лягане и температурата в стаята. Разликата беше огромна.", author: "Николай, 37г., Варна" },
-    { text: "Пета седмица: момчетата в залата ме питат 'какво взимаш?'. Вдигам повече и се възстановявам по-бързо.", author: "Иван, 29г., Бургас" },
-    { text: "Пробвал съм Tribulus и Maca преди, но без резултат. Тук е различно, защото следваш цялостна програма, а не просто пиеш хапчета.", author: "Петър, 42г., Русе" },
-    { text: "Преди спях по 5-6 часа и се чувствах разбит. Сега спя по 7-8 часа и се събуждам сам, преди алармата. Енергията ми през деня е стабилна.", author: "Георги, 45г., Стара Загора" },
-    { text: "Не стана за седмица, отне ми около месец и половина. Но програмата наистина работи, стига да си постоянен.", author: "Христо, 38г., Плевен" },
-    { text: "Харчил съм толкова пари за безполезни неща. Това е първото, което реално промени начина, по който се чувствам всеки ден.", author: "Александър, 35г., Велико Търново" },
-    { text: "Преди два месеца бях постоянно уморен, с нулево либидо и в лошо настроение. Сега отново се чувствам нормално. Просто нормално. Това е всичко, което исках.", author: "Мартин, 41г., Благоевград" }
+    { text: "Първите две седмици бях скептичен. След това обаче забелязах, че приключвам работния ден без да съм напълно изтощен. Това е огромна промяна за мен.", author: "Стоян, 34г., София", avatar: "/funnel/stoyan-avatar.jpg" },
+    { text: "На четвъртия ден се появи сутрешна ерекция, което не ми се беше случвало от месеци. Жена ми забеляза, че нещо се променя, още преди да ѝ кажа.", author: "Димитър, 40г., Пловдив", avatar: "/funnel/dimitar-avatar.jpg" },
+    { text: "Без приложението нямаше да знам какво да правя. Особено частта за съня - промених часа си на лягане и температурата в стаята. Разликата беше огромна.", author: "Николай, 37г., Варна", avatar: "/funnel/avatar-extra1.jpg" },
+    { text: "Пета седмица: момчетата в залата ме питат 'какво взимаш?'. Вдигам повече и се възстановявам по-бързо.", author: "Иван, 29г., Бургас", avatar: "/funnel/ivan-avatar.jpg" },
+    { text: "Пробвал съм трибулус и мака преди, но без резултат. Тук е различно, защото следваш цялостна програма, а не просто пиеш хапчета.", author: "Петър, 42г., Русе", avatar: "/funnel/petar-avatar.jpg" },
+    { text: "Преди спях по 5-6 часа и се чувствах разбит. Сега спя по 7-8 часа и се събуждам сам, преди алармата. Енергията ми през деня е стабилна.", author: "Георги, 45г., Стара Загора", avatar: "/funnel/georgi-avatar.jpg" },
+    { text: "Не стана за седмица, отне ми около месец и половина. Но програмата наистина работи, стига да си постоянен.", author: "Христо, 38г., Плевен", avatar: "/funnel/emil-avatar.jpg" },
+    { text: "Харчил съм толкова пари за безполезни неща. Това е първото, което реално промени начина, по който се чувствам всеки ден.", author: "Александър, 35г., Велико Търново", avatar: "/funnel/avatar-extra2.jpg" },
+    { text: "Преди два месеца бях постоянно уморен, с нулево либидо и в лошо настроение. Сега отново се чувствам нормално. Просто нормално. Това е всичко, което исках.", author: "Мартин, 41г., Благоевград", avatar: "/funnel/martin-avatar.jpg" }
   ];
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 bg-[#e6e6e6]">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="text-center mb-8 sm:mb-10 md:mb-12">
-          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black mb-3 sm:mb-4">
-            Успешни Истории от Мъже Използващи TestoUP за Мъжко Здраве
+    <section className="py-20 bg-brand-surface">
+      <div className="container mx-auto px-6">
+        <div className="text-center mb-12 reveal">
+          <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
+            Успешни Истории
           </h2>
-          <p className="text-base sm:text-lg md:text-xl text-gray-600">
+          <p className="text-xl text-gray-600">
             Хиляди мъже вече следват програмата. Виж техните резултати.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 max-w-7xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {testimonials.map((testimonial, idx) => (
-            <div key={idx} className="bg-white rounded-lg sm:rounded-xl p-4 sm:p-6 border border-gray-200 hover:border-[#499167] transition-colors">
-              <p className="text-sm sm:text-base text-gray-700 mb-3 sm:mb-4 leading-relaxed">"{testimonial.text}"</p>
-              <p className="text-xs sm:text-sm font-semibold text-gray-900">— {testimonial.author}</p>
+            <div key={idx} className="reveal" style={{ transitionDelay: `${idx * 50}ms` }}>
+              <BentoCard className="p-6 h-full hover:bg-white transition-colors">
+                <p className="text-base text-gray-700 mb-4 leading-relaxed">"{testimonial.text}"</p>
+                <div className="flex items-center gap-3">
+                  <img
+                    src={testimonial.avatar}
+                    alt={testimonial.author}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-brand-green/20"
+                  />
+                  <p className="text-sm font-semibold text-gray-900">— {testimonial.author}</p>
+                </div>
+              </BentoCard>
             </div>
           ))}
         </div>
 
-        <div className="text-center mt-8 sm:mt-10 md:mt-12">
+        <div className="text-center mt-12 reveal">
           <a
             href="https://shop.testograph.eu/products/testoup"
-            className="inline-flex items-center gap-2 px-6 sm:px-8 py-4 bg-gradient-to-r from-[#499167] to-[#3a7450] hover:from-[#3a7450] hover:to-[#2d5a3e] text-white font-bold text-base sm:text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl touch-manipulation"
+            className="inline-flex items-center gap-2 px-8 py-4 bg-brand-green text-white font-bold text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl shadow-brand-green/20 hover:bg-brand-dark"
           >
             Присъедини се към тях
-            <ChevronRight className="w-5 h-5 flex-shrink-0" />
+            <ChevronRight className="w-5 h-5" />
           </a>
         </div>
       </div>
@@ -863,55 +1661,57 @@ function MemberTestimonialsSection() {
 }
 
 // ============================================
-// GUARANTEE SECTION (Mobile Optimized)
+// GUARANTEE SECTION
 // ============================================
 function GuaranteeSection() {
   const guarantees = [
     {
-      icon: <Shield className="w-10 h-10 sm:w-12 sm:h-12" />,
+      icon: <Shield className="w-12 h-12" />,
       title: "30 Дневна Гаранция",
       description: "Пълно възстановяване на сумата, ако не си доволен"
     },
     {
-      icon: <Truck className="w-10 h-10 sm:w-12 sm:h-12" />,
+      icon: <Truck className="w-12 h-12" />,
       title: "Безплатна Доставка",
-      description: "За поръчки над 99 лв. до цяла България"
+      description: "За поръчки над 100 лв. до цяла България"
     },
     {
-      icon: <Lock className="w-10 h-10 sm:w-12 sm:h-12" />,
+      icon: <Lock className="w-12 h-12" />,
       title: "Сигурно Плащане",
       description: "SSL криптиране и защитени транзакции"
     },
     {
-      icon: <Award className="w-10 h-10 sm:w-12 sm:h-12" />,
+      icon: <Award className="w-12 h-12" />,
       title: "Сертифицирано Качество",
       description: "Произведено в GMP сертифициран обект"
     }
   ];
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-br from-[#f0f9f4] to-[#e8f5ed]">
-      <div className="container mx-auto px-4 sm:px-6">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-center mb-3 sm:mb-4">
+    <section className="py-20 bg-white">
+      <div className="container mx-auto px-6">
+        <h2 className="text-4xl md:text-5xl font-display font-bold text-center mb-4 reveal">
           Нашата Гаранция за Качество
         </h2>
-        <p className="text-base sm:text-lg md:text-xl text-gray-600 text-center mb-10 sm:mb-12 md:mb-16 max-w-3xl mx-auto">
+        <p className="text-xl text-gray-600 text-center mb-16 max-w-3xl mx-auto reveal">
           Купуваш с пълна увереност. Ако не си доволен, връщаме парите - без въпроси.
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
           {guarantees.map((guarantee, idx) => (
-            <div key={idx} className="bg-white rounded-xl sm:rounded-2xl p-6 sm:p-8 text-center shadow-lg hover:shadow-xl transition-shadow border border-gray-100">
-              <div className="flex justify-center mb-3 sm:mb-4 text-[#499167]">{guarantee.icon}</div>
-              <h3 className="text-lg sm:text-xl font-black text-gray-900 mb-2 sm:mb-3">{guarantee.title}</h3>
-              <p className="text-sm sm:text-base text-gray-600">{guarantee.description}</p>
+            <div key={idx} className="reveal" style={{ transitionDelay: `${idx * 100}ms` }}>
+              <BentoCard className="p-8 text-center h-full">
+                <div className="flex justify-center mb-4 text-brand-green">{guarantee.icon}</div>
+                <h3 className="text-xl font-black text-gray-900 mb-3">{guarantee.title}</h3>
+                <p className="text-base text-gray-600">{guarantee.description}</p>
+              </BentoCard>
             </div>
           ))}
         </div>
 
-        <div className="mt-10 sm:mt-12 md:mt-16 text-center">
-          <div className="inline-flex items-center gap-2 sm:gap-3 bg-[#499167] text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg sm:rounded-xl font-bold text-base sm:text-lg">
-            <Users className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+        <div className="mt-16 text-center reveal">
+          <div className="inline-flex items-center gap-3 bg-brand-green text-white px-8 py-4 rounded-xl font-bold text-lg">
+            <Users className="w-6 h-6" />
             <span>Над 2,438 доволни клиенти в България</span>
           </div>
         </div>
@@ -921,16 +1721,18 @@ function GuaranteeSection() {
 }
 
 // ============================================
-// SECTION 9: FAQ (Mobile Optimized)
+// FAQ SECTION (Swiss Bento Grid)
 // ============================================
 function FAQSection() {
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
+
   const faqs = [
     {
       q: "Колко време отнема, за да видя резултати?",
       a: "Повечето мъже забелязват първите ефекти (повишено либидо, повече енергия) в рамките на 3 до 7 дни. За цялостна трансформация са необходими между 60 и 90 дни стриктно следване на програмата."
     },
     {
-      q: "Как получавам достъп до приложението?",
+      q: "Як получавам достъп до приложението?",
       a: "Веднага след като завършиш поръчката си, ще получиш имейл с линк за регистрация. Процесът отнема около 10 минути, в които трябва да попълниш кратък въпросник, след което ще получиш своя персонализиран план."
     },
     {
@@ -948,70 +1750,208 @@ function FAQSection() {
   ];
 
   return (
-    <section className="py-12 sm:py-16 md:py-20 bg-white">
-      <div className="container mx-auto px-4 sm:px-6">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-black text-center mb-10 sm:mb-12 md:mb-16">
-          Често Задавани Въпроси за TestoUP и Повишаване на Тестостерона
-        </h2>
+    <section className="py-20 px-6 max-w-7xl mx-auto">
 
-        <div className="max-w-3xl mx-auto space-y-3 sm:space-y-4">
-          {faqs.map((faq, idx) => (
-            <details key={idx} className="group bg-[#e6e6e6] rounded-lg sm:rounded-xl border-2 border-gray-200 hover:border-[#499167] transition-colors">
-              <summary className="p-4 sm:p-6 cursor-pointer flex items-center justify-between font-bold text-base sm:text-lg text-gray-900">
-                {faq.q}
-                <ChevronRight className="w-5 h-5 sm:w-6 sm:h-6 text-[#499167] transition-transform group-open:rotate-90 flex-shrink-0 ml-2" />
-              </summary>
-              <div className="px-4 sm:px-6 pb-4 sm:pb-6 text-sm sm:text-base text-gray-700 leading-relaxed">
-                {faq.a}
-              </div>
-            </details>
-          ))}
-        </div>
+      {/* Section Header */}
+      <div className="mb-16 reveal">
+        <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
+          Често Задавани Въпроси
+        </h2>
+        <p className="text-xl text-gray-600 max-w-3xl">
+          Всичко, което трябва да знаеш за TestoUP и приложението Testograph.
+        </p>
       </div>
+
+      {/* Bento Grid - Asymmetric */}
+      <div className="grid grid-cols-1 md:grid-cols-3 auto-rows-auto gap-6">
+
+        {/* FAQ 1 - Large (2 cols) */}
+        <div className="md:col-span-2 reveal">
+          <BentoCard
+            className={`p-8 cursor-pointer transition-all duration-300 ${
+              openFaq === 0 ? 'border-2 border-brand-green bg-white' : 'hover:bg-white'
+            }`}
+            onClick={() => setOpenFaq(openFaq === 0 ? null : 0)}
+          >
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h3 className="font-bold text-2xl text-gray-900 leading-tight">
+                {faqs[0].q}
+              </h3>
+              <ChevronRight
+                className={`w-6 h-6 text-brand-green flex-shrink-0 transition-transform duration-300 ${
+                  openFaq === 0 ? 'rotate-90' : ''
+                }`}
+              />
+            </div>
+            <div
+              className={`overflow-hidden transition-all duration-300 ${
+                openFaq === 0 ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <p className="text-base text-gray-700 leading-relaxed">
+                {faqs[0].a}
+              </p>
+            </div>
+          </BentoCard>
+        </div>
+
+        {/* FAQ 2 */}
+        <div className="reveal delay-100">
+          <BentoCard
+            className={`p-6 cursor-pointer transition-all duration-300 h-full ${
+              openFaq === 1 ? 'border-2 border-brand-green bg-white' : 'hover:bg-white'
+            }`}
+            onClick={() => setOpenFaq(openFaq === 1 ? null : 1)}
+          >
+            <div className="flex items-start justify-between gap-4 mb-3">
+              <h3 className="font-bold text-lg text-gray-900 leading-tight">
+                {faqs[1].q}
+              </h3>
+              <ChevronRight
+                className={`w-5 h-5 text-brand-green flex-shrink-0 transition-transform duration-300 ${
+                  openFaq === 1 ? 'rotate-90' : ''
+                }`}
+              />
+            </div>
+            <div
+              className={`overflow-hidden transition-all duration-300 ${
+                openFaq === 1 ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {faqs[1].a}
+              </p>
+            </div>
+          </BentoCard>
+        </div>
+
+        {/* FAQ 3 */}
+        <div className="reveal delay-150">
+          <BentoCard
+            className={`p-6 cursor-pointer transition-all duration-300 h-full ${
+              openFaq === 2 ? 'border-2 border-brand-green bg-white' : 'hover:bg-white'
+            }`}
+            onClick={() => setOpenFaq(openFaq === 2 ? null : 2)}
+          >
+            <div className="flex items-start justify-between gap-4 mb-3">
+              <h3 className="font-bold text-lg text-gray-900 leading-tight">
+                {faqs[2].q}
+              </h3>
+              <ChevronRight
+                className={`w-5 h-5 text-brand-green flex-shrink-0 transition-transform duration-300 ${
+                  openFaq === 2 ? 'rotate-90' : ''
+                }`}
+              />
+            </div>
+            <div
+              className={`overflow-hidden transition-all duration-300 ${
+                openFaq === 2 ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <p className="text-sm text-gray-700 leading-relaxed">
+                {faqs[2].a}
+              </p>
+            </div>
+          </BentoCard>
+        </div>
+
+        {/* FAQ 4 - Large (2 cols) */}
+        <div className="md:col-span-2 reveal delay-200">
+          <BentoCard
+            className={`p-8 cursor-pointer transition-all duration-300 ${
+              openFaq === 3 ? 'border-2 border-brand-green bg-white' : 'hover:bg-white'
+            }`}
+            onClick={() => setOpenFaq(openFaq === 3 ? null : 3)}
+          >
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h3 className="font-bold text-2xl text-gray-900 leading-tight">
+                {faqs[3].q}
+              </h3>
+              <ChevronRight
+                className={`w-6 h-6 text-brand-green flex-shrink-0 transition-transform duration-300 ${
+                  openFaq === 3 ? 'rotate-90' : ''
+                }`}
+              />
+            </div>
+            <div
+              className={`overflow-hidden transition-all duration-300 ${
+                openFaq === 3 ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <p className="text-base text-gray-700 leading-relaxed">
+                {faqs[3].a}
+              </p>
+            </div>
+          </BentoCard>
+        </div>
+
+        {/* CTA Card */}
+        <div className="reveal delay-250">
+          <BentoCard className="p-6 bg-gradient-to-br from-brand-green/10 to-transparent hover:bg-white transition-colors h-full flex flex-col items-center justify-center text-center">
+            <p className="text-base font-bold text-gray-900 mb-3">
+              Имаш други въпроси?
+            </p>
+            <a
+              href="mailto:support@testograph.eu"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-green text-white font-bold text-sm rounded-full transition-all duration-300 hover:scale-105 shadow-lg shadow-brand-green/20 hover:bg-brand-dark"
+            >
+              Свържи се
+              <ChevronRight className="w-4 h-4" />
+            </a>
+          </BentoCard>
+        </div>
+
+        {/* FAQ 5 - Full Width (3 cols) */}
+        <div className="md:col-span-3 reveal delay-300">
+          <BentoCard
+            className={`p-8 cursor-pointer transition-all duration-300 ${
+              openFaq === 4 ? 'border-2 border-brand-green bg-white' : 'hover:bg-white'
+            }`}
+            onClick={() => setOpenFaq(openFaq === 4 ? null : 4)}
+          >
+            <div className="flex items-start justify-between gap-4 mb-4">
+              <h3 className="font-bold text-2xl text-gray-900 leading-tight">
+                {faqs[4].q}
+              </h3>
+              <ChevronRight
+                className={`w-6 h-6 text-brand-green flex-shrink-0 transition-transform duration-300 ${
+                  openFaq === 4 ? 'rotate-90' : ''
+                }`}
+              />
+            </div>
+            <div
+              className={`overflow-hidden transition-all duration-300 ${
+                openFaq === 4 ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'
+              }`}
+            >
+              <p className="text-base text-gray-700 leading-relaxed">
+                {faqs[4].a}
+              </p>
+            </div>
+          </BentoCard>
+        </div>
+
+      </div>
+
     </section>
   );
 }
 
 // ============================================
-// FOOTER (Mobile Optimized)
+// FOOTER
 // ============================================
 function Footer() {
   return (
-    <footer className="bg-black text-gray-300 py-8 sm:py-10 md:py-12">
-      <div className="container mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
-          <div>
-            <h3 className="text-white font-bold text-lg sm:text-xl mb-3 sm:mb-4">TESTOGRAPH</h3>
-            <p className="text-xs sm:text-sm">Цялостна програма за естествено повишаване на тестостерона.</p>
-          </div>
-          <div>
-            <h4 className="text-white font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Продукти</h4>
-            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-              <li><a href="https://shop.testograph.eu/products/testoup" className="hover:text-[#5fb57e] transition-colors">TestoUP</a></li>
-              <li><a href="https://shop.testograph.eu" className="hover:text-[#5fb57e] transition-colors">Магазин</a></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Информация</h4>
-            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-              <li><Link href="/learn" className="hover:text-[#5fb57e] transition-colors">Научни статии</Link></li>
-              <li><Link href="/terms" className="hover:text-[#5fb57e] transition-colors">Общи условия</Link></li>
-              <li><Link href="/privacy" className="hover:text-[#5fb57e] transition-colors">Политика за поверителност</Link></li>
-              <li><Link href="/cookies" className="hover:text-[#5fb57e] transition-colors">Политика за бисквитки</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-white font-semibold mb-3 sm:mb-4 text-sm sm:text-base">Контакти</h4>
-            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm">
-              <li>Имейл: support@testograph.eu</li>
-              <li>Работно време: Понеделник - Петък, 9:00 - 18:00 ч.</li>
-            </ul>
-          </div>
-        </div>
-        <div className="border-t border-gray-800 pt-6 sm:pt-8 text-center text-xs sm:text-sm">
-          <p>© 2025 Testograph. Всички права запазени.</p>
-          <p className="mt-2 text-gray-500">Този продукт не е лекарствено средство и не е предназначен за диагностика, лечение или превенция на заболявания. Консултирайте се с лекар преди употреба.</p>
-        </div>
+    <footer className="py-12 text-center text-sm text-gray-400 border-t border-gray-200 bg-white/50 backdrop-blur-sm">
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <div className="w-2 h-2 bg-brand-green rounded-full" />
+        <span className="font-display font-bold text-brand-dark">TESTOGRAPH</span>
+      </div>
+      <p>&copy; 2025 Testograph EU. Научно обоснована формула.</p>
+      <div className="flex justify-center gap-6 mt-4">
+        <Link href="/terms" className="hover:text-brand-green">Условия</Link>
+        <Link href="/privacy" className="hover:text-brand-green">Политика</Link>
+        <a href="mailto:support@testograph.eu" className="hover:text-brand-green">Контакти</a>
       </div>
     </footer>
   );
