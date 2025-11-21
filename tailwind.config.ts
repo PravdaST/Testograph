@@ -14,6 +14,8 @@ export default {
     },
     extend: {
       fontFamily: {
+        'sans': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        'display': ['Space Grotesk', 'Inter', 'system-ui', 'sans-serif'],
         'inter': ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
         'mono': ['JetBrains Mono', 'Courier New', 'monospace'],
       },
@@ -39,6 +41,13 @@ export default {
         black: '900',
       },
       colors: {
+        brand: {
+          green: '#499167',
+          dark: '#0F1C15',
+          surface: '#F2F4F3',
+          glass: 'rgba(255, 255, 255, 0.65)',
+          border: 'rgba(73, 145, 103, 0.15)',
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -115,6 +124,9 @@ export default {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      backdropBlur: {
+        xs: '2px',
       },
       keyframes: {
         "accordion-down": {
@@ -217,6 +229,22 @@ export default {
         "spin-slow": {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" },
+        },
+        "slide": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
+        "slideUp": {
+          "0%": { transform: "translateY(100%)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "fadeIn": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "slowScroll": {
+          "0%": { transform: "translateY(0)" },
+          "100%": { transform: "translateY(-60%)" },
         },
       },
       animation: {

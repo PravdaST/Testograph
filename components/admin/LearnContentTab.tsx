@@ -29,12 +29,21 @@ type GuideCategory =
   | "supplements"
   | "lifestyle";
 
+interface PillarSuggestion {
+  title: string;
+  targetKeyword: string;
+  focusScore: number;
+}
+
 interface ClusterSuggestion {
   title: string;
   category: GuideCategory;
   description: string;
-  estimated_pillars: number;
-  suggested_pillars: string[];
+  targetKeywords: string[];
+  estimatedSearchDemand: string;
+  totalFocusScore: number;
+  suggestedPillars: PillarSuggestion[];
+  dataReasoning: string;
 }
 
 export function LearnContentTab() {
@@ -356,7 +365,7 @@ export function LearnContentTab() {
 
                         <div className="flex items-center justify-between mt-3">
                           <p className="text-xs text-zinc-500">
-                            ~{suggestion.estimated_pillars} пилъра
+                            {suggestion.suggestedPillars?.length || 0} пилъра предложени
                           </p>
                           <Button
                             size="sm"
@@ -380,19 +389,31 @@ export function LearnContentTab() {
                       </div>
 
                       {/* Expanded Pillars List */}
-                      {isExpanded && suggestion.suggested_pillars && (
+                      {isExpanded && suggestion.suggestedPillars && (
                         <div className="border-t border-zinc-700 bg-zinc-900/50 p-4">
                           <div className="text-sm font-semibold text-zinc-400 mb-2">
-                            Предложени Pillars:
+                            Предложени Pillars ({suggestion.suggestedPillars.length}):
                           </div>
-                          <div className="space-y-1">
-                            {suggestion.suggested_pillars.map((pillar, pIdx) => (
+                          <div className="space-y-2">
+                            {suggestion.suggestedPillars.map((pillar, pIdx) => (
                               <div
                                 key={pIdx}
-                                className="flex items-center gap-2 p-2 rounded bg-zinc-800/50 text-sm text-zinc-300"
+                                className="flex items-start gap-3 p-3 rounded bg-zinc-800/50 hover:bg-zinc-800 transition-colors"
                               >
-                                <FileText className="w-4 h-4 text-blue-400 flex-shrink-0" />
-                                <span>{pillar}</span>
+                                <FileText className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1 min-w-0">
+                                  <div className="text-sm font-medium text-zinc-200">
+                                    {pillar.title}
+                                  </div>
+                                  <div className="flex items-center gap-2 mt-1">
+                                    <span className="text-xs text-zinc-500">
+                                      🎯 {pillar.targetKeyword}
+                                    </span>
+                                    <span className="text-xs text-blue-400 font-semibold">
+                                      Score: {pillar.focusScore}
+                                    </span>
+                                  </div>
+                                </div>
                               </div>
                             ))}
                           </div>
