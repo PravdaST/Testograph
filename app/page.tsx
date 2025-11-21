@@ -1322,19 +1322,19 @@ function ClinicalProofSection() {
             quote="Витамин K2 подсилва костите, оптимизира усвояването на калций и участва активно в хормоналната регулация."
           />
           <ResearcherCard
-            ingredient="Vitamin B6 (5mg)"
+            ingredient="Витамин B6 (5мг)"
             researcher="Д-р Джон Дакс"
             institution="Университет на Алабама"
             quote="Витамин B6 стимулира метаболизма, подпомага синтеза на тестостерон и значително намалява чувството на умора."
           />
           <ResearcherCard
-            ingredient="Vitamin B12 (10mcg)"
+            ingredient="Витамин B12 (10мкг)"
             researcher="Д-р Джошуа Миллър"
             institution="Ръткърс университет"
             quote="B12 повишава енергията, издръжливостта и концентрацията, като поддържа оптимално функциониране на нервната система."
           />
           <ResearcherCard
-            ingredient="Vitamin B9 (400mcg)"
+            ingredient="Витамин B9 (400мкг)"
             researcher="Д-р Паул Жак"
             institution="Министерство на земеделието на САЩ"
             quote="Фолиевата киселина подобрява клетъчния растеж, кръвообращението и е основна за репродуктивната функция."
@@ -1356,20 +1356,20 @@ function ClinicalProofSection() {
 }
 
 function ResearcherCard({ ingredient, researcher, institution, quote }: { ingredient: string; researcher: string; institution: string; quote: string }) {
-  // Map ingredients to their image paths
+  // Map ingredients to their image paths (Bulgarian keys)
   const ingredientImages: { [key: string]: string } = {
-    "Vitamin D3 (2400 IU)": "/Testoup formula/vitamin-D.webp",
-    "Zinc (50mg)": "/Testoup formula/zinc-img.webp",
-    "Ashwagandha (400mg)": "/Testoup formula/ashwagandha-img.webp",
-    "Magnesium (400mg)": "/Testoup formula/magnesium-img.webp",
-    "Tribulus Terrestris (500mg)": "/Testoup formula/tribulus-terestris-img.webp",
-    "Selenium (100mcg)": "/Testoup formula/selenium-img.webp",
-    "Vitamin C (200mg)": "/Testoup formula/vitamin-C.webp",
-    "Vitamin E (30mg)": "/Testoup formula/vitamin-E.webp",
-    "Vitamin K2 (100mcg)": "/Testoup formula/vitamin-K2.webp",
-    "Vitamin B6 (5mg)": "/Testoup formula/vitamin-B6.webp",
-    "Vitamin B12 (10mcg)": "/Testoup formula/vitamin-B12.webp",
-    "Vitamin B9 (400mcg)": "/Testoup formula/vitamin-B9.webp",
+    "Витамин Д3 (2400 МЕ)": "/Testoup formula/vitamin-D.webp",
+    "Цинк (50мг)": "/Testoup formula/zinc-img.webp",
+    "Ашваганда (400мг)": "/Testoup formula/ashwagandha-img.webp",
+    "Магнезий (400мг)": "/Testoup formula/magnesium-img.webp",
+    "Трибулус Терестрис (500мг)": "/Testoup formula/tribulus-terestris-img.webp",
+    "Селен (100мкг)": "/Testoup formula/selenium-img.webp",
+    "Витамин Ц (200мг)": "/Testoup formula/vitamin-C.webp",
+    "Витамин Е (30мг)": "/Testoup formula/vitamin-E.webp",
+    "Витамин К2 (100мкг)": "/Testoup formula/vitamin-K2.webp",
+    "Витамин B6 (5мг)": "/Testoup formula/vitamin-B6.webp",
+    "Витамин B12 (10мкг)": "/Testoup formula/vitamin-B12.webp",
+    "Витамин B9 (400мкг)": "/Testoup formula/vitamin-B9.webp",
   };
 
   const imagePath = ingredientImages[ingredient];
