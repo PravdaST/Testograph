@@ -159,15 +159,15 @@ export default function LearnPage() {
       <FloatingNav />
 
       {/* Hero Section */}
-      <section className="pt-32 pb-16 px-6 max-w-7xl mx-auto relative z-10">
-        <div className="text-center mb-12 reveal">
+      <section className="pt-24 md:pt-32 pb-12 md:pb-16 px-4 md:px-6 max-w-7xl mx-auto relative z-10">
+        <div className="text-center mb-8 md:mb-12 reveal">
           <div className="inline-block mb-4 px-4 py-2 bg-brand-green/10 backdrop-blur-sm border border-brand-green/20 rounded-full">
             <span className="text-brand-green font-semibold text-sm">Научно Обосновани Статии</span>
           </div>
-          <h1 className="font-display text-4xl sm:text-5xl md:text-6xl font-bold text-brand-dark mb-6">
+          <h1 className="font-display text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-brand-dark mb-4 md:mb-6">
             Научен Център
           </h1>
-          <p className="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed mb-8">
+          <p className="text-base md:text-lg lg:text-xl text-gray-700 max-w-3xl mx-auto leading-relaxed mb-6 md:mb-8">
             Образователни статии за тестостерон, мъжко здраве и фитнес.<br/>
             Научно обосновани ръководства с практически съвети.
           </p>
@@ -223,19 +223,19 @@ export default function LearnPage() {
       </section>
 
       {/* Articles Grid by Category */}
-      <section className="px-6 max-w-7xl mx-auto pb-20">
+      <section className="px-4 md:px-6 max-w-7xl mx-auto pb-12 md:pb-20">
         {guidesByCategory && Object.keys(guidesByCategory).length > 0 ? Object.keys(guidesByCategory).map((category) => {
           const categoryInfo = categoryTitles[category] || { title: category, color: 'bg-gray-100 text-gray-700' };
           const categoryGuides = guidesByCategory[category];
 
           return (
-            <div key={category} className="mb-16 reveal">
-              <h2 className="font-display text-3xl font-bold text-brand-dark mb-8 flex items-center gap-3">
+            <div key={category} className="mb-12 md:mb-16 reveal">
+              <h2 className="font-display text-2xl md:text-3xl font-bold text-brand-dark mb-6 md:mb-8 flex items-center gap-3">
                 <div className="w-2 h-8 bg-brand-green rounded-full" />
                 {categoryInfo.title}
               </h2>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                 {categoryGuides.map((guide: any) => (
                   <Link
                     key={guide.id}

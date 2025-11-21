@@ -209,7 +209,7 @@ function TableOfContents({ content }: { content: string }) {
   const hasMore = toc.length > 4;
 
   return (
-    <BentoCard className="p-6">
+    <BentoCard className="p-4 md:p-6">
       <h3 className="font-display text-xl font-bold text-brand-dark mb-2 flex items-center gap-2">
         <List className="w-5 h-5 text-brand-green" />
         Съдържание
@@ -277,7 +277,7 @@ function MostReadArticles({ currentSlug, category }: { currentSlug: string; cate
   }, [currentSlug]);
 
   return (
-    <BentoCard className="p-6">
+    <BentoCard className="p-4 md:p-6">
       <h3 className="font-display text-lg font-bold text-brand-dark mb-4">Най-четени</h3>
       <div className="space-y-4">
         {articles.map((article) => (
@@ -375,7 +375,7 @@ function NewsletterSubscribe() {
   };
 
   return (
-    <BentoCard className="p-6 bg-gradient-to-br from-brand-green/10 to-brand-green/5">
+    <BentoCard className="p-4 md:p-6 bg-gradient-to-br from-brand-green/10 to-brand-green/5">
       <div className="flex items-center gap-2 mb-3">
         <Mail className="w-5 h-5 text-brand-green" />
         <h3 className="font-display text-lg font-bold text-brand-dark">Абонирай се</h3>
@@ -446,7 +446,7 @@ function RelatedFromOtherCategories({ currentSlug, currentCategory, keywords }: 
 
   return (
     <div className="mt-16 pt-12 border-t border-gray-200">
-      <h2 className="font-display text-3xl font-bold text-brand-dark mb-6">Може да те интересува</h2>
+      <h2 className="font-display text-2xl md:text-3xl font-bold text-brand-dark mb-6">Може да те интересува</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {relatedArticles.map((article) => (
           <Link
@@ -697,7 +697,7 @@ export default function LearnGuideClient({ guide, category, slug }: LearnGuideCl
       </section>
 
       {/* Main Content */}
-      <div className="px-6 max-w-7xl mx-auto pb-20">
+      <div className="px-4 md:px-6 max-w-7xl mx-auto pb-20">
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-8">
           <div className="min-w-0">
             {parentCluster && (
@@ -714,7 +714,7 @@ export default function LearnGuideClient({ guide, category, slug }: LearnGuideCl
               <TableOfContents content={guide.content} />
             </div>
 
-            <BentoCard className="p-8 md:p-12">
+            <BentoCard className="p-5 md:p-8 md:p-12">
               <article className="prose prose-lg max-w-none">
                 <div
                   dangerouslySetInnerHTML={{
@@ -730,7 +730,7 @@ export default function LearnGuideClient({ guide, category, slug }: LearnGuideCl
             </BentoCard>
 
             <div className="mt-8">
-              <BentoCard className="p-6">
+              <BentoCard className="p-4 md:p-6">
                 <SocialShare
                   title={guide.title}
                   url={`https://testograph.eu/learn/${category}/${slug}`}
@@ -740,7 +740,7 @@ export default function LearnGuideClient({ guide, category, slug }: LearnGuideCl
 
             {(pillars.length > 0 || siblingPillars.length > 0) && (
               <div className="mt-16 pt-12 border-t border-gray-200">
-                <h2 className="font-display text-3xl font-bold text-brand-dark mb-6">
+                <h2 className="font-display text-2xl md:text-3xl font-bold text-brand-dark mb-6">
                   {guide.guide_type === 'cluster' ? 'Задълбочени Статии' : 'Свързани Теми'}
                 </h2>
                 <div className="grid gap-4">
@@ -749,7 +749,7 @@ export default function LearnGuideClient({ guide, category, slug }: LearnGuideCl
                       key={related.slug}
                       href={`/learn/${category}/${related.slug}`}
                     >
-                      <BentoCard className="p-6 group">
+                      <BentoCard className="p-4 md:p-6 group">
                         <h3 className="text-lg font-bold text-brand-dark group-hover:text-brand-green transition mb-2">
                           {related.title}
                         </h3>

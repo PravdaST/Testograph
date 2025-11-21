@@ -223,8 +223,8 @@ function HeroSection() {
         </svg>
       </div>
 
-      <section className="pt-40 pb-20 px-6 max-w-7xl mx-auto relative z-10">
-      <div className="grid lg:grid-cols-12 gap-6 relative z-10">
+      <section className="pt-24 md:pt-40 pb-12 md:pb-20 px-4 md:px-6 max-w-7xl mx-auto relative z-10">
+      <div className="grid lg:grid-cols-12 gap-4 md:gap-6 relative z-10">
 
         {/* Main Hero Text (Span 8) */}
         <div className="lg:col-span-8 flex flex-col justify-center reveal">
@@ -235,20 +235,20 @@ function HeroSection() {
             <span className="text-brand-dark/40 text-xs font-mono">V.2.0.25</span>
           </div>
 
-          <h1 className="font-display font-bold text-5xl md:text-7xl leading-[0.95] text-brand-dark mb-8">
+          <h1 className="font-display font-bold text-4xl sm:text-5xl md:text-7xl leading-[0.95] text-brand-dark mb-6 md:mb-8">
             ОПТИМИЗИРАЙ <br />
             <span className="text-brand-green italic">ТЕСТОСТЕРОНА</span> СИ.
           </h1>
 
-          <p className="text-lg text-brand-dark/60 max-w-xl leading-relaxed mb-10">
+          <p className="text-base md:text-lg text-brand-dark/60 max-w-xl leading-relaxed mb-8 md:mb-10">
             Повиши тестостерона, подобри либидото и върни мъжкото здраве с първата хибридна система в България: Фармацевтично чиста добавка + Алгоритмичен коучинг.
           </p>
 
-          <div className="flex flex-wrap gap-4">
-            <a href="https://shop.testograph.eu/products/testoup" className="bg-brand-green text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-brand-dark transition-all shadow-xl shadow-brand-green/20">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4">
+            <a href="https://shop.testograph.eu/products/testoup" className="bg-brand-green text-white px-6 md:px-8 py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg hover:bg-brand-dark transition-all shadow-xl shadow-brand-green/20 text-center">
               Стартирай промяната
             </a>
-            <a href="#system" className="bg-white border border-gray-200 text-brand-dark px-8 py-4 rounded-2xl font-bold text-lg hover:border-brand-green transition-all">
+            <a href="#system" className="bg-white border border-gray-200 text-brand-dark px-6 md:px-8 py-3 md:py-4 rounded-2xl font-bold text-base md:text-lg hover:border-brand-green transition-all text-center">
               Как работи?
             </a>
           </div>
@@ -323,7 +323,7 @@ function HeroSection() {
 
         {/* Ingredients Slider (Full Width) */}
         <div className="lg:col-span-8 mt-6 lg:mt-0 reveal delay-200">
-          <BentoCard className="p-6" hover={false}>
+          <BentoCard className="p-4 md:p-6" hover={false}>
             <h4 className="text-sm font-mono text-brand-dark/50 mb-4 uppercase tracking-wider">12 Активни Съставки</h4>
             <div className="overflow-hidden">
               <div className="flex gap-4 animate-[slide_30s_linear_infinite]">
@@ -552,9 +552,9 @@ function ReviewsSection() {
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-12 md:py-20 bg-white">
       <div className="container mx-auto px-6">
-        <h2 className="text-4xl md:text-5xl font-display font-bold text-center mb-16 reveal">
+        <h2 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold text-center mb-16 reveal">
           Реални Резултати от Мъже Използващи TestoUP
         </h2>
 
@@ -567,7 +567,7 @@ function ReviewsSection() {
                   className="flex-shrink-0 w-[85vw] sm:w-[70vw] md:w-[45vw] lg:w-[30vw] snap-center reveal"
                   style={{ transitionDelay: `${idx * 100}ms` }}
                 >
-                  <BentoCard className="p-8 h-full">
+                  <BentoCard className="p-5 md:p-8 h-full">
                     <div className="flex items-center gap-1 mb-4">
                       {[...Array(5)].map((_, i) => (
                         <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
@@ -656,10 +656,10 @@ function VideoTestimonialsSection() {
   const filteredVideos = videos.filter(video => video.category === activeCategory);
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-12 md:py-20 bg-white">
       <div className="container mx-auto px-6">
         <div className="text-center mb-12 reveal">
-          <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold mb-4">
             Реални Истории от Нашите Клиенти
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -735,7 +735,7 @@ function VideoTestimonialsSection() {
 // ============================================
 function TestographV2Section() {
   return (
-    <section className="py-20 px-6 max-w-7xl mx-auto">
+    <section className="py-12 md:py-20 px-4 md:px-6 max-w-7xl mx-auto">
 
       {/* Section Header */}
       <div className="mb-16 reveal">
@@ -743,7 +743,7 @@ function TestographV2Section() {
           <Target className="w-4 h-4" />
           Уморени ли сте да не виждате резултати?
         </div>
-        <h2 className="font-display font-bold text-4xl md:text-5xl text-brand-dark mb-4">
+        <h2 className="font-display font-bold text-2xl md:text-4xl lg:text-5xl text-brand-dark mb-4">
           Testograph
         </h2>
         <p className="text-xl text-gray-600 max-w-3xl mb-6">
@@ -765,7 +765,7 @@ function TestographV2Section() {
 
         {/* Phone Mockup - Large Card */}
         <div className="md:col-span-2 md:row-span-3 reveal">
-          <BentoCard className="p-8 relative overflow-hidden h-full bg-gradient-to-br from-brand-dark via-brand-dark to-brand-green/20">
+          <BentoCard className="p-5 md:p-8 relative overflow-hidden h-full bg-gradient-to-br from-brand-dark via-brand-dark to-brand-green/20">
             <div className="absolute top-6 left-6 bg-brand-green text-white text-xs font-bold px-3 py-1 rounded-full z-20">
               LIVE PREVIEW
             </div>
@@ -808,7 +808,7 @@ function TestographV2Section() {
 
         {/* Problem Card */}
         <div className="lg:col-span-2 reveal delay-100">
-          <BentoCard className="p-8 bg-brand-surface hover:bg-white transition-colors h-full">
+          <BentoCard className="p-5 md:p-8 bg-brand-surface hover:bg-white transition-colors h-full">
             <div className="w-12 h-12 rounded-2xl bg-red-100 text-red-600 flex items-center justify-center mb-4">
               <Target className="w-6 h-6" />
             </div>
@@ -822,7 +822,7 @@ function TestographV2Section() {
 
         {/* Feature 1: Personalized Plan */}
         <div className="reveal delay-150">
-          <BentoCard className="p-6 bg-brand-surface hover:bg-white transition-colors h-full group">
+          <BentoCard className="p-4 md:p-6 bg-brand-surface hover:bg-white transition-colors h-full group">
             <div className="w-10 h-10 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <Brain className="w-5 h-5" />
             </div>
@@ -835,7 +835,7 @@ function TestographV2Section() {
 
         {/* Feature 2: Nutrition */}
         <div className="reveal delay-200">
-          <BentoCard className="p-6 bg-brand-surface hover:bg-white transition-colors h-full group">
+          <BentoCard className="p-4 md:p-6 bg-brand-surface hover:bg-white transition-colors h-full group">
             <div className="w-10 h-10 rounded-xl bg-green-100 text-green-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <UtensilsCrossed className="w-5 h-5" />
             </div>
@@ -848,7 +848,7 @@ function TestographV2Section() {
 
         {/* Feature 3: Workouts */}
         <div className="lg:col-span-2 reveal delay-250">
-          <BentoCard className="p-8 bg-brand-surface hover:bg-white transition-colors h-full relative overflow-hidden group">
+          <BentoCard className="p-5 md:p-8 bg-brand-surface hover:bg-white transition-colors h-full relative overflow-hidden group">
             <div className="w-12 h-12 rounded-2xl bg-orange-100 text-orange-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform relative z-10">
               <Dumbbell className="w-6 h-6" />
             </div>
@@ -867,7 +867,7 @@ function TestographV2Section() {
 
         {/* Feature 4: Tracking */}
         <div className="reveal delay-300">
-          <BentoCard className="p-6 bg-brand-surface hover:bg-white transition-colors h-full group">
+          <BentoCard className="p-4 md:p-6 bg-brand-surface hover:bg-white transition-colors h-full group">
             <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <LineChart className="w-5 h-5" />
             </div>
@@ -880,7 +880,7 @@ function TestographV2Section() {
 
         {/* Transformation Card - Full Width */}
         <div className="lg:col-span-4 reveal delay-350">
-          <BentoCard className="p-8 bg-gradient-to-r from-brand-green/10 via-brand-surface to-brand-green/10 hover:bg-white transition-colors">
+          <BentoCard className="p-5 md:p-8 bg-gradient-to-r from-brand-green/10 via-brand-surface to-brand-green/10 hover:bg-white transition-colors">
             <div className="flex flex-col md:flex-row items-center justify-between gap-8">
               <div className="flex-1">
                 <h4 className="text-3xl font-display font-bold text-gray-900 mb-4">
@@ -972,7 +972,7 @@ function AnimatedChatCard() {
   }, [activeChat, conversations.length]);
 
   return (
-    <BentoCard className="p-6 bg-brand-dark text-white relative overflow-hidden group h-full">
+    <BentoCard className="p-4 md:p-6 bg-brand-dark text-white relative overflow-hidden group h-full">
       <div className="absolute top-4 left-4 bg-white/20 backdrop-blur-sm text-white text-xs font-bold px-3 py-1 rounded-full z-20">ПРИЛОЖЕНИЕ</div>
 
       <div className="relative z-10 h-full flex flex-col">
@@ -1060,24 +1060,24 @@ function AnimatedChatCard() {
 // ============================================
 function EcosystemSection() {
   return (
-    <section id="system" className="py-20 px-6 max-w-7xl mx-auto">
-      <div className="mb-12 flex items-end justify-between reveal">
+    <section id="system" className="py-12 md:py-20 px-4 md:px-6 max-w-7xl mx-auto">
+      <div className="mb-8 md:mb-12 flex items-end justify-between reveal">
         <div>
-          <h2 className="font-display font-bold text-4xl text-brand-dark">Екосистемата</h2>
-          <p className="text-gray-500 mt-2">Хардуер (Тяло) + Софтуер (Навици)</p>
+          <h2 className="font-display font-bold text-2xl md:text-4xl text-brand-dark">Екосистемата</h2>
+          <p className="text-sm md:text-base text-gray-500 mt-2">Хардуер (Тяло) + Софтуер (Навици)</p>
         </div>
         <div className="hidden md:block h-px flex-1 bg-brand-dark/10 ml-8 mb-4" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 auto-rows-auto gap-6 min-h-[600px]">
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 auto-rows-auto gap-4 md:gap-6 min-h-0 md:min-h-[600px]">
 
         {/* Card 1: The Supplement (Large) */}
         <div className="md:col-span-2 md:row-span-2 reveal">
-          <BentoCard className="p-8 relative group h-full overflow-hidden">
-            <div className="absolute top-6 left-6 bg-brand-green text-white text-xs font-bold px-3 py-1 rounded-full z-20">ДОБАВКА</div>
+          <BentoCard className="p-4 md:p-6 md:p-8 relative group h-full overflow-hidden">
+            <div className="absolute top-4 md:top-6 left-4 md:left-6 bg-brand-green text-white text-xs font-bold px-3 py-1 rounded-full z-20">ДОБАВКА</div>
 
             <div className="h-full flex flex-col justify-center relative z-10">
-              <h3 className="font-display font-bold text-3xl mb-4">Формула TestoUP</h3>
+              <h3 className="font-display font-bold text-2xl md:text-3xl mb-3 md:mb-4">Формула TestoUP</h3>
               <p className="text-gray-600 mb-8 max-w-xs">
                 12 активни съставки в синергична матрица. Цинк, Витамин Д3, Магнезий и Ашваганда КСМ-66.
               </p>
@@ -1121,7 +1121,7 @@ function EcosystemSection() {
 
         {/* Card 3: Ingredient Highlight (Small) */}
         <div className="reveal delay-150">
-          <BentoCard className="p-6 flex flex-col justify-between h-full hover:bg-white transition-colors group relative overflow-hidden">
+          <BentoCard className="p-4 md:p-6 flex flex-col justify-between h-full hover:bg-white transition-colors group relative overflow-hidden">
             {/* Full Background Image */}
             <div className="absolute inset-0 opacity-[0.07] group-hover:opacity-[0.14] transition-opacity">
               <img
@@ -1153,7 +1153,7 @@ function EcosystemSection() {
 
         {/* Card 4: Ingredient Highlight (Small) */}
         <div className="reveal delay-200">
-          <BentoCard className="p-6 flex flex-col justify-between h-full hover:bg-white transition-colors group relative overflow-hidden">
+          <BentoCard className="p-4 md:p-6 flex flex-col justify-between h-full hover:bg-white transition-colors group relative overflow-hidden">
             {/* Full Background Image */}
             <div className="absolute inset-0 opacity-[0.07] group-hover:opacity-[0.14] transition-opacity">
               <img
@@ -1211,9 +1211,9 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-12 md:py-20 bg-white">
       <div className="container mx-auto px-6">
-        <h2 className="text-4xl md:text-5xl font-display font-bold text-center mb-16 reveal">
+        <h2 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold text-center mb-16 reveal">
           Как Работи TestoUP Програмата?
         </h2>
 
@@ -1221,7 +1221,7 @@ function HowItWorksSection() {
           {steps.map((step, idx) => (
             <React.Fragment key={idx}>
               <div className="flex-1 reveal" style={{ transitionDelay: `${idx * 100}ms` }}>
-                <BentoCard className="p-8 text-center flex flex-col items-center h-full">
+                <BentoCard className="p-5 md:p-8 text-center flex flex-col items-center h-full">
                   <div className="mb-4">{step.icon}</div>
                   <h3 className="text-2xl font-bold mb-3 text-gray-900">{step.title}</h3>
                   <p className="text-base text-gray-600 whitespace-pre-line leading-relaxed">{step.description}</p>
@@ -1258,7 +1258,7 @@ function ClinicalProofSection() {
     <section id="clinical-proof" className="py-20 bg-brand-surface">
       <div className="container mx-auto px-6">
         <div className="text-center mb-16 reveal">
-          <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold mb-4">
             Клинично Доказана Формула
           </h2>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto">
@@ -1376,7 +1376,7 @@ function ResearcherCard({ ingredient, researcher, institution, quote }: { ingred
 
   return (
     <div className="reveal">
-      <BentoCard className="p-6 h-full group relative overflow-hidden">
+      <BentoCard className="p-4 md:p-6 h-full group relative overflow-hidden">
         {/* Full Background Ingredient Image */}
         {imagePath && (
           <div className="absolute inset-0 opacity-[0.07] group-hover:opacity-[0.14] transition-opacity">
@@ -1422,7 +1422,7 @@ function ProductPackagesSection() {
 
       {/* Section Header */}
       <div className="mb-16 text-center reveal">
-        <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
+        <h2 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold mb-4">
           Избери <span className="text-brand-green">Твоя План</span>
         </h2>
       </div>
@@ -1432,7 +1432,7 @@ function ProductPackagesSection() {
 
         {/* 1-Month Plan */}
         <div className="reveal">
-          <BentoCard className="p-6 h-full hover:bg-white transition-all group">
+          <BentoCard className="p-4 md:p-6 h-full hover:bg-white transition-all group">
             <div className="text-center mb-4">
               <div className="w-20 h-20 mx-auto mb-3">
                 <img src="/product/testoup-1.png" alt="1 месец" className="w-full h-full object-contain" />
@@ -1462,7 +1462,7 @@ function ProductPackagesSection() {
 
         {/* 2-Month Plan (Popular - Large) */}
         <div className="md:col-span-2 md:row-span-2 reveal delay-100">
-          <BentoCard className="p-8 h-full relative overflow-hidden border-4 border-brand-green bg-gradient-to-br from-brand-green/5 to-transparent hover:bg-white transition-all group">
+          <BentoCard className="p-5 md:p-8 h-full relative overflow-hidden border-4 border-brand-green bg-gradient-to-br from-brand-green/5 to-transparent hover:bg-white transition-all group">
             <div className="absolute top-4 right-4 bg-brand-green text-white px-4 py-1 rounded-full text-xs font-bold">
               НАЙ-ПОПУЛЯРЕН
             </div>
@@ -1472,7 +1472,7 @@ function ProductPackagesSection() {
                 <div className="w-32 h-32 mx-auto mb-4">
                   <img src="/product/testoup-2.png" alt="2 месеца" className="w-full h-full object-contain" />
                 </div>
-                <h3 className="text-3xl font-bold text-gray-900 mb-2">2-Месечен План</h3>
+                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">2-Месечен План</h3>
                 <div className="mb-4">
                   <p className="text-5xl font-black text-brand-green mb-1">57 лв./месец</p>
                   <p className="text-base text-gray-600">(общо 114 лв.)</p>
@@ -1516,7 +1516,7 @@ function ProductPackagesSection() {
 
         {/* 3-Month Plan (Best Value) */}
         <div className="reveal delay-200">
-          <BentoCard className="p-6 h-full relative overflow-hidden border-4 border-orange-500 bg-gradient-to-br from-orange-50 to-transparent hover:bg-white transition-all group">
+          <BentoCard className="p-4 md:p-6 h-full relative overflow-hidden border-4 border-orange-500 bg-gradient-to-br from-orange-50 to-transparent hover:bg-white transition-all group">
             <div className="absolute top-4 right-4 bg-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">
               НАЙ-ИЗГОДЕН
             </div>
@@ -1562,7 +1562,7 @@ function ProductPackagesSection() {
 
         {/* Benefits Card */}
         <div className="md:col-span-2 reveal delay-300">
-          <BentoCard className="p-6 bg-brand-surface hover:bg-white transition-colors">
+          <BentoCard className="p-4 md:p-6 bg-brand-surface hover:bg-white transition-colors">
             <h4 className="font-bold text-lg mb-4 text-gray-900">Какво получаваш:</h4>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div className="flex items-center gap-2 text-gray-700">
@@ -1587,7 +1587,7 @@ function ProductPackagesSection() {
 
         {/* Social Proof Card */}
         <div className="md:col-span-2 reveal delay-350">
-          <BentoCard className="p-6 bg-gradient-to-r from-brand-green/10 via-brand-surface to-brand-green/10 hover:bg-white transition-colors">
+          <BentoCard className="p-4 md:p-6 bg-gradient-to-r from-brand-green/10 via-brand-surface to-brand-green/10 hover:bg-white transition-colors">
             <div className="flex items-center justify-center gap-3">
               <Users className="w-6 h-6 text-brand-green" />
               <span className="font-bold text-lg text-gray-900">Над 2,438 доволни клиенти в България</span>
@@ -1617,10 +1617,10 @@ function MemberTestimonialsSection() {
   ];
 
   return (
-    <section className="py-20 bg-brand-surface">
+    <section className="py-12 md:py-20 bg-brand-surface">
       <div className="container mx-auto px-6">
         <div className="text-center mb-12 reveal">
-          <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
+          <h2 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold mb-4">
             Успешни Истории
           </h2>
           <p className="text-xl text-gray-600">
@@ -1631,7 +1631,7 @@ function MemberTestimonialsSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-7xl mx-auto">
           {testimonials.map((testimonial, idx) => (
             <div key={idx} className="reveal" style={{ transitionDelay: `${idx * 50}ms` }}>
-              <BentoCard className="p-6 h-full hover:bg-white transition-colors">
+              <BentoCard className="p-4 md:p-6 h-full hover:bg-white transition-colors">
                 <p className="text-base text-gray-700 mb-4 leading-relaxed">"{testimonial.text}"</p>
                 <div className="flex items-center gap-3">
                   <img
@@ -1688,9 +1688,9 @@ function GuaranteeSection() {
   ];
 
   return (
-    <section className="py-20 bg-white">
+    <section className="py-12 md:py-20 bg-white">
       <div className="container mx-auto px-6">
-        <h2 className="text-4xl md:text-5xl font-display font-bold text-center mb-4 reveal">
+        <h2 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold text-center mb-4 reveal">
           Нашата Гаранция за Качество
         </h2>
         <p className="text-xl text-gray-600 text-center mb-16 max-w-3xl mx-auto reveal">
@@ -1700,7 +1700,7 @@ function GuaranteeSection() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
           {guarantees.map((guarantee, idx) => (
             <div key={idx} className="reveal" style={{ transitionDelay: `${idx * 100}ms` }}>
-              <BentoCard className="p-8 text-center h-full">
+              <BentoCard className="p-5 md:p-8 text-center h-full">
                 <div className="flex justify-center mb-4 text-brand-green">{guarantee.icon}</div>
                 <h3 className="text-xl font-black text-gray-900 mb-3">{guarantee.title}</h3>
                 <p className="text-base text-gray-600">{guarantee.description}</p>
@@ -1750,11 +1750,11 @@ function FAQSection() {
   ];
 
   return (
-    <section className="py-20 px-6 max-w-7xl mx-auto">
+    <section className="py-12 md:py-20 px-4 md:px-6 max-w-7xl mx-auto">
 
       {/* Section Header */}
       <div className="mb-16 reveal">
-        <h2 className="text-4xl md:text-5xl font-display font-bold mb-4">
+        <h2 className="text-2xl md:text-4xl lg:text-5xl font-display font-bold mb-4">
           Често Задавани Въпроси
         </h2>
         <p className="text-xl text-gray-600 max-w-3xl">
@@ -1887,7 +1887,7 @@ function FAQSection() {
 
         {/* CTA Card */}
         <div className="reveal delay-250">
-          <BentoCard className="p-6 bg-gradient-to-br from-brand-green/10 to-transparent hover:bg-white transition-colors h-full flex flex-col items-center justify-center text-center">
+          <BentoCard className="p-4 md:p-6 bg-gradient-to-br from-brand-green/10 to-transparent hover:bg-white transition-colors h-full flex flex-col items-center justify-center text-center">
             <p className="text-base font-bold text-gray-900 mb-3">
               Имаш други въпроси?
             </p>
