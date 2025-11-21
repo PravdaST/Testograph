@@ -258,7 +258,7 @@ function HeroSection() {
         <div className="lg:col-span-4 lg:row-span-2 h-full reveal delay-100">
           <BentoCard className="h-full p-8 flex flex-col justify-between min-h-[400px] relative overflow-hidden group">
             {/* Product Image Background */}
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72 opacity-[0.15] group-hover:opacity-[0.25] transition-opacity duration-500">
+            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-72 h-72">
               <img
                 src="/product/testoup-3.png"
                 alt="TestoUP Bottle"
@@ -1101,7 +1101,7 @@ function EcosystemSection() {
             </div>
 
             {/* Product Image */}
-            <div className="absolute -right-8 bottom-0 w-64 h-64 opacity-30 group-hover:opacity-50 transition-opacity duration-500">
+            <div className="absolute -right-8 bottom-0 w-96 h-96">
               <img
                 src="/product/testoup-3.png"
                 alt="TestoUP Complex"
