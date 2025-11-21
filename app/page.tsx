@@ -246,7 +246,7 @@ function HeroSection() {
 
           <div className="flex flex-wrap gap-4">
             <a href="https://shop.testograph.eu/products/testoup" className="bg-brand-green text-white px-8 py-4 rounded-2xl font-bold text-lg hover:bg-brand-dark transition-all shadow-xl shadow-brand-green/20">
-              Стартирай протокола
+              Стартирай промяната
             </a>
             <a href="#system" className="bg-white border border-gray-200 text-brand-dark px-8 py-4 rounded-2xl font-bold text-lg hover:border-brand-green transition-all">
               Как работи?
