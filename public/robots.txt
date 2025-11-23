@@ -1,5 +1,23 @@
-# Allow all crawlers
-User-agent: *
-Disallow:
+# Testograph.eu Robots.txt
+# Allow all crawlers to index public content
 
+User-agent: *
+Allow: /
+Allow: /learn
+Allow: /learn/*
+
+# Block admin and API routes
+Disallow: /admin
+Disallow: /admin/*
+Disallow: /api
+Disallow: /api/*
+
+# Block internal/utility routes
+Disallow: /_next/
+Disallow: /static/
+
+# Sitemap location
 Sitemap: https://testograph.eu/sitemap.xml
+
+# Crawl delay (optional, helps with server load)
+Crawl-delay: 1
