@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Link from 'next/link';
 import { ArrowLeft, Clock, Calendar, Check, Share2, Facebook, Twitter, Linkedin, MessageCircle, List, Eye, FileText, ArrowRight, Mail, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
-import { insertImagesIntoContent, linkProductMentions } from '@/lib/utils/insert-images';
+import { insertImagesIntoContent, linkProductMentions, insertInternalLinks } from '@/lib/utils/insert-images';
 
 interface BlogPost {
   id: string;
@@ -571,9 +571,32 @@ export default function LearnGuideClient({ guide, category, slug }: LearnGuideCl
   const [parentCluster, setParentCluster] = useState<any>(null);
   const [siblingPillars, setSiblingPillars] = useState<any[]>([]);
   const [pillars, setPillars] = useState<any[]>([]);
+  const [allGuides, setAllGuides] = useState<Array<{
+    title: string;
+    slug: string;
+    category: string;
+    keywords: string[];
+  }>>([]);
 
   useEffect(() => {
     async function loadRelatedContent() {
+      // Fetch all guides for internal linking
+      const { data: guides } = await supabase
+        .from('blog_posts')
+        .select('title, slug, guide_category, keywords')
+        .eq('is_published', true)
+        .eq('category', 'learn-guide')
+        .neq('slug', slug);
+
+      if (guides) {
+        setAllGuides(guides.map(g => ({
+          title: g.title,
+          slug: g.slug,
+          category: g.guide_category,
+          keywords: g.keywords || []
+        })));
+      }
+
       if (guide.guide_type === 'pillar' && guide.parent_cluster_slug) {
         const { data: parent } = await supabase
           .from('blog_posts')
@@ -719,9 +742,14 @@ export default function LearnGuideClient({ guide, category, slug }: LearnGuideCl
                 <div
                   dangerouslySetInnerHTML={{
                     __html: linkProductMentions(
-                      insertImagesIntoContent({
-                        content: guide.content,
-                        imageUrls: guide.article_images || []
+                      insertInternalLinks({
+                        content: insertImagesIntoContent({
+                          content: guide.content,
+                          imageUrls: guide.article_images || []
+                        }),
+                        relatedGuides: allGuides,
+                        currentSlug: slug,
+                        maxLinks: 5 // Link up to 5 related articles per page
                       }),
                       3 // Link up to 3 TestoUP mentions per article
                     )
