@@ -195,6 +195,58 @@ export function extractExcerpt(htmlContent: string, maxLength = 200): string {
  * Automatically links first occurrence of keywords to related articles
  * SEO-friendly internal linking strategy
  */
+/**
+ * Link product mentions (TestoUP) to shop page
+ * Links first N occurrences of "TestoUP" to the product page
+ */
+export function linkProductMentions(
+  content: string,
+  maxLinks: number = 3
+): string {
+  const productUrl = 'https://shop.testograph.eu/products/testoup';
+  const productName = 'TestoUP';
+
+  // Don't link if already contains links to the product
+  if (content.includes(productUrl)) {
+    return content;
+  }
+
+  // Match "TestoUP" (case insensitive) but not inside existing links or tags
+  // Use a more careful approach to avoid breaking HTML
+  let linksAdded = 0;
+
+  // Split by HTML tags to process only text content
+  const parts = content.split(/(<[^>]+>)/);
+
+  const processedParts = parts.map(part => {
+    // Skip if it's an HTML tag or we've added enough links
+    if (part.startsWith('<') || linksAdded >= maxLinks) {
+      return part;
+    }
+
+    // Skip if inside an anchor tag (check previous parts)
+    const previousContent = parts.slice(0, parts.indexOf(part)).join('');
+    const openAnchors = (previousContent.match(/<a[^>]*>/gi) || []).length;
+    const closeAnchors = (previousContent.match(/<\/a>/gi) || []).length;
+    if (openAnchors > closeAnchors) {
+      return part; // We're inside an anchor tag
+    }
+
+    // Replace TestoUP with link (case insensitive, preserving original case)
+    const regex = /\b(TestoUP|TESTOUP|Testoup|testoup)\b/g;
+
+    return part.replace(regex, (match) => {
+      if (linksAdded >= maxLinks) {
+        return match;
+      }
+      linksAdded++;
+      return `<a href="${productUrl}" target="_blank" rel="noopener noreferrer" class="text-brand-green hover:text-brand-green/80 font-semibold transition-colors">${match}</a>`;
+    });
+  });
+
+  return processedParts.join('');
+}
+
 export function insertInternalLinks({
   content,
   relatedGuides,

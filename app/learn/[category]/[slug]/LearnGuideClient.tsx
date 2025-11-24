@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Link from 'next/link';
 import { ArrowLeft, Clock, Calendar, Check, Share2, Facebook, Twitter, Linkedin, MessageCircle, List, Eye, FileText, ArrowRight, Mail, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
-import { insertImagesIntoContent } from '@/lib/utils/insert-images';
+import { insertImagesIntoContent, linkProductMentions } from '@/lib/utils/insert-images';
 
 interface BlogPost {
   id: string;
@@ -718,10 +718,13 @@ export default function LearnGuideClient({ guide, category, slug }: LearnGuideCl
               <article className="prose prose-lg max-w-none">
                 <div
                   dangerouslySetInnerHTML={{
-                    __html: insertImagesIntoContent({
-                      content: guide.content,
-                      imageUrls: guide.article_images || []
-                    })
+                    __html: linkProductMentions(
+                      insertImagesIntoContent({
+                        content: guide.content,
+                        imageUrls: guide.article_images || []
+                      }),
+                      3 // Link up to 3 TestoUP mentions per article
+                    )
                   }}
                   className="learn-content text-gray-800"
                   id="article-content"
