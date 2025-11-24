@@ -1941,15 +1941,29 @@ function FAQSection() {
 function Footer() {
   return (
     <footer className="py-6 md:py-12 text-center text-[10px] md:text-sm text-gray-400 border-t border-gray-200 bg-white/50 backdrop-blur-sm px-3 md:px-6">
-      <div className="flex items-center justify-center gap-1 md:gap-2 mb-2 md:mb-4">
-        <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-brand-green rounded-full" />
-        <span className="font-display font-bold text-brand-dark text-[11px] md:text-base">TESTOGRAPH</span>
-      </div>
-      <p>&copy; 2025 Testograph EU. Научно обоснована формула.</p>
-      <div className="flex justify-center gap-3 md:gap-6 mt-2 md:mt-4">
-        <Link href="/terms" className="hover:text-brand-green">Условия</Link>
-        <Link href="/privacy" className="hover:text-brand-green">Политика</Link>
-        <a href="mailto:support@testograph.eu" className="hover:text-brand-green">Контакти</a>
+      <div className="max-w-6xl mx-auto">
+        <div className="flex items-center justify-center gap-1 md:gap-2 mb-4 md:mb-6">
+          <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-brand-green rounded-full" />
+          <span className="font-display font-bold text-brand-dark text-[11px] md:text-base">TESTOGRAPH</span>
+        </div>
+
+        {/* Learn Section Links - SEO Internal Links */}
+        <div className="mb-4 md:mb-6">
+          <p className="text-[11px] md:text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Научи повече</p>
+          <div className="flex flex-wrap justify-center gap-2 md:gap-4">
+            <Link href="/learn" className="hover:text-brand-green transition-colors">Всички статии</Link>
+            <Link href="/learn/testosterone/testosteron-guide-za-mizhe" className="hover:text-brand-green transition-colors">Тестостерон Гайд</Link>
+            <Link href="/learn/potency/mazhka-potentnost-libido-seksualno-zdrave" className="hover:text-brand-green transition-colors">Потенция и Либидо</Link>
+            <Link href="/learn/testosterone/kakvo-e-testosteron-i-kak-raboti" className="hover:text-brand-green transition-colors">Какво е Тестостерон</Link>
+          </div>
+        </div>
+
+        <p>&copy; 2025 Testograph EU. Научно обоснована формула.</p>
+        <div className="flex justify-center gap-3 md:gap-6 mt-2 md:mt-4">
+          <Link href="/terms" className="hover:text-brand-green">Условия</Link>
+          <Link href="/privacy" className="hover:text-brand-green">Политика</Link>
+          <a href="mailto:support@testograph.eu" className="hover:text-brand-green">Контакти</a>
+        </div>
       </div>
     </footer>
   );

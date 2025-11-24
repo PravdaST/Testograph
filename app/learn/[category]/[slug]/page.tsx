@@ -40,6 +40,28 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
 const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
 
+// Enable Incremental Static Regeneration - pages revalidate every 60 seconds
+export const revalidate = 60;
+
+// Generate static params for all published guides
+export async function generateStaticParams() {
+  const { data: guides, error } = await supabase
+    .from('blog_posts')
+    .select('slug, guide_category')
+    .eq('category', 'learn-guide')
+    .eq('is_published', true);
+
+  if (error || !guides) {
+    console.error('[generateStaticParams] Error fetching guides:', error);
+    return [];
+  }
+
+  return guides.map((guide) => ({
+    category: guide.guide_category,
+    slug: guide.slug,
+  }));
+}
+
 // Fetch guide data - reusable function
 async function getGuideData(category: string, slug: string): Promise<BlogPost | null> {
   const { data, error } = await supabase

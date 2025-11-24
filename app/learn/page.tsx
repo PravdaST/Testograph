@@ -138,6 +138,7 @@ export default function LearnPage() {
       <div className="min-h-screen bg-brand-surface flex items-center justify-center">
         <NoiseOverlay />
         <div className="text-center">
+          <h1 className="sr-only">Научен Център - Образователни статии за мъжко здраве</h1>
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-brand-green border-t-transparent mb-4"></div>
           <div className="text-brand-dark font-semibold text-lg">Зареждане...</div>
         </div>
