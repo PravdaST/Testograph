@@ -153,6 +153,67 @@ export default function RootLayout({
           }}
         />
 
+        {/* Organization Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Organization",
+              "name": "Testograph",
+              "url": "https://testograph.eu",
+              "logo": "https://storage.googleapis.com/gpt-engineer-file-uploads/5ByhMx7vllZrlm4HJCiFF4YTglh2/uploads/1757675182985-Minimalist dark themed logo design for the brand Testograph. Vector style, futuristic and masculine. Bold geometric typography inspired by Clash Display Bold, the word Testograph in clean white wi.png",
+              "description": "Testograph е водещата компания за мъжко здраве в България, предлагаща цялостна система за естествено повишаване на тестостерона чрез клинично тествани добавки и персонализирано приложение.",
+              "sameAs": [
+                "https://www.facebook.com/testograph",
+                "https://www.instagram.com/testograph",
+                "https://shop.testograph.eu"
+              ],
+              "contactPoint": {
+                "@type": "ContactPoint",
+                "email": "support@testograph.eu",
+                "contactType": "Customer Service",
+                "availableLanguage": "Bulgarian"
+              },
+              "address": {
+                "@type": "PostalAddress",
+                "addressCountry": "BG",
+                "addressLocality": "София"
+              }
+            })
+          }}
+        />
+
+        {/* WebSite Schema with SearchAction */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "WebSite",
+              "name": "Testograph",
+              "url": "https://testograph.eu",
+              "description": "Цялостна система за естествено повишаване на тестостерона при мъжете - клинично тествана добавка и персонализирано AI приложение.",
+              "publisher": {
+                "@type": "Organization",
+                "name": "Testograph",
+                "logo": {
+                  "@type": "ImageObject",
+                  "url": "https://storage.googleapis.com/gpt-engineer-file-uploads/5ByhMx7vllZrlm4HJCiFF4YTglh2/uploads/1757675182985-Minimalist dark themed logo design for the brand Testograph. Vector style, futuristic and masculine. Bold geometric typography inspired by Clash Display Bold, the word Testograph in clean white wi.png"
+                }
+              },
+              "potentialAction": {
+                "@type": "SearchAction",
+                "target": {
+                  "@type": "EntryPoint",
+                  "urlTemplate": "https://testograph.eu/learn?q={search_term_string}"
+                },
+                "query-input": "required name=search_term_string"
+              }
+            })
+          }}
+        />
+
         {/* Analytics scripts handled by AnalyticsScripts component */}
       </head>
       <body className={`${inter.className} antialiased`} suppressHydrationWarning>
