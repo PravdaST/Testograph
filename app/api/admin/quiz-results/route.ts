@@ -16,14 +16,14 @@ export async function GET(request: Request) {
 
     // Filters
     const searchQuery = searchParams.get('search') || '';
-    const riskLevel = searchParams.get('riskLevel'); // good, moderate, critical
-    const testosteroneCategory = searchParams.get('testosteroneCategory'); // low, normal, high
+    const category = searchParams.get('category'); // energy, libido, muscle
+    const level = searchParams.get('level'); // beginner, intermediate, advanced
     const dateFrom = searchParams.get('dateFrom');
     const dateTo = searchParams.get('dateTo');
 
-    // Build query
+    // Build query - use quiz_results_v2 (the current quiz table)
     let query = supabase
-      .from('quiz_results')
+      .from('quiz_results_v2')
       .select('*', { count: 'exact' });
 
     // Apply filters
@@ -31,12 +31,12 @@ export async function GET(request: Request) {
       query = query.or(`first_name.ilike.%${searchQuery}%,email.ilike.%${searchQuery}%`);
     }
 
-    if (riskLevel) {
-      query = query.eq('risk_level', riskLevel);
+    if (category) {
+      query = query.eq('category', category);
     }
 
-    if (testosteroneCategory) {
-      query = query.eq('testosterone_category', testosteroneCategory);
+    if (level) {
+      query = query.eq('determined_level', level);
     }
 
     if (dateFrom) {
@@ -68,22 +68,21 @@ export async function GET(request: Request) {
 
     // Calculate statistics
     const { data: statsData } = await supabase
-      .from('quiz_results')
-      .select('score, testosterone_level, risk_level, testosterone_category');
+      .from('quiz_results_v2')
+      .select('total_score, category, determined_level');
 
     const stats = {
       total: count || 0,
-      avgScore: statsData ? calculateAverage(statsData.map(r => r.score)) : 0,
-      avgTestosterone: statsData ? calculateAverage(statsData.map(r => r.testosterone_level)) : 0,
-      byRiskLevel: {
-        good: statsData?.filter(r => r.risk_level === 'good').length || 0,
-        moderate: statsData?.filter(r => r.risk_level === 'moderate').length || 0,
-        critical: statsData?.filter(r => r.risk_level === 'critical').length || 0,
+      avgScore: statsData ? calculateAverage(statsData.map(r => r.total_score)) : 0,
+      byCategory: {
+        energy: statsData?.filter(r => r.category === 'energy').length || 0,
+        libido: statsData?.filter(r => r.category === 'libido').length || 0,
+        muscle: statsData?.filter(r => r.category === 'muscle').length || 0,
       },
-      byTestosteroneCategory: {
-        low: statsData?.filter(r => r.testosterone_category === 'low').length || 0,
-        normal: statsData?.filter(r => r.testosterone_category === 'normal').length || 0,
-        high: statsData?.filter(r => r.testosterone_category === 'high').length || 0,
+      byLevel: {
+        beginner: statsData?.filter(r => r.determined_level === 'beginner').length || 0,
+        intermediate: statsData?.filter(r => r.determined_level === 'intermediate').length || 0,
+        advanced: statsData?.filter(r => r.determined_level === 'advanced').length || 0,
       }
     };
 
