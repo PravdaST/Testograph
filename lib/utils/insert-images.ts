@@ -22,8 +22,8 @@ interface InternalLinkOptions {
 }
 
 /**
- * Insert images into HTML content after every N paragraphs
- * Ensures even distribution throughout the article
+ * Insert images into HTML content AFTER each H2 section
+ * Places image immediately after the H2 heading for visual impact
  */
 export function insertImagesIntoContent({
   content,
@@ -40,41 +40,64 @@ export function insertImagesIntoContent({
     return content;
   }
 
-  // Split content into sections (by <h2> tags)
-  const h2Sections = content.split(/(<h2[^>]*>.*?<\/h2>)/);
+  // Find all H2 tags and their positions
+  const h2Regex = /(<h2[^>]*>.*?<\/h2>)/g;
+  const h2Matches = [...content.matchAll(h2Regex)];
 
-  if (h2Sections.length <= 1) {
+  if (h2Matches.length === 0) {
     // No H2 sections, fall back to paragraph-based insertion
     return insertByParagraphs(content, imageUrls, imageAlts);
   }
 
-  // Insert images between H2 sections
-  const sectionsToInsert = Math.min(imageUrls.length, h2Sections.length - 2);
-  const sectionInterval = Math.floor((h2Sections.length - 1) / (sectionsToInsert + 1));
+  // Skip special sections for image insertion (FAQ, disclaimer, references)
+  const skipSections = ['faq', 'disclaimer', 'references', 'warning', 'tldr'];
 
+  // Filter H2s that are good for images (not in special sections)
+  const validH2Positions: number[] = [];
+  h2Matches.forEach((match, index) => {
+    const h2Text = match[0].toLowerCase();
+    const isSpecialSection = skipSections.some(skip => h2Text.includes(skip));
+    if (!isSpecialSection && match.index !== undefined) {
+      validH2Positions.push(match.index + match[0].length);
+    }
+  });
+
+  if (validH2Positions.length === 0) {
+    return insertByParagraphs(content, imageUrls, imageAlts);
+  }
+
+  // Distribute images evenly across valid H2 positions
+  const imagesToInsert = Math.min(imageUrls.length, validH2Positions.length);
+  const interval = Math.max(1, Math.floor(validH2Positions.length / imagesToInsert));
+
+  // Select positions for images (every Nth valid H2, starting from first)
+  const insertPositions: { position: number; imageIndex: number }[] = [];
   let imageIndex = 0;
-  const result: string[] = [];
 
-  for (let i = 0; i < h2Sections.length; i++) {
-    result.push(h2Sections[i]);
-
-    // Insert image after every Nth section
-    if (
-      i > 0 &&
-      i % sectionInterval === 0 &&
-      imageIndex < imageUrls.length &&
-      i < h2Sections.length - 1
-    ) {
-      const imageHtml = createImageHtml(
-        imageUrls[imageIndex],
-        imageAlts[imageIndex] || `Article illustration ${imageIndex + 1}`
-      );
-      result.push(imageHtml);
+  for (let i = 0; i < validH2Positions.length && imageIndex < imagesToInsert; i++) {
+    if (i % interval === 0 || (imageIndex < imagesToInsert && i === validH2Positions.length - 1)) {
+      insertPositions.push({
+        position: validH2Positions[i],
+        imageIndex: imageIndex
+      });
       imageIndex++;
     }
   }
 
-  return result.join('');
+  // Sort by position descending to insert from end to start (avoid offset issues)
+  insertPositions.sort((a, b) => b.position - a.position);
+
+  // Build result by inserting images at positions
+  let result = content;
+  for (const { position, imageIndex: imgIdx } of insertPositions) {
+    const imageHtml = createImageHtml(
+      imageUrls[imgIdx],
+      imageAlts[imgIdx] || `Article illustration ${imgIdx + 1}`
+    );
+    result = result.slice(0, position) + imageHtml + result.slice(position);
+  }
+
+  return result;
 }
 
 /**
