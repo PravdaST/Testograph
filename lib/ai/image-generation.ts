@@ -144,7 +144,8 @@ export async function generateLearnGuideImages(
   heroImage: GeneratedImage;
   articleImages: GeneratedImage[];
 }> {
-  const imageCount = guideType === 'cluster' ? 3 : 4; // Cluster: 3 total, Pillar: 4 total
+  // More images: Cluster 5 total (1 hero + 4), Pillar 7 total (1 hero + 6)
+  const imageCount = guideType === 'cluster' ? 5 : 7;
   const prompts: ImageGenerationOptions[] = [];
 
   // Theme-specific style based on category (PHOTOREALISTIC)
@@ -172,24 +173,37 @@ ${noText}.`,
     aspectRatio: '16:9'
   });
 
-  // 2-4. In-article Images (1:1 - square for article body)
+  // 2-7. In-article Images (1:1 - square for article body)
+  // More varied prompts for different H2 sections
   const articleImagePrompts = [
     {
       topic: keywords[0] || category,
-      concept: 'Close-up photorealistic shot'
+      concept: 'Close-up photorealistic shot showing detail'
     },
     {
       topic: keywords[1] || 'male wellness',
-      concept: 'Action-oriented photographic scene'
+      concept: 'Action-oriented dynamic scene'
     },
     {
       topic: keywords[2] || 'healthy lifestyle',
-      concept: 'Professional photography composition'
+      concept: 'Professional studio composition'
+    },
+    {
+      topic: keywords[3] || 'fitness motivation',
+      concept: 'Environmental portrait in natural setting'
+    },
+    {
+      topic: keywords[4] || 'strength training',
+      concept: 'Dramatic lighting emphasizing form'
+    },
+    {
+      topic: keywords[5] || 'wellness routine',
+      concept: 'Lifestyle photography candid moment'
     }
   ];
 
   for (let i = 0; i < imageCount - 1; i++) {
-    const imgPrompt = articleImagePrompts[i];
+    const imgPrompt = articleImagePrompts[i % articleImagePrompts.length];
     prompts.push({
       prompt: `In-article supporting photograph for "${guideTitle}" guide.
 Focus: ${imgPrompt.topic}.

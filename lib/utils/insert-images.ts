@@ -23,7 +23,8 @@ interface InternalLinkOptions {
 
 /**
  * Insert images into HTML content AFTER each H2 section
- * Places image immediately after the H2 heading for visual impact
+ * Places image immediately after EVERY H2 heading for visual impact
+ * Skips special sections like FAQ, disclaimer, references
  */
 export function insertImagesIntoContent({
   content,
@@ -49,12 +50,12 @@ export function insertImagesIntoContent({
     return insertByParagraphs(content, imageUrls, imageAlts);
   }
 
-  // Skip special sections for image insertion (FAQ, disclaimer, references)
-  const skipSections = ['faq', 'disclaimer', 'references', 'warning', 'tldr'];
+  // Skip special sections for image insertion
+  const skipSections = ['faq', 'disclaimer', 'references', 'warning', 'tldr', 'често задавани', 'източници', 'отказ от отговорност'];
 
   // Filter H2s that are good for images (not in special sections)
   const validH2Positions: number[] = [];
-  h2Matches.forEach((match, index) => {
+  h2Matches.forEach((match) => {
     const h2Text = match[0].toLowerCase();
     const isSpecialSection = skipSections.some(skip => h2Text.includes(skip));
     if (!isSpecialSection && match.index !== undefined) {
@@ -66,22 +67,17 @@ export function insertImagesIntoContent({
     return insertByParagraphs(content, imageUrls, imageAlts);
   }
 
-  // Distribute images evenly across valid H2 positions
-  const imagesToInsert = Math.min(imageUrls.length, validH2Positions.length);
-  const interval = Math.max(1, Math.floor(validH2Positions.length / imagesToInsert));
-
-  // Select positions for images (every Nth valid H2, starting from first)
+  // Insert image after EVERY valid H2 (not distributed)
+  // Use images cyclically if we have more H2s than images
   const insertPositions: { position: number; imageIndex: number }[] = [];
-  let imageIndex = 0;
 
-  for (let i = 0; i < validH2Positions.length && imageIndex < imagesToInsert; i++) {
-    if (i % interval === 0 || (imageIndex < imagesToInsert && i === validH2Positions.length - 1)) {
-      insertPositions.push({
-        position: validH2Positions[i],
-        imageIndex: imageIndex
-      });
-      imageIndex++;
-    }
+  for (let i = 0; i < validH2Positions.length; i++) {
+    // Cycle through available images if we have more H2s than images
+    const imageIndex = i % imageUrls.length;
+    insertPositions.push({
+      position: validH2Positions[i],
+      imageIndex: imageIndex
+    });
   }
 
   // Sort by position descending to insert from end to start (avoid offset issues)
