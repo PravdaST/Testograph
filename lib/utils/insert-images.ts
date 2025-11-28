@@ -35,9 +35,10 @@ export function insertImagesIntoContent({
     return content;
   }
 
-  // Check if images are already embedded in content
-  // If content already has <figure> or <img> tags, assume images are already inserted
-  if (content.includes('<figure') || content.includes('<img')) {
+  // Check if article images are already embedded in content
+  // Only skip if there are already figure.article-image tags (our inserted images)
+  // Don't skip for promotional banners or other images
+  if (content.includes('<figure class="article-image"')) {
     return content;
   }
 

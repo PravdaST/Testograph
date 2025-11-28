@@ -477,6 +477,7 @@ ${keywords ? `Keywords: ${keywords}` : ''}
         meta_title: metadata.meta_title,
         meta_description: metadata.meta_description,
         featured_image_url: heroImageUrl,
+        article_images: articleImageUrls,
         author_id: user.id,
         is_published: is_published || false,
         published_at: published_at || null,
