@@ -68,16 +68,17 @@ export function insertImagesIntoContent({
     return insertByParagraphs(content, imageUrls, imageAlts);
   }
 
-  // Insert image after EVERY valid H2 (not distributed)
-  // Use images cyclically if we have more H2s than images
+  // Insert image after valid H2 sections (one image per H2)
+  // DO NOT cycle images - only insert as many as we have
   const insertPositions: { position: number; imageIndex: number }[] = [];
 
-  for (let i = 0; i < validH2Positions.length; i++) {
-    // Cycle through available images if we have more H2s than images
-    const imageIndex = i % imageUrls.length;
+  // Only insert images for the first N H2s where N = available images
+  const maxImages = Math.min(validH2Positions.length, imageUrls.length);
+
+  for (let i = 0; i < maxImages; i++) {
     insertPositions.push({
       position: validH2Positions[i],
-      imageIndex: imageIndex
+      imageIndex: i
     });
   }
 
