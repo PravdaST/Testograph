@@ -16,7 +16,7 @@ const SUPABASE_SERVICE_KEY = process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY || proce
 const IMAGE_MODEL = 'google/gemini-2.5-flash-image';
 
 // Article to regenerate
-const ARTICLE_ID = 'c6014893-78d0-4b01-b9ca-b8961b3530e0';
+const ARTICLE_ID = '6874dd57-ddcf-4422-806d-b6a87bf48213';
 
 async function generateImage(prompt, style, aspectRatio = '16:9') {
   const noTextRequirement = 'NO TEXT, NO LETTERS, NO WORDS, NO TYPOGRAPHY on the image. Pure visual, symbolic imagery only.';
@@ -97,11 +97,14 @@ async function uploadToSupabase(supabase, dataUrl, filename) {
 function insertImagesIntoContent(content, imageUrls, imageAlts = []) {
   if (!imageUrls || imageUrls.length === 0) return content;
 
-  // Skip if already has article images
+  // REMOVE existing article images first (for regeneration)
+  let cleanContent = content;
   if (content.includes('<figure class="article-image"')) {
-    console.log('[Insert] Content already has article images, skipping');
-    return content;
+    console.log('[Insert] Removing existing article images...');
+    cleanContent = content.replace(/<figure class="article-image[^"]*"[^>]*>[\s\S]*?<\/figure>/g, '');
+    console.log('[Insert] Existing images removed');
   }
+  content = cleanContent;
 
   // Find all H2 tags
   const h2Regex = /(<h2[^>]*>.*?<\/h2>)/g;
@@ -128,11 +131,11 @@ function insertImagesIntoContent(content, imageUrls, imageAlts = []) {
 
   if (validH2Positions.length === 0) return content;
 
-  // Insert image after every H2
+  // Insert image after H2 sections (NO cycling - only as many as we have)
   const insertPositions = [];
-  for (let i = 0; i < validH2Positions.length; i++) {
-    const imageIndex = i % imageUrls.length;
-    insertPositions.push({ position: validH2Positions[i], imageIndex });
+  const maxImages = Math.min(validH2Positions.length, imageUrls.length);
+  for (let i = 0; i < maxImages; i++) {
+    insertPositions.push({ position: validH2Positions[i], imageIndex: i });
   }
 
   // Sort descending to insert from end
