@@ -1,0 +1,321 @@
+import { NextResponse } from 'next/server';
+import { createClient } from '@supabase/supabase-js';
+
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY!
+);
+
+interface ShopifyOrder {
+  id: string;
+  order_number: number;
+  email: string;
+  created_at: string;
+  financial_status: string;
+  fulfillment_status: string | null;
+  total_price: string;
+  currency: string;
+  customer: {
+    first_name: string;
+    last_name: string;
+    email: string;
+  } | null;
+  line_items: Array<{
+    title: string;
+    quantity: number;
+    sku: string;
+    price: string;
+  }>;
+}
+
+interface SyncResult {
+  shopifyOrders: number;
+  dbOrders: number;
+  missingInDb: ShopifyOrder[];
+  missingInShopify: string[];
+  statusMismatches: Array<{
+    orderId: string;
+    shopifyStatus: string;
+    dbStatus: string;
+  }>;
+}
+
+/**
+ * GET /api/admin/shopify-sync
+ * Fetches all orders from Shopify and compares with database
+ */
+export async function GET(request: Request) {
+  try {
+    const shopDomain = process.env.SHOPIFY_STORE_DOMAIN;
+    const accessToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+
+    if (!shopDomain || !accessToken) {
+      return NextResponse.json({
+        error: 'Shopify API not configured',
+        setup: {
+          step1: 'Go to: https://shop.testograph.eu/admin/settings/apps/development',
+          step2: 'Create a custom app or use existing one',
+          step3: 'Grant permissions: read_orders, read_customers',
+          step4: 'Copy Admin API access token',
+          step5: 'Add to .env.local: SHOPIFY_ADMIN_ACCESS_TOKEN="shpat_..."',
+        }
+      }, { status: 400 });
+    }
+
+    // Fetch orders from Shopify Admin API (REST)
+    const shopifyOrders = await fetchAllShopifyOrders(shopDomain, accessToken);
+
+    // Fetch orders from database
+    const { data: dbPurchases } = await supabase
+      .from('testoup_purchase_history')
+      .select('order_id, email, order_total, order_date, product_type')
+      .not('order_id', 'in', '("MANUAL_REFILL","MANUAL_ADD_SHOPIFY")');
+
+    const { data: dbPending } = await supabase
+      .from('pending_orders')
+      .select('order_id, email, total_price, status, created_at');
+
+    // Create lookup maps
+    const dbOrderIds = new Set([
+      ...(dbPurchases?.map(p => p.order_id) || []),
+      ...(dbPending?.map(p => p.order_id) || [])
+    ]);
+
+    const shopifyOrderIds = new Set(shopifyOrders.map(o => o.id.toString()));
+
+    // Find missing orders
+    const missingInDb = shopifyOrders.filter(o => !dbOrderIds.has(o.id.toString()));
+    const missingInShopify = [...dbOrderIds].filter(id => !shopifyOrderIds.has(id));
+
+    // Check status mismatches
+    const statusMismatches: SyncResult['statusMismatches'] = [];
+    for (const shopifyOrder of shopifyOrders) {
+      const dbPendingOrder = dbPending?.find(p => p.order_id === shopifyOrder.id.toString());
+      if (dbPendingOrder) {
+        const expectedStatus = shopifyOrder.financial_status === 'paid' ? 'paid' : 'pending';
+        if (dbPendingOrder.status !== expectedStatus) {
+          statusMismatches.push({
+            orderId: shopifyOrder.id.toString(),
+            shopifyStatus: shopifyOrder.financial_status,
+            dbStatus: dbPendingOrder.status
+          });
+        }
+      }
+    }
+
+    const result: SyncResult = {
+      shopifyOrders: shopifyOrders.length,
+      dbOrders: dbOrderIds.size,
+      missingInDb,
+      missingInShopify: missingInShopify.filter(id => !id.startsWith('MANUAL')),
+      statusMismatches
+    };
+
+    return NextResponse.json({
+      success: true,
+      summary: {
+        shopifyTotal: result.shopifyOrders,
+        databaseTotal: result.dbOrders,
+        missingInDatabase: result.missingInDb.length,
+        missingInShopify: result.missingInShopify.length,
+        statusMismatches: result.statusMismatches.length,
+      },
+      details: {
+        missingInDb: result.missingInDb.map(o => ({
+          orderId: o.id,
+          orderNumber: o.order_number,
+          email: o.email || o.customer?.email,
+          customerName: o.customer ? `${o.customer.first_name} ${o.customer.last_name}` : null,
+          totalPrice: o.total_price,
+          currency: o.currency,
+          status: o.financial_status,
+          createdAt: o.created_at,
+          products: o.line_items.map(li => ({
+            title: li.title,
+            quantity: li.quantity,
+            sku: li.sku
+          }))
+        })),
+        statusMismatches: result.statusMismatches,
+      }
+    });
+
+  } catch (error: any) {
+    console.error('Error syncing with Shopify:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to sync with Shopify' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * POST /api/admin/shopify-sync
+ * Syncs missing orders from Shopify to database
+ */
+export async function POST(request: Request) {
+  try {
+    const shopDomain = process.env.SHOPIFY_STORE_DOMAIN;
+    const accessToken = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
+
+    if (!shopDomain || !accessToken) {
+      return NextResponse.json(
+        { error: 'Shopify API not configured' },
+        { status: 400 }
+      );
+    }
+
+    const body = await request.json();
+    const { action, orderIds } = body;
+
+    if (action === 'sync-missing') {
+      // Fetch specific orders from Shopify
+      const shopifyOrders = await fetchAllShopifyOrders(shopDomain, accessToken);
+      const ordersToSync = orderIds
+        ? shopifyOrders.filter(o => orderIds.includes(o.id.toString()))
+        : shopifyOrders;
+
+      let synced = 0;
+      let errors: string[] = [];
+
+      for (const order of ordersToSync) {
+        try {
+          // Check if already exists
+          const { data: existing } = await supabase
+            .from('pending_orders')
+            .select('id')
+            .eq('order_id', order.id.toString())
+            .single();
+
+          if (existing) continue;
+
+          // Extract product info
+          const products = order.line_items.map(li => ({
+            title: li.title,
+            quantity: li.quantity,
+            sku: li.sku,
+            type: li.sku?.includes('TRIAL') ? 'trial' : 'full',
+            capsules: li.sku?.includes('TRIAL') ? 10 : 60,
+            totalCapsules: (li.sku?.includes('TRIAL') ? 10 : 60) * li.quantity
+          }));
+
+          // Insert into pending_orders
+          const { error: insertError } = await supabase
+            .from('pending_orders')
+            .insert({
+              order_id: order.id.toString(),
+              order_number: order.order_number.toString(),
+              email: order.email || order.customer?.email || '',
+              customer_name: order.customer
+                ? `${order.customer.first_name} ${order.customer.last_name}`.trim()
+                : null,
+              total_price: parseFloat(order.total_price),
+              currency: order.currency,
+              status: order.financial_status === 'paid' ? 'paid' : 'pending',
+              products,
+              created_at: order.created_at,
+              paid_at: order.financial_status === 'paid' ? order.created_at : null,
+            });
+
+          if (insertError) {
+            errors.push(`Order ${order.id}: ${insertError.message}`);
+          } else {
+            synced++;
+          }
+        } catch (err: any) {
+          errors.push(`Order ${order.id}: ${err.message}`);
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        synced,
+        errors: errors.length > 0 ? errors : undefined
+      });
+    }
+
+    if (action === 'fix-status') {
+      // Fix status mismatches
+      const shopifyOrders = await fetchAllShopifyOrders(shopDomain, accessToken);
+      let fixed = 0;
+
+      for (const order of shopifyOrders) {
+        if (order.financial_status === 'paid') {
+          const { data: dbOrder } = await supabase
+            .from('pending_orders')
+            .select('id, status')
+            .eq('order_id', order.id.toString())
+            .single();
+
+          if (dbOrder && dbOrder.status !== 'paid') {
+            await supabase
+              .from('pending_orders')
+              .update({
+                status: 'paid',
+                paid_at: new Date().toISOString()
+              })
+              .eq('id', dbOrder.id);
+            fixed++;
+          }
+        }
+      }
+
+      return NextResponse.json({ success: true, fixed });
+    }
+
+    return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
+
+  } catch (error: any) {
+    console.error('Error in Shopify sync:', error);
+    return NextResponse.json(
+      { error: error.message || 'Failed to sync' },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Fetches all orders from Shopify Admin API with pagination
+ */
+async function fetchAllShopifyOrders(
+  shopDomain: string,
+  accessToken: string
+): Promise<ShopifyOrder[]> {
+  const allOrders: ShopifyOrder[] = [];
+  let pageInfo: string | null = null;
+  const limit = 250;
+
+  do {
+    const url = pageInfo
+      ? `https://${shopDomain}/admin/api/2024-10/orders.json?limit=${limit}&page_info=${pageInfo}`
+      : `https://${shopDomain}/admin/api/2024-10/orders.json?limit=${limit}&status=any`;
+
+    const response = await fetch(url, {
+      headers: {
+        'X-Shopify-Access-Token': accessToken,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Shopify API error ${response.status}: ${errorText}`);
+    }
+
+    const data = await response.json();
+    allOrders.push(...data.orders);
+
+    // Check for next page
+    const linkHeader = response.headers.get('Link');
+    pageInfo = null;
+    if (linkHeader) {
+      const nextMatch = linkHeader.match(/<[^>]*page_info=([^>&]+)[^>]*>;\s*rel="next"/);
+      if (nextMatch) {
+        pageInfo = nextMatch[1];
+      }
+    }
+
+  } while (pageInfo);
+
+  return allOrders;
+}
