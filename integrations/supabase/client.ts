@@ -1,7 +1,9 @@
 // Next.js Supabase Client (Client-side only)
+// Uses @supabase/ssr for cookie-based session storage
+// This allows the server-side proxy to read the session
 'use client'
 
-import { createClient } from '@supabase/supabase-js';
+import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from './types';
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -15,13 +17,7 @@ if (typeof window !== 'undefined' && (!SUPABASE_URL || !SUPABASE_ANON_KEY)) {
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(
+export const supabase = createBrowserClient<Database>(
   SUPABASE_URL || 'https://placeholder.supabase.co',
-  SUPABASE_ANON_KEY || 'placeholder-key',
-  {
-    auth: {
-      persistSession: true,
-      autoRefreshToken: true,
-    }
-  }
+  SUPABASE_ANON_KEY || 'placeholder-key'
 );
