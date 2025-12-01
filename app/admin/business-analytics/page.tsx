@@ -36,6 +36,8 @@ import {
   Download,
   Mail,
   Target,
+  Package,
+  Pill,
 } from "lucide-react";
 
 interface BusinessAnalytics {
@@ -56,6 +58,12 @@ interface BusinessAnalytics {
       total: number;
       count: number;
     };
+    // New metrics from testoup_purchase_history
+    totalBottlesSold: number;
+    totalCapsulesSold: number;
+    periodBottlesSold: number;
+    uniqueCustomers: number;
+    periodUniqueCustomers: number;
   };
   retention: {
     churnRate: number;
@@ -116,13 +124,18 @@ export default function BusinessAnalyticsPage() {
 
     const csv = [
       "Business Analytics Report",
+      `Generated: ${new Date().toLocaleDateString('bg-BG')}`,
       "",
       "Revenue Metrics",
       `Total Revenue,${data.revenue.total} BGN`,
       `MRR,${data.revenue.mrr} BGN`,
       `Average Order Value,${data.revenue.averageOrderValue} BGN`,
-      `Total Purchases,${data.revenue.totalPurchases}`,
-      `Refunds,${data.revenue.refunds.total} BGN (${data.revenue.refunds.count} refunds)`,
+      `Total Orders,${data.revenue.totalPurchases}`,
+      "",
+      "Product Metrics",
+      `Total Bottles Sold,${data.revenue.totalBottlesSold}`,
+      `Total Capsules Sold,${data.revenue.totalCapsulesSold}`,
+      `Unique Customers,${data.revenue.uniqueCustomers}`,
       "",
       "Retention Metrics",
       `Active Users,${data.retention.activeUsers}`,
@@ -249,6 +262,77 @@ export default function BusinessAnalyticsPage() {
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 Average Order Value
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <ShoppingCart className="w-4 h-4 text-green-500" />
+                Total Orders
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-500">
+                {data.revenue.totalPurchases}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {data.revenue.periodPurchases} в последните {selectedDays} дни
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Product Metrics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Package className="w-4 h-4 text-blue-500" />
+                Bottles Sold
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-blue-500">
+                {data.revenue.totalBottlesSold}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {data.revenue.periodBottlesSold} в последните {selectedDays} дни
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Pill className="w-4 h-4 text-purple-500" />
+                Capsules Sold
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-500">
+                {data.revenue.totalCapsulesSold}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                Total capsules distributed
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Users className="w-4 h-4 text-indigo-500" />
+                Unique Customers
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-indigo-500">
+                {data.revenue.uniqueCustomers}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {data.revenue.periodUniqueCustomers} нови в последните {selectedDays} дни
               </p>
             </CardContent>
           </Card>

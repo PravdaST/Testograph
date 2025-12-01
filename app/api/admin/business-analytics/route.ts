@@ -9,6 +9,7 @@ const supabase = createClient(
 /**
  * GET /api/admin/business-analytics
  * Returns comprehensive business metrics: Revenue, Retention, Email performance
+ * Data source: testoup_purchase_history (Shopify orders)
  */
 export async function GET(request: Request) {
   try {
@@ -19,31 +20,36 @@ export async function GET(request: Request) {
     dateThreshold.setDate(dateThreshold.getDate() - days);
 
     // ============= REVENUE ANALYTICS =============
+    // Using testoup_purchase_history - the main Shopify orders table
 
-    // Total revenue and purchases
+    // Total revenue and purchases (exclude test orders)
     const { data: allPurchases, error: purchasesError } = await supabase
-      .from('purchases')
+      .from('testoup_purchase_history')
       .select('*')
-      .eq('status', 'completed');
+      .not('email', 'ilike', '%test%')
+      .not('order_id', 'eq', 'MANUAL_REFILL')
+      .not('order_id', 'eq', 'MANUAL_ADD_SHOPIFY');
 
     if (purchasesError) throw purchasesError;
 
     // Recent purchases (for period)
     const { data: recentPurchases } = await supabase
-      .from('purchases')
+      .from('testoup_purchase_history')
       .select('*')
-      .eq('status', 'completed')
-      .gte('purchased_at', dateThreshold.toISOString());
+      .not('email', 'ilike', '%test%')
+      .not('order_id', 'eq', 'MANUAL_REFILL')
+      .not('order_id', 'eq', 'MANUAL_ADD_SHOPIFY')
+      .gte('order_date', dateThreshold.toISOString());
 
-    // Calculate revenue metrics
-    const totalRevenue = allPurchases?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-    const periodRevenue = recentPurchases?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+    // Calculate revenue metrics (order_total can be null for manual entries)
+    const totalRevenue = allPurchases?.reduce((sum, p) => sum + (parseFloat(p.order_total) || 0), 0) || 0;
+    const periodRevenue = recentPurchases?.reduce((sum, p) => sum + (parseFloat(p.order_total) || 0), 0) || 0;
 
-    // Revenue by product type
+    // Revenue by product type (full vs sample)
     const revenueByProduct: Record<string, number> = {};
     allPurchases?.forEach((purchase) => {
       const productType = purchase.product_type || 'unknown';
-      revenueByProduct[productType] = (revenueByProduct[productType] || 0) + (purchase.amount || 0);
+      revenueByProduct[productType] = (revenueByProduct[productType] || 0) + (parseFloat(purchase.order_total) || 0);
     });
 
     // Monthly Recurring Revenue (approximate based on recent purchases)
@@ -51,16 +57,19 @@ export async function GET(request: Request) {
     last30Days.setDate(last30Days.getDate() - 30);
 
     const { data: last30DaysPurchases } = await supabase
-      .from('purchases')
-      .select('amount')
-      .eq('status', 'completed')
-      .gte('purchased_at', last30Days.toISOString());
+      .from('testoup_purchase_history')
+      .select('order_total')
+      .not('email', 'ilike', '%test%')
+      .not('order_id', 'eq', 'MANUAL_REFILL')
+      .not('order_id', 'eq', 'MANUAL_ADD_SHOPIFY')
+      .gte('order_date', last30Days.toISOString());
 
-    const mrr = last30DaysPurchases?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+    const mrr = last30DaysPurchases?.reduce((sum, p) => sum + (parseFloat(p.order_total) || 0), 0) || 0;
 
     // Average Order Value
-    const aov = allPurchases && allPurchases.length > 0
-      ? Math.round((totalRevenue / allPurchases.length) * 100) / 100
+    const validPurchases = allPurchases?.filter(p => p.order_total && parseFloat(p.order_total) > 0) || [];
+    const aov = validPurchases.length > 0
+      ? Math.round((totalRevenue / validPurchases.length) * 100) / 100
       : 0;
 
     // Revenue trend (last 12 months by month)
@@ -75,13 +84,15 @@ export async function GET(request: Request) {
       monthEnd.setMonth(monthEnd.getMonth() + 1);
 
       const { data: monthPurchases } = await supabase
-        .from('purchases')
-        .select('amount')
-        .eq('status', 'completed')
-        .gte('purchased_at', monthStart.toISOString())
-        .lt('purchased_at', monthEnd.toISOString());
+        .from('testoup_purchase_history')
+        .select('order_total, bottles_purchased')
+        .not('email', 'ilike', '%test%')
+        .not('order_id', 'eq', 'MANUAL_REFILL')
+        .not('order_id', 'eq', 'MANUAL_ADD_SHOPIFY')
+        .gte('order_date', monthStart.toISOString())
+        .lt('order_date', monthEnd.toISOString());
 
-      const revenue = monthPurchases?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+      const revenue = monthPurchases?.reduce((sum, p) => sum + (parseFloat(p.order_total) || 0), 0) || 0;
       const count = monthPurchases?.length || 0;
 
       revenueTrend.push({
@@ -91,14 +102,10 @@ export async function GET(request: Request) {
       });
     }
 
-    // Refunds (purchases with status = 'refunded')
-    const { data: refunds } = await supabase
-      .from('purchases')
-      .select('*')
-      .eq('status', 'refunded');
-
-    const totalRefunds = refunds?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
-    const refundCount = refunds?.length || 0;
+    // Refunds - testoup_purchase_history doesn't track refunds, set to 0
+    // TODO: Add refund tracking if needed
+    const totalRefunds = 0;
+    const refundCount = 0;
 
     // ============= USER RETENTION ANALYTICS =============
 
@@ -187,6 +194,17 @@ export async function GET(request: Request) {
       note: 'Email tracking not yet implemented. Integrate with SendGrid/Mailgun webhooks.',
     };
 
+    // ============= ADDITIONAL METRICS =============
+
+    // Total bottles and capsules sold
+    const totalBottlesSold = allPurchases?.reduce((sum, p) => sum + (p.bottles_purchased || 0), 0) || 0;
+    const totalCapsulesSold = allPurchases?.reduce((sum, p) => sum + (p.capsules_added || 0), 0) || 0;
+    const periodBottlesSold = recentPurchases?.reduce((sum, p) => sum + (p.bottles_purchased || 0), 0) || 0;
+
+    // Unique customers
+    const uniqueCustomers = new Set(allPurchases?.map(p => p.email)).size;
+    const periodUniqueCustomers = new Set(recentPurchases?.map(p => p.email)).size;
+
     // ============= RESPONSE =============
 
     return NextResponse.json({
@@ -195,14 +213,20 @@ export async function GET(request: Request) {
         periodRevenue: Math.round(periodRevenue * 100) / 100,
         mrr: Math.round(mrr * 100) / 100,
         averageOrderValue: aov,
-        totalPurchases: allPurchases?.length || 0,
-        periodPurchases: recentPurchases?.length || 0,
+        totalPurchases: validPurchases.length,
+        periodPurchases: recentPurchases?.filter(p => p.order_total && parseFloat(p.order_total) > 0).length || 0,
         revenueByProduct,
         revenueTrend,
         refunds: {
           total: Math.round(totalRefunds * 100) / 100,
           count: refundCount,
         },
+        // Additional metrics
+        totalBottlesSold,
+        totalCapsulesSold,
+        periodBottlesSold,
+        uniqueCustomers,
+        periodUniqueCustomers,
       },
       retention: {
         churnRate,
