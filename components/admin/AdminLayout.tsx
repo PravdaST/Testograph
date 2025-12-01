@@ -44,7 +44,7 @@ const navItems = [
     icon: Users,
   },
   {
-    title: 'Testograph PRO',
+    title: 'App Users',
     href: '/admin/pro-users',
     icon: Target,
   },

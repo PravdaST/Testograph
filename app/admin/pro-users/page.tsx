@@ -25,82 +25,127 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  PieChart,
-  Pie,
-  BarChart,
-  Bar,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-} from "recharts";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
-  Target,
+  Users,
   RefreshCw,
-  Flame,
-  TrendingUp,
-  TrendingDown,
+  Dumbbell,
+  Utensils,
+  Moon,
+  Pill,
+  Bot,
   ArrowUpDown,
-  Calendar,
-  Activity,
   Download,
   Filter,
+  CheckCircle,
+  XCircle,
+  Activity,
+  Calendar,
+  ShieldCheck,
+  ShieldX,
+  Package,
+  Edit,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-interface ProUserData {
-  userId: string;
+interface AppUserData {
+  id: string;
   email: string;
   name: string | null;
-  protocolStartDate: string;
-  daysOnProtocol: number;
-  currentStreak: number;
-  longestStreak: number;
-  complianceRate: number;
-  totalEntries: number;
-  missedDays: number;
-  averageFeeling: number | null;
-  averageEnergy: number | null;
-  averageCompliance: number | null;
-  weightChange: number | null;
-  startWeight: number | null;
-  currentWeight: number | null;
-  lastActivityDate: string | null;
+  // Quiz info
+  quizCompletedAt: string | null;
+  quizCategory: string | null;
+  quizScore: number | null;
+  quizLevel: string | null;
+  quizWorkoutLocation: string | null;
+  // App registration
+  isRegistered: boolean;
+  registeredAt: string | null;
+  hasActiveSubscription: boolean;
+  subscriptionExpiresAt: string | null;
+  currentDay: number | null;
+  dietaryPreference: string | null;
+  // Inventory & Access
+  capsulesRemaining: number;
+  totalCapsules: number;
+  bottlesPurchased: number;
+  lastPurchaseDate: string | null;
+  hasAccess: boolean;
+  accessStatus: 'full_access' | 'no_capsules' | 'no_quiz' | 'none';
+  // Engagement
+  workoutsCount: number;
+  mealsCount: number;
+  sleepCount: number;
+  testoUpDays: number;
+  testoUpCompliance: number;
+  coachMessages: number;
+  measurementsCount: number;
+  photosCount: number;
+  // Activity
+  lastWorkout: string | null;
+  lastMeal: string | null;
+  lastSleep: string | null;
+  lastActivity: string | null;
 }
 
-type SortField =
-  | "email"
-  | "daysOnProtocol"
-  | "currentStreak"
-  | "complianceRate"
-  | "weightChange";
-type SortDirection = "asc" | "desc";
-type ComplianceFilter = "all" | "high" | "medium" | "low";
+interface Stats {
+  totalUsers: number;
+  totalQuizUsers: number;
+  registeredUsers: number;
+  activeSubscriptions: number;
+  registrationRate: number;
+  // Inventory stats
+  usersWithCapsules: number;
+  usersWithAccess: number;
+  usersNoCapsules: number;
+  usersNoQuiz: number;
+  totalCapsulesInSystem: number;
+  // Engagement stats
+  avgWorkouts: number;
+  avgTestoUpCompliance: number;
+  totalWorkouts: number;
+  totalMeals: number;
+  totalSleep: number;
+  totalCoachMessages: number;
+}
+
+type SortField = "email" | "quizCompletedAt" | "registeredAt" | "workoutsCount" | "testoUpCompliance" | "lastActivity" | "capsulesRemaining";
 type ActivityFilter = "all" | "active" | "inactive";
+type SubscriptionFilter = "all" | "active" | "expired";
+type RegistrationFilter = "all" | "registered" | "notRegistered";
+type AccessFilter = "all" | "full_access" | "no_capsules" | "no_quiz";
 
-const COLORS = ["#10b981", "#f59e0b", "#ef4444"];
-
-export default function ProUsersPage() {
+export default function AppUsersPage() {
   const router = useRouter();
-  const [users, setUsers] = useState<ProUserData[]>([]);
+  const [users, setUsers] = useState<AppUserData[]>([]);
+  const [stats, setStats] = useState<Stats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState<SortField>("complianceRate");
-  const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
-  const [complianceFilter, setComplianceFilter] =
-    useState<ComplianceFilter>("all");
+  const [sortField, setSortField] = useState<SortField>("quizCompletedAt");
+  const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
   const [activityFilter, setActivityFilter] = useState<ActivityFilter>("all");
+  const [subscriptionFilter, setSubscriptionFilter] = useState<SubscriptionFilter>("all");
+  const [registrationFilter, setRegistrationFilter] = useState<RegistrationFilter>("all");
+  const [accessFilter, setAccessFilter] = useState<AccessFilter>("all");
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const [editingUser, setEditingUser] = useState<AppUserData | null>(null);
+  const [newCapsuleCount, setNewCapsuleCount] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    fetchProUsers();
+    fetchAppUsers();
   }, []);
 
-  const fetchProUsers = async (isRefresh = false) => {
+  const fetchAppUsers = async (isRefresh = false) => {
     if (isRefresh) {
       setIsRefreshing(true);
     } else {
@@ -108,18 +153,68 @@ export default function ProUsersPage() {
     }
 
     try {
-      const response = await fetch("/api/admin/pro-users");
+      const response = await fetch("/api/admin/app-users");
       const data = await response.json();
 
-      if (response.ok) {
+      if (response.ok && data.success) {
         setUsers(data.users || []);
+        setStats(data.stats || null);
         setLastUpdated(new Date());
       }
     } catch (error) {
-      console.error("Error fetching PRO users:", error);
+      console.error("Error fetching app users:", error);
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
+    }
+  };
+
+  const updateCapsules = async () => {
+    if (!editingUser) return;
+
+    const capsules = parseInt(newCapsuleCount);
+    if (isNaN(capsules) || capsules < 0) {
+      alert("Моля въведете валидно число за капсулите");
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const response = await fetch("/api/admin/access-control", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: editingUser.email,
+          action: "grant",
+          capsules: capsules,
+        }),
+      });
+
+      if (response.ok) {
+        // Update local state
+        setUsers(users.map(u =>
+          u.email === editingUser.email
+            ? {
+                ...u,
+                capsulesRemaining: capsules,
+                hasAccess: capsules > 0,
+                accessStatus: capsules > 0 ? 'full_access' : 'no_capsules'
+              }
+            : u
+        ));
+        setEditingUser(null);
+        setNewCapsuleCount("");
+        // Refresh to get accurate stats
+        fetchAppUsers(true);
+      } else {
+        const data = await response.json();
+        alert(data.error || "Грешка при обновяването");
+      }
+    } catch (error) {
+      console.error("Error updating capsules:", error);
+      alert("Грешка при обновяването на капсулите");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -130,6 +225,15 @@ export default function ProUsersPage() {
       setSortField(field);
       setSortDirection("desc");
     }
+  };
+
+  const formatDate = (dateStr: string | null) => {
+    if (!dateStr) return "-";
+    return new Date(dateStr).toLocaleDateString("bg-BG", {
+      day: "numeric",
+      month: "short",
+      year: "numeric",
+    });
   };
 
   const formatTimestamp = (date: Date | null) => {
@@ -152,16 +256,17 @@ export default function ProUsersPage() {
     });
   };
 
-  const getComplianceColor = (rate: number) => {
-    if (rate >= 80) return "text-green-600";
-    if (rate >= 60) return "text-yellow-600";
-    return "text-red-600";
+  const getDaysSinceActivity = (lastActivity: string | null): number => {
+    if (!lastActivity) return 999;
+    const diff = new Date().getTime() - new Date(lastActivity).getTime();
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
   };
 
-  const getComplianceStatus = (rate: number) => {
-    if (rate >= 80) return { label: "Отлично", variant: "default" as const };
-    if (rate >= 60) return { label: "Добре", variant: "secondary" as const };
-    return { label: "Ниско", variant: "destructive" as const };
+  const getActivityStatus = (lastActivity: string | null) => {
+    const days = getDaysSinceActivity(lastActivity);
+    if (days <= 3) return { label: "Активен", color: "bg-green-600" };
+    if (days <= 7) return { label: "Скоро", color: "bg-yellow-600" };
+    return { label: "Неактивен", color: "bg-gray-500" };
   };
 
   const exportToCSV = () => {
@@ -170,37 +275,47 @@ export default function ProUsersPage() {
     const headers = [
       "Email",
       "Name",
-      "Days on Protocol",
-      "Current Streak",
-      "Longest Streak",
-      "Compliance %",
-      "Total Entries",
-      "Missed Days",
-      "Avg Feeling",
-      "Avg Energy",
-      "Avg Compliance",
-      "Start Weight (kg)",
-      "Current Weight (kg)",
-      "Weight Change (kg)",
+      "Is Registered",
+      "Quiz Completed At",
+      "Registered At",
+      "Access Status",
+      "Capsules Remaining",
+      "Total Capsules",
+      "Bottles Purchased",
+      "Last Purchase",
+      "Subscription",
+      "Category",
+      "Level",
+      "Workouts",
+      "Meals",
+      "Sleep",
+      "TestoUP Days",
+      "TestoUP %",
+      "Coach Messages",
       "Last Activity",
     ];
 
     const csvData = sortedUsers.map((user) => [
       user.email,
       user.name || "",
-      user.daysOnProtocol,
-      user.currentStreak,
-      user.longestStreak,
-      user.complianceRate,
-      user.totalEntries,
-      user.missedDays,
-      user.averageFeeling?.toFixed(1) || "",
-      user.averageEnergy?.toFixed(1) || "",
-      user.averageCompliance?.toFixed(1) || "",
-      user.startWeight?.toFixed(1) || "",
-      user.currentWeight?.toFixed(1) || "",
-      user.weightChange?.toFixed(1) || "",
-      user.lastActivityDate || "",
+      user.isRegistered ? "Yes" : "No",
+      user.quizCompletedAt || "",
+      user.registeredAt || "",
+      user.accessStatus,
+      user.capsulesRemaining,
+      user.totalCapsules,
+      user.bottlesPurchased,
+      user.lastPurchaseDate || "",
+      user.hasActiveSubscription ? "Active" : "Inactive",
+      user.quizCategory || "",
+      user.quizLevel || "",
+      user.workoutsCount,
+      user.mealsCount,
+      user.sleepCount,
+      user.testoUpDays,
+      user.testoUpCompliance,
+      user.coachMessages,
+      user.lastActivity || "",
     ]);
 
     const csv = [
@@ -212,12 +327,12 @@ export default function ProUsersPage() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.href = url;
-    link.download = `testograph-pro-users-${new Date().toISOString().split("T")[0]}.csv`;
+    link.download = `app-users-${new Date().toISOString().split("T")[0]}.csv`;
     link.click();
     URL.revokeObjectURL(url);
   };
 
-  // Filter users based on search, compliance, and activity
+  // Filter users
   let filteredUsers = users.filter((user) => {
     // Search filter
     const matchesSearch =
@@ -225,46 +340,51 @@ export default function ProUsersPage() {
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
       user.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    // Compliance filter
-    let matchesCompliance = true;
-    if (complianceFilter === "high") {
-      matchesCompliance = user.complianceRate >= 80;
-    } else if (complianceFilter === "medium") {
-      matchesCompliance = user.complianceRate >= 60 && user.complianceRate < 80;
-    } else if (complianceFilter === "low") {
-      matchesCompliance = user.complianceRate < 60;
-    }
-
     // Activity filter
     let matchesActivity = true;
     if (activityFilter === "active") {
-      const daysSinceActivity = user.lastActivityDate
-        ? Math.floor(
-            (new Date().getTime() - new Date(user.lastActivityDate).getTime()) /
-              (1000 * 60 * 60 * 24),
-          )
-        : 999;
-      matchesActivity = daysSinceActivity <= 3;
+      matchesActivity = getDaysSinceActivity(user.lastActivity) <= 7;
     } else if (activityFilter === "inactive") {
-      const daysSinceActivity = user.lastActivityDate
-        ? Math.floor(
-            (new Date().getTime() - new Date(user.lastActivityDate).getTime()) /
-              (1000 * 60 * 60 * 24),
-          )
-        : 999;
-      matchesActivity = daysSinceActivity > 3;
+      matchesActivity = getDaysSinceActivity(user.lastActivity) > 7;
     }
 
-    return matchesSearch && matchesCompliance && matchesActivity;
+    // Subscription filter
+    let matchesSubscription = true;
+    if (subscriptionFilter === "active") {
+      matchesSubscription = user.hasActiveSubscription;
+    } else if (subscriptionFilter === "expired") {
+      matchesSubscription = !user.hasActiveSubscription;
+    }
+
+    // Registration filter
+    let matchesRegistration = true;
+    if (registrationFilter === "registered") {
+      matchesRegistration = user.isRegistered;
+    } else if (registrationFilter === "notRegistered") {
+      matchesRegistration = !user.isRegistered;
+    }
+
+    // Access filter
+    let matchesAccess = true;
+    if (accessFilter !== "all") {
+      matchesAccess = user.accessStatus === accessFilter;
+    }
+
+    return matchesSearch && matchesActivity && matchesSubscription && matchesRegistration && matchesAccess;
   });
 
   // Sort users
   const sortedUsers = [...filteredUsers].sort((a, b) => {
-    const aValue = a[sortField];
-    const bValue = b[sortField];
+    let aValue: any = a[sortField];
+    let bValue: any = b[sortField];
 
     if (aValue === null) return 1;
     if (bValue === null) return -1;
+
+    if (sortField === "quizCompletedAt" || sortField === "registeredAt" || sortField === "lastActivity") {
+      aValue = new Date(aValue).getTime();
+      bValue = new Date(bValue).getTime();
+    }
 
     if (sortDirection === "asc") {
       return aValue > bValue ? 1 : -1;
@@ -273,58 +393,17 @@ export default function ProUsersPage() {
     }
   });
 
-  // Chart data
-  const complianceDistribution = [
-    {
-      name: "Високо (≥80%)",
-      value: users.filter((u) => u.complianceRate >= 80).length,
-      color: "#10b981",
-    },
-    {
-      name: "Средно (60-79%)",
-      value: users.filter(
-        (u) => u.complianceRate >= 60 && u.complianceRate < 80,
-      ).length,
-      color: "#f59e0b",
-    },
-    {
-      name: "Ниско (<60%)",
-      value: users.filter((u) => u.complianceRate < 60).length,
-      color: "#ef4444",
-    },
-  ];
-
-  const streakDistribution = [
-    { range: "0", count: users.filter((u) => u.currentStreak === 0).length },
-    {
-      range: "1-5",
-      count: users.filter((u) => u.currentStreak >= 1 && u.currentStreak <= 5)
-        .length,
-    },
-    {
-      range: "6-10",
-      count: users.filter((u) => u.currentStreak >= 6 && u.currentStreak <= 10)
-        .length,
-    },
-    {
-      range: "11-20",
-      count: users.filter((u) => u.currentStreak >= 11 && u.currentStreak <= 20)
-        .length,
-    },
-    { range: "20+", count: users.filter((u) => u.currentStreak > 20).length },
-  ];
-
   if (isLoading) {
     return (
       <AdminLayout>
         <div className="space-y-6">
           <div>
-            <h1 className="text-3xl font-bold">Testograph PRO Users</h1>
+            <h1 className="text-3xl font-bold">App Users</h1>
             <p className="text-muted-foreground mt-1">Зареждане...</p>
           </div>
           <Card>
             <CardHeader>
-              <CardTitle>PRO Users Progress</CardTitle>
+              <CardTitle>Регистрирани потребители</CardTitle>
             </CardHeader>
             <CardContent>
               <SkeletonTable rows={10} />
@@ -343,13 +422,12 @@ export default function ProUsersPage() {
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
-                <Target className="h-8 w-8 text-purple-600" />
-                Testograph PRO Users
+                <Users className="h-8 w-8 text-blue-600" />
+                App Users
               </h1>
               <p className="text-muted-foreground mt-1">
-                {lastUpdated &&
-                  `Последна актуализация: ${formatTimestamp(lastUpdated)}`}{" "}
-                • {users.length} активни потребители
+                {lastUpdated && `Последна актуализация: ${formatTimestamp(lastUpdated)}`}{" "}
+                - {users.length} потребители (Quiz + покупки)
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -365,7 +443,7 @@ export default function ProUsersPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => fetchProUsers(true)}
+                onClick={() => fetchAppUsers(true)}
                 disabled={isRefreshing}
               >
                 <RefreshCw
@@ -385,198 +463,178 @@ export default function ProUsersPage() {
               className="w-full md:w-64"
             />
             <Select
-              value={complianceFilter}
-              onValueChange={(value: ComplianceFilter) =>
-                setComplianceFilter(value)
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <Filter className="h-4 w-4 mr-2" />
-                <SelectValue placeholder="Дисциплина" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Всички</SelectItem>
-                <SelectItem value="high">Висока (≥80%)</SelectItem>
-                <SelectItem value="medium">Средна (60-79%)</SelectItem>
-                <SelectItem value="low">Ниска (&lt;60%)</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
               value={activityFilter}
-              onValueChange={(value: ActivityFilter) =>
-                setActivityFilter(value)
-              }
+              onValueChange={(value: ActivityFilter) => setActivityFilter(value)}
             >
               <SelectTrigger className="w-[160px]">
                 <Activity className="h-4 w-4 mr-2" />
                 <SelectValue placeholder="Активност" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Всички Потребители</SelectItem>
-                <SelectItem value="active">Активни (≤3д)</SelectItem>
-                <SelectItem value="inactive">Неактивни (&gt;3д)</SelectItem>
+                <SelectItem value="all">Всички</SelectItem>
+                <SelectItem value="active">Активни (7д)</SelectItem>
+                <SelectItem value="inactive">Неактивни</SelectItem>
               </SelectContent>
             </Select>
-            {(complianceFilter !== "all" ||
-              activityFilter !== "all" ||
-              searchQuery) && (
+            <Select
+              value={subscriptionFilter}
+              onValueChange={(value: SubscriptionFilter) => setSubscriptionFilter(value)}
+            >
+              <SelectTrigger className="w-[160px]">
+                <Filter className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Абонамент" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всички</SelectItem>
+                <SelectItem value="active">С абонамент</SelectItem>
+                <SelectItem value="expired">Без абонамент</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={registrationFilter}
+              onValueChange={(value: RegistrationFilter) => setRegistrationFilter(value)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Регистрация" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всички</SelectItem>
+                <SelectItem value="registered">Регистрирани</SelectItem>
+                <SelectItem value="notRegistered">Не регистрирани</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={accessFilter}
+              onValueChange={(value: AccessFilter) => setAccessFilter(value)}
+            >
+              <SelectTrigger className="w-[180px]">
+                <ShieldCheck className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Достъп" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всички</SelectItem>
+                <SelectItem value="full_access">С достъп</SelectItem>
+                <SelectItem value="no_capsules">Без капсули</SelectItem>
+                <SelectItem value="no_quiz">Без Quiz</SelectItem>
+              </SelectContent>
+            </Select>
+            {(activityFilter !== "all" || subscriptionFilter !== "all" || registrationFilter !== "all" || accessFilter !== "all" || searchQuery) && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  setComplianceFilter("all");
                   setActivityFilter("all");
+                  setSubscriptionFilter("all");
+                  setRegistrationFilter("all");
+                  setAccessFilter("all");
                   setSearchQuery("");
                 }}
               >
-                Изчисти Филтри
+                Изчисти филтри
               </Button>
             )}
           </div>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <Target className="h-4 w-4" />
-                <span className="font-medium">Общо PRO Потребители</span>
-              </div>
-              <div className="text-2xl font-bold text-purple-600">
-                {users.length}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <Flame className="h-4 w-4" />
-                <span className="font-medium">Средна Серия</span>
-              </div>
-              <div className="text-2xl font-bold">
-                {users.length > 0
-                  ? Math.round(
-                      users.reduce((sum, u) => sum + u.currentStreak, 0) /
-                        users.length,
-                    )
-                  : 0}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <Activity className="h-4 w-4" />
-                <span className="font-medium">Средна Дисциплина</span>
-              </div>
-              <div className="text-2xl font-bold text-green-600">
-                {users.length > 0
-                  ? Math.round(
-                      users.reduce((sum, u) => sum + u.complianceRate, 0) /
-                        users.length,
-                    )
-                  : 0}
-                %
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                <Calendar className="h-4 w-4" />
-                <span className="font-medium">Средни Активни Дни</span>
-              </div>
-              <div className="text-2xl font-bold">
-                {users.length > 0
-                  ? Math.round(
-                      users.reduce((sum, u) => sum + u.daysOnProtocol, 0) /
-                        users.length,
-                    )
-                  : 0}
-                д
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Charts */}
-        {users.length > 0 && (
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Compliance Distribution */}
+        {stats && (
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
             <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">
-                  Разпределение на Дисциплината
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <PieChart>
-                    <Pie
-                      data={complianceDistribution}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={({ name, value }) => `${name}: ${value}`}
-                      outerRadius={100}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {complianceDistribution.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <Users className="h-4 w-4" />
+                  <span className="font-medium">Всички</span>
+                </div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {stats.totalUsers}
+                  <span className="text-xs font-normal text-muted-foreground ml-1">
+                    ({stats.totalQuizUsers} quiz)
+                  </span>
+                </div>
               </CardContent>
             </Card>
 
-            {/* Streak Distribution */}
             <Card className="shadow-sm">
-              <CardHeader className="pb-3">
-                <CardTitle className="text-lg">
-                  Разпределение на Текущите Серии
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <ResponsiveContainer width="100%" height={300}>
-                  <BarChart data={streakDistribution}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis
-                      dataKey="range"
-                      label={{
-                        value: "Days",
-                        position: "insideBottom",
-                        offset: -5,
-                      }}
-                    />
-                    <YAxis
-                      label={{
-                        value: "Users",
-                        angle: -90,
-                        position: "insideLeft",
-                      }}
-                    />
-                    <Tooltip />
-                    <Bar dataKey="count" fill="#f97316" />
-                  </BarChart>
-                </ResponsiveContainer>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <ShieldCheck className="h-4 w-4" />
+                  <span className="font-medium">С достъп</span>
+                </div>
+                <div className="text-2xl font-bold text-green-600">
+                  {stats.usersWithAccess}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <Package className="h-4 w-4" />
+                  <span className="font-medium">С капсули</span>
+                </div>
+                <div className="text-2xl font-bold text-emerald-600">
+                  {stats.usersWithCapsules}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <ShieldX className="h-4 w-4" />
+                  <span className="font-medium">Без капсули</span>
+                </div>
+                <div className="text-2xl font-bold text-amber-600">
+                  {stats.usersNoCapsules}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <XCircle className="h-4 w-4" />
+                  <span className="font-medium">Без Quiz</span>
+                </div>
+                <div className="text-2xl font-bold text-red-500">
+                  {stats.usersNoQuiz}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <Pill className="h-4 w-4" />
+                  <span className="font-medium">Общо капсули</span>
+                </div>
+                <div className="text-2xl font-bold text-purple-600">
+                  {stats.totalCapsulesInSystem}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <Dumbbell className="h-4 w-4" />
+                  <span className="font-medium">Тренировки</span>
+                </div>
+                <div className="text-2xl font-bold">
+                  {stats.totalWorkouts}
+                </div>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* PRO Users Table */}
+        {/* Users Table */}
         <Card className="shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>Напредък на PRO Потребители</span>
-              {searchQuery && (
+              <span>Quiz потребители</span>
+              {(searchQuery || activityFilter !== "all" || subscriptionFilter !== "all" || registrationFilter !== "all" || accessFilter !== "all") && (
                 <span className="text-sm text-muted-foreground font-normal">
                   Показвам {sortedUsers.length} от {users.length} потребители
                 </span>
@@ -585,19 +643,11 @@ export default function ProUsersPage() {
           </CardHeader>
           <CardContent>
             {sortedUsers.length === 0 ? (
-              searchQuery ? (
-                <EmptyState
-                  icon={Target}
-                  title="No matching users"
-                  description={`No PRO users found for "${searchQuery}"`}
-                />
-              ) : (
-                <EmptyState
-                  icon={Target}
-                  title="No PRO users yet"
-                  description="PRO users will appear here once they start their protocol"
-                />
-              )
+              <EmptyState
+                icon={Users}
+                title="Няма намерени потребители"
+                description={searchQuery ? `Няма потребители за "${searchQuery}"` : "Все още няма потребители завършили Quiz-v2"}
+              />
             ) : (
               <div className="relative overflow-x-auto">
                 <Table>
@@ -612,62 +662,78 @@ export default function ProUsersPage() {
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
-                      <TableHead
-                        className="h-10 cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleSort("daysOnProtocol")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Дни
-                          <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="h-10 cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleSort("currentStreak")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Серия
-                          <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="h-10 cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleSort("complianceRate")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Дисциплина
-                          <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
-                      <TableHead
-                        className="h-10 cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleSort("weightChange")}
-                      >
-                        <div className="flex items-center gap-1">
-                          Тегло Δ
-                          <ArrowUpDown className="h-3 w-3" />
-                        </div>
-                      </TableHead>
                       <TableHead className="h-10">Статус</TableHead>
-                      <TableHead className="h-10 text-right">
-                        Последна Активност
+                      <TableHead
+                        className="h-10 cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("quizCompletedAt")}
+                      >
+                        <div className="flex items-center gap-1">
+                          Quiz дата
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="h-10">Категория</TableHead>
+                      <TableHead
+                        className="h-10 cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("capsulesRemaining")}
+                      >
+                        <div className="flex items-center gap-1">
+                          <Package className="h-3 w-3" />
+                          Капсули
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="h-10">Достъп</TableHead>
+                      <TableHead
+                        className="h-10 cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("workoutsCount")}
+                      >
+                        <div className="flex items-center gap-1">
+                          <Dumbbell className="h-3 w-3" />
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="h-10">
+                        <Utensils className="h-3 w-3" />
+                      </TableHead>
+                      <TableHead className="h-10">
+                        <Moon className="h-3 w-3" />
+                      </TableHead>
+                      <TableHead
+                        className="h-10 cursor-pointer hover:bg-muted/50"
+                        onClick={() => handleSort("testoUpCompliance")}
+                      >
+                        <div className="flex items-center gap-1">
+                          <Pill className="h-3 w-3" />
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
+                      </TableHead>
+                      <TableHead className="h-10">
+                        <Bot className="h-3 w-3" />
+                      </TableHead>
+                      <TableHead
+                        className="h-10 cursor-pointer hover:bg-muted/50 text-right"
+                        onClick={() => handleSort("lastActivity")}
+                      >
+                        <div className="flex items-center gap-1 justify-end">
+                          Активност
+                          <ArrowUpDown className="h-3 w-3" />
+                        </div>
                       </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {sortedUsers.map((user, index) => {
-                      const status = getComplianceStatus(user.complianceRate);
+                      const activityStatus = getActivityStatus(user.lastActivity);
                       return (
                         <TableRow
-                          key={user.userId}
+                          key={user.id}
                           className={cn(
-                            "h-12 cursor-pointer transition-colors",
-                            index % 2 === 0 ? "" : "bg-muted/30",
+                            "h-12 cursor-pointer transition-colors hover:bg-muted/50",
+                            index % 2 === 0 ? "" : "bg-muted/30"
                           )}
                           onClick={() =>
-                            router.push(
-                              `/admin/users/${encodeURIComponent(user.email)}`,
-                            )
+                            router.push(`/admin/users/${encodeURIComponent(user.email)}`)
                           }
                         >
                           <TableCell className="font-medium text-sm py-2">
@@ -680,66 +746,107 @@ export default function ProUsersPage() {
                               )}
                             </div>
                           </TableCell>
+                          <TableCell className="py-2">
+                            {user.isRegistered ? (
+                              <Badge className="bg-green-600 text-xs">Регистриран</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs text-amber-600 border-amber-600">Само Quiz</Badge>
+                            )}
+                          </TableCell>
                           <TableCell className="text-sm py-2">
-                            {user.daysOnProtocol}d
+                            {formatDate(user.quizCompletedAt)}
                           </TableCell>
                           <TableCell className="py-2">
-                            {user.currentStreak > 0 ? (
-                              <div className="flex items-center gap-1">
-                                <Flame className="h-4 w-4 text-orange-500" />
-                                <span className="font-semibold">
-                                  {user.currentStreak}
-                                </span>
-                              </div>
+                            {user.quizCategory ? (
+                              <Badge variant="outline" className="text-xs capitalize">
+                                {user.quizCategory}
+                              </Badge>
                             ) : (
                               <span className="text-muted-foreground">-</span>
                             )}
                           </TableCell>
                           <TableCell className="py-2">
                             <div className="flex items-center gap-2">
-                              <span
-                                className={cn(
-                                  "font-semibold text-sm",
-                                  getComplianceColor(user.complianceRate),
-                                )}
-                              >
-                                {user.complianceRate}%
+                              <span className={cn(
+                                "font-medium",
+                                user.capsulesRemaining > 30 ? "text-green-600" :
+                                user.capsulesRemaining > 0 ? "text-amber-600" : "text-red-500"
+                              )}>
+                                {user.capsulesRemaining}
                               </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setEditingUser(user);
+                                  setNewCapsuleCount(user.capsulesRemaining.toString());
+                                }}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
                             </div>
                           </TableCell>
                           <TableCell className="py-2">
-                            {user.weightChange !== null ? (
-                              <div className="flex items-center gap-1">
-                                {user.weightChange > 0 ? (
-                                  <TrendingUp className="h-4 w-4 text-red-500" />
-                                ) : user.weightChange < 0 ? (
-                                  <TrendingDown className="h-4 w-4 text-green-500" />
-                                ) : null}
-                                <span
-                                  className={cn(
-                                    "font-semibold text-sm",
-                                    user.weightChange > 0
-                                      ? "text-red-500"
-                                      : user.weightChange < 0
-                                        ? "text-green-500"
-                                        : "",
-                                  )}
-                                >
-                                  {user.weightChange > 0 ? "+" : ""}
-                                  {user.weightChange} kg
-                                </span>
-                              </div>
+                            {user.accessStatus === 'full_access' ? (
+                              <Badge className="bg-green-600 text-xs">С достъп</Badge>
+                            ) : user.accessStatus === 'no_capsules' ? (
+                              <Badge variant="outline" className="text-xs text-amber-600 border-amber-600">Без капсули</Badge>
+                            ) : user.accessStatus === 'no_quiz' ? (
+                              <Badge variant="outline" className="text-xs text-blue-600 border-blue-600">Без Quiz</Badge>
                             ) : (
-                              <span className="text-muted-foreground">N/A</span>
+                              <Badge variant="secondary" className="text-xs">Без достъп</Badge>
                             )}
                           </TableCell>
-                          <TableCell className="py-2">
-                            <Badge variant={status.variant} className="text-xs">
-                              {status.label}
-                            </Badge>
+                          <TableCell className="py-2 text-center">
+                            <span className={cn(
+                              "font-medium",
+                              user.workoutsCount > 0 ? "text-blue-600" : "text-muted-foreground"
+                            )}>
+                              {user.workoutsCount}
+                            </span>
                           </TableCell>
-                          <TableCell className="text-right text-xs text-muted-foreground py-2">
-                            {user.lastActivityDate || "N/A"}
+                          <TableCell className="py-2 text-center">
+                            <span className={cn(
+                              user.mealsCount > 0 ? "text-orange-600" : "text-muted-foreground"
+                            )}>
+                              {user.mealsCount}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-2 text-center">
+                            <span className={cn(
+                              user.sleepCount > 0 ? "text-indigo-600" : "text-muted-foreground"
+                            )}>
+                              {user.sleepCount}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-2 text-center">
+                            {user.testoUpDays > 0 ? (
+                              <span className={cn(
+                                "font-medium",
+                                user.testoUpCompliance >= 80 ? "text-green-600" :
+                                user.testoUpCompliance >= 60 ? "text-yellow-600" : "text-red-600"
+                              )}>
+                                {user.testoUpCompliance}%
+                              </span>
+                            ) : (
+                              <span className="text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="py-2 text-center">
+                            <span className={cn(
+                              user.coachMessages > 0 ? "text-purple-600" : "text-muted-foreground"
+                            )}>
+                              {user.coachMessages}
+                            </span>
+                          </TableCell>
+                          <TableCell className="py-2 text-right">
+                            <Badge
+                              className={cn("text-xs", activityStatus.color)}
+                            >
+                              {activityStatus.label}
+                            </Badge>
                           </TableCell>
                         </TableRow>
                       );
@@ -751,6 +858,74 @@ export default function ProUsersPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Capsule Edit Dialog */}
+      <Dialog open={!!editingUser} onOpenChange={(open) => !open && setEditingUser(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Редактиране на капсули</DialogTitle>
+            <DialogDescription>
+              Промяна на броя капсули за {editingUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="capsules" className="text-right">
+                Капсули
+              </Label>
+              <Input
+                id="capsules"
+                type="number"
+                min="0"
+                value={newCapsuleCount}
+                onChange={(e) => setNewCapsuleCount(e.target.value)}
+                className="col-span-3"
+                placeholder="Въведи брой капсули..."
+              />
+            </div>
+            {editingUser && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <span className="text-right text-sm text-muted-foreground">Текущи:</span>
+                <span className="col-span-3 text-sm">
+                  {editingUser.capsulesRemaining} капсули
+                  {editingUser.bottlesPurchased > 0 && ` (${editingUser.bottlesPurchased} бутилки)`}
+                </span>
+              </div>
+            )}
+            <div className="flex gap-2 justify-center">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setNewCapsuleCount("60")}
+              >
+                +1 бутилка (60)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setNewCapsuleCount("120")}
+              >
+                +2 бутилки (120)
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setNewCapsuleCount("0")}
+              >
+                Изчисти
+              </Button>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingUser(null)}>
+              Отказ
+            </Button>
+            <Button onClick={updateCapsules} disabled={isSaving}>
+              {isSaving ? "Запазване..." : "Запази"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AdminLayout>
   );
 }
