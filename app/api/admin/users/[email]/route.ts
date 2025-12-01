@@ -8,7 +8,7 @@ const supabase = createClient(
 
 interface TimelineEvent {
   id: string;
-  type: 'chat_session' | 'funnel_session' | 'funnel_event' | 'purchase';
+  type: 'chat_session' | 'purchase';
   timestamp: string;
   data: any;
 }
@@ -29,31 +29,6 @@ export async function GET(
       .order('created_at', { ascending: false });
 
     if (chatError) throw chatError;
-
-    // Get funnel sessions for this email
-    const { data: funnelSessions, error: funnelError } = await supabase
-      .from('funnel_sessions')
-      .select('*')
-      .eq('user_email', email)
-      .order('entry_time', { ascending: false });
-
-    if (funnelError) throw funnelError;
-
-    // Get funnel events for this user's sessions
-    const sessionIds = funnelSessions?.map((s) => s.session_id) || [];
-    let funnelEvents: any[] = [];
-
-    if (sessionIds.length > 0) {
-      const { data: events, error: eventsError } = await supabase
-        .from('funnel_events')
-        .select('*')
-        .in('session_id', sessionIds)
-        .order('timestamp', { ascending: false })
-        .limit(50);
-
-      if (eventsError) throw eventsError;
-      funnelEvents = events || [];
-    }
 
     // Get quiz results for this user
     const { data: quizResult, error: quizError } = await supabase
@@ -192,32 +167,6 @@ export async function GET(
       });
     });
 
-    // Add funnel sessions
-    funnelSessions?.forEach((session) => {
-      timeline.push({
-        id: session.id,
-        type: 'funnel_session',
-        timestamp: session.entry_time,
-        data: session,
-      });
-    });
-
-    // Add funnel events (limited to most important ones)
-    funnelEvents.forEach((event) => {
-      if (
-        event.event_type === 'offer_viewed' ||
-        event.event_type === 'button_clicked' ||
-        event.event_type === 'exit_intent'
-      ) {
-        timeline.push({
-          id: event.id,
-          type: 'funnel_event',
-          timestamp: event.timestamp,
-          data: event,
-        });
-      }
-    });
-
     // Add purchases to timeline
     purchases.forEach((purchase) => {
       timeline.push({
@@ -239,10 +188,6 @@ export async function GET(
 
     const stats = {
       totalChatSessions: chatSessions?.length || 0,
-      totalFunnelAttempts: funnelSessions?.length || 0,
-      completedFunnels: funnelSessions?.filter((s) => s.completed).length || 0,
-      totalEvents: funnelEvents.length,
-      firstName: funnelSessions?.[0]?.user_data?.firstName || null,
       totalPurchases: purchases.length,
       totalSpent: Math.round(totalSpent * 100) / 100,
       totalCapsules,
@@ -259,7 +204,6 @@ export async function GET(
       stats,
       timeline,
       chatSessions: chatSessions || [],
-      funnelSessions: funnelSessions || [],
       purchases: purchases || [],
       inventory: inventory,
       quizData: quizData,

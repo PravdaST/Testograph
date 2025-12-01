@@ -15,7 +15,6 @@ interface UserData {
   level?: string;
   totalScore?: number;
   workoutLocation?: 'home' | 'gym';
-  dietaryPreference?: string;
   // Inventory
   capsulesRemaining?: number;
   // Activity counts (last 7 days)
@@ -26,8 +25,6 @@ interface UserData {
   coachMessages?: number;
   // Legacy
   chatSessions: number;
-  funnelAttempts: number;
-  converted: boolean;
   lastActivity: string;
   purchasesCount: number;
   totalSpent: number;
@@ -56,13 +53,12 @@ export async function GET(request: Request) {
       testoupTrackingRes,
       coachMessagesRes,
       chatSessionsRes,
-      funnelSessionsRes,
       purchasesRes,
     ] = await Promise.all([
       // Quiz results (main user data)
       supabase
         .from('quiz_results_v2')
-        .select('email, first_name, category, determined_level, total_score, workout_location, dietary_preference, created_at')
+        .select('email, first_name, category, determined_level, total_score, workout_location, created_at')
         .order('created_at', { ascending: false }),
 
       // TestoUP inventory
@@ -104,11 +100,6 @@ export async function GET(request: Request) {
         .from('chat_sessions')
         .select('email, created_at, updated_at'),
 
-      // Funnel sessions (legacy)
-      supabase
-        .from('funnel_sessions')
-        .select('user_email, user_data, completed, entry_time, last_activity'),
-
       // Purchases
       supabase
         .from('testoup_purchase_history')
@@ -127,7 +118,6 @@ export async function GET(request: Request) {
     if (testoupTrackingRes.error) console.error('TestoUP tracking error:', testoupTrackingRes.error);
     if (coachMessagesRes.error) console.error('Coach messages error:', coachMessagesRes.error);
     if (chatSessionsRes.error) console.error('Chat sessions error:', chatSessionsRes.error);
-    if (funnelSessionsRes.error) console.error('Funnel sessions error:', funnelSessionsRes.error);
     if (purchasesRes.error) console.error('Purchases error:', purchasesRes.error);
 
     const quizResults = quizResultsRes.data || [];
@@ -138,7 +128,6 @@ export async function GET(request: Request) {
     const testoupTracking = testoupTrackingRes.data || [];
     const coachMessages = coachMessagesRes.data || [];
     const chatSessions = chatSessionsRes.data || [];
-    const funnelSessions = funnelSessionsRes.data || [];
     const purchases = purchasesRes.data || [];
 
     // Create lookup maps for fast access
@@ -180,7 +169,6 @@ export async function GET(request: Request) {
         level: quiz.determined_level,
         totalScore: quiz.total_score,
         workoutLocation: quiz.workout_location,
-        dietaryPreference: quiz.dietary_preference,
         capsulesRemaining: inventoryMap.get(quiz.email) || 0,
         workoutCount: workoutCountMap.get(quiz.email) || 0,
         mealCount: mealCountMap.get(quiz.email) || 0,
@@ -188,8 +176,6 @@ export async function GET(request: Request) {
         testoupCount: testoupCountMap.get(quiz.email) || 0,
         coachMessages: coachMessagesMap.get(quiz.email) || 0,
         chatSessions: chatSessionsMap.get(quiz.email) || 0,
-        funnelAttempts: 0,
-        converted: false,
         lastActivity: quiz.created_at,
         purchasesCount: 0,
         totalSpent: 0,
@@ -210,44 +196,11 @@ export async function GET(request: Request) {
         testoupCount: testoupCountMap.get(inv.email) || 0,
         coachMessages: coachMessagesMap.get(inv.email) || 0,
         chatSessions: chatSessionsMap.get(inv.email) || 0,
-        funnelAttempts: 0,
-        converted: false,
         lastActivity: new Date().toISOString(),
         purchasesCount: 0,
         totalSpent: 0,
         hasAppAccess: false,
       });
-    });
-
-    // Process funnel sessions for additional data
-    funnelSessions?.forEach((session) => {
-      if (!session.user_email) return;
-
-      const existing = usersMap.get(session.user_email);
-      if (existing) {
-        existing.funnelAttempts += 1;
-        if (session.completed) {
-          existing.converted = true;
-        }
-        if (new Date(session.last_activity) > new Date(existing.lastActivity)) {
-          existing.lastActivity = session.last_activity;
-        }
-        if (session.user_data?.firstName && !existing.firstName) {
-          existing.firstName = session.user_data.firstName;
-        }
-      } else {
-        usersMap.set(session.user_email, {
-          email: session.user_email,
-          firstName: session.user_data?.firstName,
-          chatSessions: chatSessionsMap.get(session.user_email) || 0,
-          funnelAttempts: 1,
-          converted: session.completed || false,
-          lastActivity: session.last_activity,
-          purchasesCount: 0,
-          totalSpent: 0,
-          hasAppAccess: false,
-        });
-      }
     });
 
     // Process purchases
@@ -279,13 +232,10 @@ export async function GET(request: Request) {
         existing.purchasesCount = purchaseData.count;
         existing.totalSpent = Math.round(purchaseData.total * 100) / 100;
         existing.latestPurchase = purchaseData.latest;
-        existing.converted = true;
       } else {
         usersMap.set(email, {
           email,
           chatSessions: chatSessionsMap.get(email) || 0,
-          funnelAttempts: 0,
-          converted: true,
           lastActivity: purchaseData.latest,
           purchasesCount: purchaseData.count,
           totalSpent: Math.round(purchaseData.total * 100) / 100,
