@@ -10,6 +10,15 @@ interface AppUserData {
   id: string;
   email: string;
   name: string | null;
+  // Shopify Order info (from pending_orders - source of truth)
+  shopifyOrderId: string | null;
+  orderTotal: number | null;
+  orderDate: string | null;
+  paymentStatus: 'paid' | 'pending' | 'cancelled' | null;
+  productType: string | null;
+  orderedBottles: number;
+  orderedCapsules: number;
+  estimatedPrice: boolean; // true if orderTotal is estimated (not from Shopify)
   // Quiz info
   quizCompletedAt: string | null;
   quizCategory: string | null;
@@ -29,7 +38,7 @@ interface AppUserData {
   bottlesPurchased: number;
   lastPurchaseDate: string | null;
   hasAccess: boolean; // Quiz completed + capsules > 0
-  accessStatus: 'full_access' | 'no_capsules' | 'no_quiz' | 'none';
+  accessStatus: 'full_access' | 'no_capsules' | 'no_quiz' | 'pending_payment' | 'none';
   // Engagement metrics (only for registered users)
   workoutsCount: number;
   mealsCount: number;
@@ -49,19 +58,39 @@ interface AppUserData {
 /**
  * GET /api/admin/app-users
  *
- * Fetches ALL users who either:
- * 1. Completed Quiz-v2 (potential app users)
- * 2. Have inventory/capsules (purchased product)
- * This ensures we see both quiz completers AND purchasers who haven't taken the quiz yet
+ * UNIFIED Operations Management API - fetches ALL users from:
+ * 1. Shopify Orders (pending_orders) - all paid + pending orders
+ * 2. Quiz completions (quiz_results_v2) - potential app users
+ * 3. Inventory (testoup_inventory) - capsule balance
+ *
+ * This provides a complete view of all customers for easy operations management.
  */
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
-    const sortBy = searchParams.get('sortBy') || 'quizCompletedAt';
+    const sortBy = searchParams.get('sortBy') || 'orderDate';
     const sortOrder = searchParams.get('sortOrder') || 'desc';
+    const filter = searchParams.get('filter') || 'all'; // all, paid, pending, needs_quiz, needs_activation, active
 
-    // Step 1: Get ALL quiz completions
+    // Step 1: Get ALL Shopify orders from BOTH tables
+    // pending_orders has pending + some paid orders (but may lack order_total)
+    // testoup_purchase_history has all PAID orders with correct amounts
+    const { data: pendingOrders, error: pendingError } = await supabase
+      .from('pending_orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (pendingError) throw pendingError;
+
+    const { data: paidPurchases, error: paidError } = await supabase
+      .from('testoup_purchase_history')
+      .select('*')
+      .order('order_date', { ascending: false });
+
+    if (paidError) throw paidError;
+
+    // Step 2: Get ALL quiz completions
     const { data: allQuizResults, error: quizError } = await supabase
       .from('quiz_results_v2')
       .select('*')
@@ -69,12 +98,59 @@ export async function GET(request: Request) {
 
     if (quizError) throw quizError;
 
-    // Step 2: Get ALL inventory records (includes users who purchased but may not have quiz)
+    // Step 3: Get ALL inventory records
     const { data: allInventory, error: inventoryError } = await supabase
       .from('testoup_inventory')
       .select('*');
 
     if (inventoryError) throw inventoryError;
+
+    // Build orders map from BOTH tables
+    // Priority: testoup_purchase_history (PAID with amounts) > pending_orders (PENDING)
+    const ordersByEmail = new Map<string, any>();
+
+    // First, add PAID purchases from testoup_purchase_history (has correct amounts)
+    paidPurchases?.forEach(p => {
+      if (p.email) {
+        const existing = ordersByEmail.get(p.email);
+        if (!existing || new Date(p.order_date) > new Date(existing.orderDate)) {
+          ordersByEmail.set(p.email, {
+            id: p.id,
+            email: p.email,
+            customer_name: null, // Not stored in this table
+            shopify_order_id: p.order_id,
+            order_total: p.order_total,
+            created_at: p.order_date,
+            status: 'paid',
+            product_type: p.product_type,
+            bottles_purchased: p.bottles_purchased,
+            capsules_to_add: p.capsules_added,
+          });
+        }
+      }
+    });
+
+    // Then, add PENDING orders from pending_orders (only if not already paid)
+    // Calculate average order value for estimating pending order amounts
+    const avgOrderValue = paidPurchases && paidPurchases.length > 0
+      ? paidPurchases.reduce((sum, p) => sum + (parseFloat(p.order_total) || 0), 0) / paidPurchases.length
+      : 82; // Default fallback ~82 BGN
+
+    pendingOrders?.forEach(o => {
+      if (o.email && o.status === 'pending') {
+        // Only add if no paid order exists for this email
+        if (!ordersByEmail.has(o.email)) {
+          // Use total_price (the actual column name in pending_orders table)
+          const orderPrice = parseFloat(o.total_price) || 0;
+          const estimatedTotal = orderPrice > 0 ? orderPrice : Math.round(avgOrderValue);
+          ordersByEmail.set(o.email, {
+            ...o,
+            order_total: estimatedTotal,
+            estimated_price: orderPrice === 0, // Only flag as estimated if no price
+          });
+        }
+      }
+    });
 
     // Get unique emails from quiz results (most recent quiz per email)
     const quizByEmail = new Map<string, any>();
@@ -87,8 +163,9 @@ export async function GET(request: Request) {
     // Get inventory by email
     const inventoryByEmail = new Map(allInventory?.map(i => [i.email, i]) || []);
 
-    // Merge all unique emails from BOTH sources (quiz + inventory)
+    // Merge all unique emails from ALL THREE sources (orders + quiz + inventory)
     const allEmailsSet = new Set<string>([
+      ...ordersByEmail.keys(),
       ...quizByEmail.keys(),
       ...inventoryByEmail.keys()
     ]);
@@ -100,6 +177,13 @@ export async function GET(request: Request) {
         users: [],
         stats: {
           totalUsers: 0,
+          // Order stats
+          totalOrders: 0,
+          paidOrders: 0,
+          pendingOrders: 0,
+          totalRevenue: 0,
+          pendingRevenue: 0,
+          // Quiz & Access stats
           totalQuizUsers: 0,
           registeredUsers: 0,
           activeSubscriptions: 0,
@@ -108,14 +192,16 @@ export async function GET(request: Request) {
           usersWithAccess: 0,
           usersNoCapsules: 0,
           usersNoQuiz: 0,
+          needsActivation: 0,
           totalCapsulesInSystem: 0,
+          // Engagement stats
           avgWorkouts: 0,
           avgTestoUpCompliance: 0,
         }
       });
     }
 
-    // Step 3: Get registered users from users table
+    // Step 4: Get registered users from users table
     const { data: registeredUsers } = await supabase
       .from('users')
       .select('*')
@@ -123,7 +209,7 @@ export async function GET(request: Request) {
 
     const usersByEmail = new Map(registeredUsers?.map(u => [u.email, u]) || []);
 
-    // Step 4: Batch fetch engagement data for registered users
+    // Step 5: Batch fetch engagement data for registered users
     const registeredEmails = registeredUsers?.map(u => u.email) || [];
 
     const [
@@ -188,12 +274,17 @@ export async function GET(request: Request) {
       photosByEmail.get(p.email)!.push(p);
     });
 
-    // Build enriched user data - starting from ALL quiz emails
+    // Build enriched user data - starting from ALL emails (orders + quiz + inventory)
     const enrichedUsers: AppUserData[] = allEmails.map((email, index) => {
+      const order = ordersByEmail.get(email);
       const quiz = quizByEmail.get(email);
       const user = usersByEmail.get(email);
       const inventory = inventoryByEmail.get(email);
       const isRegistered = !!user;
+
+      // Order data
+      const isPaid = order?.status === 'paid';
+      const isPending = order?.status === 'pending';
 
       // Inventory data
       const capsulesRemaining = inventory?.capsules_remaining || 0;
@@ -201,17 +292,19 @@ export async function GET(request: Request) {
       const bottlesPurchased = inventory?.bottles_purchased || 0;
       const lastPurchaseDate = inventory?.last_purchase_date || inventory?.last_refill_date || null;
 
-      // Calculate access status
+      // Calculate access status (now includes pending_payment)
       const hasQuiz = !!quiz;
       const hasCapsules = capsulesRemaining > 0;
       const hasAccess = hasQuiz && hasCapsules;
 
-      let accessStatus: 'full_access' | 'no_capsules' | 'no_quiz' | 'none' = 'none';
-      if (hasQuiz && hasCapsules) {
+      let accessStatus: 'full_access' | 'no_capsules' | 'no_quiz' | 'pending_payment' | 'none' = 'none';
+      if (isPending) {
+        accessStatus = 'pending_payment';
+      } else if (hasQuiz && hasCapsules) {
         accessStatus = 'full_access';
       } else if (hasQuiz && !hasCapsules) {
         accessStatus = 'no_capsules';
-      } else if (!hasQuiz && hasCapsules) {
+      } else if (!hasQuiz && (hasCapsules || isPaid)) {
         accessStatus = 'no_quiz';
       }
 
@@ -260,9 +353,18 @@ export async function GET(request: Request) {
       }
 
       return {
-        id: user?.id || `quiz-${index}`,
+        id: user?.id || order?.id || `user-${index}`,
         email: email,
-        name: user?.name || quiz?.first_name || null,
+        name: user?.name || order?.customer_name || quiz?.first_name || null,
+        // Shopify Order info
+        shopifyOrderId: order?.shopify_order_id || null,
+        orderTotal: order ? parseFloat(order.order_total) || 0 : null,
+        orderDate: order?.created_at || null,
+        paymentStatus: order?.status || null,
+        productType: order?.product_type || null,
+        orderedBottles: order?.bottles_purchased || 0,
+        estimatedPrice: order?.estimated_price || false,
+        orderedCapsules: order?.capsules_to_add || 0,
         // Quiz info
         quizCompletedAt: quiz?.created_at || null,
         quizCategory: quiz?.category || null,
@@ -310,7 +412,7 @@ export async function GET(request: Request) {
       if (bVal === null) return -1;
 
       // Handle dates
-      if (sortBy === 'registeredAt' || sortBy === 'lastActivity') {
+      if (sortBy === 'registeredAt' || sortBy === 'lastActivity' || sortBy === 'orderDate' || sortBy === 'quizCompletedAt') {
         aVal = new Date(aVal).getTime();
         bVal = new Date(bVal).getTime();
       }
@@ -322,20 +424,35 @@ export async function GET(request: Request) {
       }
     });
 
-    // Calculate overall stats
+    // Apply status filter
+    let statusFilteredUsers = sortedUsers;
+    if (filter === 'paid') {
+      statusFilteredUsers = sortedUsers.filter(u => u.paymentStatus === 'paid');
+    } else if (filter === 'pending') {
+      statusFilteredUsers = sortedUsers.filter(u => u.paymentStatus === 'pending');
+    } else if (filter === 'needs_quiz') {
+      statusFilteredUsers = sortedUsers.filter(u => u.paymentStatus === 'paid' && !u.quizCompletedAt);
+    } else if (filter === 'needs_activation') {
+      statusFilteredUsers = sortedUsers.filter(u => u.paymentStatus === 'paid' && !u.hasAccess);
+    } else if (filter === 'active') {
+      statusFilteredUsers = sortedUsers.filter(u => u.accessStatus === 'full_access');
+    }
+
+    // Apply search filter if provided
+    const filteredUsers = search
+      ? statusFilteredUsers.filter(u =>
+          u.email.toLowerCase().includes(search.toLowerCase()) ||
+          u.name?.toLowerCase().includes(search.toLowerCase()) ||
+          u.shopifyOrderId?.toLowerCase().includes(search.toLowerCase())
+        )
+      : statusFilteredUsers;
+
+    // Calculate overall stats (on ALL users, not filtered)
     const totalWorkouts = enrichedUsers.reduce((sum, u) => sum + u.workoutsCount, 0);
     const totalTestoUpCompliance = enrichedUsers.filter(u => u.testoUpDays > 0);
     const avgTestoUpCompliance = totalTestoUpCompliance.length > 0
       ? Math.round(totalTestoUpCompliance.reduce((sum, u) => sum + u.testoUpCompliance, 0) / totalTestoUpCompliance.length)
       : 0;
-
-    // Apply search filter if provided
-    const filteredUsers = search
-      ? sortedUsers.filter(u =>
-          u.email.toLowerCase().includes(search.toLowerCase()) ||
-          u.name?.toLowerCase().includes(search.toLowerCase())
-        )
-      : sortedUsers;
 
     // Calculate stats
     const registeredCount = enrichedUsers.filter(u => u.isRegistered).length;
@@ -344,11 +461,23 @@ export async function GET(request: Request) {
       ? Math.round((registeredCount / enrichedUsers.length) * 100)
       : 0;
 
+    // Order stats - use raw data from tables for accurate counts
+    const paidOrdersCount = paidPurchases?.length || 0;
+    const pendingOrdersCount = pendingOrders?.filter(o => o.status === 'pending').length || 0;
+
+    // Calculate revenue from testoup_purchase_history (accurate source)
+    const totalRevenue = paidPurchases?.reduce((sum, p) => sum + (parseFloat(p.order_total) || 0), 0) || 0;
+
+    // Pending revenue - calculate from actual pending order prices
+    const pendingRevenue = pendingOrders?.filter(o => o.status === 'pending')
+      .reduce((sum, o) => sum + (parseFloat(o.total_price) || 0), 0) || 0;
+
     // Inventory stats
     const usersWithCapsules = enrichedUsers.filter(u => u.capsulesRemaining > 0).length;
     const usersWithAccess = enrichedUsers.filter(u => u.hasAccess).length;
     const usersNoCapsules = enrichedUsers.filter(u => u.accessStatus === 'no_capsules').length;
     const usersNoQuiz = enrichedUsers.filter(u => u.accessStatus === 'no_quiz').length;
+    const needsActivation = enrichedUsers.filter(u => u.paymentStatus === 'paid' && !u.hasAccess).length;
     const totalQuizUsers = enrichedUsers.filter(u => u.quizCompletedAt !== null).length;
     const totalCapsulesInSystem = enrichedUsers.reduce((sum, u) => sum + u.capsulesRemaining, 0);
 
@@ -357,6 +486,13 @@ export async function GET(request: Request) {
       users: filteredUsers,
       stats: {
         totalUsers: enrichedUsers.length,
+        // Order stats
+        totalOrders: paidOrdersCount + pendingOrdersCount,
+        paidOrders: paidOrdersCount,
+        pendingOrders: pendingOrdersCount,
+        totalRevenue: Math.round(totalRevenue * 100) / 100,
+        pendingRevenue: Math.round(pendingRevenue * 100) / 100,
+        // Quiz & Access stats
         totalQuizUsers,
         registeredUsers: registeredCount,
         activeSubscriptions: activeSubsCount,
@@ -366,6 +502,7 @@ export async function GET(request: Request) {
         usersWithAccess,
         usersNoCapsules,
         usersNoQuiz,
+        needsActivation,
         totalCapsulesInSystem,
         // Engagement stats
         avgWorkouts: registeredCount > 0 ? Math.round((totalWorkouts / registeredCount) * 10) / 10 : 0,
