@@ -100,7 +100,7 @@ export async function POST(request: Request) {
     await createAuditLog({
       adminId,
       adminEmail,
-      actionType: 'add_admin', // Using add_admin as placeholder for permissions change
+      actionType: 'update_admin_permissions',
       targetUserId: userId,
       targetUserEmail: userEmail,
       changesBefore: {

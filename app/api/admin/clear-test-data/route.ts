@@ -17,9 +17,6 @@ interface DeleteStats {
   deletedChatSessions: number;
   deletedFunnelSessions: number;
   deletedFunnelEvents: number;
-  deletedProEntries: number;
-  deletedProMeasurements: number;
-  deletedUserSettings: number;
   deletedProfiles: number;
 }
 
@@ -74,9 +71,6 @@ export async function DELETE(request: NextRequest) {
       deletedChatSessions: 0,
       deletedFunnelSessions: 0,
       deletedFunnelEvents: 0,
-      deletedProEntries: 0,
-      deletedProMeasurements: 0,
-      deletedUserSettings: 0,
       deletedProfiles: 0,
     };
 
@@ -170,64 +164,34 @@ export async function DELETE(request: NextRequest) {
       console.log(`✅ Deleted ${chatCount} chat sessions`);
     }
 
-    // 4. Delete purchases
+    // 4. Delete purchases from testoup_purchase_history (by email)
     const { error: purchasesError, count: purchasesCount } = await supabase
-      .from('purchases')
+      .from('testoup_purchase_history')
       .delete()
-      .in('user_id', userIds)
+      .in('email', userEmails)
       .select('*', { count: 'exact' });
 
     if (purchasesError) {
-      console.error('❌ Error deleting purchases:', purchasesError);
+      console.error('❌ Error deleting testoup_purchase_history:', purchasesError);
     } else {
       stats.deletedPurchases = purchasesCount || 0;
-      console.log(`✅ Deleted ${purchasesCount} purchases`);
+      console.log(`✅ Deleted ${purchasesCount} purchase history records`);
     }
 
-    // 5. Delete daily_entries_pro
-    const { error: entriesError, count: entriesCount } = await supabase
-      .from('daily_entries_pro')
+    // 4.5. Delete from testoup_inventory (by email)
+    const { error: inventoryError, count: inventoryCount } = await supabase
+      .from('testoup_inventory')
       .delete()
-      .in('user_id', userIds)
+      .in('email', userEmails)
       .select('*', { count: 'exact' });
 
-    if (entriesError) {
-      console.error('❌ Error deleting daily_entries_pro:', entriesError);
+    if (inventoryError) {
+      console.error('❌ Error deleting testoup_inventory:', inventoryError);
     } else {
-      stats.deletedProEntries = entriesCount || 0;
-      console.log(`✅ Deleted ${entriesCount} PRO daily entries`);
+      console.log(`✅ Deleted ${inventoryCount} inventory records`);
     }
 
-    // 6. Delete weekly_measurements_pro
-    const { error: measurementsError, count: measurementsCount } = await supabase
-      .from('weekly_measurements_pro')
-      .delete()
-      .in('user_id', userIds)
-      .select('*', { count: 'exact' });
-
-    if (measurementsError) {
-      console.error('❌ Error deleting weekly_measurements_pro:', measurementsError);
-    } else {
-      stats.deletedProMeasurements = measurementsCount || 0;
-      console.log(`✅ Deleted ${measurementsCount} PRO measurements`);
-    }
-
-    // 7. Delete user_settings (if table exists)
-    const { error: settingsError, count: settingsCount } = await supabase
-      .from('user_settings')
-      .delete()
-      .in('user_id', userIds)
-      .select('*', { count: 'exact' });
-
-    if (settingsError) {
-      console.error('❌ Error deleting user_settings:', settingsError);
-      // Don't fail if table doesn't exist - it's optional
-    } else {
-      stats.deletedUserSettings = settingsCount || 0;
-      console.log(`✅ Deleted ${settingsCount} user settings`);
-    }
-
-    // 8. Delete profiles
+    // 5. Delete profiles
     const { error: profilesError, count: profilesCount } = await supabase
       .from('profiles')
       .delete()

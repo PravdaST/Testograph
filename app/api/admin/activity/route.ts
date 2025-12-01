@@ -130,28 +130,26 @@ export async function GET(request: Request) {
       }
     });
 
-    // Get recent purchases
+    // Get recent purchases from testoup_purchase_history
     const { data: purchases } = await supabase
-      .from('purchases')
-      .select('id, user_id, product_name, amount, purchased_at')
-      .eq('status', 'completed')
-      .order('purchased_at', { ascending: false })
+      .from('testoup_purchase_history')
+      .select('id, email, order_total, product_type, order_date')
+      .not('email', 'ilike', '%test%')
+      .not('order_id', 'eq', 'MANUAL_REFILL')
+      .order('order_date', { ascending: false })
       .limit(10);
 
     if (purchases) {
-      const { data: authUsers } = await supabase.auth.admin.listUsers();
-      const userMap = new Map(authUsers?.users.map(u => [u.id, u.email]));
-
       purchases.forEach((purchase) => {
-        const email = userMap.get(purchase.user_id);
-        const firstName = email ? (profileMap.get(email) || email.split('@')[0]) : 'Unknown';
+        const firstName = profileMap.get(purchase.email) || purchase.email.split('@')[0];
+        const productName = purchase.product_type === 'full' ? 'TestoUP (60 капсули)' : 'TestoUP Проба (10 капсули)';
 
         activities.push({
           id: `purchase-${purchase.id}`,
           type: 'purchase',
-          timestamp: purchase.purchased_at,
+          timestamp: purchase.order_date,
           user: firstName,
-          description: `🛒 Закупи ${purchase.product_name} (${purchase.amount} лв)`,
+          description: `🛒 Закупи ${productName} (${purchase.order_total} лв)`,
         });
       });
     }

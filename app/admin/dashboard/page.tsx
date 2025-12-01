@@ -72,6 +72,16 @@ import {
   Clock,
   Trash2,
   AlertTriangle,
+  // NEW Icons
+  Bot,
+  Package,
+  UserPlus,
+  ArrowRight,
+  Camera,
+  Ruler,
+  MessageCircle,
+  AlertCircle,
+  TrendingDown,
 } from "lucide-react";
 
 interface DashboardStats {
@@ -101,6 +111,7 @@ interface DashboardStats {
   };
   users: {
     total: number;
+    siteUsers?: number;
     active: number;
     activePercentage: number;
     proUsers: number;
@@ -119,11 +130,62 @@ interface DashboardStats {
     totalPurchases: number;
     averageOrderValue: number;
     productBreakdown: Record<string, number>;
+    pendingOrders?: number;
+    pendingWithEmail?: number;
+    pendingWithoutEmail?: number;
+    pendingRevenue?: number;
   };
   program: {
     completionRate: number;
     completedPrograms: number;
     activePrograms: number;
+  };
+  // NEW: TestoUP Inventory
+  inventory?: {
+    totalUsers: number;
+    lowStock: number;
+    outOfStock: number;
+    healthyStock: number;
+    totalBottlesPurchased: number;
+  };
+  // NEW: AI Coach Stats
+  coach?: {
+    totalMessages: number;
+    uniqueUsers: number;
+    recentMessages: number;
+  };
+  // NEW: Affiliate Stats
+  affiliates?: {
+    totalApplications: number;
+    pendingApplications: number;
+    activeAffiliates: number;
+    totalClicks: number;
+    totalOrders: number;
+    totalCommission: number;
+  };
+  // NEW: Conversion Funnel
+  funnel?: {
+    quizCompletions: number;
+    appRegistrations: number;
+    activeSubscriptions: number;
+    quizToRegistrationRate: number;
+    registrationToSubscriptionRate: number;
+    notRegistered: number;
+  };
+  // NEW: Feedback
+  feedback?: {
+    total: number;
+    recent: number;
+  };
+  // NEW: Measurements
+  measurements?: {
+    total: number;
+    uniqueUsers: number;
+  };
+  // NEW: Photos
+  photos?: {
+    total: number;
+    uniqueUsers: number;
   };
   trends?: {
     revenue: { value: number; label: string };
@@ -285,6 +347,14 @@ export default function DashboardPage() {
             completedPrograms: 0,
             activePrograms: 0,
           },
+          // NEW: Include new stats from API
+          inventory: appStatsData.inventory,
+          coach: appStatsData.coach,
+          affiliates: appStatsData.affiliates,
+          funnel: appStatsData.funnel,
+          feedback: appStatsData.feedback,
+          measurements: appStatsData.measurements,
+          photos: appStatsData.photos,
           trends:
             trendsRes.ok && trendsData?.trends ? trendsData.trends : undefined,
         });
@@ -486,7 +556,7 @@ export default function DashboardPage() {
           </div>
 
           <div>
-            <h2 className="text-xl font-semibold mb-4">Product Usage</h2>
+            <h2 className="text-xl font-semibold mb-4">Метрики</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               {[1, 2, 3, 4, 5].map((i) => (
                 <SkeletonCard key={i} />
@@ -497,7 +567,7 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
             <Card className="shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Recent Purchases</CardTitle>
+                <CardTitle className="text-lg">Последни Покупки</CardTitle>
               </CardHeader>
               <CardContent>
                 <SkeletonTable rows={5} />
@@ -505,7 +575,7 @@ export default function DashboardPage() {
             </Card>
             <Card className="shadow-sm">
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Recent Activity</CardTitle>
+                <CardTitle className="text-lg">Последна Активност</CardTitle>
               </CardHeader>
               <CardContent>
                 <SkeletonTable rows={5} />
@@ -580,35 +650,112 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Key Metrics */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            title="Quiz Завършени"
-            value={stats?.quiz.totalCompletions || 0}
-            icon={ClipboardCheck}
-            description={`Средeн Score: ${stats?.quiz.averageScore || 0}`}
-          />
-          <StatCard
-            title="Активни Потребители"
-            value={stats?.users.active || 0}
-            icon={Users}
-            description={`${stats?.users.activePercentage || 0}% от ${stats?.users.total || 0} общо`}
-          />
-          <StatCard
-            title="Общ Приход"
-            value={`${stats?.purchases.totalRevenue || 0} лв`}
-            icon={DollarSign}
-            valueColor="text-green-600"
-            description={`${stats?.purchases.totalPurchases || 0} покупки`}
-            trend={stats?.trends?.revenue}
-          />
-          <StatCard
-            title="Програми Завършени"
-            value={`${stats?.program.completionRate || 0}%`}
-            icon={Target}
-            valueColor="text-green-600"
-            description={`${stats?.program.completedPrograms || 0} от ${stats?.quiz.totalCompletions || 0}`}
-          />
+        {/* === ФИНАНСОВ ПРЕГЛЕД === */}
+        <div>
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-green-600" />
+            Финансов Преглед
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Платени поръчки */}
+            <Card className="border-l-4 border-l-green-500">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="font-medium">Платени Поръчки</span>
+                </div>
+                <div className="text-2xl font-bold text-green-600">
+                  {stats?.purchases.totalRevenue?.toFixed(2) || 0} лв
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stats?.purchases.totalPurchases || 0} завършени поръчки
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Чакащи поръчки (COD) */}
+            <Card className="border-l-4 border-l-amber-500">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <ShoppingCart className="h-4 w-4 text-amber-600" />
+                  <span className="font-medium">Чакащи Поръчки (COD)</span>
+                </div>
+                <div className="text-2xl font-bold text-amber-600">
+                  {stats?.purchases.pendingRevenue?.toFixed(2) || 0} лв
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  {stats?.purchases.pendingOrders || 0} поръчки за доставка
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Общо потенциален приход */}
+            <Card className="border-l-4 border-l-blue-500 bg-blue-50/50 dark:bg-blue-950/20">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <TrendingUp className="h-4 w-4 text-blue-600" />
+                  <span className="font-medium">ОБЩО Приходи</span>
+                </div>
+                <div className="text-2xl font-bold text-blue-600">
+                  {((stats?.purchases.totalRevenue || 0) + (stats?.purchases.pendingRevenue || 0)).toFixed(2)} лв
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Платени + Чакащи поръчки
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Средна стойност на поръчка */}
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <Target className="h-4 w-4" />
+                  <span className="font-medium">Средна Поръчка</span>
+                </div>
+                <div className="text-2xl font-bold">
+                  {stats?.purchases.averageOrderValue || 0} лв
+                </div>
+                <p className="text-xs text-muted-foreground mt-1">
+                  На завършена покупка
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+
+        {/* === ПОТРЕБИТЕЛИ И QUIZ === */}
+        <div>
+          <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
+            <Users className="h-5 w-5 text-purple-600" />
+            Потребители
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <StatCard
+              title="Quiz Завършени"
+              value={stats?.quiz.totalCompletions || 0}
+              icon={ClipboardCheck}
+              description={`Среден Score: ${stats?.quiz.averageScore || 0}`}
+            />
+            <StatCard
+              title="App Потребители"
+              value={stats?.users.total || 0}
+              icon={Users}
+              description={`${stats?.users.active || 0} активни (${stats?.users.activePercentage || 0}%)`}
+            />
+            <StatCard
+              title="Site Потребители"
+              value={stats?.users.siteUsers || 0}
+              icon={Users}
+              description="Supabase Auth профили"
+            />
+            <StatCard
+              title="Не регистрирани"
+              value={stats?.funnel?.notRegistered || 0}
+              icon={AlertCircle}
+              valueColor="text-amber-600"
+              description="Quiz без регистрация в App"
+            />
+          </div>
         </div>
 
         {/* Quick Actions & System Health */}
@@ -653,10 +800,10 @@ export default function DashboardPage() {
                 <Button
                   variant="outline"
                   className="h-auto py-4 flex flex-col items-center gap-2"
-                  onClick={() => router.push("/admin/access")}
+                  onClick={() => router.push("/admin/users")}
                 >
-                  <Target className="h-6 w-6 text-primary" />
-                  <span className="text-sm">PRO Достъп</span>
+                  <Users className="h-6 w-6 text-primary" />
+                  <span className="text-sm">Потребители</span>
                 </Button>
               </div>
             </CardContent>
@@ -670,14 +817,14 @@ export default function DashboardPage() {
                 Състояние на Системата
               </CardTitle>
               <CardDescription>
-                Real-time system health indicators
+                Състояние на системата в реално време
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Database className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Database Status</span>
+                  <span className="text-sm">База Данни</span>
                 </div>
                 <Badge
                   variant={
@@ -689,13 +836,13 @@ export default function DashboardPage() {
                     systemHealth.dbStatus === "healthy" ? "bg-green-600" : ""
                   }
                 >
-                  {systemHealth.dbStatus === "healthy" ? "Healthy" : "Error"}
+                  {systemHealth.dbStatus === "healthy" ? "OK" : "Грешка"}
                 </Badge>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Activity className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">API Response Time</span>
+                  <span className="text-sm">API Време</span>
                 </div>
                 <Badge variant="outline">
                   {systemHealth.apiResponseTime}ms
@@ -704,14 +851,14 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Users className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Total Users</span>
+                  <span className="text-sm">Общо Потребители</span>
                 </div>
                 <Badge variant="outline">{stats?.users.total || 0}</Badge>
               </div>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Last Update</span>
+                  <span className="text-sm">Последна Актуализация</span>
                 </div>
                 <span className="text-xs text-muted-foreground">
                   {lastUpdated ? formatTimestamp(lastUpdated) : "—"}
@@ -741,7 +888,7 @@ export default function DashboardPage() {
                     </h3>
                     <p className="text-xs text-muted-foreground mb-3">
                       Изтрива ВСИЧКИ потребители и техни данни от базата (quiz
-                      results, profiles, purchases, tracking data, PRO entries).
+                      results, profiles, purchases, tracking data).
                       Admin user-ът ({adminEmail || "текущия админ"}) ще бъде
                       запазен.
                     </p>
@@ -766,6 +913,271 @@ export default function DashboardPage() {
           <UsersGrowthChart data={usersGrowthData} isLoading={chartsLoading} />
           <RevenueTrendChart data={revenueData} isLoading={chartsLoading} />
         </div>
+
+        {/* NEW: Conversion Funnel & Key Metrics */}
+        {stats && (
+          <>
+            <div>
+              <h2 className="text-xl font-semibold">
+                Конверсионна Фуния
+              </h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Проследяване на пътя: Quiz &rarr; Регистрация &rarr; TestoUP
+              </p>
+            </div>
+
+            {/* Funnel Visualization */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <Card className="border-l-4 border-l-blue-500 shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <ClipboardList className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium">Quiz Завършени</span>
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold text-blue-600">
+                    {stats.funnel?.quizCompletions || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Уникални emails
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-green-500 shadow-sm relative">
+                <div className="absolute -left-3 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 px-1">
+                  <ArrowRight className="h-4 w-4 text-gray-400" />
+                </div>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <UserPlus className="h-4 w-4 text-green-600" />
+                    <span className="font-medium">App Регистрации</span>
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold text-green-600">
+                    {stats.funnel?.appRegistrations || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.funnel?.quizToRegistrationRate || 0}% конверсия
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="border-l-4 border-l-purple-500 shadow-sm relative">
+                <div className="absolute -left-3 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 px-1">
+                  <ArrowRight className="h-4 w-4 text-gray-400" />
+                </div>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <FlaskConical className="h-4 w-4 text-purple-600" />
+                    <span className="font-medium">TestoUP Потребители</span>
+                  </div>
+                  <div className="text-xl sm:text-2xl font-bold text-purple-600">
+                    {stats.funnel?.activeSubscriptions || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.funnel?.registrationToSubscriptionRate || 0}% от регистрираните
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Lost Users Alert */}
+            {stats.funnel && stats.funnel.notRegistered > 0 && (
+              <Card className="border-l-4 border-l-amber-500 shadow-sm bg-amber-50 dark:bg-amber-950/20">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-amber-800 dark:text-amber-200">
+                        {stats.funnel.notRegistered} потребители не са се регистрирали в приложението
+                      </p>
+                      <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                        Тези потребители са попълнили quiz-а, но не са продължили към app.testograph.eu
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* TestoUP Inventory, AI Coach, Affiliates */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* TestoUP Inventory */}
+              <Card className="shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Package className="h-5 w-5 text-orange-600" />
+                    TestoUP Inventory
+                  </CardTitle>
+                  <CardDescription className="text-xs">Статус на капсулите</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Здрав запас</span>
+                    <Badge variant="outline" className="text-green-600 border-green-600">
+                      {stats.inventory?.healthyStock || 0}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Нисък запас (&le;10)</span>
+                    <Badge variant="outline" className="text-amber-600 border-amber-600">
+                      {stats.inventory?.lowStock || 0}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Без капсули</span>
+                    <Badge variant="outline" className="text-red-600 border-red-600">
+                      {stats.inventory?.outOfStock || 0}
+                    </Badge>
+                  </div>
+                  <div className="border-t pt-2 mt-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">Общо бутилки</span>
+                      <span className="font-bold text-orange-600">
+                        {stats.inventory?.totalBottlesPurchased || 0}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* AI Coach Stats */}
+              <Card className="shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Bot className="h-5 w-5 text-blue-600" />
+                    AI Coach
+                  </CardTitle>
+                  <CardDescription className="text-xs">Статистика на чат асистента</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Общо съобщения</span>
+                    <Badge variant="outline">
+                      {stats.coach?.totalMessages || 0}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Уникални потребители</span>
+                    <Badge variant="outline" className="text-blue-600 border-blue-600">
+                      {stats.coach?.uniqueUsers || 0}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Последни 30д</span>
+                    <Badge variant="outline" className="text-green-600 border-green-600">
+                      {stats.coach?.recentMessages || 0}
+                    </Badge>
+                  </div>
+                  <div className="border-t pt-2 mt-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">Съобщ./потребител</span>
+                      <span className="font-bold text-blue-600">
+                        {stats.coach?.uniqueUsers ? Math.round(stats.coach.totalMessages / stats.coach.uniqueUsers) : 0}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Affiliate Stats */}
+              <Card className="shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="flex items-center gap-2 text-base">
+                    <Users className="h-5 w-5 text-purple-600" />
+                    Affiliate Program
+                  </CardTitle>
+                  <CardDescription className="text-xs">Партньорска програма</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Активни партньори</span>
+                    <Badge variant="outline" className="text-green-600 border-green-600">
+                      {stats.affiliates?.activeAffiliates || 0}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Чакащи заявки</span>
+                    <Badge variant="outline" className="text-amber-600 border-amber-600">
+                      {stats.affiliates?.pendingApplications || 0}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Общо кликове</span>
+                    <Badge variant="outline">
+                      {stats.affiliates?.totalClicks || 0}
+                    </Badge>
+                  </div>
+                  <div className="border-t pt-2 mt-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium">Общо комисионни</span>
+                      <span className="font-bold text-purple-600">
+                        {stats.affiliates?.totalCommission?.toFixed(2) || '0.00'} лв
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Additional Metrics Row */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Ruler className="h-4 w-4" />
+                    <span className="font-medium">Измервания</span>
+                  </div>
+                  <div className="text-xl font-bold">
+                    {stats.measurements?.total || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.measurements?.uniqueUsers || 0} потребители
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Camera className="h-4 w-4" />
+                    <span className="font-medium">Снимки Прогрес</span>
+                  </div>
+                  <div className="text-xl font-bold">
+                    {stats.photos?.total || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.photos?.uniqueUsers || 0} потребители
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <MessageCircle className="h-4 w-4" />
+                    <span className="font-medium">Обратна Връзка</span>
+                  </div>
+                  <div className="text-xl font-bold">
+                    {stats.feedback?.total || 0}
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.feedback?.recent || 0} последни 30д
+                  </p>
+                </CardContent>
+              </Card>
+              <Card className="shadow-sm">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                    <Activity className="h-4 w-4" />
+                    <span className="font-medium">Завършени Програми</span>
+                  </div>
+                  <div className="text-xl font-bold text-green-600">
+                    {stats.program.completionRate}%
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {stats.program.completedPrograms} завършени
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+          </>
+        )}
 
         {/* Quiz Categories & Engagement */}
         {stats && (
@@ -828,7 +1240,7 @@ export default function DashboardPage() {
             {/* Engagement Metrics */}
             <div>
               <h2 className="text-xl font-semibold">
-                Engagement Метрики (30 дни)
+                Метрики за Ангажираност (30 дни)
               </h2>
               <p className="text-sm text-muted-foreground mt-1">
                 Активност на потребителите в последните{" "}
@@ -895,54 +1307,8 @@ export default function DashboardPage() {
               </Card>
             </div>
 
-            {/* PRO Stats & User Preferences */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 md:gap-6">
-              {/* PRO Users */}
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Target className="h-5 w-5 text-purple-600" />
-                    Testograph PRO
-                  </CardTitle>
-                  <CardDescription>Метрики за PRO потребители</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">PRO Потребители</span>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className="text-purple-600 border-purple-600"
-                    >
-                      {stats.users.proUsers}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Flame className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Дневни Записи (30д)</span>
-                    </div>
-                    <Badge variant="outline">
-                      {stats.engagement.proDailyEntries}
-                    </Badge>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-sm">Средна Дисциплина</span>
-                    </div>
-                    <Badge
-                      variant="outline"
-                      className="text-green-600 border-green-600"
-                    >
-                      {stats.engagement.proCompliance}/10
-                    </Badge>
-                  </div>
-                </CardContent>
-              </Card>
-
+            {/* User Preferences */}
+            <div className="grid grid-cols-1 gap-3 sm:gap-4 md:gap-6">
               {/* User Preferences */}
               <Card>
                 <CardHeader>
@@ -1042,14 +1408,14 @@ export default function DashboardPage() {
                 searchQuery ? (
                   <EmptyState
                     icon={ShoppingCart}
-                    title="No matching purchases"
-                    description={`No purchases found for "${searchQuery}"`}
+                    title="Няма съвпадения"
+                    description={`Няма покупки за "${searchQuery}"`}
                   />
                 ) : (
                   <EmptyState
                     icon={ShoppingCart}
-                    title="No purchases yet"
-                    description="Purchases will appear here once users make their first order"
+                    title="Няма покупки"
+                    description="Покупките ще се появят тук"
                   />
                 )
               ) : (
@@ -1057,12 +1423,12 @@ export default function DashboardPage() {
                   <Table>
                     <TableHeader className="sticky top-0 bg-background">
                       <TableRow>
-                        <TableHead className="h-10">User</TableHead>
-                        <TableHead className="h-10">Product</TableHead>
+                        <TableHead className="h-10">Потребител</TableHead>
+                        <TableHead className="h-10">Продукт</TableHead>
                         <TableHead className="h-10 text-right">
-                          Amount
+                          Сума
                         </TableHead>
-                        <TableHead className="h-10 text-right">Date</TableHead>
+                        <TableHead className="h-10 text-right">Дата</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1118,14 +1484,14 @@ export default function DashboardPage() {
                 searchQuery ? (
                   <EmptyState
                     icon={Activity}
-                    title="No matching activity"
-                    description={`No activity found for "${searchQuery}"`}
+                    title="Няма съвпадения"
+                    description={`Няма активност за "${searchQuery}"`}
                   />
                 ) : (
                   <EmptyState
                     icon={Activity}
-                    title="No recent activity"
-                    description="User activity will appear here"
+                    title="Няма скорошна активност"
+                    description="Активността ще се появи тук"
                   />
                 )
               ) : (
@@ -1134,9 +1500,9 @@ export default function DashboardPage() {
                     <TableHeader className="sticky top-0 bg-background">
                       <TableRow>
                         <TableHead className="w-12 h-10"></TableHead>
-                        <TableHead className="h-10">User</TableHead>
-                        <TableHead className="h-10">Action</TableHead>
-                        <TableHead className="h-10 text-right">Time</TableHead>
+                        <TableHead className="h-10">Потребител</TableHead>
+                        <TableHead className="h-10">Действие</TableHead>
+                        <TableHead className="h-10 text-right">Време</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1202,13 +1568,13 @@ export default function DashboardPage() {
                   <li>
                     • Всички auth users (освен {adminEmail || "текущия админ"})
                   </li>
-                  <li>• Profiles</li>
-                  <li>• Quiz Results (quiz_results_v2)</li>
-                  <li>• Purchases</li>
-                  <li>• Meal completions, workout sessions, sleep tracking</li>
-                  <li>• TestoUP tracking</li>
-                  <li>• PRO daily entries</li>
-                  <li>• User settings</li>
+                  <li>• Профили</li>
+                  <li>• Quiz Резултати</li>
+                  <li>• Покупки</li>
+                  <li>• Хранене, Тренировки, Сън</li>
+                  <li>• TestoUP tracking & inventory</li>
+                  <li>• Coach съобщения</li>
+                  <li>• Потребителски настройки</li>
                 </ul>
               </div>
 

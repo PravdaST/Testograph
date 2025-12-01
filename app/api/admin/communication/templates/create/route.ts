@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     await createAuditLog({
       adminId,
       adminEmail,
-      actionType: 'send_email', // Using send_email as placeholder for template actions
+      actionType: 'create_template',
       targetUserId: null,
       targetUserEmail: null,
       changesBefore: null,

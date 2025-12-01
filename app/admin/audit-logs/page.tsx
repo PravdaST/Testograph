@@ -56,20 +56,32 @@ interface AuditLog {
 
 const ACTION_TYPES = [
   { value: "all", label: "Всички Действия" },
+  // User Actions
   { value: "grant_pro_access", label: "Даване на PRO достъп" },
   { value: "revoke_pro_access", label: "Премахване на PRO достъп" },
-  { value: "create_purchase", label: "Създаване на покупка" },
-  { value: "edit_purchase", label: "Редактиране на покупка" },
-  { value: "delete_purchase", label: "Изтриване на покупка" },
   { value: "reset_password", label: "Промяна на парола" },
   { value: "ban_user", label: "Блокиране на потребител" },
   { value: "unban_user", label: "Разблокиране на потребител" },
   { value: "edit_profile", label: "Редактиране на профил" },
   { value: "delete_user", label: "Изтриване на потребител" },
-  { value: "send_email", label: "Изпращане на email" },
-  { value: "bulk_email", label: "Масово изпращане на email" },
+  // Purchase Actions
+  { value: "create_purchase", label: "Създаване на покупка" },
+  { value: "edit_purchase", label: "Редактиране на покупка" },
+  { value: "delete_purchase", label: "Изтриване на покупка" },
+  // Admin Actions
   { value: "add_admin", label: "Добавяне на админ" },
   { value: "remove_admin", label: "Премахване на админ" },
+  { value: "update_admin_role", label: "Промяна на роля" },
+  { value: "update_admin_permissions", label: "Промяна на permissions" },
+  // Email Actions
+  { value: "send_email", label: "Изпращане на email" },
+  { value: "bulk_email", label: "Масово изпращане на email" },
+  { value: "create_template", label: "Създаване на template" },
+  { value: "update_template", label: "Редактиране на template" },
+  { value: "delete_template", label: "Изтриване на template" },
+  // Affiliate Actions
+  { value: "approve_affiliate", label: "Одобряване на affiliate" },
+  { value: "reject_affiliate", label: "Отхвърляне на affiliate" },
 ];
 
 export default function AuditLogsPage() {

@@ -51,7 +51,7 @@ export async function DELETE(
     await createAuditLog({
       adminId,
       adminEmail,
-      actionType: 'send_email', // Using send_email as placeholder
+      actionType: 'delete_template',
       targetUserId: null,
       targetUserEmail: null,
       changesBefore: {

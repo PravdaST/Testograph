@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import AdminLayout from "@/components/admin/AdminLayout";
+import { getCurrentAdminUser } from "@/lib/admin/auth";
 import { StatCard } from "@/components/admin/StatCard";
 import { SearchBar } from "@/components/admin/SearchBar";
 import {
@@ -109,9 +110,29 @@ export default function AffiliatesPage() {
   const [adminNotes, setAdminNotes] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
 
+  // Admin auth
+  const [adminId, setAdminId] = useState<string | null>(null);
+  const [adminEmail, setAdminEmail] = useState<string | null>(null);
+
+  // Get admin user on mount
   useEffect(() => {
-    fetchApplications();
-  }, [currentPage, searchQuery, statusFilter, dateFrom, dateTo]);
+    const fetchAdminUser = async () => {
+      const { adminUser, userId, email } = await getCurrentAdminUser();
+      if (adminUser) {
+        setAdminId(userId);
+        setAdminEmail(email);
+      } else {
+        router.push("/admin");
+      }
+    };
+    fetchAdminUser();
+  }, [router]);
+
+  useEffect(() => {
+    if (adminId && adminEmail) {
+      fetchApplications();
+    }
+  }, [currentPage, searchQuery, statusFilter, dateFrom, dateTo, adminId, adminEmail]);
 
   const fetchApplications = async (isRefresh = false) => {
     if (isRefresh) {
@@ -150,7 +171,7 @@ export default function AffiliatesPage() {
   };
 
   const handleApprovalSubmit = async () => {
-    if (!selectedApplication) return;
+    if (!selectedApplication || !adminId || !adminEmail) return;
 
     setIsProcessing(true);
     try {
@@ -166,6 +187,8 @@ export default function AffiliatesPage() {
                 ? parseFloat(commissionRate)
                 : undefined,
             admin_notes: adminNotes || undefined,
+            adminId,
+            adminEmail,
           }),
         },
       );

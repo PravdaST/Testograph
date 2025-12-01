@@ -6,6 +6,19 @@ const supabase = createClient(
   process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY!
 );
 
+interface ShopifyAddress {
+  first_name: string;
+  last_name: string;
+  address1: string;
+  address2: string | null;
+  city: string;
+  province: string;
+  country: string;
+  zip: string;
+  phone: string | null;
+  name: string;
+}
+
 interface ShopifyOrder {
   id: string;
   order_number: number;
@@ -19,7 +32,11 @@ interface ShopifyOrder {
     first_name: string;
     last_name: string;
     email: string;
+    phone: string | null;
   } | null;
+  shipping_address: ShopifyAddress | null;
+  billing_address: ShopifyAddress | null;
+  phone: string | null;
   line_items: Array<{
     title: string;
     quantity: number;
@@ -199,6 +216,13 @@ export async function POST(request: Request) {
             totalCapsules: (li.sku?.includes('TRIAL') ? 10 : 60) * li.quantity
           }));
 
+          // Extract phone from multiple sources
+          const phone = order.shipping_address?.phone
+            || order.billing_address?.phone
+            || order.customer?.phone
+            || order.phone
+            || null;
+
           // Insert into pending_orders
           const { error: insertError } = await supabase
             .from('pending_orders')
@@ -213,6 +237,8 @@ export async function POST(request: Request) {
               currency: order.currency,
               status: order.financial_status === 'paid' ? 'paid' : 'pending',
               products,
+              shipping_address: order.shipping_address,
+              phone,
               created_at: order.created_at,
               paid_at: order.financial_status === 'paid' ? order.created_at : null,
             });
@@ -261,6 +287,39 @@ export async function POST(request: Request) {
       }
 
       return NextResponse.json({ success: true, fixed });
+    }
+
+    if (action === 'update-shipping') {
+      // Update shipping addresses for existing orders
+      const shopifyOrders = await fetchAllShopifyOrders(shopDomain, accessToken);
+      let updated = 0;
+
+      for (const order of shopifyOrders) {
+        const { data: dbOrder } = await supabase
+          .from('pending_orders')
+          .select('id, shipping_address, phone')
+          .eq('order_id', order.id.toString())
+          .single();
+
+        if (dbOrder && (!dbOrder.shipping_address || !dbOrder.phone)) {
+          const phone = order.shipping_address?.phone
+            || order.billing_address?.phone
+            || order.customer?.phone
+            || order.phone
+            || null;
+
+          await supabase
+            .from('pending_orders')
+            .update({
+              shipping_address: order.shipping_address,
+              phone
+            })
+            .eq('id', dbOrder.id);
+          updated++;
+        }
+      }
+
+      return NextResponse.json({ success: true, updated });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

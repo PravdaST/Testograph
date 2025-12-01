@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 import { Resend } from 'resend';
 import crypto from 'crypto';
 import { createShopifyDiscountCode, isShopifyConfigured } from '@/lib/shopify/discount-codes';
+import { createAuditLog } from '@/lib/admin/audit-log';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -18,11 +19,19 @@ export async function PATCH(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { status, commission_rate, admin_notes } = body;
+    const { status, commission_rate, admin_notes, adminId, adminEmail } = body;
 
     if (!['approved', 'rejected'].includes(status)) {
       return NextResponse.json(
         { error: 'Invalid status' },
+        { status: 400 }
+      );
+    }
+
+    // Validate admin credentials for audit log
+    if (!adminId || !adminEmail) {
+      return NextResponse.json(
+        { error: 'Missing admin credentials' },
         { status: 400 }
       );
     }
@@ -61,6 +70,29 @@ export async function PATCH(
         { status: 500 }
       );
     }
+
+    // Create audit log for affiliate application decision
+    await createAuditLog({
+      adminId,
+      adminEmail,
+      actionType: status === 'approved' ? 'approve_affiliate' : 'reject_affiliate',
+      targetUserId: null,
+      targetUserEmail: application.email,
+      changesBefore: {
+        status: application.status,
+        full_name: application.full_name,
+        email: application.email
+      },
+      changesAfter: {
+        status,
+        commission_rate: commission_rate || 5,
+        admin_notes
+      },
+      description: status === 'approved'
+        ? `Одобрена affiliate заявка на ${application.full_name} (${application.email})`
+        : `Отхвърлена affiliate заявка на ${application.full_name} (${application.email})`,
+      ipAddress: request.headers.get('x-forwarded-for') || undefined
+    });
 
     // If approved, create affiliate record and send email
     if (status === 'approved') {

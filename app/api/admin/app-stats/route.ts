@@ -71,8 +71,13 @@ export async function GET() {
 
     // ===== USER METRICS =====
 
-    // Total registered users (profiles)
-    const { count: totalUsers } = await supabase
+    // Total app users (from users table - app.testograph.eu)
+    const { count: totalAppUsers } = await supabase
+      .from('users')
+      .select('*', { count: 'exact', head: true });
+
+    // Total site users (from profiles - testograph.eu Supabase auth)
+    const { count: totalSiteUsers } = await supabase
       .from('profiles')
       .select('*', { count: 'exact', head: true });
 
@@ -92,10 +97,16 @@ export async function GET() {
       .select('email')
       .gte('date', thirtyDaysAgoStr);
 
+    const { data: activeTestoUpUsers } = await supabase
+      .from('testoup_tracking')
+      .select('email')
+      .gte('date', thirtyDaysAgoStr);
+
     const activeUserEmails = new Set([
       ...(activeMealUsers?.map(u => u.email) || []),
       ...(activeWorkoutUsers?.map(u => u.email) || []),
       ...(activeSleepUsers?.map(u => u.email) || []),
+      ...(activeTestoUpUsers?.map(u => u.email) || []),
     ]);
 
     const activeUsers = activeUserEmails.size;
@@ -135,47 +146,37 @@ export async function GET() {
       avgTestoUpCompliance = Math.round((totalDoses / possibleDoses) * 100);
     }
 
-    // ===== PURCHASE STATS =====
+    // ===== PURCHASE STATS (from testoup_purchase_history) =====
 
-    // Total revenue
+    // Total revenue from Shopify orders
     const { data: purchasesData } = await supabase
-      .from('purchases')
-      .select('amount, product_name');
+      .from('testoup_purchase_history')
+      .select('order_total, product_type')
+      .not('email', 'ilike', '%test%')
+      .not('order_id', 'eq', 'MANUAL_REFILL')
+      .not('order_id', 'eq', 'MANUAL_ADD_SHOPIFY');
 
-    const totalRevenue = purchasesData?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+    const totalRevenue = purchasesData?.reduce((sum, p) => sum + (parseFloat(p.order_total) || 0), 0) || 0;
     const totalPurchases = purchasesData?.length || 0;
     const avgOrderValue = totalPurchases > 0 ? Math.round(totalRevenue / totalPurchases) : 0;
 
-    // Product breakdown
+    // Product breakdown by type
     const productBreakdown: Record<string, number> = {};
     purchasesData?.forEach(p => {
-      const productName = p.product_name || 'Unknown';
+      const productName = p.product_type === 'full' ? 'TestoUP (60 капсули)' : 'TestoUP Проба (10 капсули)';
       productBreakdown[productName] = (productBreakdown[productName] || 0) + 1;
     });
 
-    // ===== PRO STATS =====
+    // ===== PENDING ORDERS STATS =====
+    const { data: pendingOrdersData } = await supabase
+      .from('pending_orders')
+      .select('order_id, email, total_price, status')
+      .eq('status', 'pending');
 
-    // PRO users (users with protocol_start_date_pro set)
-    const { count: proUsersCount } = await supabase
-      .from('profiles')
-      .select('*', { count: 'exact', head: true })
-      .not('protocol_start_date_pro', 'is', null);
-
-    // PRO daily entries in last 30 days
-    const { count: proDailyEntries } = await supabase
-      .from('daily_entries_pro')
-      .select('*', { count: 'exact', head: true })
-      .gte('date', thirtyDaysAgoStr);
-
-    // PRO average compliance
-    const { data: proComplianceData } = await supabase
-      .from('daily_entries_pro')
-      .select('discipline_score')
-      .gte('date', thirtyDaysAgoStr);
-
-    const avgProCompliance = proComplianceData && proComplianceData.length > 0
-      ? Math.round((proComplianceData.reduce((sum, e) => sum + (e.discipline_score || 0), 0) / proComplianceData.length) * 10) / 10
-      : 0;
+    const pendingOrdersCount = pendingOrdersData?.length || 0;
+    const pendingWithEmail = pendingOrdersData?.filter(o => o.email && o.email !== '').length || 0;
+    const pendingWithoutEmail = pendingOrdersCount - pendingWithEmail;
+    const pendingRevenue = pendingOrdersData?.reduce((sum, o) => sum + (parseFloat(o.total_price) || 0), 0) || 0;
 
     // ===== PROGRAM COMPLETION =====
 
@@ -189,6 +190,154 @@ export async function GET() {
     const programCompletionRate = totalQuizzes && totalQuizzes > 0
       ? Math.round((completedPrograms || 0) / totalQuizzes * 100)
       : 0;
+
+    // ===== TESTOUP INVENTORY STATS =====
+    const { data: inventoryData } = await supabase
+      .from('testoup_inventory')
+      .select('email, capsules_remaining, total_capsules, bottles_purchased');
+
+    const inventoryStats = {
+      totalUsers: inventoryData?.length || 0,
+      lowStock: inventoryData?.filter(i => i.capsules_remaining > 0 && i.capsules_remaining <= 10).length || 0,
+      outOfStock: inventoryData?.filter(i => i.capsules_remaining === 0).length || 0,
+      healthyStock: inventoryData?.filter(i => i.capsules_remaining > 10).length || 0,
+      totalBottlesPurchased: inventoryData?.reduce((sum, i) => sum + (i.bottles_purchased || 0), 0) || 0,
+    };
+
+    // ===== AI COACH STATS =====
+    const { count: totalCoachMessages } = await supabase
+      .from('coach_messages')
+      .select('*', { count: 'exact', head: true });
+
+    const { data: coachEmailsData } = await supabase
+      .from('coach_messages')
+      .select('email');
+
+    const uniqueCoachUsers = new Set(coachEmailsData?.map(c => c.email) || []).size;
+
+    const { count: recentCoachMessages } = await supabase
+      .from('coach_messages')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', thirtyDaysAgoStr);
+
+    const coachStats = {
+      totalMessages: totalCoachMessages || 0,
+      uniqueUsers: uniqueCoachUsers,
+      recentMessages: recentCoachMessages || 0,
+    };
+
+    // ===== AFFILIATE STATS =====
+    const { count: affiliateApplications } = await supabase
+      .from('affiliate_applications')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: pendingApplications } = await supabase
+      .from('affiliate_applications')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'pending');
+
+    const { count: activeAffiliates } = await supabase
+      .from('affiliates')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'active');
+
+    const { data: affiliateOrdersData } = await supabase
+      .from('affiliate_orders')
+      .select('commission_amount');
+
+    const { count: totalAffiliateClicks } = await supabase
+      .from('affiliate_clicks')
+      .select('*', { count: 'exact', head: true });
+
+    const affiliateStats = {
+      totalApplications: affiliateApplications || 0,
+      pendingApplications: pendingApplications || 0,
+      activeAffiliates: activeAffiliates || 0,
+      totalClicks: totalAffiliateClicks || 0,
+      totalOrders: affiliateOrdersData?.length || 0,
+      totalCommission: affiliateOrdersData?.reduce((sum, o) => sum + (o.commission_amount || 0), 0) || 0,
+    };
+
+    // ===== CONVERSION FUNNEL =====
+    // Get unique quiz emails
+    const { data: quizEmails } = await supabase
+      .from('quiz_results_v2')
+      .select('email');
+
+    const uniqueQuizEmails = new Set(quizEmails?.map(q => q.email).filter(Boolean) || []);
+
+    // Get users table emails (app registrations)
+    const { data: userEmails } = await supabase
+      .from('users')
+      .select('email, has_active_subscription');
+
+    const registeredEmails = new Set(userEmails?.map(u => u.email) || []);
+    const subscribedEmails = new Set(userEmails?.filter(u => u.has_active_subscription).map(u => u.email) || []);
+
+    // Calculate conversions
+    const quizToRegistration = uniqueQuizEmails.size > 0
+      ? Math.round((registeredEmails.size / uniqueQuizEmails.size) * 100)
+      : 0;
+
+    const registrationToSubscription = registeredEmails.size > 0
+      ? Math.round((subscribedEmails.size / registeredEmails.size) * 100)
+      : 0;
+
+    const conversionFunnel = {
+      quizCompletions: uniqueQuizEmails.size,
+      appRegistrations: registeredEmails.size,
+      activeSubscriptions: subscribedEmails.size,
+      quizToRegistrationRate: quizToRegistration,
+      registrationToSubscriptionRate: registrationToSubscription,
+      notRegistered: uniqueQuizEmails.size - registeredEmails.size,
+    };
+
+    // ===== FEEDBACK STATS =====
+    const { count: totalFeedback } = await supabase
+      .from('feedback_submissions')
+      .select('*', { count: 'exact', head: true });
+
+    const { count: recentFeedback } = await supabase
+      .from('feedback_submissions')
+      .select('*', { count: 'exact', head: true })
+      .gte('created_at', thirtyDaysAgoStr);
+
+    const feedbackStats = {
+      total: totalFeedback || 0,
+      recent: recentFeedback || 0,
+    };
+
+    // ===== BODY MEASUREMENTS STATS =====
+    const { count: totalMeasurements } = await supabase
+      .from('body_measurements')
+      .select('*', { count: 'exact', head: true });
+
+    const { data: measurementUsers } = await supabase
+      .from('body_measurements')
+      .select('email');
+
+    const uniqueMeasurementUsers = new Set(measurementUsers?.map(m => m.email) || []).size;
+
+    const measurementStats = {
+      total: totalMeasurements || 0,
+      uniqueUsers: uniqueMeasurementUsers,
+    };
+
+    // ===== PROGRESS PHOTOS STATS =====
+    const { count: totalPhotos } = await supabase
+      .from('progress_photos')
+      .select('*', { count: 'exact', head: true });
+
+    const { data: photoUsers } = await supabase
+      .from('progress_photos')
+      .select('email');
+
+    const uniquePhotoUsers = new Set(photoUsers?.map(p => p.email) || []).size;
+
+    const photoStats = {
+      total: totalPhotos || 0,
+      uniqueUsers: uniquePhotoUsers,
+    };
 
     return NextResponse.json({
       success: true,
@@ -205,10 +354,11 @@ export async function GET() {
         dietaryPreferences,
       },
       users: {
-        total: totalUsers || 0,
+        total: totalAppUsers || 0,
+        siteUsers: totalSiteUsers || 0,
         active: activeUsers,
-        activePercentage: totalUsers ? Math.round((activeUsers / totalUsers) * 100) : 0,
-        proUsers: proUsersCount || 0,
+        // Cap percentage at 100% (active users might be from tracking tables before user record exists)
+        activePercentage: totalAppUsers ? Math.min(100, Math.round((activeUsers / totalAppUsers) * 100)) : 0,
       },
       engagement: {
         period: '30 days',
@@ -216,20 +366,37 @@ export async function GET() {
         workoutSessions: totalWorkoutSessions || 0,
         sleepEntries: totalSleepEntries || 0,
         testoUpCompliance: avgTestoUpCompliance,
-        proDailyEntries: proDailyEntries || 0,
-        proCompliance: avgProCompliance,
       },
       purchases: {
         totalRevenue,
         totalPurchases,
         averageOrderValue: avgOrderValue,
         productBreakdown,
+        // Pending orders (COD not yet delivered)
+        pendingOrders: pendingOrdersCount,
+        pendingWithEmail,
+        pendingWithoutEmail,
+        pendingRevenue,
       },
       program: {
         completionRate: programCompletionRate,
         completedPrograms: completedPrograms || 0,
         activePrograms: (totalQuizzes || 0) - (completedPrograms || 0),
       },
+      // NEW: TestoUP Inventory Stats
+      inventory: inventoryStats,
+      // NEW: AI Coach Stats
+      coach: coachStats,
+      // NEW: Affiliate Stats
+      affiliates: affiliateStats,
+      // NEW: Conversion Funnel
+      funnel: conversionFunnel,
+      // NEW: Feedback Stats
+      feedback: feedbackStats,
+      // NEW: Body Measurements
+      measurements: measurementStats,
+      // NEW: Progress Photos
+      photos: photoStats,
       metadata: {
         fetchedAt: new Date().toISOString(),
         periodStart: thirtyDaysAgoStr,

@@ -69,15 +69,15 @@ export async function GET(request: Request) {
     // Fetch user data for these emails from users table
     const { data: usersData } = await supabase
       .from('users')
-      .select('email, id, has_active_subscription, subscription_expires_at, current_day, last_sign_in_at, created_at, category, current_level')
+      .select('email, id, has_active_subscription, subscription_expires_at, current_day, created_at, category, current_level')
       .in('email', emails);
 
-    // Fetch profile data (for shopify info) - profiles are linked by user id
+    // Fetch profile data (for shopify info and last login) - profiles are linked by user id
     const userIds = usersData?.map(u => u.id).filter(Boolean) || [];
     const { data: profilesData } = userIds.length > 0
       ? await supabase
           .from('profiles')
-          .select('id, shopify_customer_id, total_spent, onboarding_completed')
+          .select('id, shopify_customer_id, total_spent, onboarding_completed, last_login_at')
           .in('id', userIds)
       : { data: [] };
 
@@ -99,7 +99,7 @@ export async function GET(request: Request) {
           hasActiveSubscription: user?.has_active_subscription || false,
           subscriptionExpiresAt: user?.subscription_expires_at || null,
           currentDay: user?.current_day || null,
-          lastSignIn: user?.last_sign_in_at || null,
+          lastSignIn: profile?.last_login_at || null,
           userId: user?.id || null,
           // Profile/Purchase data
           hasPurchased: !!profile?.shopify_customer_id || (profile?.total_spent || 0) > 0,

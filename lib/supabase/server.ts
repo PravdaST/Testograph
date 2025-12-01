@@ -83,3 +83,22 @@ export async function createClient() {
     }
   );
 }
+
+/**
+ * Create service role client (full access - use with caution!)
+ * Use only for admin operations and AI Coach
+ */
+export function createServiceClient() {
+  return createServerClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return []
+        },
+        setAll() {},
+      },
+    }
+  )
+}

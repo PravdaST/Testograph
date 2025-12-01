@@ -106,27 +106,27 @@ export async function GET(request: Request) {
     if (inventoryError) throw inventoryError;
 
     // Build orders map from BOTH tables
+    // Use email as key when available, otherwise use order_id prefixed with "order:"
     // Priority: testoup_purchase_history (PAID with amounts) > pending_orders (PENDING)
-    const ordersByEmail = new Map<string, any>();
+    const ordersByKey = new Map<string, any>();
 
     // First, add PAID purchases from testoup_purchase_history (has correct amounts)
     paidPurchases?.forEach(p => {
-      if (p.email) {
-        const existing = ordersByEmail.get(p.email);
-        if (!existing || new Date(p.order_date) > new Date(existing.orderDate)) {
-          ordersByEmail.set(p.email, {
-            id: p.id,
-            email: p.email,
-            customer_name: null, // Not stored in this table
-            shopify_order_id: p.order_id,
-            order_total: p.order_total,
-            created_at: p.order_date,
-            status: 'paid',
-            product_type: p.product_type,
-            bottles_purchased: p.bottles_purchased,
-            capsules_to_add: p.capsules_added,
-          });
-        }
+      const key = p.email || `order:${p.order_id}`;
+      const existing = ordersByKey.get(key);
+      if (!existing || new Date(p.order_date) > new Date(existing.orderDate)) {
+        ordersByKey.set(key, {
+          id: p.id,
+          email: p.email || '',
+          customer_name: null, // Not stored in this table
+          shopify_order_id: p.order_id,
+          order_total: p.order_total,
+          created_at: p.order_date,
+          status: 'paid',
+          product_type: p.product_type,
+          bottles_purchased: p.bottles_purchased,
+          capsules_to_add: p.capsules_added,
+        });
       }
     });
 
@@ -137,14 +137,17 @@ export async function GET(request: Request) {
       : 82; // Default fallback ~82 BGN
 
     pendingOrders?.forEach(o => {
-      if (o.email && o.status === 'pending') {
-        // Only add if no paid order exists for this email
-        if (!ordersByEmail.has(o.email)) {
+      if (o.status === 'pending') {
+        const key = o.email || `order:${o.order_id}`;
+        // Only add if no paid order exists for this key
+        if (!ordersByKey.has(key)) {
           // Use total_price (the actual column name in pending_orders table)
           const orderPrice = parseFloat(o.total_price) || 0;
           const estimatedTotal = orderPrice > 0 ? orderPrice : Math.round(avgOrderValue);
-          ordersByEmail.set(o.email, {
+          ordersByKey.set(key, {
             ...o,
+            email: o.email || '',
+            shopify_order_id: o.order_id, // Map order_id to shopify_order_id for consistency
             order_total: estimatedTotal,
             estimated_price: orderPrice === 0, // Only flag as estimated if no price
           });
@@ -163,15 +166,16 @@ export async function GET(request: Request) {
     // Get inventory by email
     const inventoryByEmail = new Map(allInventory?.map(i => [i.email, i]) || []);
 
-    // Merge all unique emails from ALL THREE sources (orders + quiz + inventory)
-    const allEmailsSet = new Set<string>([
-      ...ordersByEmail.keys(),
+    // Merge all unique keys from ALL THREE sources (orders + quiz + inventory)
+    // Orders without email use "order:ORDER_ID" as key
+    const allKeysSet = new Set<string>([
+      ...ordersByKey.keys(),
       ...quizByEmail.keys(),
       ...inventoryByEmail.keys()
     ]);
-    const allEmails = Array.from(allEmailsSet);
+    const allKeys = Array.from(allKeysSet);
 
-    if (allEmails.length === 0) {
+    if (allKeys.length === 0) {
       return NextResponse.json({
         success: true,
         users: [],
@@ -202,10 +206,12 @@ export async function GET(request: Request) {
     }
 
     // Step 4: Get registered users from users table
+    // Filter only real emails (not order: prefixed keys)
+    const realEmails = allKeys.filter(k => !k.startsWith('order:'));
     const { data: registeredUsers } = await supabase
       .from('users')
       .select('*')
-      .in('email', allEmails);
+      .in('email', realEmails.length > 0 ? realEmails : ['__no_match__']);
 
     const usersByEmail = new Map(registeredUsers?.map(u => [u.email, u]) || []);
 
@@ -274,12 +280,16 @@ export async function GET(request: Request) {
       photosByEmail.get(p.email)!.push(p);
     });
 
-    // Build enriched user data - starting from ALL emails (orders + quiz + inventory)
-    const enrichedUsers: AppUserData[] = allEmails.map((email, index) => {
-      const order = ordersByEmail.get(email);
-      const quiz = quizByEmail.get(email);
-      const user = usersByEmail.get(email);
-      const inventory = inventoryByEmail.get(email);
+    // Build enriched user data - starting from ALL keys (orders + quiz + inventory)
+    // Keys can be emails or "order:ORDER_ID" for orders without email
+    const enrichedUsers: AppUserData[] = allKeys.map((key, index) => {
+      const isOrderKey = key.startsWith('order:');
+      const email = isOrderKey ? '' : key;
+
+      const order = ordersByKey.get(key);
+      const quiz = isOrderKey ? null : quizByEmail.get(key);
+      const user = isOrderKey ? null : usersByEmail.get(key);
+      const inventory = isOrderKey ? null : inventoryByEmail.get(key);
       const isRegistered = !!user;
 
       // Order data
@@ -343,12 +353,14 @@ export async function GET(request: Request) {
         ? activities.sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0]
         : null;
 
-      // For non-registered users, use quiz date or inventory date as last activity
+      // For non-registered users, use quiz date, inventory date, or order date as last activity
       if (!lastActivity) {
         if (quiz?.created_at) {
           lastActivity = quiz.created_at;
         } else if (inventory?.last_purchase_date || inventory?.created_at) {
           lastActivity = inventory.last_purchase_date || inventory.created_at;
+        } else if (order?.created_at) {
+          lastActivity = order.created_at;
         }
       }
 

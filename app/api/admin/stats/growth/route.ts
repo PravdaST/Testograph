@@ -25,12 +25,14 @@ export async function GET(request: Request) {
 
     if (profilesError) throw profilesError;
 
-    // Fetch purchases for revenue trend
+    // Fetch purchases for revenue trend from testoup_purchase_history
     const { data: purchases, error: purchasesError } = await supabase
-      .from('purchases')
-      .select('purchased_at, amount')
-      .gte('purchased_at', startDate.toISOString())
-      .order('purchased_at', { ascending: true });
+      .from('testoup_purchase_history')
+      .select('order_date, order_total')
+      .not('email', 'ilike', '%test%')
+      .not('order_id', 'eq', 'MANUAL_REFILL')
+      .gte('order_date', startDate.toISOString())
+      .order('order_date', { ascending: true });
 
     if (purchasesError) throw purchasesError;
 
@@ -87,9 +89,9 @@ export async function GET(request: Request) {
 
     // Fill in actual revenue
     purchases?.forEach((purchase: any) => {
-      const dateKey = new Date(purchase.purchased_at).toISOString().split('T')[0];
+      const dateKey = new Date(purchase.order_date).toISOString().split('T')[0];
       const currentRevenue = revenueMap.get(dateKey) || 0;
-      revenueMap.set(dateKey, currentRevenue + (purchase.amount || 0));
+      revenueMap.set(dateKey, currentRevenue + (parseFloat(purchase.order_total) || 0));
     });
 
     // Convert maps to arrays for charts

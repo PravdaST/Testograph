@@ -108,21 +108,63 @@ export async function GET(request: Request) {
     const refundCount = 0;
 
     // ============= USER RETENTION ANALYTICS =============
+    // Data source: quiz_results_v2 (app users) + activity tables from testograph-v2 mobile app
+    // Activity tables: meal_completions, workout_sessions, sleep_tracking, testoup_tracking
 
-    // Get all chat sessions to measure user retention
-    const { data: allSessions } = await supabase
-      .from('chat_sessions')
-      .select('email, created_at, updated_at')
+    // Get all app users from quiz_results_v2 (actual app registrations)
+    const { data: allQuizUsers } = await supabase
+      .from('quiz_results_v2')
+      .select('email, first_name, created_at, category')
+      .not('email', 'ilike', '%test%')
       .order('created_at', { ascending: true });
 
-    // Calculate cohorts (users by signup month)
+    // Get unique users (some may have multiple quiz results)
+    const uniqueUsers = new Map<string, { email: string; first_name: string; created_at: string; category: string }>();
+    allQuizUsers?.forEach(user => {
+      if (!uniqueUsers.has(user.email)) {
+        uniqueUsers.set(user.email, user);
+      }
+    });
+
+    // Get last activity date for each user from all activity tables
+    // This determines when they last used the mobile app
+    const userEmails = Array.from(uniqueUsers.keys());
+
+    // Fetch latest activity from each table in parallel
+    const [mealActivity, workoutActivity, sleepActivity, supplementActivity] = await Promise.all([
+      supabase.from('meal_completions').select('email, date').in('email', userEmails),
+      supabase.from('workout_sessions').select('email, date').in('email', userEmails),
+      supabase.from('sleep_tracking').select('email, date').in('email', userEmails),
+      supabase.from('testoup_tracking').select('email, date').in('email', userEmails),
+    ]);
+
+    // Build user activity map: email -> last activity date
+    const userLastActivity = new Map<string, Date>();
+
+    // Process all activity data to find the latest date per user
+    const processActivity = (data: { email: string; date: string }[] | null) => {
+      data?.forEach(record => {
+        const activityDate = new Date(record.date);
+        const currentLast = userLastActivity.get(record.email);
+        if (!currentLast || activityDate > currentLast) {
+          userLastActivity.set(record.email, activityDate);
+        }
+      });
+    };
+
+    processActivity(mealActivity.data);
+    processActivity(workoutActivity.data);
+    processActivity(sleepActivity.data);
+    processActivity(supplementActivity.data);
+
+    // Calculate cohorts (users by signup month) with real activity data
     const cohorts: Record<string, {
       users: Set<string>;
       retained: Record<number, Set<string>>; // month offset -> users still active
     }> = {};
 
-    allSessions?.forEach((session) => {
-      const signupDate = new Date(session.created_at);
+    uniqueUsers.forEach((user, email) => {
+      const signupDate = new Date(user.created_at);
       const cohortMonth = `${signupDate.getFullYear()}-${String(signupDate.getMonth() + 1).padStart(2, '0')}`;
 
       if (!cohorts[cohortMonth]) {
@@ -131,19 +173,20 @@ export async function GET(request: Request) {
           retained: {},
         };
       }
-      cohorts[cohortMonth].users.add(session.email);
+      cohorts[cohortMonth].users.add(email);
 
       // Check retention by calculating months since signup
-      const lastActivityDate = new Date(session.updated_at);
+      // Use actual last activity date from tracking tables
+      const lastActivityDate = userLastActivity.get(email) || signupDate;
       const monthsDiff = Math.floor(
         (lastActivityDate.getTime() - signupDate.getTime()) / (1000 * 60 * 60 * 24 * 30)
       );
 
-      for (let m = 0; m <= monthsDiff; m++) {
+      for (let m = 0; m <= Math.min(monthsDiff, 12); m++) {
         if (!cohorts[cohortMonth].retained[m]) {
           cohorts[cohortMonth].retained[m] = new Set();
         }
-        cohorts[cohortMonth].retained[m].add(session.email);
+        cohorts[cohortMonth].retained[m].add(email);
       }
     });
 
@@ -172,15 +215,17 @@ export async function GET(request: Request) {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
 
-    const uniqueUsers = new Set(allSessions?.map(s => s.email));
-    const activeUsers = new Set(
-      allSessions
-        ?.filter(s => new Date(s.updated_at) >= thirtyDaysAgo)
-        .map(s => s.email)
-    );
+    const totalAppUsers = uniqueUsers.size;
+    let activeAppUsers = 0;
+    uniqueUsers.forEach((_, email) => {
+      const lastActivity = userLastActivity.get(email);
+      if (lastActivity && lastActivity >= thirtyDaysAgo) {
+        activeAppUsers++;
+      }
+    });
 
-    const churnRate = uniqueUsers.size > 0
-      ? Math.round(((uniqueUsers.size - activeUsers.size) / uniqueUsers.size) * 100)
+    const churnRate = totalAppUsers > 0
+      ? Math.round(((totalAppUsers - activeAppUsers) / totalAppUsers) * 100)
       : 0;
 
     // ============= EMAIL CAMPAIGN ANALYTICS =============
@@ -230,9 +275,9 @@ export async function GET(request: Request) {
       },
       retention: {
         churnRate,
-        activeUsers: activeUsers.size,
-        totalUsers: uniqueUsers.size,
-        inactiveUsers: uniqueUsers.size - activeUsers.size,
+        activeUsers: activeAppUsers,
+        totalUsers: totalAppUsers,
+        inactiveUsers: totalAppUsers - activeAppUsers,
         cohortAnalysis,
       },
       email: emailMetrics,

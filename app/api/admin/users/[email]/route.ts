@@ -55,6 +55,36 @@ export async function GET(
       funnelEvents = events || [];
     }
 
+    // Get quiz results for this user
+    const { data: quizResult, error: quizError } = await supabase
+      .from('quiz_results_v2')
+      .select('*')
+      .eq('email', email)
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    let quizData = null;
+    if (!quizError && quizResult) {
+      quizData = {
+        category: quizResult.category,
+        level: quizResult.determined_level,
+        totalScore: quizResult.total_score,
+        workoutLocation: quizResult.workout_location,
+        dietaryPreference: quizResult.dietary_preference,
+        quizDate: quizResult.created_at,
+        firstName: quizResult.first_name,
+        // Breakdown scores
+        breakdown: {
+          symptoms: quizResult.breakdown_symptoms,
+          nutrition: quizResult.breakdown_nutrition,
+          training: quizResult.breakdown_training,
+          sleepRecovery: quizResult.breakdown_sleep_recovery,
+          context: quizResult.breakdown_context,
+        },
+      };
+    }
+
     // Get user's purchases and profile data
     // First find user_id by email from auth
     const { data: authUsers } = await supabase.auth.admin.listUsers();
@@ -62,28 +92,47 @@ export async function GET(
     let purchases: any[] = [];
     let profile: any = null;
     let banInfo: any = null;
+    let inventory: any = null;
+
+    // Fetch purchases from testoup_purchase_history (by email directly)
+    const { data: purchasesData, error: purchasesError } = await supabase
+      .from('testoup_purchase_history')
+      .select('*')
+      .eq('email', email)
+      .order('order_date', { ascending: false });
+
+    if (purchasesError) throw purchasesError;
+
+    // Fetch inventory from testoup_inventory (current capsule balance)
+    const { data: inventoryData, error: inventoryError } = await supabase
+      .from('testoup_inventory')
+      .select('*')
+      .eq('email', email)
+      .single();
+
+    if (!inventoryError && inventoryData) {
+      inventory = {
+        capsulesRemaining: inventoryData.capsules_remaining,
+        totalBottles: inventoryData.bottles_purchased,
+        lastPurchaseDate: inventoryData.last_purchase_date,
+      };
+    }
+
+    // Map to frontend format
+    purchases = purchasesData?.map(p => ({
+      id: p.id,
+      orderId: p.order_id,
+      productName: p.product_type === 'full' ? 'TestoUP (60 капсули)' : 'TestoUP Проба (10 капсули)',
+      productType: p.product_type,
+      amount: parseFloat(p.order_total) || 0,
+      currency: 'BGN',
+      status: 'paid', // All entries in testoup_purchase_history are paid
+      bottles: p.bottles_purchased,
+      capsules: p.capsules_added,
+      purchasedAt: p.order_date,
+    })) || [];
 
     if (authUser) {
-      // Fetch purchases
-      const { data: purchasesData, error: purchasesError } = await supabase
-        .from('purchases')
-        .select('*')
-        .eq('user_id', authUser.id)
-        .order('purchased_at', { ascending: false });
-
-      if (purchasesError) throw purchasesError;
-
-      // Map snake_case to camelCase for frontend
-      purchases = purchasesData?.map(p => ({
-        id: p.id,
-        productName: p.product_name,
-        productType: p.product_type,
-        amount: p.amount,
-        currency: p.currency,
-        status: p.status,
-        appsIncluded: p.apps_included,
-        purchasedAt: p.purchased_at,
-      })) || [];
 
       // Fetch profile data
       const { data: profileData, error: profileError } = await supabase
@@ -174,7 +223,7 @@ export async function GET(
       timeline.push({
         id: purchase.id,
         type: 'purchase',
-        timestamp: purchase.purchased_at,
+        timestamp: purchase.purchasedAt,
         data: purchase,
       });
     });
@@ -185,9 +234,8 @@ export async function GET(
     });
 
     // Calculate stats
-    const totalSpent = purchases
-      .filter((p) => p.status === 'completed')
-      .reduce((sum, p) => sum + parseFloat(p.amount), 0);
+    const totalSpent = purchases.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalCapsules = purchases.reduce((sum, p) => sum + (p.capsules || 0), 0);
 
     const stats = {
       totalChatSessions: chatSessions?.length || 0,
@@ -197,7 +245,7 @@ export async function GET(
       firstName: funnelSessions?.[0]?.user_data?.firstName || null,
       totalPurchases: purchases.length,
       totalSpent: Math.round(totalSpent * 100) / 100,
-      activeApps: [...new Set(purchases.flatMap((p) => p.apps_included || []))],
+      totalCapsules,
     };
 
     return NextResponse.json({
@@ -213,6 +261,8 @@ export async function GET(
       chatSessions: chatSessions || [],
       funnelSessions: funnelSessions || [],
       purchases: purchases || [],
+      inventory: inventory,
+      quizData: quizData,
     });
   } catch (error: any) {
     console.error('Error fetching user timeline:', error);

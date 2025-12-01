@@ -9,7 +9,7 @@ const supabase = createClient(
 /**
  * GET /api/admin/testograph-data
  *
- * Comprehensive data endpoint for testograph-v2 app (app.testograph.eu)
+ * Comprehensive data endpoint for Testograph app (app.testograph.eu)
  * Supports multiple types: overview, quiz, workouts, nutrition, sleep, purchases_access
  */
 export async function GET(request: Request) {
@@ -70,12 +70,12 @@ async function getOverviewStats() {
     supabase.from('meal_completions').select('*', { count: 'exact', head: true }),
     supabase.from('sleep_tracking').select('*', { count: 'exact', head: true }),
     supabase.from('testoup_inventory').select('email, capsules_remaining'),
-    supabase.from('purchases').select('amount, status')
+    supabase.from('testoup_purchase_history').select('order_total').not('email', 'ilike', '%test%').not('order_id', 'eq', 'MANUAL_REFILL')
   ]);
 
   const activeUsers = inventoryData?.filter(i => i.capsules_remaining > 0).length || 0;
-  const totalRevenue = purchasesData?.filter(p => p.status === 'completed').reduce((sum, p) => sum + p.amount, 0) || 0;
-  const totalPurchases = purchasesData?.filter(p => p.status === 'completed').length || 0;
+  const totalRevenue = purchasesData?.reduce((sum, p) => sum + (parseFloat(p.order_total) || 0), 0) || 0;
+  const totalPurchases = purchasesData?.length || 0;
 
   return {
     success: true,
@@ -96,15 +96,25 @@ async function getOverviewStats() {
 async function getQuizData(limit: number, offset: number) {
   const { data: quizResults, error, count } = await supabase
     .from('quiz_results_v2')
-    .select('email, category, level, total_score, workout_location, completed_at', { count: 'exact' })
-    .order('completed_at', { ascending: false })
+    .select('email, category, determined_level, total_score, workout_location, created_at', { count: 'exact' })
+    .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
 
+  // Map to expected format
+  const mappedResults = (quizResults || []).map(q => ({
+    email: q.email,
+    category: q.category,
+    level: q.determined_level,
+    total_score: q.total_score,
+    workout_location: q.workout_location,
+    completed_at: q.created_at
+  }));
+
   return {
     success: true,
-    data: quizResults || [],
+    data: mappedResults,
     total: count || 0
   };
 }
@@ -113,31 +123,15 @@ async function getQuizData(limit: number, offset: number) {
 async function getWorkoutData(limit: number, offset: number) {
   const { data: workouts, error, count } = await supabase
     .from('workout_sessions')
-    .select('email, date, completed', { count: 'exact' })
+    .select('email, date, completed, duration_minutes, workout_type', { count: 'exact' })
     .order('date', { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
 
-  // Get exercise count per session
-  const enrichedWorkouts = await Promise.all(
-    (workouts || []).map(async (session) => {
-      const { count: exerciseCount } = await supabase
-        .from('exercise_logs')
-        .select('*', { count: 'exact', head: true })
-        .eq('email', session.email)
-        .eq('date', session.date);
-
-      return {
-        ...session,
-        exercisesCount: exerciseCount || 0
-      };
-    })
-  );
-
   return {
     success: true,
-    data: enrichedWorkouts,
+    data: workouts || [],
     total: count || 0
   };
 }
@@ -163,26 +157,34 @@ async function getNutritionData(limit: number, offset: number) {
 async function getSleepData(limit: number, offset: number) {
   const { data: sleep, error, count } = await supabase
     .from('sleep_tracking')
-    .select('email, date, hours_slept, quality, bedtime, wake_time', { count: 'exact' })
+    .select('email, date, hours, quality, bedtime, wake_time', { count: 'exact' })
     .order('date', { ascending: false })
     .range(offset, offset + limit - 1);
 
   if (error) throw error;
 
+  // Map to expected format
+  const mappedSleep = (sleep || []).map(s => ({
+    ...s,
+    hours_slept: s.hours  // Map for backward compatibility
+  }));
+
   return {
     success: true,
-    data: sleep || [],
+    data: mappedSleep,
     total: count || 0
   };
 }
 
 // ===== PURCHASES & ACCESS DATA =====
 async function getPurchasesAccessData(limit: number, offset: number) {
-  // Get all purchases
+  // Get all purchases from testoup_purchase_history
   const { data: purchases, error: purchasesError } = await supabase
-    .from('purchases')
+    .from('testoup_purchase_history')
     .select('*')
-    .order('purchased_at', { ascending: false });
+    .not('email', 'ilike', '%test%')
+    .not('order_id', 'eq', 'MANUAL_REFILL')
+    .order('order_date', { ascending: false });
 
   if (purchasesError) throw purchasesError;
 
@@ -191,47 +193,41 @@ async function getPurchasesAccessData(limit: number, offset: number) {
     .from('testoup_inventory')
     .select('*');
 
-  // Get quiz results for access status
-  const { data: quizResults } = await supabase
-    .from('quiz_results_v2')
-    .select('email, has_active_access, access_start_date, access_end_date, access_type');
-
-  // Get auth users for email mapping
-  const { data: authUsers } = await supabase.auth.admin.listUsers();
-  const userMap = new Map(authUsers?.users.map(u => [u.id, u.email]));
-
-  // Get profiles for names
-  const { data: profiles } = await supabase
-    .from('profiles')
-    .select('email, first_name');
-  const nameMap = new Map(profiles?.map(p => [p.email, p.first_name]));
+  // Get users table for subscription/access status
+  const { data: usersData } = await supabase
+    .from('users')
+    .select('email, has_active_subscription, subscription_expires_at, created_at');
 
   // Merge all data
   const inventoryMap = new Map(inventory?.map(i => [i.email, i]));
-  const accessMap = new Map(quizResults?.map(q => [q.email, q]));
+  const usersMap = new Map(usersData?.map(u => [u.email, u]));
 
   const enrichedData = (purchases || []).map(purchase => {
-    const email = userMap.get(purchase.user_id) || 'Unknown';
+    const email = purchase.email;
     const inv = inventoryMap.get(email);
-    const access = accessMap.get(email);
+    const user = usersMap.get(email);
 
     return {
       id: purchase.id,
+      orderId: purchase.order_id,
       email,
-      userName: nameMap.get(email) || null,
-      productName: purchase.product_name,
-      amount: purchase.amount,
-      purchasedAt: purchase.purchased_at,
-      status: purchase.status,
+      userName: null, // Not stored in testoup_purchase_history
+      productName: purchase.product_type === 'full' ? 'TestoUP (60 капсули)' : 'TestoUP Проба (10 капсули)',
+      amount: parseFloat(purchase.order_total) || 0,
+      purchasedAt: purchase.order_date,
+      status: 'paid',
+      productType: purchase.product_type,
+      bottles: purchase.bottles_purchased,
+      capsules: purchase.capsules_added,
       // Inventory
       capsulesRemaining: inv?.capsules_remaining || 0,
       bottlesPurchased: inv?.bottles_purchased || 0,
-      lastRefillDate: inv?.last_refill_date || null,
-      // Access
-      hasActiveAccess: access?.has_active_access || false,
-      accessStartDate: access?.access_start_date || null,
-      accessEndDate: access?.access_end_date || null,
-      accessType: access?.access_type || null
+      lastRefillDate: inv?.last_purchase_date || null,
+      // Access (from users table)
+      hasActiveAccess: user?.has_active_subscription || false,
+      accessStartDate: user?.created_at || null,
+      accessEndDate: user?.subscription_expires_at || null,
+      accessType: user?.has_active_subscription ? 'subscription' : null
     };
   });
 

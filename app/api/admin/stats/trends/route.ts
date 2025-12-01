@@ -20,23 +20,27 @@ export async function GET() {
     const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59);
 
-    // ===== REVENUE TREND =====
+    // ===== REVENUE TREND (from testoup_purchase_history) =====
     // Current month revenue
     const { data: currentRevenue } = await supabase
-      .from('purchases')
-      .select('amount')
-      .gte('purchased_at', currentMonthStart.toISOString());
+      .from('testoup_purchase_history')
+      .select('order_total')
+      .not('email', 'ilike', '%test%')
+      .not('order_id', 'eq', 'MANUAL_REFILL')
+      .gte('order_date', currentMonthStart.toISOString());
 
-    const currentMonthRevenue = currentRevenue?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+    const currentMonthRevenue = currentRevenue?.reduce((sum, p) => sum + (parseFloat(p.order_total) || 0), 0) || 0;
 
     // Previous month revenue
     const { data: previousRevenue } = await supabase
-      .from('purchases')
-      .select('amount')
-      .gte('purchased_at', previousMonthStart.toISOString())
-      .lte('purchased_at', previousMonthEnd.toISOString());
+      .from('testoup_purchase_history')
+      .select('order_total')
+      .not('email', 'ilike', '%test%')
+      .not('order_id', 'eq', 'MANUAL_REFILL')
+      .gte('order_date', previousMonthStart.toISOString())
+      .lte('order_date', previousMonthEnd.toISOString());
 
-    const previousMonthRevenue = previousRevenue?.reduce((sum, p) => sum + (p.amount || 0), 0) || 0;
+    const previousMonthRevenue = previousRevenue?.reduce((sum, p) => sum + (parseFloat(p.order_total) || 0), 0) || 0;
 
     // Calculate revenue trend
     const revenueTrend = previousMonthRevenue === 0
@@ -70,9 +74,11 @@ export async function GET() {
       .gte('created_at', currentMonthStart.toISOString());
 
     const { data: currentConversions, count: currentConversionsCount } = await supabase
-      .from('purchases')
+      .from('testoup_purchase_history')
       .select('*', { count: 'exact', head: true })
-      .gte('purchased_at', currentMonthStart.toISOString());
+      .not('email', 'ilike', '%test%')
+      .not('order_id', 'eq', 'MANUAL_REFILL')
+      .gte('order_date', currentMonthStart.toISOString());
 
     const currentConversionRate = (currentSessionsCount || 0) === 0
       ? 0
@@ -86,10 +92,12 @@ export async function GET() {
       .lte('created_at', previousMonthEnd.toISOString());
 
     const { data: previousConversions, count: previousConversionsCount } = await supabase
-      .from('purchases')
+      .from('testoup_purchase_history')
       .select('*', { count: 'exact', head: true })
-      .gte('purchased_at', previousMonthStart.toISOString())
-      .lte('purchased_at', previousMonthEnd.toISOString());
+      .not('email', 'ilike', '%test%')
+      .not('order_id', 'eq', 'MANUAL_REFILL')
+      .gte('order_date', previousMonthStart.toISOString())
+      .lte('order_date', previousMonthEnd.toISOString());
 
     const previousConversionRate = (previousSessionsCount || 0) === 0
       ? 0

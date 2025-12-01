@@ -64,6 +64,22 @@ interface User {
   id?: string;
   email: string;
   firstName?: string;
+  // Quiz data
+  quizDate?: string;
+  category?: 'energy' | 'libido' | 'muscle';
+  level?: string;
+  totalScore?: number;
+  workoutLocation?: 'home' | 'gym';
+  dietaryPreference?: string;
+  // Inventory
+  capsulesRemaining?: number;
+  // Activity counts (last 7 days)
+  workoutCount?: number;
+  mealCount?: number;
+  sleepCount?: number;
+  testoupCount?: number;
+  coachMessages?: number;
+  // Legacy
   chatSessions: number;
   funnelAttempts: number;
   converted: boolean;
@@ -71,10 +87,11 @@ interface User {
   purchasesCount: number;
   totalSpent: number;
   latestPurchase?: string;
+  hasAppAccess?: boolean;
+  // Admin fields
   banned?: boolean;
   name?: string;
   avatar?: string;
-  // New fields from enhanced API
   userCreatedAt?: string;
   emailVerified?: boolean;
   protocolStartDatePro?: string | null;
@@ -107,6 +124,27 @@ export default function UsersPage() {
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [userDetailModal, setUserDetailModal] = useState(false);
   const [userPurchases, setUserPurchases] = useState<any[]>([]);
+  const [userInventory, setUserInventory] = useState<{
+    capsulesRemaining: number;
+    totalBottles: number;
+    lastPurchaseDate: string | null;
+  } | null>(null);
+  const [userQuizData, setUserQuizData] = useState<{
+    category: string;
+    level: string;
+    totalScore: number;
+    workoutLocation: string;
+    dietaryPreference: string;
+    quizDate: string;
+    firstName: string;
+    breakdown: {
+      symptoms: number;
+      nutrition: number;
+      training: number;
+      sleepRecovery: number;
+      context: number;
+    };
+  } | null>(null);
   const [loadingPurchases, setLoadingPurchases] = useState(false);
   const [grantProModal, setGrantProModal] = useState(false);
   const [revokeProModal, setRevokeProModal] = useState(false);
@@ -127,6 +165,11 @@ export default function UsersPage() {
   const [editName, setEditName] = useState("");
   const [editAvatar, setEditAvatar] = useState("");
   const [deleteConfirmEmail, setDeleteConfirmEmail] = useState("");
+
+  // Capsule editing states
+  const [editingCapsules, setEditingCapsules] = useState(false);
+  const [newCapsuleCount, setNewCapsuleCount] = useState(0);
+  const [capsuleReason, setCapsuleReason] = useState("");
 
   // Fetch admin user on mount
   useEffect(() => {
@@ -153,10 +196,13 @@ export default function UsersPage() {
     if (userDetailModal && selectedUser) {
       fetchUserPurchases(selectedUser.email);
     }
-  }, [userDetailModal, selectedUser]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userDetailModal, selectedUser?.email]);
 
   const fetchUserPurchases = async (email: string) => {
     setLoadingPurchases(true);
+    setUserInventory(null);
+    setUserQuizData(null);
     try {
       const response = await fetch(
         `/api/admin/users/${encodeURIComponent(email)}`,
@@ -165,6 +211,16 @@ export default function UsersPage() {
 
       if (response.ok && data.purchases) {
         setUserPurchases(data.purchases);
+
+        // Save inventory data
+        if (data.inventory) {
+          setUserInventory(data.inventory);
+        }
+
+        // Save quiz data
+        if (data.quizData) {
+          setUserQuizData(data.quizData);
+        }
 
         // Update selectedUser with enhanced data from API
         if (selectedUser) {
@@ -191,6 +247,51 @@ export default function UsersPage() {
       });
     } finally {
       setLoadingPurchases(false);
+    }
+  };
+
+  const handleUpdateCapsules = async () => {
+    if (!selectedUser) return;
+
+    setActionLoading(true);
+    try {
+      const response = await fetch(
+        `/api/admin/users/${encodeURIComponent(selectedUser.email)}/inventory`,
+        {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            capsules: newCapsuleCount,
+            reason: capsuleReason || "Admin adjustment",
+          }),
+        }
+      );
+
+      if (!response.ok) throw new Error("Failed to update capsules");
+
+      // Update local state
+      setUserInventory((prev) =>
+        prev
+          ? { ...prev, capsulesRemaining: newCapsuleCount }
+          : { capsulesRemaining: newCapsuleCount, totalBottles: 0, lastPurchaseDate: null }
+      );
+
+      toast({
+        title: "Успех",
+        description: `Капсулите са обновени на ${newCapsuleCount}`,
+      });
+
+      setEditingCapsules(false);
+      setCapsuleReason("");
+    } catch (error) {
+      console.error("Error updating capsules:", error);
+      toast({
+        title: "Грешка",
+        description: "Не успя да се обновят капсулите",
+        variant: "destructive",
+      });
+    } finally {
+      setActionLoading(false);
     }
   };
 
@@ -668,84 +769,86 @@ export default function UsersPage() {
 
         {/* Stats Cards */}
         {!isLoading && (
-          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Общо Потребители
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  С Quiz
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">
-                  {users.length}
+              <CardContent className="pt-0">
+                <div className="text-xl font-bold text-primary">
+                  {users.filter((u) => u.quizDate).length}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Конвертирали
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  App Потребители
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-xl sm:text-2xl font-bold text-green-600">
-                  {users.filter((u) => u.converted).length}
+              <CardContent className="pt-0">
+                <div className="text-xl font-bold text-green-600">
+                  {users.filter((u) => u.hasAppAccess).length}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  С Chat Сесии
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  С Капсули
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">
-                  {users.filter((u) => u.chatSessions > 0).length}
+              <CardContent className="pt-0">
+                <div className="text-xl font-bold text-blue-600">
+                  {users.filter((u) => (u.capsulesRemaining || 0) > 0).length}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
-                  През Funnel
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  Активни (7д)
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-xl sm:text-2xl font-bold">
-                  {users.filter((u) => u.funnelAttempts > 0).length}
+              <CardContent className="pt-0">
+                <div className="text-xl font-bold text-orange-600">
+                  {users.filter((u) =>
+                    (u.workoutCount || 0) > 0 ||
+                    (u.mealCount || 0) > 0 ||
+                    (u.sleepCount || 0) > 0 ||
+                    (u.testoupCount || 0) > 0
+                  ).length}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   С Покупки
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-xl sm:text-2xl font-bold text-green-600">
+              <CardContent className="pt-0">
+                <div className="text-xl font-bold text-green-600">
                   {users.filter((u) => u.purchasesCount > 0).length}
                 </div>
               </CardContent>
             </Card>
 
             <Card>
-              <CardHeader className="pb-3">
-                <CardTitle className="text-sm font-medium text-muted-foreground">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
                   Общо Приходи
                 </CardTitle>
               </CardHeader>
-              <CardContent>
-                <div className="text-xl sm:text-2xl font-bold text-green-600">
-                  {users
-                    .reduce((sum, u) => sum + (u.totalSpent || 0), 0)
-                    .toFixed(2)}{" "}
-                  лв
+              <CardContent className="pt-0">
+                <div className="text-xl font-bold text-green-600">
+                  {users.reduce((sum, u) => sum + (u.totalSpent || 0), 0).toFixed(0)} лв
                 </div>
               </CardContent>
             </Card>
@@ -798,113 +901,177 @@ export default function UsersPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-                {users.map((user) => (
-                  <Card
-                    key={user.email}
-                    className="cursor-pointer hover:border-primary transition-colors"
-                    onClick={() => {
-                      setSelectedUser(user);
-                      setUserDetailModal(true);
-                    }}
-                  >
-                    <CardContent className="p-4">
-                      {/* User Header */}
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          <User className="w-6 h-6 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold truncate">
-                            {user.name ||
-                              user.firstName ||
-                              user.email.split("@")[0]}
-                          </p>
-                          <p className="text-xs text-muted-foreground truncate">
-                            {user.email}
-                          </p>
-                        </div>
-                      </div>
-
-                      {/* Services Badges */}
-                      <div className="space-y-2 mb-3">
-                        {/* Chat Sessions */}
-                        {user.chatSessions > 0 && (
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2">
-                              <MessageCircle className="w-4 h-4 text-blue-500" />
-                              <span className="text-muted-foreground">
-                                Chat
-                              </span>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="text-left p-2 font-medium">Потребител</th>
+                      <th className="text-center p-2 font-medium">Quiz</th>
+                      <th className="text-center p-2 font-medium">Категория</th>
+                      <th className="text-center p-2 font-medium">Капсули</th>
+                      <th className="text-center p-2 font-medium">Покупки</th>
+                      <th className="text-center p-2 font-medium" title="Тренировки (7 дни)">Workout</th>
+                      <th className="text-center p-2 font-medium" title="Хранене (7 дни)">Meal</th>
+                      <th className="text-center p-2 font-medium" title="Сън (7 дни)">Sleep</th>
+                      <th className="text-center p-2 font-medium" title="TestoUP (7 дни)">TestoUP</th>
+                      <th className="text-center p-2 font-medium" title="AI Coach съобщения">Coach</th>
+                      <th className="text-center p-2 font-medium">Статус</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {users.map((user) => (
+                      <tr
+                        key={user.email}
+                        className="border-b hover:bg-muted/30 cursor-pointer transition-colors"
+                        onClick={() => {
+                          setSelectedUser(user);
+                          setUserDetailModal(true);
+                        }}
+                      >
+                        {/* User Info */}
+                        <td className="p-2">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                              <User className="w-4 h-4 text-primary" />
                             </div>
-                            <Badge variant="secondary">
-                              {user.chatSessions}
-                            </Badge>
-                          </div>
-                        )}
-
-                        {/* Funnel Attempts */}
-                        {user.funnelAttempts > 0 && (
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2">
-                              <TrendingUp className="w-4 h-4 text-orange-500" />
-                              <span className="text-muted-foreground">
-                                Funnel
-                              </span>
+                            <div className="min-w-0">
+                              <p className="font-medium text-sm truncate max-w-[160px]">
+                                {user.firstName || user.email.split("@")[0]}
+                              </p>
+                              <p className="text-xs text-muted-foreground truncate max-w-[160px]">
+                                {user.email}
+                              </p>
                             </div>
-                            <Badge variant="secondary">
-                              {user.funnelAttempts}
-                            </Badge>
                           </div>
-                        )}
+                        </td>
+
+                        {/* Quiz Date */}
+                        <td className="p-2 text-center">
+                          {user.quizDate ? (
+                            <span className="text-xs">
+                              {new Date(user.quizDate).toLocaleDateString("bg-BG", { day: "2-digit", month: "short" })}
+                            </span>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+
+                        {/* Category */}
+                        <td className="p-2 text-center">
+                          {user.category ? (
+                            <Badge
+                              variant="outline"
+                              className={
+                                user.category === "energy"
+                                  ? "border-yellow-500 text-yellow-600 text-xs"
+                                  : user.category === "libido"
+                                  ? "border-pink-500 text-pink-600 text-xs"
+                                  : "border-blue-500 text-blue-600 text-xs"
+                              }
+                            >
+                              {user.category === "energy" ? "Енергия" : user.category === "libido" ? "Либидо" : "Мускул"}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+
+                        {/* Capsules */}
+                        <td className="p-2 text-center">
+                          {(user.capsulesRemaining || 0) > 0 ? (
+                            <Badge variant="secondary" className="font-mono text-xs">
+                              {user.capsulesRemaining}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">0</span>
+                          )}
+                        </td>
 
                         {/* Purchases */}
-                        {user.purchasesCount > 0 && (
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2">
-                              <ShoppingBag className="w-4 h-4 text-green-500" />
-                              <span className="text-muted-foreground">
-                                Покупки
-                              </span>
+                        <td className="p-2 text-center">
+                          {user.purchasesCount > 0 ? (
+                            <div className="flex flex-col items-center">
+                              <Badge variant="default" className="bg-green-600 font-mono text-xs">
+                                {user.purchasesCount}
+                              </Badge>
+                              <span className="text-xs text-green-600">{user.totalSpent?.toFixed(0)}лв</span>
                             </div>
-                            <Badge variant="default" className="bg-green-600">
-                              {user.purchasesCount} (
-                              {user.totalSpent.toFixed(2)} лв)
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+
+                        {/* Workout (7 days) */}
+                        <td className="p-2 text-center">
+                          {(user.workoutCount || 0) > 0 ? (
+                            <Badge variant="outline" className="border-orange-500 text-orange-600 font-mono text-xs">
+                              {user.workoutCount}
                             </Badge>
-                          </div>
-                        )}
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
 
-                        {/* PRO Access - TODO: Add hasPro check */}
-                        {/* {user.hasPro && (
-                          <div className="flex items-center justify-between text-sm">
-                            <div className="flex items-center gap-2">
-                              <Crown className="w-4 h-4 text-yellow-500" />
-                              <span className="text-muted-foreground">PRO</span>
-                            </div>
-                            <Badge variant="default" className="bg-yellow-600">Active</Badge>
-                          </div>
-                        )} */}
-                      </div>
+                        {/* Meal (7 days) */}
+                        <td className="p-2 text-center">
+                          {(user.mealCount || 0) > 0 ? (
+                            <Badge variant="outline" className="border-green-500 text-green-600 font-mono text-xs">
+                              {user.mealCount}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
 
-                      {/* Status & Last Activity */}
-                      <div className="flex items-center justify-between pt-3 border-t">
-                        <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                          <Clock className="w-3 h-3" />
-                          {getRelativeTime(user.lastActivity)}
-                        </div>
-                        {user.banned ? (
-                          <Badge variant="destructive" className="text-xs">
-                            BANNED
-                          </Badge>
-                        ) : user.converted ? (
-                          <CheckCircle className="w-4 h-4 text-green-600" />
-                        ) : (
-                          <XCircle className="w-4 h-4 text-muted-foreground" />
-                        )}
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                        {/* Sleep (7 days) */}
+                        <td className="p-2 text-center">
+                          {(user.sleepCount || 0) > 0 ? (
+                            <Badge variant="outline" className="border-purple-500 text-purple-600 font-mono text-xs">
+                              {user.sleepCount}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+
+                        {/* TestoUP (7 days) */}
+                        <td className="p-2 text-center">
+                          {(user.testoupCount || 0) > 0 ? (
+                            <Badge variant="outline" className="border-blue-500 text-blue-600 font-mono text-xs">
+                              {user.testoupCount}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+
+                        {/* Coach Messages */}
+                        <td className="p-2 text-center">
+                          {(user.coachMessages || 0) > 0 ? (
+                            <Badge variant="secondary" className="font-mono text-xs">
+                              {user.coachMessages}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+
+                        {/* Status */}
+                        <td className="p-2 text-center">
+                          {user.banned ? (
+                            <Badge variant="destructive" className="text-xs">BAN</Badge>
+                          ) : user.hasAppAccess ? (
+                            <Badge variant="default" className="bg-green-600 text-xs">App</Badge>
+                          ) : user.converted ? (
+                            <Badge variant="secondary" className="text-xs">Site</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs">-</Badge>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </CardContent>
@@ -1299,95 +1466,317 @@ export default function UsersPage() {
 
           {selectedUser && (
             <div className="space-y-3 sm:space-y-4 md:space-y-6 py-4">
-              {/* Quick Stats */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2">
-                      <MessageCircle className="w-5 h-5 text-blue-500" />
-                      <div>
-                        <p className="text-xl sm:text-2xl font-bold">
-                          {selectedUser.chatSessions}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Chat Сесии
-                        </p>
-                      </div>
-                    </div>
+              {/* Quiz Info Section */}
+              {loadingPurchases ? (
+                <Card className="border-l-4 border-l-muted">
+                  <CardContent className="p-4 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
                   </CardContent>
                 </Card>
+              ) : userQuizData ? (
+                <Card className="border-l-4 border-l-primary bg-primary/5">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
+                          <CheckCircle className="w-6 h-6 text-primary" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-lg">Quiz Резултат</h4>
+                          <p className="text-sm text-muted-foreground">
+                            {new Date(userQuizData.quizDate).toLocaleDateString("bg-BG", {
+                              year: "numeric",
+                              month: "long",
+                              day: "numeric",
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-4xl font-bold text-primary">{userQuizData.totalScore}</p>
+                        <p className="text-xs text-muted-foreground">от 100 точки</p>
+                      </div>
+                    </div>
 
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-orange-500" />
+                    {/* Category and Level */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
                       <div>
-                        <p className="text-xl sm:text-2xl font-bold">
-                          {selectedUser.funnelAttempts}
+                        <Label className="text-xs text-muted-foreground">Категория</Label>
+                        <Badge
+                          className={
+                            userQuizData.category === "energy"
+                              ? "bg-yellow-500 mt-1 text-base px-3 py-1"
+                              : userQuizData.category === "libido"
+                              ? "bg-pink-500 mt-1 text-base px-3 py-1"
+                              : "bg-blue-500 mt-1 text-base px-3 py-1"
+                          }
+                        >
+                          {userQuizData.category === "energy"
+                            ? "Енергия"
+                            : userQuizData.category === "libido"
+                            ? "Либидо"
+                            : "Мускули"}
+                        </Badge>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Ниво</Label>
+                        <p className="font-semibold text-lg capitalize">
+                          {userQuizData.level === "low" ? "Ниско"
+                            : userQuizData.level === "moderate" ? "Умерено"
+                            : userQuizData.level === "good" ? "Добро"
+                            : "Оптимално"}
                         </p>
-                        <p className="text-xs text-muted-foreground">
-                          Funnel Опити
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Локация</Label>
+                        <p className="font-semibold text-lg">
+                          {userQuizData.workoutLocation === "home" ? "Вкъщи" : "Фитнес"}
+                        </p>
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground">Диета</Label>
+                        <p className="font-semibold text-lg capitalize">
+                          {userQuizData.dietaryPreference || "Омнивор"}
                         </p>
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
 
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2">
-                      <ShoppingBag className="w-5 h-5 text-green-500" />
-                      <div>
-                        <p className="text-xl sm:text-2xl font-bold">
-                          {selectedUser.purchasesCount}
-                        </p>
-                        <p className="text-xs text-muted-foreground">Покупки</p>
+                    {/* Score Breakdown */}
+                    {userQuizData.breakdown && (
+                      <div className="border-t pt-3">
+                        <Label className="text-xs text-muted-foreground mb-2 block">Breakdown по категории</Label>
+                        <div className="grid grid-cols-5 gap-2">
+                          <div className="text-center p-2 bg-red-50 rounded">
+                            <p className="text-lg font-bold text-red-600">{userQuizData.breakdown.symptoms || 0}</p>
+                            <p className="text-xs text-muted-foreground">Симптоми</p>
+                          </div>
+                          <div className="text-center p-2 bg-green-50 rounded">
+                            <p className="text-lg font-bold text-green-600">{userQuizData.breakdown.nutrition || 0}</p>
+                            <p className="text-xs text-muted-foreground">Хранене</p>
+                          </div>
+                          <div className="text-center p-2 bg-orange-50 rounded">
+                            <p className="text-lg font-bold text-orange-600">{userQuizData.breakdown.training || 0}</p>
+                            <p className="text-xs text-muted-foreground">Трениране</p>
+                          </div>
+                          <div className="text-center p-2 bg-purple-50 rounded">
+                            <p className="text-lg font-bold text-purple-600">{userQuizData.breakdown.sleepRecovery || 0}</p>
+                            <p className="text-xs text-muted-foreground">Сън</p>
+                          </div>
+                          <div className="text-center p-2 bg-blue-50 rounded">
+                            <p className="text-lg font-bold text-blue-600">{userQuizData.breakdown.context || 0}</p>
+                            <p className="text-xs text-muted-foreground">Контекст</p>
+                          </div>
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </CardContent>
                 </Card>
+              ) : (
+                <Card className="border-l-4 border-l-muted">
+                  <CardContent className="p-4 text-center text-muted-foreground">
+                    Няма попълнен Quiz
+                  </CardContent>
+                </Card>
+              )}
 
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl">💰</span>
+              {/* Capsules Section with Edit */}
+              <Card className="border-2 border-cyan-300 bg-cyan-50/50">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-full bg-cyan-100 flex items-center justify-center">
+                        <span className="text-2xl">💊</span>
+                      </div>
                       <div>
-                        <p className="text-xl sm:text-2xl font-bold text-green-600">
-                          {selectedUser.totalSpent.toFixed(2)}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Общо (лв)
-                        </p>
+                        <p className="text-sm text-muted-foreground">TestoUP Капсули</p>
+                        {editingCapsules ? (
+                          <div className="flex items-center gap-2 mt-1">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setNewCapsuleCount(Math.max(0, newCapsuleCount - 10))}
+                            >
+                              <Minus className="w-4 h-4" />
+                            </Button>
+                            <Input
+                              type="number"
+                              value={newCapsuleCount}
+                              onChange={(e) => setNewCapsuleCount(parseInt(e.target.value) || 0)}
+                              className="w-20 text-center font-bold text-xl"
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setNewCapsuleCount(newCapsuleCount + 10)}
+                            >
+                              <Plus className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <p className="text-3xl font-bold text-cyan-700">
+                            {loadingPurchases ? "..." : (userInventory?.capsulesRemaining || 0)}
+                          </p>
+                        )}
                       </div>
                     </div>
-                  </CardContent>
-                </Card>
+                    <div className="flex flex-col gap-2">
+                      {editingCapsules ? (
+                        <>
+                          <Input
+                            placeholder="Причина (опционално)"
+                            value={capsuleReason}
+                            onChange={(e) => setCapsuleReason(e.target.value)}
+                            className="w-48"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              onClick={handleUpdateCapsules}
+                              disabled={actionLoading}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              {actionLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Запази"}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => setEditingCapsules(false)}
+                            >
+                              Отказ
+                            </Button>
+                          </div>
+                        </>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setNewCapsuleCount(userInventory?.capsulesRemaining || 0);
+                            setEditingCapsules(true);
+                          }}
+                        >
+                          <Edit className="w-4 h-4 mr-1" />
+                          Редактирай
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Activity Stats (Last 7 days) - Compact */}
+              <div className="grid grid-cols-5 gap-2">
+                <div className="text-center p-2 bg-orange-50 rounded-lg">
+                  <p className="text-lg font-bold text-orange-600">{selectedUser.workoutCount || 0}</p>
+                  <p className="text-xs text-muted-foreground">Workout</p>
+                </div>
+                <div className="text-center p-2 bg-green-50 rounded-lg">
+                  <p className="text-lg font-bold text-green-600">{selectedUser.mealCount || 0}</p>
+                  <p className="text-xs text-muted-foreground">Meal</p>
+                </div>
+                <div className="text-center p-2 bg-purple-50 rounded-lg">
+                  <p className="text-lg font-bold text-purple-600">{selectedUser.sleepCount || 0}</p>
+                  <p className="text-xs text-muted-foreground">Sleep</p>
+                </div>
+                <div className="text-center p-2 bg-blue-50 rounded-lg">
+                  <p className="text-lg font-bold text-blue-600">{selectedUser.testoupCount || 0}</p>
+                  <p className="text-xs text-muted-foreground">TestoUP</p>
+                </div>
+                <div className="text-center p-2 bg-indigo-50 rounded-lg">
+                  <p className="text-lg font-bold text-indigo-600">{selectedUser.coachMessages || 0}</p>
+                  <p className="text-xs text-muted-foreground">Coach</p>
+                </div>
               </div>
 
-              {/* Status & Info */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Статус</Label>
-                  <div className="flex items-center gap-2">
-                    {selectedUser.banned ? (
-                      <Badge variant="destructive">🚫 BANNED</Badge>
-                    ) : selectedUser.converted ? (
-                      <Badge variant="default" className="bg-green-600">
-                        <CheckCircle className="w-3 h-3 mr-1" />
-                        Конвертирал
+              {/* Purchase History */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <ShoppingBag className="w-5 h-5 text-green-500" />
+                    История на покупките
+                    {selectedUser.purchasesCount > 0 && (
+                      <Badge variant="secondary" className="ml-2">
+                        {selectedUser.purchasesCount} поръчки • {selectedUser.totalSpent?.toFixed(2)} лв
                       </Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {loadingPurchases ? (
+                    <div className="flex justify-center py-4">
+                      <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : userPurchases.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left p-2 font-medium">Дата</th>
+                            <th className="text-left p-2 font-medium">Продукт</th>
+                            <th className="text-center p-2 font-medium">Капсули</th>
+                            <th className="text-right p-2 font-medium">Сума</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {userPurchases.map((purchase) => (
+                            <tr key={purchase.id} className="border-b hover:bg-muted/30">
+                              <td className="p-2">
+                                {new Date(purchase.purchasedAt).toLocaleDateString("bg-BG", {
+                                  day: "2-digit",
+                                  month: "short",
+                                  year: "numeric",
+                                })}
+                              </td>
+                              <td className="p-2">
+                                <Badge variant={purchase.productType === "full" ? "default" : "secondary"}>
+                                  {purchase.productName}
+                                </Badge>
+                              </td>
+                              <td className="p-2 text-center font-mono">+{purchase.capsules}</td>
+                              <td className="p-2 text-right font-semibold text-green-600">
+                                {purchase.amount?.toFixed(2)} лв
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="text-center py-4 text-muted-foreground">
+                      Няма покупки
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Status */}
+              <div className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
+                <div>
+                  <Label className="text-xs text-muted-foreground">Статус</Label>
+                  <div className="mt-1">
+                    {selectedUser.banned ? (
+                      <Badge variant="destructive">BANNED</Badge>
+                    ) : selectedUser.hasAppAccess ? (
+                      <Badge className="bg-green-600">App User</Badge>
+                    ) : selectedUser.converted ? (
+                      <Badge variant="secondary">Site User</Badge>
                     ) : (
-                      <Badge variant="outline">Не е конвертирал</Badge>
+                      <Badge variant="outline">Visitor</Badge>
                     )}
                   </div>
                 </div>
-
-                <div className="space-y-2">
-                  <Label>Последна Активност</Label>
-                  <p className="text-sm text-muted-foreground">
-                    {formatDate(selectedUser.lastActivity)}
-                  </p>
+                <div>
+                  <Label className="text-xs text-muted-foreground">Последна Активност</Label>
+                  <p className="text-sm font-medium mt-1">{formatDate(selectedUser.lastActivity)}</p>
                 </div>
+                {userInventory?.lastPurchaseDate && (
+                  <div>
+                    <Label className="text-xs text-muted-foreground">Последна покупка</Label>
+                    <p className="text-sm font-medium mt-1">
+                      {new Date(userInventory.lastPurchaseDate).toLocaleDateString("bg-BG")}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* User Info Section */}
@@ -1630,6 +2019,47 @@ export default function UsersPage() {
                 </div>
               )}
 
+              {/* Inventory Summary */}
+              {userInventory && (
+                <div className="border-t pt-4">
+                  <Label className="text-base font-semibold mb-3 block">
+                    Текущ баланс (Inventory)
+                  </Label>
+                  <Card className="border-l-4 border-l-blue-500 bg-blue-50/50">
+                    <CardContent className="p-4">
+                      <div className="grid grid-cols-3 gap-4 text-center">
+                        <div>
+                          <p className="text-2xl font-bold text-blue-600">
+                            {userInventory.capsulesRemaining}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Капсули (остават)
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-2xl font-bold text-green-600">
+                            {userInventory.totalBottles}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Бутилки (общо)
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium">
+                            {userInventory.lastPurchaseDate
+                              ? formatDate(userInventory.lastPurchaseDate)
+                              : "-"}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            Последна покупка
+                          </p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
               {/* Purchases History */}
               {selectedUser.purchasesCount > 0 && (
                 <div className="border-t pt-4">
@@ -1664,42 +2094,42 @@ export default function UsersPage() {
                                   </Badge>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm text-muted-foreground">
+                                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-sm text-muted-foreground">
                                   <div>
                                     <span className="font-medium">Сума:</span>{" "}
                                     <span className="text-green-600 font-semibold">
-                                      {purchase.amount} {purchase.currency}
+                                      {purchase.amount} лв
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Бутилки:</span>{" "}
+                                    <span className="font-semibold">
+                                      {purchase.bottles || 0}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <span className="font-medium">Капсули:</span>{" "}
+                                    <span className="font-semibold text-blue-600">
+                                      {purchase.capsules || 0}
                                     </span>
                                   </div>
                                   <div>
                                     <span className="font-medium">Статус:</span>{" "}
                                     <Badge
-                                      variant={
-                                        purchase.status === "completed"
-                                          ? "default"
-                                          : "outline"
-                                      }
-                                      className={
-                                        purchase.status === "completed"
-                                          ? "bg-green-600"
-                                          : ""
-                                      }
+                                      variant="default"
+                                      className="bg-green-600"
                                     >
-                                      {purchase.status}
+                                      {purchase.status === "paid" ? "Платено" : purchase.status}
                                     </Badge>
                                   </div>
-                                  {purchase.appsIncluded &&
-                                    purchase.appsIncluded.length > 0 && (
-                                      <div className="col-span-2">
-                                        <span className="font-medium">
-                                          Apps:
-                                        </span>{" "}
-                                        {purchase.appsIncluded.join(", ")}
-                                      </div>
-                                    )}
-                                  <div className="col-span-2">
+                                  <div className="col-span-2 sm:col-span-4">
                                     <span className="font-medium">Дата:</span>{" "}
                                     {formatDate(purchase.purchasedAt)}
+                                    {purchase.orderId && (
+                                      <span className="ml-2 text-xs text-gray-400">
+                                        (Order: {purchase.orderId})
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                               </div>

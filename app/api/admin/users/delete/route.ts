@@ -74,13 +74,12 @@ export async function DELETE(request: Request) {
     // Manually delete related data that might not cascade
     // Note: Supabase should handle cascading deletes if foreign keys are set up properly
     // But we'll do it manually to be safe
+    const userEmail = user.email || '';
     await Promise.all([
       supabase.from('profiles').delete().eq('id', userId),
-      supabase.from('chat_sessions').delete().eq('email', user.email || ''),
-      supabase.from('purchases').delete().eq('user_id', userId),
-      supabase.from('daily_entries_pro').delete().eq('user_id', userId),
-      supabase.from('weekly_measurements_pro').delete().eq('user_id', userId),
-      supabase.from('user_settings').delete().eq('user_id', userId),
+      supabase.from('chat_sessions').delete().eq('email', userEmail),
+      supabase.from('testoup_purchase_history').delete().eq('email', userEmail),
+      supabase.from('testoup_inventory').delete().eq('email', userEmail),
     ]);
 
     return NextResponse.json({

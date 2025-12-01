@@ -53,6 +53,10 @@ import {
   ShieldX,
   Package,
   Edit,
+  ShoppingCart,
+  DollarSign,
+  Clock,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -60,6 +64,15 @@ interface AppUserData {
   id: string;
   email: string;
   name: string | null;
+  // Shopify Order info
+  shopifyOrderId: string | null;
+  orderTotal: number | null;
+  orderDate: string | null;
+  paymentStatus: 'paid' | 'pending' | 'cancelled' | null;
+  productType: string | null;
+  orderedBottles: number;
+  orderedCapsules: number;
+  estimatedPrice: boolean;
   // Quiz info
   quizCompletedAt: string | null;
   quizCategory: string | null;
@@ -79,7 +92,7 @@ interface AppUserData {
   bottlesPurchased: number;
   lastPurchaseDate: string | null;
   hasAccess: boolean;
-  accessStatus: 'full_access' | 'no_capsules' | 'no_quiz' | 'none';
+  accessStatus: 'full_access' | 'no_capsules' | 'no_quiz' | 'pending_payment' | 'none';
   // Engagement
   workoutsCount: number;
   mealsCount: number;
@@ -98,6 +111,13 @@ interface AppUserData {
 
 interface Stats {
   totalUsers: number;
+  // Order stats
+  totalOrders: number;
+  paidOrders: number;
+  pendingOrders: number;
+  totalRevenue: number;
+  pendingRevenue: number;
+  // Quiz & Access stats
   totalQuizUsers: number;
   registeredUsers: number;
   activeSubscriptions: number;
@@ -107,6 +127,7 @@ interface Stats {
   usersWithAccess: number;
   usersNoCapsules: number;
   usersNoQuiz: number;
+  needsActivation: number;
   totalCapsulesInSystem: number;
   // Engagement stats
   avgWorkouts: number;
@@ -117,11 +138,12 @@ interface Stats {
   totalCoachMessages: number;
 }
 
-type SortField = "email" | "quizCompletedAt" | "registeredAt" | "workoutsCount" | "testoUpCompliance" | "lastActivity" | "capsulesRemaining";
+type SortField = "email" | "orderDate" | "quizCompletedAt" | "registeredAt" | "workoutsCount" | "testoUpCompliance" | "lastActivity" | "capsulesRemaining";
+type PaymentFilter = "all" | "paid" | "pending" | "no_order";
 type ActivityFilter = "all" | "active" | "inactive";
 type SubscriptionFilter = "all" | "active" | "expired";
 type RegistrationFilter = "all" | "registered" | "notRegistered";
-type AccessFilter = "all" | "full_access" | "no_capsules" | "no_quiz";
+type AccessFilter = "all" | "full_access" | "no_capsules" | "no_quiz" | "pending_payment";
 
 export default function AppUsersPage() {
   const router = useRouter();
@@ -130,8 +152,9 @@ export default function AppUsersPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortField, setSortField] = useState<SortField>("quizCompletedAt");
+  const [sortField, setSortField] = useState<SortField>("orderDate");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [paymentFilter, setPaymentFilter] = useState<PaymentFilter>("all");
   const [activityFilter, setActivityFilter] = useState<ActivityFilter>("all");
   const [subscriptionFilter, setSubscriptionFilter] = useState<SubscriptionFilter>("all");
   const [registrationFilter, setRegistrationFilter] = useState<RegistrationFilter>("all");
@@ -338,7 +361,18 @@ export default function AppUsersPage() {
     const matchesSearch =
       searchQuery === "" ||
       user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.name?.toLowerCase().includes(searchQuery.toLowerCase());
+      user.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      user.shopifyOrderId?.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Payment filter
+    let matchesPayment = true;
+    if (paymentFilter === "paid") {
+      matchesPayment = user.paymentStatus === "paid";
+    } else if (paymentFilter === "pending") {
+      matchesPayment = user.paymentStatus === "pending";
+    } else if (paymentFilter === "no_order") {
+      matchesPayment = user.paymentStatus === null;
+    }
 
     // Activity filter
     let matchesActivity = true;
@@ -370,7 +404,7 @@ export default function AppUsersPage() {
       matchesAccess = user.accessStatus === accessFilter;
     }
 
-    return matchesSearch && matchesActivity && matchesSubscription && matchesRegistration && matchesAccess;
+    return matchesSearch && matchesPayment && matchesActivity && matchesSubscription && matchesRegistration && matchesAccess;
   });
 
   // Sort users
@@ -381,7 +415,7 @@ export default function AppUsersPage() {
     if (aValue === null) return 1;
     if (bValue === null) return -1;
 
-    if (sortField === "quizCompletedAt" || sortField === "registeredAt" || sortField === "lastActivity") {
+    if (sortField === "orderDate" || sortField === "quizCompletedAt" || sortField === "registeredAt" || sortField === "lastActivity") {
       aValue = new Date(aValue).getTime();
       bValue = new Date(bValue).getTime();
     }
@@ -423,11 +457,11 @@ export default function AppUsersPage() {
             <div>
               <h1 className="text-3xl font-bold flex items-center gap-2">
                 <Users className="h-8 w-8 text-blue-600" />
-                App Users
+                Operations Management
               </h1>
               <p className="text-muted-foreground mt-1">
                 {lastUpdated && `Последна актуализация: ${formatTimestamp(lastUpdated)}`}{" "}
-                - {users.length} потребители (Quiz + покупки)
+                - {users.length} клиенти (Shopify + Quiz + App)
               </p>
             </div>
             <div className="flex items-center gap-3">
@@ -459,9 +493,24 @@ export default function AppUsersPage() {
             <SearchBar
               value={searchQuery}
               onChange={setSearchQuery}
-              placeholder="Търси по имейл или име..."
+              placeholder="Търси по имейл, име или поръчка..."
               className="w-full md:w-64"
             />
+            <Select
+              value={paymentFilter}
+              onValueChange={(value: PaymentFilter) => setPaymentFilter(value)}
+            >
+              <SelectTrigger className="w-[160px]">
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Плащане" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Всички</SelectItem>
+                <SelectItem value="paid">Платени</SelectItem>
+                <SelectItem value="pending">Чакащи</SelectItem>
+                <SelectItem value="no_order">Без поръчка</SelectItem>
+              </SelectContent>
+            </Select>
             <Select
               value={activityFilter}
               onValueChange={(value: ActivityFilter) => setActivityFilter(value)}
@@ -517,13 +566,15 @@ export default function AppUsersPage() {
                 <SelectItem value="full_access">С достъп</SelectItem>
                 <SelectItem value="no_capsules">Без капсули</SelectItem>
                 <SelectItem value="no_quiz">Без Quiz</SelectItem>
+                <SelectItem value="pending_payment">Чака плащане</SelectItem>
               </SelectContent>
             </Select>
-            {(activityFilter !== "all" || subscriptionFilter !== "all" || registrationFilter !== "all" || accessFilter !== "all" || searchQuery) && (
+            {(paymentFilter !== "all" || activityFilter !== "all" || subscriptionFilter !== "all" || registrationFilter !== "all" || accessFilter !== "all" || searchQuery) && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => {
+                  setPaymentFilter("all");
                   setActivityFilter("all");
                   setSubscriptionFilter("all");
                   setRegistrationFilter("all");
@@ -539,22 +590,39 @@ export default function AppUsersPage() {
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            <Card className="shadow-sm">
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
+            {/* Order Stats */}
+            <Card className="shadow-sm bg-green-50 dark:bg-green-950/20">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                  <Users className="h-4 w-4" />
-                  <span className="font-medium">Всички</span>
+                  <CheckCircle className="h-4 w-4 text-green-600" />
+                  <span className="font-medium">Платени</span>
                 </div>
-                <div className="text-2xl font-bold text-blue-600">
-                  {stats.totalUsers}
+                <div className="text-2xl font-bold text-green-600">
+                  {stats.paidOrders}
                   <span className="text-xs font-normal text-muted-foreground ml-1">
-                    ({stats.totalQuizUsers} quiz)
+                    ({stats.totalRevenue.toFixed(0)} лв)
                   </span>
                 </div>
               </CardContent>
             </Card>
 
+            <Card className="shadow-sm bg-amber-50 dark:bg-amber-950/20">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <Clock className="h-4 w-4 text-amber-600" />
+                  <span className="font-medium">Чакащи</span>
+                </div>
+                <div className="text-2xl font-bold text-amber-600">
+                  {stats.pendingOrders}
+                  <span className="text-xs font-normal text-amber-500 italic ml-1">
+                    (~{stats.pendingRevenue.toFixed(0)} лв)
+                  </span>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Access Stats */}
             <Card className="shadow-sm">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
@@ -570,23 +638,11 @@ export default function AppUsersPage() {
             <Card className="shadow-sm">
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                  <Package className="h-4 w-4" />
-                  <span className="font-medium">С капсули</span>
+                  <AlertTriangle className="h-4 w-4" />
+                  <span className="font-medium">Нужна активация</span>
                 </div>
-                <div className="text-2xl font-bold text-emerald-600">
-                  {stats.usersWithCapsules}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card className="shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
-                  <ShieldX className="h-4 w-4" />
-                  <span className="font-medium">Без капсули</span>
-                </div>
-                <div className="text-2xl font-bold text-amber-600">
-                  {stats.usersNoCapsules}
+                <div className="text-2xl font-bold text-orange-600">
+                  {stats.needsActivation}
                 </div>
               </CardContent>
             </Card>
@@ -599,6 +655,18 @@ export default function AppUsersPage() {
                 </div>
                 <div className="text-2xl font-bold text-red-500">
                   {stats.usersNoQuiz}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card className="shadow-sm">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <Package className="h-4 w-4" />
+                  <span className="font-medium">С капсули</span>
+                </div>
+                <div className="text-2xl font-bold text-emerald-600">
+                  {stats.usersWithCapsules}
                 </div>
               </CardContent>
             </Card>
@@ -633,10 +701,10 @@ export default function AppUsersPage() {
         <Card className="shadow-sm">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center justify-between">
-              <span>Quiz потребители</span>
-              {(searchQuery || activityFilter !== "all" || subscriptionFilter !== "all" || registrationFilter !== "all" || accessFilter !== "all") && (
+              <span>Клиенти</span>
+              {(searchQuery || paymentFilter !== "all" || activityFilter !== "all" || subscriptionFilter !== "all" || registrationFilter !== "all" || accessFilter !== "all") && (
                 <span className="text-sm text-muted-foreground font-normal">
-                  Показвам {sortedUsers.length} от {users.length} потребители
+                  Показвам {sortedUsers.length} от {users.length} клиенти
                 </span>
               )}
             </CardTitle>
@@ -645,8 +713,8 @@ export default function AppUsersPage() {
             {sortedUsers.length === 0 ? (
               <EmptyState
                 icon={Users}
-                title="Няма намерени потребители"
-                description={searchQuery ? `Няма потребители за "${searchQuery}"` : "Все още няма потребители завършили Quiz-v2"}
+                title="Няма намерени клиенти"
+                description={searchQuery ? `Няма клиенти за "${searchQuery}"` : "Все още няма клиенти"}
               />
             ) : (
               <div className="relative overflow-x-auto">
@@ -658,20 +726,21 @@ export default function AppUsersPage() {
                         onClick={() => handleSort("email")}
                       >
                         <div className="flex items-center gap-1">
-                          Потребител
+                          Клиент
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
-                      <TableHead className="h-10">Статус</TableHead>
                       <TableHead
                         className="h-10 cursor-pointer hover:bg-muted/50"
-                        onClick={() => handleSort("quizCompletedAt")}
+                        onClick={() => handleSort("orderDate")}
                       >
                         <div className="flex items-center gap-1">
-                          Quiz дата
+                          <ShoppingCart className="h-3 w-3" />
+                          Плащане
                           <ArrowUpDown className="h-3 w-3" />
                         </div>
                       </TableHead>
+                      <TableHead className="h-10">Quiz</TableHead>
                       <TableHead className="h-10">Категория</TableHead>
                       <TableHead
                         className="h-10 cursor-pointer hover:bg-muted/50"
@@ -744,17 +813,36 @@ export default function AppUsersPage() {
                                   {user.email}
                                 </div>
                               )}
+                              {user.shopifyOrderId && (
+                                <div className="text-xs text-muted-foreground">
+                                  #{user.shopifyOrderId}
+                                </div>
+                              )}
                             </div>
                           </TableCell>
                           <TableCell className="py-2">
-                            {user.isRegistered ? (
-                              <Badge className="bg-green-600 text-xs">Регистриран</Badge>
+                            {user.paymentStatus === 'paid' ? (
+                              <Badge className="bg-green-600 text-xs">Платено</Badge>
+                            ) : user.paymentStatus === 'pending' ? (
+                              <Badge className="bg-amber-500 text-xs">Чака</Badge>
                             ) : (
-                              <Badge variant="outline" className="text-xs text-amber-600 border-amber-600">Само Quiz</Badge>
+                              <Badge variant="secondary" className="text-xs">-</Badge>
+                            )}
+                            {user.orderTotal && user.orderTotal > 0 && (
+                              <div className={cn(
+                                "text-xs mt-0.5",
+                                user.estimatedPrice ? "text-amber-600 italic" : "text-muted-foreground"
+                              )}>
+                                {user.estimatedPrice ? "~" : ""}{user.orderTotal.toFixed(0)} лв
+                              </div>
                             )}
                           </TableCell>
                           <TableCell className="text-sm py-2">
-                            {formatDate(user.quizCompletedAt)}
+                            {user.quizCompletedAt ? (
+                              <Badge className="bg-blue-600 text-xs">Да</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs text-red-500 border-red-500">Не</Badge>
+                            )}
                           </TableCell>
                           <TableCell className="py-2">
                             {user.quizCategory ? (
@@ -791,12 +879,14 @@ export default function AppUsersPage() {
                           <TableCell className="py-2">
                             {user.accessStatus === 'full_access' ? (
                               <Badge className="bg-green-600 text-xs">С достъп</Badge>
+                            ) : user.accessStatus === 'pending_payment' ? (
+                              <Badge className="bg-amber-500 text-xs">Чака плащане</Badge>
                             ) : user.accessStatus === 'no_capsules' ? (
                               <Badge variant="outline" className="text-xs text-amber-600 border-amber-600">Без капсули</Badge>
                             ) : user.accessStatus === 'no_quiz' ? (
-                              <Badge variant="outline" className="text-xs text-blue-600 border-blue-600">Без Quiz</Badge>
+                              <Badge variant="outline" className="text-xs text-orange-600 border-orange-600">Без Quiz</Badge>
                             ) : (
-                              <Badge variant="secondary" className="text-xs">Без достъп</Badge>
+                              <Badge variant="secondary" className="text-xs">-</Badge>
                             )}
                           </TableCell>
                           <TableCell className="py-2 text-center">

@@ -11,6 +11,15 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
   BarChart,
   Bar,
   LineChart,
@@ -31,67 +40,69 @@ import {
   TrendingUp,
   Users,
   Target,
-  Clock,
+  Activity,
+  Home,
+  Dumbbell,
+  Heart,
+  Zap,
+  Flame,
 } from "lucide-react";
-import { HeatmapChart } from "@/components/analytics/HeatmapChart";
-import { TrendComparisonChart } from "@/components/analytics/TrendComparisonChart";
-import { UTMBreakdown } from "@/components/analytics/UTMBreakdown";
-import { SessionsTable } from "@/components/analytics/SessionsTable";
-import { SessionJourneyModal } from "@/components/analytics/SessionJourneyModal";
-import { Smartphone, Monitor, Tablet } from "lucide-react";
 
-interface SessionData {
-  sessionId: string;
-  email: string | null;
-  name: string | null;
-  currentStep: number;
-  maxStep: number;
-  completed: boolean;
-  entryTime: string;
-  lastActivity: string;
-  offerTier: string | null;
-  utmSource: string | null;
-  utmMedium: string | null;
-  utmCampaign: string | null;
-  exitStep: number | null;
+interface QuizResult {
+  id: string;
+  email: string;
+  firstName: string | null;
+  category: string;
+  totalScore: number;
+  level: string;
+  workoutLocation: string;
+  breakdownSymptoms: number;
+  breakdownNutrition: number;
+  breakdownTraining: number;
+  breakdownSleepRecovery: number;
+  breakdownContext: number;
+  completedAt: string;
+  createdAt: string;
 }
 
-interface FunnelStats {
+interface QuizStats {
   stats: {
-    totalSessions: number;
-    completedSessions: number;
-    overallConversionRate: number;
-    avgTimeInFunnel: number;
-    mostCommonExitStep: number | null;
-    totalCTAClicks: number;
+    totalQuizzes: number;
+    avgTotalScore: number;
+    mostCommonCategory: string;
+    mostCommonLevel: string;
+    homeVsGymRatio: number;
   };
-  conversionFunnel: Array<{
-    step: number;
-    visitors: number;
-    conversionRate: number;
+  categoryBreakdown: {
+    libido: number;
+    muscle: number;
+    energy: number;
+  };
+  levelBreakdown: {
+    low: number;
+    moderate: number;
+    good: number;
+    optimal: number;
+  };
+  workoutLocationBreakdown: {
+    home: number;
+    gym: number;
+  };
+  avgBreakdown: {
+    symptoms: number;
+    nutrition: number;
+    training: number;
+    sleepRecovery: number;
+    context: number;
+  };
+  trendData: Array<{
+    date: string;
+    total: number;
+    libido: number;
+    muscle: number;
+    energy: number;
   }>;
-  offerPerformance: {
-    premium: number;
-    regular: number;
-    digital: number;
-  };
-  dropOffData: Array<{
-    step: number;
-    exits: number;
-    percentage: number;
-  }>;
-  utmBreakdown: {
-    sources: Record<string, number>;
-    mediums: Record<string, number>;
-    campaigns: Record<string, number>;
-  };
-  deviceStats: {
-    mobile: number;
-    desktop: number;
-    tablet: number;
-    unknown: number;
-  };
-  sessionsList: SessionData[];
+  quizList: QuizResult[];
   dateRange: {
     from: string;
     to: string;
@@ -99,123 +110,62 @@ interface FunnelStats {
   };
 }
 
-interface TimeSpentData {
-  timeSpentData: Array<{
-    step: number;
-    avgSeconds: number;
-    minSeconds: number;
-    maxSeconds: number;
-    sampleSize: number;
-  }>;
-}
+const CATEGORY_COLORS: Record<string, string> = {
+  libido: "#ef4444",
+  muscle: "#3b82f6",
+  energy: "#f59e0b",
+};
 
-interface TrendsData {
-  heatmapData: Array<{
-    step: number;
-    intensity: number;
-    enters: number;
-    exits: number;
-    clicks: number;
-    total: number;
-  }>;
-  trendData: Array<{
-    date: string;
-    sessions: number;
-    completed: number;
-    dropped: number;
-    conversionRate: number;
-  }>;
-  avgTimePerStep: Array<{
-    step: number;
-    avgSeconds: number;
-    sampleSize: number;
-  }>;
-}
+const LEVEL_COLORS: Record<string, string> = {
+  low: "#ef4444",
+  moderate: "#f59e0b",
+  good: "#22c55e",
+  optimal: "#10b981",
+};
 
-const COLORS = ["#8b5cf6", "#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+const CATEGORY_LABELS: Record<string, string> = {
+  libido: "Либидо",
+  muscle: "Мускули",
+  energy: "Енергия",
+};
 
-export default function AnalyticsDashboard() {
-  const [funnelStats, setFunnelStats] = useState<FunnelStats | null>(null);
-  const [timeSpentData, setTimeSpentData] = useState<TimeSpentData | null>(
-    null,
-  );
-  const [trendsData, setTrendsData] = useState<TrendsData | null>(null);
+const LEVEL_LABELS: Record<string, string> = {
+  low: "Нисък",
+  moderate: "Умерен",
+  good: "Добър",
+  optimal: "Оптимален",
+};
+
+export default function QuizAnalyticsDashboard() {
+  const [quizStats, setQuizStats] = useState<QuizStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedDays, setSelectedDays] = useState(7);
-  const [statusFilter, setStatusFilter] = useState<
-    "all" | "completed" | "incomplete"
-  >("all");
-  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
-    null,
-  );
-  const [isJourneyModalOpen, setIsJourneyModalOpen] = useState(false);
-
-  const handleSessionClick = (sessionId: string) => {
-    setSelectedSessionId(sessionId);
-    setIsJourneyModalOpen(true);
-  };
+  const [selectedDays, setSelectedDays] = useState(30);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      // Use absolute URLs to prevent any URL resolution issues
       const baseUrl =
         typeof window !== "undefined" ? window.location.origin : "";
-      const statusParam =
-        statusFilter !== "all" ? `&status=${statusFilter}` : "";
-      const statsUrl = `${baseUrl}/api/analytics/funnel-stats?days=${selectedDays}${statusParam}`;
-      const timeUrl = `${baseUrl}/api/analytics/time-spent?days=${selectedDays}`;
-      const trendsUrl = `${baseUrl}/api/analytics/trends?days=${selectedDays}`;
+      const categoryParam =
+        categoryFilter !== "all" ? `&category=${categoryFilter}` : "";
+      const statsUrl = `${baseUrl}/api/analytics/funnel-stats?days=${selectedDays}${categoryParam}`;
 
-      console.log("🔍 Fetching analytics data from:", {
-        statsUrl,
-        timeUrl,
-        trendsUrl,
-      });
+      console.log("Fetching quiz analytics from:", statsUrl);
 
-      const [statsRes, timeRes, trendsRes] = await Promise.all([
-        fetch(statsUrl),
-        fetch(timeUrl),
-        fetch(trendsUrl),
-      ]);
+      const response = await fetch(statsUrl);
 
-      console.log("📊 Response status:", {
-        stats: statsRes.status,
-        time: timeRes.status,
-        trends: trendsRes.status,
-      });
-
-      if (!statsRes.ok || !timeRes.ok || !trendsRes.ok) {
-        const errors = [];
-        if (!statsRes.ok)
-          errors.push(`Stats API: ${statsRes.status} ${statsRes.statusText}`);
-        if (!timeRes.ok)
-          errors.push(`Time API: ${timeRes.status} ${timeRes.statusText}`);
-        if (!trendsRes.ok)
-          errors.push(
-            `Trends API: ${trendsRes.status} ${trendsRes.statusText}`,
-          );
-        throw new Error(`API errors: ${errors.join(", ")}`);
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status} ${response.statusText}`);
       }
 
-      const stats = await statsRes.json();
-      const time = await timeRes.json();
-      const trends = await trendsRes.json();
-
-      console.log("✅ Analytics data loaded successfully");
-
-      setFunnelStats(stats);
-      setTimeSpentData(time);
-      setTrendsData(trends);
+      const data = await response.json();
+      console.log("Quiz analytics loaded:", data);
+      setQuizStats(data);
     } catch (error) {
-      console.error("❌ Error fetching analytics:", error);
-      // Show user-friendly error
+      console.error("Error fetching quiz analytics:", error);
       alert(
-        "Failed to load analytics data. Please try:\n" +
-          "1. Hard refresh the page (Ctrl+Shift+R)\n" +
-          "2. Clear browser cache\n" +
-          "3. Check browser console for details\n\n" +
-          `Error: ${error instanceof Error ? error.message : "Unknown error"}`,
+        `Грешка при зареждане на данните: ${error instanceof Error ? error.message : "Unknown error"}`
       );
     } finally {
       setLoading(false);
@@ -224,59 +174,78 @@ export default function AnalyticsDashboard() {
 
   useEffect(() => {
     fetchData();
-  }, [selectedDays, statusFilter]);
+  }, [selectedDays, categoryFilter]);
 
-  const formatTime = (seconds: number) => {
-    if (seconds < 60) return `${seconds}s`;
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}m ${secs}s`;
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString("bg-BG", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
   };
 
   const exportToCSV = () => {
-    if (!funnelStats) return;
+    if (!quizStats) return;
 
-    let csv = "Funnel Analytics Report\\n\\n";
-    csv += `Date Range: Last ${selectedDays} days\\n\\n`;
-    csv += "Overall Stats\\n";
-    csv += `Total Sessions,${funnelStats.stats.totalSessions}\\n`;
-    csv += `Completed Sessions,${funnelStats.stats.completedSessions}\\n`;
-    csv += `Conversion Rate,${funnelStats.stats.overallConversionRate}%\\n`;
-    csv += `Avg Time in Funnel,${formatTime(funnelStats.stats.avgTimeInFunnel)}\\n\\n`;
+    let csv = "Quiz Analytics Report\n\n";
+    csv += `Date Range: Last ${selectedDays} days\n\n`;
+    csv += "Overall Stats\n";
+    csv += `Total Quizzes,${quizStats.stats.totalQuizzes}\n`;
+    csv += `Average Score,${quizStats.stats.avgTotalScore}\n`;
+    csv += `Most Common Category,${quizStats.stats.mostCommonCategory}\n`;
+    csv += `Most Common Level,${quizStats.stats.mostCommonLevel}\n\n`;
 
-    csv += "Conversion Funnel\\n";
-    csv += "Step,Visitors,Conversion Rate\\n";
-    funnelStats.conversionFunnel.forEach((item) => {
-      csv += `${item.step},${item.visitors},${item.conversionRate}%\\n`;
+    csv += "Category Breakdown\n";
+    csv += `Libido,${quizStats.categoryBreakdown.libido}\n`;
+    csv += `Muscle,${quizStats.categoryBreakdown.muscle}\n`;
+    csv += `Energy,${quizStats.categoryBreakdown.energy}\n\n`;
+
+    csv += "Quiz Results\n";
+    csv += "Email,Name,Category,Score,Level,Location,Date\n";
+    quizStats.quizList.forEach((quiz) => {
+      csv += `${quiz.email},${quiz.firstName || "N/A"},${quiz.category},${quiz.totalScore},${quiz.level},${quiz.workoutLocation},${quiz.createdAt}\n`;
     });
 
     const blob = new Blob([csv], { type: "text/csv" });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `funnel-analytics-${new Date().toISOString().split("T")[0]}.csv`;
+    a.download = `quiz-analytics-${new Date().toISOString().split("T")[0]}.csv`;
     a.click();
   };
 
-  const offerChartData = funnelStats
-    ? [
-        {
-          name: "Premium",
-          value: funnelStats.offerPerformance.premium,
-          color: "#f97316",
-        },
-        {
-          name: "Regular",
-          value: funnelStats.offerPerformance.regular,
-          color: "#3b82f6",
-        },
-        {
-          name: "Digital",
-          value: funnelStats.offerPerformance.digital,
-          color: "#8b5cf6",
-        },
-      ]
-    : [];
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case "libido":
+        return <Heart className="w-4 h-4" />;
+      case "muscle":
+        return <Dumbbell className="w-4 h-4" />;
+      case "energy":
+        return <Zap className="w-4 h-4" />;
+      default:
+        return <Activity className="w-4 h-4" />;
+    }
+  };
+
+  const getLevelBadge = (level: string) => {
+    const color = LEVEL_COLORS[level] || "#6b7280";
+    return (
+      <Badge style={{ backgroundColor: color, color: "white" }}>
+        {LEVEL_LABELS[level] || level}
+      </Badge>
+    );
+  };
+
+  const getCategoryBadge = (category: string) => {
+    const color = CATEGORY_COLORS[category] || "#6b7280";
+    return (
+      <Badge style={{ backgroundColor: color, color: "white" }}>
+        {CATEGORY_LABELS[category] || category}
+      </Badge>
+    );
+  };
 
   if (loading) {
     return (
@@ -284,14 +253,14 @@ export default function AnalyticsDashboard() {
         <div className="flex items-center justify-center py-12">
           <div className="text-center">
             <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-muted-foreground">Зареждане на analytics...</p>
+            <p className="text-muted-foreground">Зареждане на quiz анализи...</p>
           </div>
         </div>
       </AdminLayout>
     );
   }
 
-  if (!funnelStats) {
+  if (!quizStats) {
     return (
       <AdminLayout>
         <div className="flex items-center justify-center py-12">
@@ -303,6 +272,28 @@ export default function AnalyticsDashboard() {
     );
   }
 
+  // Prepare chart data
+  const categoryChartData = [
+    { name: "Либидо", value: quizStats.categoryBreakdown.libido, color: CATEGORY_COLORS.libido },
+    { name: "Мускули", value: quizStats.categoryBreakdown.muscle, color: CATEGORY_COLORS.muscle },
+    { name: "Енергия", value: quizStats.categoryBreakdown.energy, color: CATEGORY_COLORS.energy },
+  ];
+
+  const levelChartData = [
+    { name: "Нисък", value: quizStats.levelBreakdown.low, color: LEVEL_COLORS.low },
+    { name: "Умерен", value: quizStats.levelBreakdown.moderate, color: LEVEL_COLORS.moderate },
+    { name: "Добър", value: quizStats.levelBreakdown.good, color: LEVEL_COLORS.good },
+    { name: "Оптимален", value: quizStats.levelBreakdown.optimal, color: LEVEL_COLORS.optimal },
+  ];
+
+  const breakdownChartData = [
+    { name: "Симптоми", value: quizStats.avgBreakdown.symptoms },
+    { name: "Хранене", value: quizStats.avgBreakdown.nutrition },
+    { name: "Тренировки", value: quizStats.avgBreakdown.training },
+    { name: "Сън", value: quizStats.avgBreakdown.sleepRecovery },
+    { name: "Контекст", value: quizStats.avgBreakdown.context },
+  ];
+
   return (
     <AdminLayout>
       <div className="max-w-7xl mx-auto space-y-8">
@@ -310,11 +301,10 @@ export default function AnalyticsDashboard() {
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-foreground">
-              Фунел Анализи
+              Quiz Анализи
             </h1>
             <p className="text-muted-foreground mt-1">
-              Последните {selectedDays} дни • {funnelStats.stats.totalSessions}{" "}
-              сесии
+              Последните {selectedDays} дни - {quizStats.stats.totalQuizzes} quiz резултата
             </p>
           </div>
 
@@ -333,20 +323,16 @@ export default function AnalyticsDashboard() {
               ))}
             </div>
 
-            {/* Status Filter */}
+            {/* Category Filter */}
             <div className="flex gap-1 border-l pl-2">
-              {(["all", "completed", "incomplete"] as const).map((status) => (
+              {(["all", "libido", "muscle", "energy"] as const).map((cat) => (
                 <Button
-                  key={status}
-                  variant={statusFilter === status ? "default" : "outline"}
+                  key={cat}
+                  variant={categoryFilter === cat ? "default" : "outline"}
                   size="sm"
-                  onClick={() => setStatusFilter(status)}
+                  onClick={() => setCategoryFilter(cat)}
                 >
-                  {status === "all"
-                    ? "Всички"
-                    : status === "completed"
-                      ? "Завършени"
-                      : "В процес"}
+                  {cat === "all" ? "Всички" : CATEGORY_LABELS[cat]}
                 </Button>
               ))}
             </div>
@@ -364,21 +350,18 @@ export default function AnalyticsDashboard() {
         </div>
 
         {/* Overview Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Users className="w-4 h-4" />
-                Общо Сесии
+                Общо Quizzes
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {funnelStats.stats.totalSessions}
+                {quizStats.stats.totalQuizzes}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                {funnelStats.stats.completedSessions} завършени
-              </p>
             </CardContent>
           </Card>
 
@@ -386,33 +369,28 @@ export default function AnalyticsDashboard() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <Target className="w-4 h-4" />
-                Conversion Rate
+                Среден Score
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold">
-                {funnelStats.stats.overallConversionRate}%
+                {quizStats.stats.avgTotalScore}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Завършили funnel-а
-              </p>
+              <p className="text-xs text-muted-foreground mt-1">от 100 точки</p>
             </CardContent>
           </Card>
 
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <Clock className="w-4 h-4" />
-                Среден Време
+                <Flame className="w-4 h-4" />
+                Топ Категория
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">
-                {formatTime(funnelStats.stats.avgTimeInFunnel)}
+              <div className="text-2xl font-bold">
+                {CATEGORY_LABELS[quizStats.stats.mostCommonCategory] || quizStats.stats.mostCommonCategory}
               </div>
-              <p className="text-xs text-muted-foreground mt-1">
-                Време във funnel-а
-              </p>
             </CardContent>
           </Card>
 
@@ -420,198 +398,56 @@ export default function AnalyticsDashboard() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
-                CTA Clicks
+                Топ Ниво
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold">
-                {funnelStats.stats.totalCTAClicks}
+              <div className="text-2xl font-bold">
+                {LEVEL_LABELS[quizStats.stats.mostCommonLevel] || quizStats.stats.mostCommonLevel}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Home className="w-4 h-4" />
+                Вкъщи vs Фитнес
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {quizStats.stats.homeVsGymRatio}% / {100 - quizStats.stats.homeVsGymRatio}%
               </div>
               <p className="text-xs text-muted-foreground mt-1">
-                Общо кликвания на оферти
+                {quizStats.workoutLocationBreakdown.home} вкъщи, {quizStats.workoutLocationBreakdown.gym} фитнес
               </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Device Stats Card */}
-        {funnelStats.deviceStats && (
+        {/* Charts Row */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+          {/* Category Pie Chart */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Smartphone className="w-5 h-5" />
-                Устройства
-              </CardTitle>
-              <CardDescription>
-                От къде разглеждат потребителите
-              </CardDescription>
+              <CardTitle>Категории</CardTitle>
+              <CardDescription>Разпределение по категория</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="flex items-center gap-3">
-                  <Monitor className="w-8 h-8 text-blue-500" />
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {funnelStats.deviceStats.desktop}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Десктоп</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Smartphone className="w-8 h-8 text-green-500" />
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {funnelStats.deviceStats.mobile}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Мобилен</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Tablet className="w-8 h-8 text-purple-500" />
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {funnelStats.deviceStats.tablet}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Таблет</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Target className="w-8 h-8 text-muted-foreground" />
-                  <div>
-                    <p className="text-2xl font-bold">
-                      {funnelStats.deviceStats.unknown}
-                    </p>
-                    <p className="text-xs text-muted-foreground">Неизвестно</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Sessions Table */}
-        <SessionsTable
-          sessions={funnelStats.sessionsList || []}
-          onSessionClick={handleSessionClick}
-        />
-
-        {/* UTM Breakdown */}
-        <UTMBreakdown utmBreakdown={funnelStats.utmBreakdown} />
-
-        {/* Conversion Funnel Chart */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Conversion Funnel по Стъпки</CardTitle>
-            <CardDescription>
-              Процент потребители достигащи всяка стъпка
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={400}>
-              <BarChart data={funnelStats.conversionFunnel}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  dataKey="step"
-                  label={{
-                    value: "Стъпка",
-                    position: "insideBottom",
-                    offset: -5,
-                  }}
-                />
-                <YAxis
-                  label={{
-                    value: "Потребители",
-                    angle: -90,
-                    position: "insideLeft",
-                  }}
-                />
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (active && payload && payload.length) {
-                      return (
-                        <div className="bg-background border rounded-lg p-3 shadow-lg">
-                          <p className="font-semibold">
-                            Стъпка {payload[0].payload.step}
-                          </p>
-                          <p className="text-sm">
-                            Посетители: {payload[0].payload.visitors}
-                          </p>
-                          <p className="text-sm">
-                            Rate: {payload[0].payload.conversionRate}%
-                          </p>
-                        </div>
-                      );
-                    }
-                    return null;
-                  }}
-                />
-                <Bar dataKey="visitors" fill="#8b5cf6" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Drop-off Chart */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Напускане по Стъпки</CardTitle>
-              <CardDescription>
-                Къде напускат най-много потребители
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={funnelStats.dropOffData}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="step" />
-                  <YAxis />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-background border rounded-lg p-3 shadow-lg">
-                            <p className="font-semibold">
-                              Стъпка {payload[0].payload.step}
-                            </p>
-                            <p className="text-sm">
-                              Exits: {payload[0].payload.exits}
-                            </p>
-                            <p className="text-sm">
-                              {payload[0].payload.percentage}%
-                            </p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
-                  />
-                  <Bar dataKey="exits" fill="#ef4444" />
-                </BarChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Offer Performance */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Перформанс на Оферти</CardTitle>
-              <CardDescription>Разпределение на tier-овете</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ResponsiveContainer width="100%" height={300}>
+              <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
-                    data={offerChartData}
+                    data={categoryChartData}
                     cx="50%"
                     cy="50%"
                     labelLine={false}
                     label={({ name, value }) => `${name}: ${value}`}
-                    outerRadius={100}
+                    outerRadius={80}
                     fill="#8884d8"
                     dataKey="value"
                   >
-                    {offerChartData.map((entry, index) => (
+                    {categoryChartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={entry.color} />
                     ))}
                   </Pie>
@@ -620,78 +456,95 @@ export default function AnalyticsDashboard() {
               </ResponsiveContainer>
             </CardContent>
           </Card>
-        </div>
 
-        {/* Heatmap Chart */}
-        {trendsData && trendsData.heatmapData.length > 0 && (
-          <HeatmapChart data={trendsData.heatmapData} />
-        )}
-
-        {/* Trend Comparison Chart */}
-        {trendsData && trendsData.trendData.length > 0 && (
-          <TrendComparisonChart data={trendsData.trendData} />
-        )}
-
-        {/* Time Spent Chart */}
-        {timeSpentData && timeSpentData.timeSpentData.length > 0 && (
+          {/* Level Pie Chart */}
           <Card>
             <CardHeader>
-              <CardTitle>Среден Time-on-Page</CardTitle>
-              <CardDescription>
-                Колко време потребителите прекарват на всяка стъпка
-              </CardDescription>
+              <CardTitle>Нива</CardTitle>
+              <CardDescription>Разпределение по ниво</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <PieChart>
+                  <Pie
+                    data={levelChartData}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, value }) => `${name}: ${value}`}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {levelChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip />
+                </PieChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+
+          {/* Breakdown Bar Chart */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Среден Score по Секция</CardTitle>
+              <CardDescription>Средни стойности</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ResponsiveContainer width="100%" height={250}>
+                <BarChart data={breakdownChartData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis type="number" />
+                  <YAxis dataKey="name" type="category" width={80} />
+                  <Tooltip />
+                  <Bar dataKey="value" fill="#8b5cf6" />
+                </BarChart>
+              </ResponsiveContainer>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Trend Chart */}
+        {quizStats.trendData.length > 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Дневен Тренд</CardTitle>
+              <CardDescription>Quiz резултати по дни</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={timeSpentData.timeSpentData}>
+                <LineChart data={quizStats.trendData}>
                   <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis
-                    dataKey="step"
-                    label={{
-                      value: "Стъпка",
-                      position: "insideBottom",
-                      offset: -5,
-                    }}
-                  />
-                  <YAxis
-                    label={{
-                      value: "Секунди",
-                      angle: -90,
-                      position: "insideLeft",
-                    }}
-                  />
-                  <Tooltip
-                    content={({ active, payload }) => {
-                      if (active && payload && payload.length) {
-                        return (
-                          <div className="bg-background border rounded-lg p-3 shadow-lg">
-                            <p className="font-semibold">
-                              Стъпка {payload[0].payload.step}
-                            </p>
-                            <p className="text-sm">
-                              Среден:{" "}
-                              {formatTime(payload[0].payload.avgSeconds)}
-                            </p>
-                            <p className="text-sm">
-                              Min: {formatTime(payload[0].payload.minSeconds)}
-                            </p>
-                            <p className="text-sm">
-                              Max: {formatTime(payload[0].payload.maxSeconds)}
-                            </p>
-                            <p className="text-xs text-muted-foreground mt-1">
-                              {payload[0].payload.sampleSize} samples
-                            </p>
-                          </div>
-                        );
-                      }
-                      return null;
-                    }}
+                  <XAxis dataKey="date" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="total"
+                    stroke="#8b5cf6"
+                    name="Общо"
+                    strokeWidth={2}
                   />
                   <Line
                     type="monotone"
-                    dataKey="avgSeconds"
-                    stroke="#10b981"
-                    strokeWidth={2}
+                    dataKey="libido"
+                    stroke={CATEGORY_COLORS.libido}
+                    name="Либидо"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="muscle"
+                    stroke={CATEGORY_COLORS.muscle}
+                    name="Мускули"
+                  />
+                  <Line
+                    type="monotone"
+                    dataKey="energy"
+                    stroke={CATEGORY_COLORS.energy}
+                    name="Енергия"
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -699,57 +552,78 @@ export default function AnalyticsDashboard() {
           </Card>
         )}
 
-        {/* Key Insights */}
+        {/* Quiz Results Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Ключови Прозрения</CardTitle>
+            <CardTitle>Последни Quiz Резултати</CardTitle>
+            <CardDescription>
+              {quizStats.quizList.length} резултата за периода
+            </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-2">
-            {funnelStats.stats.mostCommonExitStep && (
-              <p className="text-sm">
-                🚪 <strong>Най-често напускане:</strong> Стъпка{" "}
-                {funnelStats.stats.mostCommonExitStep}
-              </p>
+          <CardContent>
+            {quizStats.quizList.length === 0 ? (
+              <div className="text-center py-12">
+                <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Няма quiz резултати за този период</p>
+              </div>
+            ) : (
+              <div className="rounded-md border overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Име</TableHead>
+                      <TableHead>Email</TableHead>
+                      <TableHead>Категория</TableHead>
+                      <TableHead>Score</TableHead>
+                      <TableHead>Ниво</TableHead>
+                      <TableHead>Локация</TableHead>
+                      <TableHead>Дата</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {quizStats.quizList.map((quiz) => (
+                      <TableRow key={quiz.id}>
+                        <TableCell className="font-medium">
+                          {quiz.firstName || "N/A"}
+                        </TableCell>
+                        <TableCell className="text-sm">
+                          {quiz.email}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getCategoryIcon(quiz.category)}
+                            {getCategoryBadge(quiz.category)}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-bold">{quiz.totalScore}</span>
+                        </TableCell>
+                        <TableCell>
+                          {getLevelBadge(quiz.level)}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-1">
+                            {quiz.workoutLocation === "home" ? (
+                              <Home className="w-4 h-4" />
+                            ) : (
+                              <Dumbbell className="w-4 h-4" />
+                            )}
+                            <span className="text-sm">
+                              {quiz.workoutLocation === "home" ? "Вкъщи" : "Фитнес"}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-sm text-muted-foreground">
+                          {formatDate(quiz.createdAt)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
             )}
-            {funnelStats.conversionFunnel.length > 1 && (
-              <p className="text-sm">
-                📉 <strong>Най-голямо намаление:</strong> От Стъпка{" "}
-                {
-                  funnelStats.conversionFunnel.reduce((prev, curr) =>
-                    prev.conversionRate -
-                      (funnelStats.conversionFunnel[
-                        funnelStats.conversionFunnel.indexOf(prev) + 1
-                      ]?.conversionRate || 0) >
-                    curr.conversionRate -
-                      (funnelStats.conversionFunnel[
-                        funnelStats.conversionFunnel.indexOf(curr) + 1
-                      ]?.conversionRate || 0)
-                      ? prev
-                      : curr,
-                  ).step
-                }
-              </p>
-            )}
-            <p className="text-sm">
-              💎 <strong>Най-популярна оферта:</strong>{" "}
-              {
-                Object.entries(funnelStats.offerPerformance).reduce((a, b) =>
-                  a[1] > b[1] ? a : b,
-                )[0]
-              }
-            </p>
           </CardContent>
         </Card>
-
-        {/* Session Journey Modal */}
-        <SessionJourneyModal
-          sessionId={selectedSessionId}
-          isOpen={isJourneyModalOpen}
-          onClose={() => {
-            setIsJourneyModalOpen(false);
-            setSelectedSessionId(null);
-          }}
-        />
       </div>
     </AdminLayout>
   );

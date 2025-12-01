@@ -100,7 +100,7 @@ export async function PUT(
     await createAuditLog({
       adminId,
       adminEmail,
-      actionType: 'send_email', // Using send_email as placeholder
+      actionType: 'update_template',
       targetUserId: null,
       targetUserEmail: null,
       changesBefore: {

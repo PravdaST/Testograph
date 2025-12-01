@@ -8,22 +8,19 @@ import {
   LayoutDashboard,
   MessageSquare,
   Users,
-  BarChart3,
-  Target,
-  FileText,
   LogOut,
   Menu,
   X,
-  Shield,
   ClipboardList,
   Mail,
-  Database,
   Settings as SettingsIcon,
   TrendingUp,
   ClipboardCheck,
   Handshake,
   BookOpen,
-  Loader2
+  Loader2,
+  ShoppingCart,
+  Filter,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -44,24 +41,29 @@ const navItems = [
     icon: Users,
   },
   {
-    title: 'App Users',
-    href: '/admin/pro-users',
-    icon: Target,
-  },
-  {
     title: 'Business Analytics',
     href: '/admin/business-analytics',
     icon: TrendingUp,
   },
   {
-    title: 'Access Control',
-    href: '/admin/access',
-    icon: Shield,
+    title: 'Quiz Analytics',
+    href: '/admin/analytics',
+    icon: Filter,
   },
   {
-    title: 'App Data',
-    href: '/admin/app-data',
-    icon: Database,
+    title: 'Shopify Orders',
+    href: '/admin/shopify-orders',
+    icon: ShoppingCart,
+  },
+  {
+    title: 'Комуникация',
+    href: '/admin/communication',
+    icon: Mail,
+  },
+  {
+    title: 'Chat Sessions',
+    href: '/admin/chat-sessions',
+    icon: MessageSquare,
   },
   {
     title: 'Quiz Резултати',
@@ -77,11 +79,6 @@ const navItems = [
     title: 'Learn Content',
     href: '/admin/learn-content',
     icon: BookOpen,
-  },
-  {
-    title: 'Комуникация',
-    href: '/admin/communication',
-    icon: MessageSquare,
   },
   {
     title: 'Audit Logs',

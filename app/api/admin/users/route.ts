@@ -9,6 +9,22 @@ const supabase = createClient(
 interface UserData {
   email: string;
   firstName?: string;
+  // Quiz data
+  quizDate?: string;
+  category?: 'energy' | 'libido' | 'muscle';
+  level?: string;
+  totalScore?: number;
+  workoutLocation?: 'home' | 'gym';
+  dietaryPreference?: string;
+  // Inventory
+  capsulesRemaining?: number;
+  // Activity counts (last 7 days)
+  workoutCount?: number;
+  mealCount?: number;
+  sleepCount?: number;
+  testoupCount?: number;
+  coachMessages?: number;
+  // Legacy
   chatSessions: number;
   funnelAttempts: number;
   converted: boolean;
@@ -16,6 +32,8 @@ interface UserData {
   purchasesCount: number;
   totalSpent: number;
   latestPurchase?: string;
+  // Access
+  hasAppAccess?: boolean;
 }
 
 export async function GET(request: Request) {
@@ -23,55 +41,185 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
 
-    // Get all chat sessions emails
-    const { data: chatSessions, error: chatError } = await supabase
-      .from('chat_sessions')
-      .select('email, created_at, updated_at');
+    // Get last 7 days date for activity filtering
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    const sevenDaysAgoStr = sevenDaysAgo.toISOString().split('T')[0];
 
-    if (chatError) throw chatError;
+    // Fetch all data in parallel for performance
+    const [
+      quizResultsRes,
+      inventoryRes,
+      workoutSessionsRes,
+      mealCompletionsRes,
+      sleepTrackingRes,
+      testoupTrackingRes,
+      coachMessagesRes,
+      chatSessionsRes,
+      funnelSessionsRes,
+      purchasesRes,
+    ] = await Promise.all([
+      // Quiz results (main user data)
+      supabase
+        .from('quiz_results_v2')
+        .select('email, first_name, category, determined_level, total_score, workout_location, dietary_preference, created_at')
+        .order('created_at', { ascending: false }),
 
-    // Get all funnel sessions emails and user data
-    const { data: funnelSessions, error: funnelError } = await supabase
-      .from('funnel_sessions')
-      .select('user_email, user_data, completed, entry_time, last_activity');
+      // TestoUP inventory
+      supabase
+        .from('testoup_inventory')
+        .select('email, capsules_remaining'),
 
-    if (funnelError) throw funnelError;
+      // Workout sessions (last 7 days)
+      supabase
+        .from('workout_sessions')
+        .select('email, date')
+        .gte('date', sevenDaysAgoStr),
 
-    // Get all purchases
-    const { data: purchases, error: purchasesError } = await supabase
-      .from('purchases')
-      .select('user_id, amount, status, purchased_at')
-      .eq('status', 'completed');
+      // Meal completions (last 7 days)
+      supabase
+        .from('meal_completions')
+        .select('email, date')
+        .gte('date', sevenDaysAgoStr),
 
-    if (purchasesError) throw purchasesError;
+      // Sleep tracking (last 7 days)
+      supabase
+        .from('sleep_tracking')
+        .select('email, date')
+        .gte('date', sevenDaysAgoStr),
 
-    // Merge and aggregate data by email
+      // TestoUP tracking (last 7 days)
+      supabase
+        .from('testoup_tracking')
+        .select('email, date')
+        .gte('date', sevenDaysAgoStr),
+
+      // Coach messages (total count)
+      supabase
+        .from('coach_messages')
+        .select('email'),
+
+      // Chat sessions (legacy)
+      supabase
+        .from('chat_sessions')
+        .select('email, created_at, updated_at'),
+
+      // Funnel sessions (legacy)
+      supabase
+        .from('funnel_sessions')
+        .select('user_email, user_data, completed, entry_time, last_activity'),
+
+      // Purchases
+      supabase
+        .from('testoup_purchase_history')
+        .select('email, order_total, order_date')
+        .not('email', 'ilike', '%test%')
+        .not('order_id', 'eq', 'MANUAL_REFILL')
+        .not('order_id', 'eq', 'MANUAL_ADD_SHOPIFY'),
+    ]);
+
+    // Check for errors
+    if (quizResultsRes.error) console.error('Quiz results error:', quizResultsRes.error);
+    if (inventoryRes.error) console.error('Inventory error:', inventoryRes.error);
+    if (workoutSessionsRes.error) console.error('Workout sessions error:', workoutSessionsRes.error);
+    if (mealCompletionsRes.error) console.error('Meal completions error:', mealCompletionsRes.error);
+    if (sleepTrackingRes.error) console.error('Sleep tracking error:', sleepTrackingRes.error);
+    if (testoupTrackingRes.error) console.error('TestoUP tracking error:', testoupTrackingRes.error);
+    if (coachMessagesRes.error) console.error('Coach messages error:', coachMessagesRes.error);
+    if (chatSessionsRes.error) console.error('Chat sessions error:', chatSessionsRes.error);
+    if (funnelSessionsRes.error) console.error('Funnel sessions error:', funnelSessionsRes.error);
+    if (purchasesRes.error) console.error('Purchases error:', purchasesRes.error);
+
+    const quizResults = quizResultsRes.data || [];
+    const inventory = inventoryRes.data || [];
+    const workoutSessions = workoutSessionsRes.data || [];
+    const mealCompletions = mealCompletionsRes.data || [];
+    const sleepTracking = sleepTrackingRes.data || [];
+    const testoupTracking = testoupTrackingRes.data || [];
+    const coachMessages = coachMessagesRes.data || [];
+    const chatSessions = chatSessionsRes.data || [];
+    const funnelSessions = funnelSessionsRes.data || [];
+    const purchases = purchasesRes.data || [];
+
+    // Create lookup maps for fast access
+    const inventoryMap = new Map(inventory.map(i => [i.email, i.capsules_remaining]));
+
+    // Count activities by email
+    const countByEmail = (data: any[], emailField: string = 'email') => {
+      const map = new Map<string, number>();
+      data.forEach(item => {
+        const email = item[emailField];
+        if (email) {
+          map.set(email, (map.get(email) || 0) + 1);
+        }
+      });
+      return map;
+    };
+
+    const workoutCountMap = countByEmail(workoutSessions);
+    const mealCountMap = countByEmail(mealCompletions);
+    const sleepCountMap = countByEmail(sleepTracking);
+    const testoupCountMap = countByEmail(testoupTracking);
+    const coachMessagesMap = countByEmail(coachMessages);
+    const chatSessionsMap = countByEmail(chatSessions);
+
+    // Build users map starting from quiz_results_v2 (primary source)
     const usersMap = new Map<string, UserData>();
 
-    // Process chat sessions
-    chatSessions?.forEach((session) => {
-      if (!session.email) return;
+    // Process quiz results first (most important)
+    const processedEmails = new Set<string>();
+    quizResults.forEach((quiz) => {
+      if (!quiz.email || processedEmails.has(quiz.email)) return;
+      processedEmails.add(quiz.email);
 
-      const existing = usersMap.get(session.email);
-      if (existing) {
-        existing.chatSessions += 1;
-        if (new Date(session.updated_at) > new Date(existing.lastActivity)) {
-          existing.lastActivity = session.updated_at;
-        }
-      } else {
-        usersMap.set(session.email, {
-          email: session.email,
-          chatSessions: 1,
-          funnelAttempts: 0,
-          converted: false,
-          lastActivity: session.updated_at,
-          purchasesCount: 0,
-          totalSpent: 0,
-        });
-      }
+      usersMap.set(quiz.email, {
+        email: quiz.email,
+        firstName: quiz.first_name,
+        quizDate: quiz.created_at,
+        category: quiz.category,
+        level: quiz.determined_level,
+        totalScore: quiz.total_score,
+        workoutLocation: quiz.workout_location,
+        dietaryPreference: quiz.dietary_preference,
+        capsulesRemaining: inventoryMap.get(quiz.email) || 0,
+        workoutCount: workoutCountMap.get(quiz.email) || 0,
+        mealCount: mealCountMap.get(quiz.email) || 0,
+        sleepCount: sleepCountMap.get(quiz.email) || 0,
+        testoupCount: testoupCountMap.get(quiz.email) || 0,
+        coachMessages: coachMessagesMap.get(quiz.email) || 0,
+        chatSessions: chatSessionsMap.get(quiz.email) || 0,
+        funnelAttempts: 0,
+        converted: false,
+        lastActivity: quiz.created_at,
+        purchasesCount: 0,
+        totalSpent: 0,
+        hasAppAccess: true, // Has completed quiz = has app access
+      });
     });
 
-    // Process funnel sessions
+    // Add users from inventory who might not have quiz results
+    inventory.forEach((inv) => {
+      if (!inv.email || usersMap.has(inv.email)) return;
+
+      usersMap.set(inv.email, {
+        email: inv.email,
+        capsulesRemaining: inv.capsules_remaining,
+        workoutCount: workoutCountMap.get(inv.email) || 0,
+        mealCount: mealCountMap.get(inv.email) || 0,
+        sleepCount: sleepCountMap.get(inv.email) || 0,
+        testoupCount: testoupCountMap.get(inv.email) || 0,
+        coachMessages: coachMessagesMap.get(inv.email) || 0,
+        chatSessions: chatSessionsMap.get(inv.email) || 0,
+        funnelAttempts: 0,
+        converted: false,
+        lastActivity: new Date().toISOString(),
+        purchasesCount: 0,
+        totalSpent: 0,
+        hasAppAccess: false,
+      });
+    });
+
+    // Process funnel sessions for additional data
     funnelSessions?.forEach((session) => {
       if (!session.user_email) return;
 
@@ -84,7 +232,6 @@ export async function GET(request: Request) {
         if (new Date(session.last_activity) > new Date(existing.lastActivity)) {
           existing.lastActivity = session.last_activity;
         }
-        // Add firstName if available
         if (session.user_data?.firstName && !existing.firstName) {
           existing.firstName = session.user_data.firstName;
         }
@@ -92,89 +239,59 @@ export async function GET(request: Request) {
         usersMap.set(session.user_email, {
           email: session.user_email,
           firstName: session.user_data?.firstName,
-          chatSessions: 0,
+          chatSessions: chatSessionsMap.get(session.user_email) || 0,
           funnelAttempts: 1,
           converted: session.completed || false,
           lastActivity: session.last_activity,
           purchasesCount: 0,
           totalSpent: 0,
+          hasAppAccess: false,
         });
       }
     });
 
-    // Process purchases - match by user_id to email from profiles
-    // First, create a map of user_id to email from existing users
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id');
-
-    // Get auth.users emails to match with purchases user_id
+    // Process purchases
+    const purchasesByEmail = new Map<string, { count: number; total: number; latest: string }>();
     purchases?.forEach((purchase: any) => {
-      // We need to find the email for this user_id
-      // Since purchases have user_id, we need to get the email from auth.users
-      // For now, we'll aggregate by user_id and match later
-    });
-
-    // Alternative approach: Get profiles with email mapping
-    const { data: profilesWithAuth } = await supabase
-      .from('profiles')
-      .select('id, name');
-
-    // Create user_id to existing usersMap mapping
-    // We'll need to query auth.users table for emails
-    // Since we can't directly access auth.users, let's use a different approach
-
-    // Group purchases by user_id first
-    const purchasesByUserId = new Map<string, { count: number; total: number; latest: string }>();
-    purchases?.forEach((purchase: any) => {
-      const userId = purchase.user_id;
-      const existing = purchasesByUserId.get(userId);
-      if (existing) {
-        existing.count += 1;
-        existing.total += parseFloat(purchase.amount);
-        if (new Date(purchase.purchased_at) > new Date(existing.latest)) {
-          existing.latest = purchase.purchased_at;
-        }
-      } else {
-        purchasesByUserId.set(userId, {
-          count: 1,
-          total: parseFloat(purchase.amount),
-          latest: purchase.purchased_at,
-        });
-      }
-    });
-
-    // Now we need to match user_id to email
-    // Get all profiles to map id to emails in chat_sessions or funnel_sessions
-    // This is tricky - we'll fetch auth users list with service role
-    const { data: authUsers } = await supabase.auth.admin.listUsers();
-
-    authUsers?.users.forEach((authUser) => {
-      const userId = authUser.id;
-      const email = authUser.email;
-
+      const email = purchase.email;
       if (!email) return;
 
-      const purchaseData = purchasesByUserId.get(userId);
-      if (purchaseData) {
-        const existing = usersMap.get(email);
-        if (existing) {
-          existing.purchasesCount = purchaseData.count;
-          existing.totalSpent = Math.round(purchaseData.total * 100) / 100;
-          existing.latestPurchase = purchaseData.latest;
-        } else {
-          // User has purchases but no chat/funnel activity
-          usersMap.set(email, {
-            email,
-            chatSessions: 0,
-            funnelAttempts: 0,
-            converted: true, // Has made a purchase
-            lastActivity: purchaseData.latest,
-            purchasesCount: purchaseData.count,
-            totalSpent: Math.round(purchaseData.total * 100) / 100,
-            latestPurchase: purchaseData.latest,
-          });
+      const existing = purchasesByEmail.get(email);
+      if (existing) {
+        existing.count += 1;
+        existing.total += parseFloat(purchase.order_total) || 0;
+        if (new Date(purchase.order_date) > new Date(existing.latest)) {
+          existing.latest = purchase.order_date;
         }
+      } else {
+        purchasesByEmail.set(email, {
+          count: 1,
+          total: parseFloat(purchase.order_total) || 0,
+          latest: purchase.order_date,
+        });
+      }
+    });
+
+    // Update usersMap with purchase data
+    purchasesByEmail.forEach((purchaseData, email) => {
+      const existing = usersMap.get(email);
+      if (existing) {
+        existing.purchasesCount = purchaseData.count;
+        existing.totalSpent = Math.round(purchaseData.total * 100) / 100;
+        existing.latestPurchase = purchaseData.latest;
+        existing.converted = true;
+      } else {
+        usersMap.set(email, {
+          email,
+          chatSessions: chatSessionsMap.get(email) || 0,
+          funnelAttempts: 0,
+          converted: true,
+          lastActivity: purchaseData.latest,
+          purchasesCount: purchaseData.count,
+          totalSpent: Math.round(purchaseData.total * 100) / 100,
+          latestPurchase: purchaseData.latest,
+          hasAppAccess: false,
+        });
       }
     });
 
@@ -182,21 +299,40 @@ export async function GET(request: Request) {
     let users = Array.from(usersMap.values());
 
     if (search) {
+      const searchLower = search.toLowerCase();
       users = users.filter(
         (user) =>
-          user.email.toLowerCase().includes(search.toLowerCase()) ||
-          user.firstName?.toLowerCase().includes(search.toLowerCase())
+          user.email.toLowerCase().includes(searchLower) ||
+          user.firstName?.toLowerCase().includes(searchLower) ||
+          user.category?.toLowerCase().includes(searchLower)
       );
     }
 
-    // Sort by last activity (most recent first)
+    // Sort by quiz date (most recent first), then by last activity
     users.sort((a, b) => {
+      // Users with quiz date first
+      if (a.quizDate && !b.quizDate) return -1;
+      if (!a.quizDate && b.quizDate) return 1;
+      if (a.quizDate && b.quizDate) {
+        return new Date(b.quizDate).getTime() - new Date(a.quizDate).getTime();
+      }
       return new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime();
     });
 
     return NextResponse.json({
       users,
       total: users.length,
+      stats: {
+        withQuiz: users.filter(u => u.quizDate).length,
+        withPurchases: users.filter(u => u.purchasesCount > 0).length,
+        withCapsules: users.filter(u => (u.capsulesRemaining || 0) > 0).length,
+        activeThisWeek: users.filter(u =>
+          (u.workoutCount || 0) > 0 ||
+          (u.mealCount || 0) > 0 ||
+          (u.sleepCount || 0) > 0 ||
+          (u.testoupCount || 0) > 0
+        ).length,
+      }
     });
   } catch (error: any) {
     console.error('Error fetching users data:', error);

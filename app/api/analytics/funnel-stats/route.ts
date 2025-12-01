@@ -11,189 +11,131 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const days = parseInt(searchParams.get('days') || '7');
-    const statusFilter = searchParams.get('status'); // 'completed' | 'incomplete' | null (all)
+    const categoryFilter = searchParams.get('category'); // 'libido' | 'muscle' | 'energy' | null (all)
 
     const dateThreshold = new Date();
     dateThreshold.setDate(dateThreshold.getDate() - days);
 
-    // Total sessions with optional status filter
+    // Fetch quiz results from quiz_results_v2 (the correct, active table)
     let query = supabase
-      .from('funnel_sessions')
+      .from('quiz_results_v2')
       .select('*')
-      .gte('entry_time', dateThreshold.toISOString());
+      .gte('created_at', dateThreshold.toISOString())
+      .order('created_at', { ascending: false });
 
-    if (statusFilter === 'completed') {
-      query = query.eq('completed', true);
-    } else if (statusFilter === 'incomplete') {
-      query = query.eq('completed', false);
+    if (categoryFilter && categoryFilter !== 'all') {
+      query = query.eq('category', categoryFilter);
     }
 
-    const { data: sessions, error: sessionsError } = await query;
+    const { data: quizResults, error: resultsError } = await query;
 
-    if (sessionsError) throw sessionsError;
+    if (resultsError) throw resultsError;
 
-    // Conversion funnel (step by step)
-    const { data: stepEvents, error: stepError } = await supabase
-      .from('funnel_events')
-      .select('step_number, session_id')
-      .eq('event_type', 'step_entered')
-      .gte('timestamp', dateThreshold.toISOString());
+    // Calculate stats
+    const totalQuizzes = quizResults?.length || 0;
 
-    if (stepError) throw stepError;
-
-    // Calculate conversion rates
-    const stepCounts: Record<number, Set<string>> = {};
-    stepEvents?.forEach((event) => {
-      if (!stepCounts[event.step_number]) {
-        stepCounts[event.step_number] = new Set();
-      }
-      stepCounts[event.step_number].add(event.session_id);
-    });
-
-    const conversionFunnel = Object.keys(stepCounts)
-      .map(Number)
-      .sort((a, b) => a - b)
-      .map((step) => {
-        const count = stepCounts[step].size;
-        const rate = stepCounts[1]
-          ? (count / stepCounts[1].size) * 100
-          : 0;
-        return {
-          step,
-          visitors: count,
-          conversionRate: Math.round(rate * 10) / 10,
-        };
-      });
-
-    // Offer performance
-    const offerCounts = {
-      premium: sessions?.filter((s) => s.offer_tier === 'premium').length || 0,
-      regular: sessions?.filter((s) => s.offer_tier === 'regular').length || 0,
-      digital: sessions?.filter((s) => s.offer_tier === 'digital').length || 0,
+    // Category breakdown
+    const categoryBreakdown = {
+      libido: quizResults?.filter(q => q.category === 'libido').length || 0,
+      muscle: quizResults?.filter(q => q.category === 'muscle').length || 0,
+      energy: quizResults?.filter(q => q.category === 'energy').length || 0,
     };
 
-    // CTA clicks
-    const { data: ctaClicks, error: ctaError } = await supabase
-      .from('funnel_events')
-      .select('metadata')
-      .eq('event_type', 'button_clicked')
-      .like('metadata->>buttonText', '%CTA:%')
-      .gte('timestamp', dateThreshold.toISOString());
+    // Level breakdown
+    const levelBreakdown = {
+      low: quizResults?.filter(q => q.determined_level === 'low').length || 0,
+      moderate: quizResults?.filter(q => q.determined_level === 'moderate').length || 0,
+      good: quizResults?.filter(q => q.determined_level === 'good').length || 0,
+      optimal: quizResults?.filter(q => q.determined_level === 'optimal').length || 0,
+    };
 
-    if (ctaError) throw ctaError;
+    // Workout location breakdown
+    const workoutLocationBreakdown = {
+      home: quizResults?.filter(q => q.workout_location === 'home').length || 0,
+      gym: quizResults?.filter(q => q.workout_location === 'gym').length || 0,
+    };
 
-    // Drop-off analysis
-    const exitSteps: Record<number, number> = {};
-    sessions
-      ?.filter((s) => s.exit_step && !s.completed)
-      .forEach((s) => {
-        exitSteps[s.exit_step] = (exitSteps[s.exit_step] || 0) + 1;
-      });
-
-    const dropOffData = Object.entries(exitSteps)
-      .map(([step, count]) => ({
-        step: parseInt(step),
-        exits: count,
-        percentage: sessions?.length
-          ? Math.round((count / sessions.length) * 1000) / 10
-          : 0,
-      }))
-      .sort((a, b) => b.exits - a.exits);
-
-    // Average time in funnel
-    const avgTimeInFunnel = sessions?.length
-      ? sessions.reduce((sum, s) => {
-          const entry = new Date(s.entry_time).getTime();
-          const lastActivity = new Date(s.last_activity).getTime();
-          return sum + (lastActivity - entry);
-        }, 0) / sessions.length / 1000 // seconds
+    // Average scores
+    const avgTotalScore = totalQuizzes > 0
+      ? Math.round(quizResults!.reduce((sum, q) => sum + (q.total_score || 0), 0) / totalQuizzes)
       : 0;
 
-    // UTM Analytics
-    const utmBreakdown = {
-      sources: {} as Record<string, number>,
-      mediums: {} as Record<string, number>,
-      campaigns: {} as Record<string, number>,
+    const avgBreakdown = {
+      symptoms: totalQuizzes > 0
+        ? Math.round(quizResults!.reduce((sum, q) => sum + (q.breakdown_symptoms || 0), 0) / totalQuizzes * 10) / 10
+        : 0,
+      nutrition: totalQuizzes > 0
+        ? Math.round(quizResults!.reduce((sum, q) => sum + (q.breakdown_nutrition || 0), 0) / totalQuizzes * 10) / 10
+        : 0,
+      training: totalQuizzes > 0
+        ? Math.round(quizResults!.reduce((sum, q) => sum + (q.breakdown_training || 0), 0) / totalQuizzes * 10) / 10
+        : 0,
+      sleepRecovery: totalQuizzes > 0
+        ? Math.round(quizResults!.reduce((sum, q) => sum + (q.breakdown_sleep_recovery || 0), 0) / totalQuizzes * 10) / 10
+        : 0,
+      context: totalQuizzes > 0
+        ? Math.round(quizResults!.reduce((sum, q) => sum + (q.breakdown_context || 0), 0) / totalQuizzes * 10) / 10
+        : 0,
     };
 
-    sessions?.forEach((session) => {
-      const utmData = session.utm_data || {};
-
-      if (utmData.source) {
-        utmBreakdown.sources[utmData.source] = (utmBreakdown.sources[utmData.source] || 0) + 1;
+    // Daily trend data
+    const dailyStats: Record<string, { total: number; categories: Record<string, number> }> = {};
+    quizResults?.forEach((quiz) => {
+      const date = new Date(quiz.created_at).toISOString().split('T')[0];
+      if (!dailyStats[date]) {
+        dailyStats[date] = { total: 0, categories: { libido: 0, muscle: 0, energy: 0 } };
       }
-      if (utmData.medium) {
-        utmBreakdown.mediums[utmData.medium] = (utmBreakdown.mediums[utmData.medium] || 0) + 1;
-      }
-      if (utmData.campaign) {
-        utmBreakdown.campaigns[utmData.campaign] = (utmBreakdown.campaigns[utmData.campaign] || 0) + 1;
+      dailyStats[date].total += 1;
+      if (quiz.category) {
+        dailyStats[date].categories[quiz.category] = (dailyStats[date].categories[quiz.category] || 0) + 1;
       }
     });
 
-    // Device/Browser Stats (from user_agent if available)
-    const deviceStats = {
-      mobile: 0,
-      desktop: 0,
-      tablet: 0,
-      unknown: 0,
-    };
+    const trendData = Object.entries(dailyStats)
+      .map(([date, stats]) => ({
+        date,
+        total: stats.total,
+        ...stats.categories,
+      }))
+      .sort((a, b) => a.date.localeCompare(b.date));
 
-    sessions?.forEach((session) => {
-      const userAgent = session.user_agent?.toLowerCase() || '';
-      if (userAgent.includes('mobile') || userAgent.includes('android') || userAgent.includes('iphone')) {
-        deviceStats.mobile++;
-      } else if (userAgent.includes('tablet') || userAgent.includes('ipad')) {
-        deviceStats.tablet++;
-      } else if (userAgent) {
-        deviceStats.desktop++;
-      } else {
-        deviceStats.unknown++;
-      }
-    });
-
-    // Session List with details
-    const sessionsList = sessions?.map((session) => {
-      const userData = session.user_data || {};
-      return {
-        sessionId: session.session_id,
-        email: session.user_email || userData.email || null,
-        name: userData.name || null,
-        currentStep: session.current_step || 1,
-        maxStep: session.max_step_reached || 1,
-        completed: session.completed || false,
-        entryTime: session.entry_time,
-        lastActivity: session.last_activity,
-        offerTier: session.offer_tier || null,
-        utmSource: session.utm_data?.source || null,
-        utmMedium: session.utm_data?.medium || null,
-        utmCampaign: session.utm_data?.campaign || null,
-        exitStep: session.exit_step || null,
-      };
-    }) || [];
+    // Quiz results list for table display
+    const quizList = quizResults?.map((quiz) => ({
+      id: quiz.id,
+      email: quiz.email,
+      firstName: quiz.first_name,
+      category: quiz.category,
+      totalScore: quiz.total_score,
+      level: quiz.determined_level,
+      workoutLocation: quiz.workout_location,
+      breakdownSymptoms: quiz.breakdown_symptoms,
+      breakdownNutrition: quiz.breakdown_nutrition,
+      breakdownTraining: quiz.breakdown_training,
+      breakdownSleepRecovery: quiz.breakdown_sleep_recovery,
+      breakdownContext: quiz.breakdown_context,
+      completedAt: quiz.completed_at,
+      createdAt: quiz.created_at,
+    })) || [];
 
     // Overall stats
     const stats = {
-      totalSessions: sessions?.length || 0,
-      completedSessions: sessions?.filter((s) => s.completed).length || 0,
-      overallConversionRate: sessions?.length
-        ? Math.round(
-            (sessions.filter((s) => s.completed).length / sessions.length) *
-              1000
-          ) / 10
+      totalQuizzes,
+      avgTotalScore,
+      mostCommonCategory: Object.entries(categoryBreakdown).reduce((a, b) => a[1] > b[1] ? a : b)[0],
+      mostCommonLevel: Object.entries(levelBreakdown).reduce((a, b) => a[1] > b[1] ? a : b)[0],
+      homeVsGymRatio: workoutLocationBreakdown.home > 0 || workoutLocationBreakdown.gym > 0
+        ? Math.round((workoutLocationBreakdown.home / (workoutLocationBreakdown.home + workoutLocationBreakdown.gym)) * 100)
         : 0,
-      avgTimeInFunnel: Math.round(avgTimeInFunnel),
-      mostCommonExitStep: dropOffData[0]?.step || null,
-      totalCTAClicks: ctaClicks?.length || 0,
     };
 
     return NextResponse.json({
       stats,
-      conversionFunnel,
-      offerPerformance: offerCounts,
-      dropOffData,
-      utmBreakdown,
-      deviceStats,
-      sessionsList,
+      categoryBreakdown,
+      levelBreakdown,
+      workoutLocationBreakdown,
+      avgBreakdown,
+      trendData,
+      quizList,
       dateRange: {
         from: dateThreshold.toISOString(),
         to: new Date().toISOString(),
@@ -201,7 +143,7 @@ export async function GET(request: Request) {
       },
     });
   } catch (error: any) {
-    console.error('Error fetching funnel stats:', error);
+    console.error('Error fetching quiz stats:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to fetch analytics data' },
       { status: 500 }

@@ -69,6 +69,9 @@ export const metadata: Metadata = {
     description: 'Повиши своя тестостерон по естествен път със системата TestoUP. Клинично тествана добавка и персонално приложение за повече енергия, по-силно либидо и по-добри резултати. Започни днес!',
     images: ['https://storage.googleapis.com/gpt-engineer-file-uploads/5ByhMx7vllZrlm4HJCiFF4YTglh2/social-images/social-1757673646778-20250908_1219_Testograph Futuristic Logo_simple_compose_01k4m9x1xzeb899xy44fmbdc9j.png'],
   },
+  alternates: {
+    canonical: 'https://testograph.eu',
+  },
   robots: {
     index: true,
     follow: true,

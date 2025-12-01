@@ -255,13 +255,13 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
             asChild
           >
             <a
-              href="https://shop.testograph.eu/cart/58692136730973:1"
+              href="https://app.testograph.eu/testoup-offer"
               target="_blank"
               rel="noopener noreferrer"
               className="block"
               onClick={handleCTAClick}
             >
-              Вземи го за 197 лв
+              Виж офертата за 3x TestoUP
             </a>
           </Button>
 
@@ -387,13 +387,13 @@ export const Step4PremiumOffer = ({ onDecline, userData }: Step4PremiumOfferProp
             asChild
           >
             <a
-              href="https://shop.testograph.eu/cart/58692136730973:1"
+              href="https://app.testograph.eu/testoup-offer"
               target="_blank"
               rel="noopener noreferrer"
               className="block"
               onClick={handleCTAClick}
             >
-              Вземи го за 197 лв
+              Виж офертата за 3x TestoUP
             </a>
           </Button>
 

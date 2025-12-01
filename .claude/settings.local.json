@@ -45,7 +45,21 @@
       "Bash(start http://localhost:3006/learn/testosterone/testosteron-guide-za-mizhe)",
       "Bash(start http://localhost:3006/learn)",
       "Bash(start:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(rm:*)",
+      "Bash(for page in \"analytics\" \"business-analytics\" \"quiz-results\" \"emails\" \"affiliates\" \"app-data\")",
+      "Bash(do cat \"app/admin/$page/page.tsx\")",
+      "Bash(for page in \"chat-sessions\" \"audit-logs\" \"access\" \"pro-users\" \"learn-content\" \"settings\")",
+      "Bash(for page in \"communication\" \"keywords\")",
+      "Bash(cmd /c \"taskkill /F /PID 29356\")",
+      "Bash(npx playwright:*)",
+      "WebFetch(domain:www.3braintechnolabs.com)",
+      "mcp__supabase__get_logs",
+      "mcp__supabase__get_advisors",
+      "mcp__supabase__get_project_url",
+      "mcp__supabase__search_docs",
+      "mcp__supabase__get_project",
+      "Bash(dir:*)"
     ],
     "deny": [],
     "ask": []
