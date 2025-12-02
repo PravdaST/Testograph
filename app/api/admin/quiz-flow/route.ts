@@ -15,6 +15,8 @@ const supabase = createClient(
  * - days: number of days to look back (default: 7)
  * - view: 'funnel' | 'sessions' | 'dropoffs' | 'stats' | 'session-detail' (default: 'funnel')
  * - session_id: required for session-detail view
+ * - limit: number of sessions per page for sessions view (default: 50)
+ * - offset: starting position for pagination (default: 0)
  */
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
@@ -22,6 +24,8 @@ export async function GET(request: NextRequest) {
   const days = parseInt(searchParams.get('days') || '7')
   const view = searchParams.get('view') || 'funnel'
   const sessionIdParam = searchParams.get('session_id')
+  const limit = parseInt(searchParams.get('limit') || '50')
+  const offset = parseInt(searchParams.get('offset') || '0')
 
   try {
     const startDate = new Date()
@@ -360,16 +364,29 @@ export async function GET(request: NextRequest) {
         })
       }
 
-      const sessions = Object.values(sessionMap)
+      const allSessions = Object.values(sessionMap)
         .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
-        .slice(0, 100)
+
+      const totalSessions = allSessions.length
+      const totalPages = Math.ceil(totalSessions / limit)
+      const currentPage = Math.floor(offset / limit) + 1
+
+      // Apply pagination
+      const sessions = allSessions.slice(offset, offset + limit)
 
       return NextResponse.json({
         view: 'sessions',
         period: { days, startDate: startDateStr },
         category,
-        totalSessions: Object.keys(sessionMap).length,
-        sessions
+        totalSessions,
+        sessions,
+        pagination: {
+          total: totalSessions,
+          page: currentPage,
+          pageSize: limit,
+          totalPages,
+          hasMore: offset + limit < totalSessions
+        }
       })
     }
 

@@ -60,6 +60,8 @@ import {
   Eye,
   MousePointer,
   Timer,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 // Interfaces
@@ -341,6 +343,10 @@ export default function QuizFlowDashboard() {
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [activeTab, setActiveTab] = useState<"stats" | "funnel" | "dropoffs" | "sessions">("stats");
 
+  // Sessions pagination
+  const [sessionsPage, setSessionsPage] = useState(1);
+  const sessionsPageSize = 50;
+
   // Session detail modal
   const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null);
   const [sessionModalOpen, setSessionModalOpen] = useState(false);
@@ -356,17 +362,39 @@ export default function QuizFlowDashboard() {
         fetch(`${baseUrl}/api/admin/quiz-flow?view=stats&days=${selectedDays}${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=funnel&days=${selectedDays}${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=dropoffs&days=${selectedDays}${categoryParam}`),
-        fetch(`${baseUrl}/api/admin/quiz-flow?view=sessions&days=${selectedDays}${categoryParam}`),
+        fetch(`${baseUrl}/api/admin/quiz-flow?view=sessions&days=${selectedDays}${categoryParam}&limit=${sessionsPageSize}&offset=0`),
       ]);
 
       if (statsRes.ok) setStatsData(await statsRes.json());
       if (funnelRes.ok) setFunnelData(await funnelRes.json());
       if (dropOffRes.ok) setDropOffData(await dropOffRes.json());
-      if (sessionsRes.ok) setSessionsData(await sessionsRes.json());
+      if (sessionsRes.ok) {
+        setSessionsData(await sessionsRes.json());
+        setSessionsPage(1); // Reset to page 1 on new data fetch
+      }
     } catch (error) {
       console.error("Error fetching quiz flow data:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchSessionsPage = async (page: number) => {
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const categoryParam = categoryFilter !== "all" ? `&category=${categoryFilter}` : "";
+      const offset = (page - 1) * sessionsPageSize;
+
+      const res = await fetch(
+        `${baseUrl}/api/admin/quiz-flow?view=sessions&days=${selectedDays}${categoryParam}&limit=${sessionsPageSize}&offset=${offset}`
+      );
+
+      if (res.ok) {
+        setSessionsData(await res.json());
+        setSessionsPage(page);
+      }
+    } catch (error) {
+      console.error("Error fetching sessions page:", error);
     }
   };
 
@@ -914,7 +942,14 @@ export default function QuizFlowDashboard() {
         {activeTab === "sessions" && (
           <Card>
             <CardHeader>
-              <CardTitle>Sessions ({sessionsData?.totalSessions || 0})</CardTitle>
+              <CardTitle className="flex items-center justify-between">
+                <span>Sessions ({sessionsData?.totalSessions || 0})</span>
+                {sessionsData?.pagination && (
+                  <span className="text-sm font-normal text-muted-foreground">
+                    Показване {((sessionsPage - 1) * sessionsPageSize) + 1}-{Math.min(sessionsPage * sessionsPageSize, sessionsData.totalSessions)} от {sessionsData.totalSessions}
+                  </span>
+                )}
+              </CardTitle>
               <CardDescription>Кликни върху session за детайли</CardDescription>
             </CardHeader>
             <CardContent>
@@ -1010,6 +1045,66 @@ export default function QuizFlowDashboard() {
                     </TableBody>
                   </Table>
                 </div>
+
+                {/* Pagination Controls */}
+                {sessionsData?.pagination && sessionsData.pagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                    <div className="text-sm text-muted-foreground">
+                      Страница {sessionsPage} от {sessionsData.pagination.totalPages}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchSessionsPage(sessionsPage - 1)}
+                        disabled={sessionsPage <= 1}
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        Назад
+                      </Button>
+
+                      {/* Page numbers */}
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, sessionsData.pagination.totalPages) }).map((_, i) => {
+                          let pageNum: number;
+                          const totalPages = sessionsData.pagination.totalPages;
+
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (sessionsPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (sessionsPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = sessionsPage - 2 + i;
+                          }
+
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={sessionsPage === pageNum ? "default" : "outline"}
+                              size="sm"
+                              className="w-8 h-8 p-0"
+                              onClick={() => fetchSessionsPage(pageNum)}
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchSessionsPage(sessionsPage + 1)}
+                        disabled={!sessionsData.pagination.hasMore}
+                      >
+                        Напред
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
               ) : (
                 <div className="text-center py-12">
                   <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
