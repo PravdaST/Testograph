@@ -87,6 +87,8 @@ interface Session {
   device: string | null;
   utm_source: string | null;
   back_clicks: number;
+  email: string | null;
+  offer_selected: string | null;
 }
 
 interface StatsData {
@@ -922,12 +924,12 @@ export default function QuizFlowDashboard() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Session</TableHead>
+                        <TableHead>Email</TableHead>
                         <TableHead>Категория</TableHead>
                         <TableHead>Device</TableHead>
-                        <TableHead>Source</TableHead>
                         <TableHead>Last Step</TableHead>
+                        <TableHead>Offer</TableHead>
                         <TableHead>Time</TableHead>
-                        <TableHead>Back</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Date</TableHead>
                         <TableHead></TableHead>
@@ -937,7 +939,14 @@ export default function QuizFlowDashboard() {
                       {sessionsData.sessions.map((session: Session) => (
                         <TableRow key={session.session_id} className="cursor-pointer hover:bg-muted/50">
                           <TableCell className="font-mono text-xs">
-                            {session.session_id.substring(0, 16)}...
+                            {session.session_id.substring(0, 12)}...
+                          </TableCell>
+                          <TableCell>
+                            {session.email ? (
+                              <span className="text-xs font-medium text-blue-600">{session.email}</span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -952,29 +961,27 @@ export default function QuizFlowDashboard() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <span className="text-xs">{session.utm_source || "direct"}</span>
-                          </TableCell>
-                          <TableCell>
                             <div className="flex items-center gap-1">
                               <span className="font-bold">#{session.last_step}</span>
                               <span className="text-xs text-muted-foreground">
-                                {STEP_LABELS[session.last_step]?.substring(0, 8) || ""}
+                                {STEP_LABELS[session.last_step]?.substring(0, 10) || ""}
                               </span>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            {session.offer_selected ? (
+                              <Badge variant="secondary" className="text-xs">
+                                {getReadableAnswer(session.offer_selected)}
+                              </Badge>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1 text-xs">
                               <Clock className="w-3 h-3" />
                               {formatTime(session.total_time)}
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            {session.back_clicks > 0 && (
-                              <div className="flex items-center gap-1">
-                                <ArrowLeft className="w-3 h-3" />
-                                <span className="text-xs">{session.back_clicks}</span>
-                              </div>
-                            )}
                           </TableCell>
                           <TableCell>
                             {session.completed ? (

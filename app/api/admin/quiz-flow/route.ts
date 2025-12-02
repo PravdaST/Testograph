@@ -287,6 +287,8 @@ export async function GET(request: NextRequest) {
         device: string | null
         utm_source: string | null
         back_clicks: number
+        email: string | null
+        offer_selected: string | null
       }> = {}
 
       events?.forEach(event => {
@@ -302,6 +304,8 @@ export async function GET(request: NextRequest) {
             device: null,
             utm_source: null,
             back_clicks: 0,
+            email: null,
+            offer_selected: null,
           }
         }
 
@@ -333,7 +337,28 @@ export async function GET(request: NextRequest) {
         if (event.event_type === 'back_clicked') {
           session.back_clicks++
         }
+
+        // Track offer selection
+        if (event.event_type === 'offer_clicked' && event.answer_value) {
+          session.offer_selected = event.answer_value
+        }
       })
+
+      // Fetch emails from quiz_results_v2 for all session_ids
+      const sessionIds = Object.keys(sessionMap)
+      if (sessionIds.length > 0) {
+        const { data: quizResults } = await supabase
+          .from('quiz_results_v2')
+          .select('session_id, email')
+          .in('session_id', sessionIds)
+
+        // Map emails to sessions
+        quizResults?.forEach(result => {
+          if (result.session_id && sessionMap[result.session_id]) {
+            sessionMap[result.session_id].email = result.email
+          }
+        })
+      }
 
       const sessions = Object.values(sessionMap)
         .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
