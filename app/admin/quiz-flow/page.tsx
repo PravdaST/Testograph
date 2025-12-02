@@ -154,38 +154,160 @@ const DEVICE_COLORS: Record<string, string> = {
   unknown: "#6b7280",
 };
 
-// Question labels matching actual quiz structure (27 questions + email)
-// All 3 categories (libido/energy/muscle) follow the same step order
-// Based on energy.json: 27 questions (0-26), email is step 27
+// Question labels matching actual quiz structure (26 questions + email)
+// Based on energy.json: 26 questions (step 0-25), email is step 26
+// All 3 categories (libido/energy/muscle) follow similar structure
 const STEP_LABELS: Record<number, string> = {
   0: "Възраст",                       // eng_age - Каква е Вашата възраст?
   1: "Основен проблем",              // eng_main_problem - Кой от следните проблеми...
   2: "Име",                           // eng_name - Как да се обръщаме към Вас?
-  3: "Професия",                      // eng_profession - С какво се занимавате професионално?
-  4: "Работен стрес",                // eng_work_stress - Доколко е стресираща Вашата работа?
+  3: "Професия",                      // eng_profession - С какво се занимавате?
+  4: "Работен стрес",                // eng_work_stress - Доколко е стресираща работата?
   5: "[Transition] Телесни показатели", // eng_transition_body_metrics
   6: "Височина",                      // eng_height - Каква е Вашата височина?
   7: "Тегло",                         // eng_weight - Какво е Вашето тегло?
-  8: "Подкожни мазнини",             // eng_body_fat - Приблизително какъв е процентът...
+  8: "Подкожни мазнини",             // eng_body_fat - Какъв % подкожни мазнини?
   9: "[Transition] Timeline",        // eng_transition_timeline - траектория на възстановяване
-  10: "[Transition] Хранене",        // eng_transition_nutrition
-  11: "Хранителен режим",            // eng_nutrition_regime - Какъв е Вашият хранителен режим?
-  12: "Пушене",                      // eng_smoking - Пушите ли?
-  13: "Алкохол",                     // eng_alcohol - Колко често консумирате алкохол?
-  14: "Сън (часове)",                // eng_sleep_hours - Колко часа спите средно?
-  15: "[Transition] Навици",         // eng_transition_habits - Благодаря Ви за откровеността
-  16: "[Transition] Симптоми",       // eng_transition_symptoms - Благодаря за откровеността
-  17: "Специфичен въпрос 1",         // eng: tired_time / lib: sex_frequency / mus: training_frequency
-  18: "Специфичен въпрос 2",         // eng: energy_level / lib: morning_erections / mus: progress_rating
-  19: "Разочарование",               // eng_frustration - Какво Ви разочарова най-много?
-  20: "Какво бих променил",          // eng_change_one_thing - Ако можехте да промените...
-  21: "[Transition] Social Proof",   // eng_transition_social_proof - Не сте сам в това
-  22: "Опитвани решения",            // eng_tried_solutions - Опитвали ли сте вече...
-  23: "Важен фактор при избор",      // eng_important_factor - Какво е най-важно за Вас?
-  24: "Визия (текст)",               // eng_vision - Представете си, че след 30 дни...
-  25: "Локация тренировка",          // eng_workout_location - Къде предпочитате да тренирате?
-  26: "[Transition] Резултати",      // eng_transition_results - Отлична работа!
-  27: "Email Capture",               // Final step - email collection
+  10: "Хранителен режим",            // eng_nutrition_regime - Какъв е хранителният режим?
+  11: "Пушене",                      // eng_smoking - Пушите ли?
+  12: "Алкохол",                     // eng_alcohol - Колко често консумирате алкохол?
+  13: "Сън (часове)",                // eng_sleep_hours - Колко часа спите средно?
+  14: "[Transition] Навици",         // eng_transition_habits - Благодаря за откровеността
+  15: "Кога сте уморен",             // eng_tired_time - През коя част от деня сте уморен?
+  16: "Ниво на енергия",             // eng_energy_level - Оценете енергията 1-10
+  17: "Разочарование",               // eng_frustration - Какво Ви разочарова най-много?
+  18: "Какво бих променил",          // eng_change_one_thing - Ако можехте да промените...
+  19: "[Transition] Social Proof",   // eng_transition_social_proof - Не сте сам в това
+  20: "Опитвани решения",            // eng_tried_solutions - Опитвали ли сте вече...
+  21: "Важен фактор при избор",      // eng_important_factor - Какво е най-важно?
+  22: "Визия (текст)",               // eng_vision - Ако проблемът е решен след 30 дни...
+  23: "Локация тренировка",          // eng_workout_location - Къде предпочитате да тренирате?
+  24: "Хранителни предпочитания",    // eng_dietary_preference - Имате ли ограничения?
+  25: "[Transition] Резултати",      // eng_transition_results - Отлична работа!
+  26: "Email Capture",               // Final step - email collection
+};
+
+// Human-readable answer labels for common option IDs
+// Maps option.id from quiz JSON to readable Bulgarian text
+const ANSWER_LABELS: Record<string, string> = {
+  // Age options
+  age_25_35: "25-35 години",
+  age_36_45: "36-45 години",
+  age_46_55: "46-55 години",
+  age_56_plus: "56+ години",
+
+  // Main problem (energy)
+  problem_fatigue: "Постоянна умора",
+  problem_brain_fog: "Мозъчна мъгла",
+  problem_motivation: "Липса на мотивация",
+  problem_endurance: "Ниска издръжливост",
+
+  // Work stress
+  stress_low: "Ниско",
+  stress_moderate: "Умерено",
+  stress_high: "Високо",
+  stress_extreme: "Екстремно",
+
+  // Height
+  height_160_170: "160-170 см",
+  height_171_180: "171-180 см",
+  height_181_190: "181-190 см",
+  height_191_plus: "191+ см",
+
+  // Weight
+  weight_60_75: "60-75 кг",
+  weight_76_85: "76-85 кг",
+  weight_86_95: "86-95 кг",
+  weight_96_110: "96-110 кг",
+  weight_111_plus: "111+ кг",
+
+  // Body fat
+  bf_8_12: "8-12% (атлетична)",
+  bf_13_17: "13-17% (добра форма)",
+  bf_18_22: "18-22% (средна)",
+  bf_23_27: "23-27% (наднормено)",
+  bf_28_plus: "28%+ (затлъстяване)",
+
+  // Nutrition
+  nutrition_high_protein_fat: "Високопротеинов",
+  nutrition_balanced: "Балансиран",
+  nutrition_high_carb: "Високовъглехидратен",
+  nutrition_low_fat: "Нискомазнинен",
+  nutrition_irregular: "Нередовен",
+
+  // Smoking
+  smoke_never: "Не, никога",
+  smoke_quit: "Отказал преди 1+ година",
+  smoke_occasional: "Понякога",
+  smoke_regular: "До 10 цигари/ден",
+  smoke_heavy: "Над 10 цигари/ден",
+
+  // Alcohol
+  alcohol_never: "Никога/рядко",
+  alcohol_occasional: "1-2 пъти месечно",
+  alcohol_weekly: "1-2 пъти седмично",
+  alcohol_frequent: "3-4 пъти седмично",
+  alcohol_daily: "Ежедневно",
+
+  // Sleep
+  sleep_optimal: "7-9 часа (оптимално)",
+  sleep_6_7: "6-7 часа",
+  sleep_less_6: "Под 6 часа",
+  sleep_more_9: "Над 9 часа",
+  sleep_irregular: "Нередовно",
+
+  // Tired time
+  tired_morning: "Сутрин",
+  tired_afternoon: "Следобед (14-16ч)",
+  tired_evening: "Вечер",
+  tired_all_day: "Целия ден",
+
+  // Energy level
+  energy_excellent: "8-10/10 (отлично)",
+  energy_good: "6-7/10 (добро)",
+  energy_moderate: "4-5/10 (средно)",
+  energy_low: "2-3/10 (ниско)",
+  energy_very_low: "0-1/10 (много ниско)",
+
+  // Frustration
+  frustration_work: "Неефективност в работата",
+  frustration_hobbies: "Нямам енергия за хобита",
+  frustration_social: "Уморен за социални контакти",
+  frustration_focus: "Трудна концентрация",
+
+  // Change one thing
+  change_morning_energy: "Събуждане с енергия",
+  change_sustained_energy: "Стабилна енергия без спадове",
+  change_mental_clarity: "Бистър ум и фокус",
+  change_motivation: "Да възвърна мотивацията",
+
+  // Tried solutions
+  tried_supplements: "Добавки (витамини и др.)",
+  tried_lifestyle: "Промени в начина на живот",
+  tried_medical: "Медицински консултации",
+  tried_nothing: "Първи сериозен опит",
+
+  // Important factor
+  factor_natural: "Естествено и безопасно",
+  factor_proven: "Доказана ефективност",
+  factor_simple: "Лесно за прилагане",
+  factor_fast: "Бързи резултати",
+
+  // Workout location
+  location_home: "Вкъщи",
+  location_gym: "Фитнес зала",
+
+  // Dietary preference
+  diet_omnivor: "Ям всичко",
+  diet_pescatarian: "Вегетарианец + риба",
+  diet_vegetarian: "Вегетарианец",
+  diet_vegan: "Веган",
+};
+
+// Helper function to get readable answer
+const getReadableAnswer = (answerId: string | null): string => {
+  if (!answerId) return "";
+  return ANSWER_LABELS[answerId] || answerId;
 };
 
 const EVENT_TYPE_LABELS: Record<string, string> = {
@@ -1074,7 +1196,7 @@ export default function QuizFlowDashboard() {
                                         <div className="flex items-center gap-2 bg-green-50 dark:bg-green-950 rounded-md px-3 py-2 border border-green-200 dark:border-green-800">
                                           <MousePointer className="w-4 h-4 text-green-600" />
                                           <span className="text-sm font-medium text-green-700 dark:text-green-300">
-                                            Избра: <span className="font-bold">{answerEvent.answer}</span>
+                                            Избра: <span className="font-bold">{getReadableAnswer(answerEvent.answer)}</span>
                                           </span>
                                         </div>
                                       )}
