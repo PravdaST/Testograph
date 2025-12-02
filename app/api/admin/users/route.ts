@@ -31,6 +31,9 @@ interface UserData {
   latestPurchase?: string;
   // Access
   hasAppAccess?: boolean;
+  // Payment status
+  paymentStatus?: 'paid' | 'pending' | 'none';
+  pendingOrderDate?: string;
 }
 
 export async function GET(request: Request) {
@@ -54,6 +57,7 @@ export async function GET(request: Request) {
       coachMessagesRes,
       chatSessionsRes,
       purchasesRes,
+      pendingOrdersRes,
     ] = await Promise.all([
       // Quiz results (main user data)
       supabase
@@ -100,13 +104,19 @@ export async function GET(request: Request) {
         .from('chat_sessions')
         .select('email, created_at, updated_at'),
 
-      // Purchases
+      // Purchases (paid orders)
       supabase
         .from('testoup_purchase_history')
         .select('email, order_total, order_date')
         .not('email', 'ilike', '%test%')
         .not('order_id', 'eq', 'MANUAL_REFILL')
         .not('order_id', 'eq', 'MANUAL_ADD_SHOPIFY'),
+
+      // Pending orders (not yet paid)
+      supabase
+        .from('pending_orders')
+        .select('email, created_at, status')
+        .eq('status', 'pending'),
     ]);
 
     // Check for errors
@@ -119,6 +129,7 @@ export async function GET(request: Request) {
     if (coachMessagesRes.error) console.error('Coach messages error:', coachMessagesRes.error);
     if (chatSessionsRes.error) console.error('Chat sessions error:', chatSessionsRes.error);
     if (purchasesRes.error) console.error('Purchases error:', purchasesRes.error);
+    if (pendingOrdersRes.error) console.error('Pending orders error:', pendingOrdersRes.error);
 
     const quizResults = quizResultsRes.data || [];
     const inventory = inventoryRes.data || [];
@@ -129,9 +140,18 @@ export async function GET(request: Request) {
     const coachMessages = coachMessagesRes.data || [];
     const chatSessions = chatSessionsRes.data || [];
     const purchases = purchasesRes.data || [];
+    const pendingOrders = pendingOrdersRes.data || [];
 
     // Create lookup maps for fast access
     const inventoryMap = new Map(inventory.map(i => [i.email, i.capsules_remaining]));
+
+    // Create pending orders map (email -> earliest pending order date)
+    const pendingOrdersMap = new Map<string, string>();
+    pendingOrders.forEach((order: any) => {
+      if (order.email && !pendingOrdersMap.has(order.email)) {
+        pendingOrdersMap.set(order.email, order.created_at);
+      }
+    });
 
     // Count activities by email
     const countByEmail = (data: any[], emailField: string = 'email') => {
@@ -245,6 +265,33 @@ export async function GET(request: Request) {
       }
     });
 
+    // Add users from pending orders who don't have other data
+    pendingOrders.forEach((order: any) => {
+      if (!order.email || usersMap.has(order.email)) return;
+      usersMap.set(order.email, {
+        email: order.email,
+        chatSessions: 0,
+        lastActivity: order.created_at,
+        purchasesCount: 0,
+        totalSpent: 0,
+        hasAppAccess: false,
+        paymentStatus: 'pending',
+        pendingOrderDate: order.created_at,
+      });
+    });
+
+    // Set payment status for all users
+    usersMap.forEach((user, email) => {
+      if (user.purchasesCount > 0) {
+        user.paymentStatus = 'paid';
+      } else if (pendingOrdersMap.has(email)) {
+        user.paymentStatus = 'pending';
+        user.pendingOrderDate = pendingOrdersMap.get(email);
+      } else {
+        user.paymentStatus = 'none';
+      }
+    });
+
     // Convert to array and filter by search
     let users = Array.from(usersMap.values());
 
@@ -274,7 +321,9 @@ export async function GET(request: Request) {
       total: users.length,
       stats: {
         withQuiz: users.filter(u => u.quizDate).length,
+        withoutQuiz: users.filter(u => !u.quizDate).length,
         withPurchases: users.filter(u => u.purchasesCount > 0).length,
+        pendingPayments: users.filter(u => u.paymentStatus === 'pending').length,
         withCapsules: users.filter(u => (u.capsulesRemaining || 0) > 0).length,
         activeThisWeek: users.filter(u =>
           (u.workoutCount || 0) > 0 ||

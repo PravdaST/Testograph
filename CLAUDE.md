@@ -92,16 +92,35 @@ Returns paginated orders from `pending_orders` table with:
 | paid_at | timestamp | Payment timestamp |
 | created_at | timestamp | Order creation |
 
-### Known Issue: Shipping Address Data
+### Shopify Webhooks (Recommended)
 
-**Problem:** Shopify API returns `shipping_address` with only `country: "Bulgaria"` - no street address, city, or phone.
+**Why Webhooks:** Shopify Basic plan restricts PII (Personally Identifiable Information) access via API. However, webhooks **DO receive full PII data** including customer names, addresses, emails, and phone numbers - even on Basic plan.
 
-**Cause:** Shopify checkout is not configured to collect shipping address fields.
+**Webhook Endpoints:**
+- `POST /api/webhooks/shopify` - Handles both Order creation and Order payment events
+- `POST /api/webhooks/shopify/order-created` - Re-exports from parent route
 
-**Solution:** Configure in Shopify Admin:
-1. Settings → Checkout → Customer information
-2. Enable required fields: Address, City, Phone
-3. Settings → Shipping and delivery → Configure shipping zones
+**Registered Webhooks in Shopify Admin:**
+- Event: "Order creation" → `https://www.testograph.eu/api/webhooks/shopify`
+- Event: "Order payment" → `https://www.testograph.eu/api/webhooks/shopify`
+
+**Webhook Data Flow:**
+1. Customer places order on shop.testograph.eu
+2. Shopify sends webhook with FULL order data (including PII)
+3. Webhook endpoint verifies HMAC signature
+4. Order is inserted/updated in `pending_orders` table with complete customer info
+
+**Security:**
+- All webhooks are verified using HMAC-SHA256 signature
+- Secret stored in `SHOPIFY_WEBHOOK_SECRET` environment variable
+
+### Known Issue: Shopify API PII Restriction
+
+**Problem:** Shopify Admin API on Basic plan returns `shipping_address` with only `country: "Bulgaria"` - no street address, city, phone, or customer name.
+
+**Cause:** Protected Customer Data Access (PII) is restricted on Shopify Basic plan. API scopes don't help - this is a plan-level restriction.
+
+**Solution:** Use Shopify Webhooks instead of API polling. Webhooks receive full PII data on all plans. The webhook endpoints (`/api/webhooks/shopify`) are now configured and registered in Shopify Admin.
 
 ---
 
@@ -135,6 +154,8 @@ Returns paginated orders from `pending_orders` table with:
 - `app/api/admin/shopify-sync/route.ts` - Shopify sync logic
 - `app/api/admin/shopify-orders/route.ts` - Orders CRUD
 - `app/api/analytics/funnel-stats/route.ts` - Quiz analytics
+- `app/api/webhooks/shopify/route.ts` - Shopify webhook handler (order creation & payment)
+- `app/api/webhooks/shopify/order-created/route.ts` - Re-exports from parent
 
 ### Integrations
 - `integrations/supabase/client.ts` - Supabase browser client
@@ -204,9 +225,17 @@ interface ShippingAddress {
 
 ## Recent Changes Log
 
+### 2024-12-02: Shopify Webhook Integration
+- Discovered Shopify Basic plan restricts PII access via Admin API (regardless of scopes)
+- Implemented webhook solution as webhooks receive full PII data on all plans
+- Created webhook endpoint: `app/api/webhooks/shopify/route.ts`
+- Registered webhooks in Shopify Admin for Order creation and Order payment events
+- Webhooks now automatically capture full customer info (name, email, phone, shipping address)
+- Updated documentation with webhook architecture details
+
 ### 2024-12-01: Shipping Address Feature
 - Added `shipping_address` (JSONB) and `phone` (TEXT) columns to `pending_orders`
 - Updated Shopify sync to capture shipping data from multiple sources
 - Added `update-shipping` action to backfill existing orders
 - Updated admin UI to display shipping address in order details
-- **Note:** Shopify currently not returning full address data - needs checkout configuration
+- **Note:** API-based sync has PII limitations on Basic plan - use webhooks instead

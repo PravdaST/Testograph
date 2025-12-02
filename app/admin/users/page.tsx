@@ -56,6 +56,20 @@ import {
   Copy,
   Plus,
   Minus,
+  Mail,
+  X,
+  Dumbbell,
+  Utensils,
+  Moon,
+  Pill,
+  Bot,
+  ArrowRight,
+  ClipboardList,
+  CreditCard,
+  FileText,
+  CircleCheck,
+  CircleDashed,
+  AlertCircle,
 } from "lucide-react";
 import { exportToCSV } from "@/lib/utils/exportToCSV";
 import { useToast } from "@/hooks/use-toast";
@@ -70,7 +84,6 @@ interface User {
   level?: string;
   totalScore?: number;
   workoutLocation?: 'home' | 'gym';
-  dietaryPreference?: string;
   // Inventory
   capsulesRemaining?: number;
   // Activity counts (last 7 days)
@@ -81,13 +94,14 @@ interface User {
   coachMessages?: number;
   // Legacy
   chatSessions: number;
-  funnelAttempts: number;
-  converted: boolean;
   lastActivity: string;
   purchasesCount: number;
   totalSpent: number;
   latestPurchase?: string;
   hasAppAccess?: boolean;
+  // Payment status
+  paymentStatus?: 'paid' | 'pending' | 'none';
+  pendingOrderDate?: string;
   // Admin fields
   banned?: boolean;
   name?: string;
@@ -114,6 +128,7 @@ export default function UsersPage() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState<'all' | 'withQuiz' | 'withoutQuiz' | 'withPurchases' | 'pendingPayment' | 'active'>('all');
   const [actionLoading, setActionLoading] = useState(false);
 
   // Admin user authentication
@@ -144,6 +159,43 @@ export default function UsersPage() {
       sleepRecovery: number;
       context: number;
     };
+    responses?: Array<{
+      question_id: string;
+      answer: string;
+      points: number;
+    }>;
+  } | null>(null);
+
+  // Funnel journey state
+  const [userFunnelJourney, setUserFunnelJourney] = useState<{
+    quizCompleted: boolean;
+    quizCompletedAt: string | null;
+    orderPlaced: boolean;
+    firstOrderAt: string | null;
+    paymentCompleted: boolean;
+    firstPaymentAt: string | null;
+    pendingOrders: Array<{
+      id: string;
+      orderId: string;
+      orderNumber: string;
+      status: string;
+      totalPrice: number;
+      currency: string;
+      createdAt: string;
+      paidAt: string | null;
+      products: Array<{
+        title: string;
+        quantity: number;
+        sku?: string;
+        type?: 'trial' | 'full';
+        capsules?: number;
+        totalCapsules?: number;
+      }>;
+      customerName?: string;
+      shippingAddress?: any;
+      phone?: string;
+    }>;
+    currentStep: 'not_started' | 'quiz_completed' | 'pending_payment' | 'paid';
   } | null>(null);
   const [loadingPurchases, setLoadingPurchases] = useState(false);
   const [grantProModal, setGrantProModal] = useState(false);
@@ -154,6 +206,8 @@ export default function UsersPage() {
   const [unbanUserModal, setUnbanUserModal] = useState(false);
   const [editProfileModal, setEditProfileModal] = useState(false);
   const [deleteUserModal, setDeleteUserModal] = useState(false);
+  const [sendReminderModal, setSendReminderModal] = useState(false);
+  const [sendingReminder, setSendingReminder] = useState(false);
 
   // Form states
   const [proStartDate, setProStartDate] = useState("");
@@ -170,6 +224,20 @@ export default function UsersPage() {
   const [editingCapsules, setEditingCapsules] = useState(false);
   const [newCapsuleCount, setNewCapsuleCount] = useState(0);
   const [capsuleReason, setCapsuleReason] = useState("");
+
+  // New: Coach messages and activity data
+  const [userCoachMessages, setUserCoachMessages] = useState<any[]>([]);
+  const [userActivity, setUserActivity] = useState<{
+    workouts: any[];
+    meals: any[];
+    sleep: any[];
+    testoup: any[];
+  } | null>(null);
+  const [userCredentialsInfo, setUserCredentialsInfo] = useState<{
+    hasReceivedCredentials: boolean;
+    credentialsEmailDate: string | null;
+    programDay: number | null;
+  } | null>(null);
 
   // Fetch admin user on mount
   useEffect(() => {
@@ -203,6 +271,10 @@ export default function UsersPage() {
     setLoadingPurchases(true);
     setUserInventory(null);
     setUserQuizData(null);
+    setUserCoachMessages([]);
+    setUserActivity(null);
+    setUserCredentialsInfo(null);
+    setUserFunnelJourney(null);
     try {
       const response = await fetch(
         `/api/admin/users/${encodeURIComponent(email)}`,
@@ -221,6 +293,28 @@ export default function UsersPage() {
         if (data.quizData) {
           setUserQuizData(data.quizData);
         }
+
+        // Save coach messages
+        if (data.coachMessages) {
+          setUserCoachMessages(data.coachMessages);
+        }
+
+        // Save activity data
+        if (data.activity) {
+          setUserActivity(data.activity);
+        }
+
+        // Save funnel journey
+        if (data.funnelJourney) {
+          setUserFunnelJourney(data.funnelJourney);
+        }
+
+        // Save credentials info
+        setUserCredentialsInfo({
+          hasReceivedCredentials: data.hasReceivedCredentials || false,
+          credentialsEmailDate: data.credentialsEmailDate || null,
+          programDay: data.programDay || null,
+        });
 
         // Update selectedUser with enhanced data from API
         if (selectedUser) {
@@ -391,13 +485,21 @@ export default function UsersPage() {
   };
 
   const handleExport = () => {
-    const exportData = users.map((user) => ({
+    const exportData = filteredUsers.map((user) => ({
       Email: user.email,
       "First Name": user.firstName || "N/A",
-      "Chat Sessions": user.chatSessions,
-      "Funnel Attempts": user.funnelAttempts,
-      Converted: user.converted ? "Yes" : "No",
-      "Last Activity": formatDate(user.lastActivity),
+      Category: user.category || "N/A",
+      Level: user.level || "N/A",
+      "Quiz Date": user.quizDate ? formatDate(user.quizDate) : "N/A",
+      "Capsules Remaining": user.capsulesRemaining || 0,
+      "Purchases Count": user.purchasesCount,
+      "Total Spent (BGN)": user.totalSpent?.toFixed(2) || "0.00",
+      "Workouts (7d)": user.workoutCount || 0,
+      "Meals (7d)": user.mealCount || 0,
+      "Sleep (7d)": user.sleepCount || 0,
+      "TestoUP (7d)": user.testoupCount || 0,
+      "Coach Messages": user.coachMessages || 0,
+      "Has App Access": user.hasAppAccess ? "Yes" : "No",
       Banned: user.banned ? "Yes" : "No",
     }));
 
@@ -755,6 +857,81 @@ export default function UsersPage() {
     }
   };
 
+  const handleSendQuizReminder = async () => {
+    if (!selectedUser?.email) return;
+
+    setSendingReminder(true);
+    try {
+      const response = await fetch("/api/admin/email/send-smtp", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: selectedUser.email,
+          subject: "Напомняне: Завърши своя Quiz в Testograph",
+          message: `Здравей${selectedUser.firstName ? ` ${selectedUser.firstName}` : ''},
+
+Забелязахме, че все още не си завършил своя Quiz в Testograph.
+
+Quiz-ът отнема само 2-3 минути и е първата стъпка към персонализираната ти програма за оптимизация на тестостерона.
+
+След като го завършиш, ще получиш:
+- Персонализиран план за хранене
+- Индивидуална тренировъчна програма
+- Препоръки за сън и възстановяване
+- Достъп до AI Coach асистента
+
+Започни сега: https://app.testograph.eu/quiz
+
+Ако имаш въпроси, просто отговори на този имейл.
+
+Поздрави,
+Екипът на Testograph`,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        toast({
+          title: "Успех",
+          description: `Напомнянето е изпратено до ${selectedUser.email}`,
+        });
+        setSendReminderModal(false);
+      } else {
+        throw new Error(data.error);
+      }
+    } catch (error: any) {
+      toast({
+        title: "Грешка",
+        description: error.message || "Неуспешно изпращане на напомняне",
+        variant: "destructive",
+      });
+    } finally {
+      setSendingReminder(false);
+    }
+  };
+
+  // Filtered users based on status filter
+  const filteredUsers = users.filter((user) => {
+    switch (statusFilter) {
+      case 'withQuiz':
+        return !!user.quizDate;
+      case 'withoutQuiz':
+        return !user.quizDate;
+      case 'withPurchases':
+        return user.purchasesCount > 0;
+      case 'pendingPayment':
+        return user.paymentStatus === 'pending';
+      case 'active':
+        return (user.workoutCount || 0) > 0 ||
+          (user.mealCount || 0) > 0 ||
+          (user.sleepCount || 0) > 0 ||
+          (user.testoupCount || 0) > 0;
+      default:
+        return true;
+    }
+  });
+
   return (
     <AdminLayout>
       <div className="space-y-3 sm:space-y-4 md:space-y-6">
@@ -767,10 +944,29 @@ export default function UsersPage() {
           </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Stats Cards - Clickable Filters */}
         {!isLoading && (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
-            <Card>
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+            <Card
+              className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === 'all' ? 'ring-2 ring-primary' : ''}`}
+              onClick={() => setStatusFilter('all')}
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  Всички
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="text-xl font-bold">
+                  {users.length}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === 'withQuiz' ? 'ring-2 ring-primary' : ''}`}
+              onClick={() => setStatusFilter('withQuiz')}
+            >
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs font-medium text-muted-foreground">
                   С Quiz
@@ -779,6 +975,22 @@ export default function UsersPage() {
               <CardContent className="pt-0">
                 <div className="text-xl font-bold text-primary">
                   {users.filter((u) => u.quizDate).length}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === 'withoutQuiz' ? 'ring-2 ring-red-500' : ''}`}
+              onClick={() => setStatusFilter('withoutQuiz')}
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  Без Quiz
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="text-xl font-bold text-red-600">
+                  {users.filter((u) => !u.quizDate).length}
                 </div>
               </CardContent>
             </Card>
@@ -796,20 +1008,10 @@ export default function UsersPage() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-medium text-muted-foreground">
-                  С Капсули
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="pt-0">
-                <div className="text-xl font-bold text-blue-600">
-                  {users.filter((u) => (u.capsulesRemaining || 0) > 0).length}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
+            <Card
+              className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === 'active' ? 'ring-2 ring-orange-500' : ''}`}
+              onClick={() => setStatusFilter('active')}
+            >
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs font-medium text-muted-foreground">
                   Активни (7д)
@@ -827,7 +1029,10 @@ export default function UsersPage() {
               </CardContent>
             </Card>
 
-            <Card>
+            <Card
+              className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === 'withPurchases' ? 'ring-2 ring-green-500' : ''}`}
+              onClick={() => setStatusFilter('withPurchases')}
+            >
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs font-medium text-muted-foreground">
                   С Покупки
@@ -836,6 +1041,22 @@ export default function UsersPage() {
               <CardContent className="pt-0">
                 <div className="text-xl font-bold text-green-600">
                   {users.filter((u) => u.purchasesCount > 0).length}
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card
+              className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === 'pendingPayment' ? 'ring-2 ring-yellow-500' : ''}`}
+              onClick={() => setStatusFilter('pendingPayment')}
+            >
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs font-medium text-muted-foreground">
+                  Чакащи Плащания
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <div className="text-xl font-bold text-yellow-600">
+                  {users.filter((u) => u.paymentStatus === 'pending').length}
                 </div>
               </CardContent>
             </Card>
@@ -859,9 +1080,27 @@ export default function UsersPage() {
           <CardHeader>
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
               <div>
-                <CardTitle>Всички Потребители</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  {statusFilter === 'all' ? 'Всички Потребители' :
+                   statusFilter === 'withQuiz' ? 'Потребители с Quiz' :
+                   statusFilter === 'withoutQuiz' ? 'Потребители без Quiz' :
+                   statusFilter === 'withPurchases' ? 'Потребители с покупки' :
+                   statusFilter === 'pendingPayment' ? 'Чакащи плащания' :
+                   'Активни потребители (7д)'}
+                  {statusFilter !== 'all' && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 px-2 text-xs"
+                      onClick={() => setStatusFilter('all')}
+                    >
+                      <X className="h-3 w-3 mr-1" />
+                      Изчисти
+                    </Button>
+                  )}
+                </CardTitle>
                 <CardDescription>
-                  Общо {users.length}{" "}
+                  {filteredUsers.length} от {users.length}{" "}
                   {users.length === 1 ? "потребител" : "потребители"}
                 </CardDescription>
               </div>
@@ -878,7 +1117,7 @@ export default function UsersPage() {
                 <Button
                   variant="outline"
                   onClick={handleExport}
-                  disabled={users.length === 0}
+                  disabled={filteredUsers.length === 0}
                 >
                   <Download className="h-4 w-4 mr-2" />
                   Export CSV
@@ -891,14 +1130,24 @@ export default function UsersPage() {
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-primary" />
               </div>
-            ) : users.length === 0 ? (
+            ) : filteredUsers.length === 0 ? (
               <div className="text-center py-12">
                 <UsersIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                 <p className="text-muted-foreground">
-                  {search
+                  {search || statusFilter !== 'all'
                     ? "Няма намерени потребители"
                     : "Още няма потребители"}
                 </p>
+                {statusFilter !== 'all' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-2"
+                    onClick={() => setStatusFilter('all')}
+                  >
+                    Покажи всички
+                  </Button>
+                )}
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -907,19 +1156,20 @@ export default function UsersPage() {
                     <tr className="border-b bg-muted/50">
                       <th className="text-left p-2 font-medium">Потребител</th>
                       <th className="text-center p-2 font-medium">Quiz</th>
+                      <th className="text-center p-2 font-medium">Плащане</th>
                       <th className="text-center p-2 font-medium">Категория</th>
                       <th className="text-center p-2 font-medium">Капсули</th>
                       <th className="text-center p-2 font-medium">Покупки</th>
-                      <th className="text-center p-2 font-medium" title="Тренировки (7 дни)">Workout</th>
-                      <th className="text-center p-2 font-medium" title="Хранене (7 дни)">Meal</th>
-                      <th className="text-center p-2 font-medium" title="Сън (7 дни)">Sleep</th>
-                      <th className="text-center p-2 font-medium" title="TestoUP (7 дни)">TestoUP</th>
-                      <th className="text-center p-2 font-medium" title="AI Coach съобщения">Coach</th>
+                      <th className="text-center p-2 font-medium" title="Тренировки (7 дни)"><Dumbbell className="w-4 h-4 mx-auto text-muted-foreground" /></th>
+                      <th className="text-center p-2 font-medium" title="Хранене (7 дни)"><Utensils className="w-4 h-4 mx-auto text-muted-foreground" /></th>
+                      <th className="text-center p-2 font-medium" title="Сън (7 дни)"><Moon className="w-4 h-4 mx-auto text-muted-foreground" /></th>
+                      <th className="text-center p-2 font-medium" title="TestoUP (7 дни)"><Pill className="w-4 h-4 mx-auto text-muted-foreground" /></th>
+                      <th className="text-center p-2 font-medium" title="AI Coach съобщения"><Bot className="w-4 h-4 mx-auto text-muted-foreground" /></th>
                       <th className="text-center p-2 font-medium">Статус</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {users.map((user) => (
+                    {filteredUsers.map((user) => (
                       <tr
                         key={user.email}
                         className="border-b hover:bg-muted/30 cursor-pointer transition-colors"
@@ -948,9 +1198,24 @@ export default function UsersPage() {
                         {/* Quiz Date */}
                         <td className="p-2 text-center">
                           {user.quizDate ? (
-                            <span className="text-xs">
+                            <span className="text-xs text-green-600 font-medium">
                               {new Date(user.quizDate).toLocaleDateString("bg-BG", { day: "2-digit", month: "short" })}
                             </span>
+                          ) : (
+                            <span className="text-red-500 font-medium text-xs">НЕ</span>
+                          )}
+                        </td>
+
+                        {/* Payment Status */}
+                        <td className="p-2 text-center">
+                          {user.paymentStatus === 'paid' ? (
+                            <Badge className="bg-green-100 text-green-700 border-green-200 text-xs">
+                              Платено
+                            </Badge>
+                          ) : user.paymentStatus === 'pending' ? (
+                            <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200 text-xs">
+                              Чакащо
+                            </Badge>
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}
@@ -1062,8 +1327,8 @@ export default function UsersPage() {
                             <Badge variant="destructive" className="text-xs">BAN</Badge>
                           ) : user.hasAppAccess ? (
                             <Badge variant="default" className="bg-green-600 text-xs">App</Badge>
-                          ) : user.converted ? (
-                            <Badge variant="secondary" className="text-xs">Site</Badge>
+                          ) : user.quizDate ? (
+                            <Badge variant="secondary" className="text-xs">Quiz</Badge>
                           ) : (
                             <Badge variant="outline" className="text-xs">-</Badge>
                           )}
@@ -1462,10 +1727,207 @@ export default function UsersPage() {
               Преглед на подробна информация за потребителя и управление на
               достъпа
             </DialogDescription>
+
+            {/* Credentials Status Badge */}
+            {userCredentialsInfo && (
+              <div className="flex items-center gap-3 mt-3 flex-wrap">
+                {userCredentialsInfo.hasReceivedCredentials ? (
+                  <Badge className="bg-green-600">
+                    <CheckCircle className="w-3 h-3 mr-1" />
+                    Credentials изпратени
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-orange-600 border-orange-400">
+                    <Clock className="w-3 h-3 mr-1" />
+                    Без credentials имейл
+                  </Badge>
+                )}
+                {userCredentialsInfo.programDay && (
+                  <Badge variant="secondary">
+                    Ден {userCredentialsInfo.programDay} от програмата
+                  </Badge>
+                )}
+                {userCredentialsInfo.credentialsEmailDate && (
+                  <span className="text-xs text-muted-foreground">
+                    Регистриран: {new Date(userCredentialsInfo.credentialsEmailDate).toLocaleDateString("bg-BG")}
+                  </span>
+                )}
+              </div>
+            )}
           </DialogHeader>
 
           {selectedUser && (
             <div className="space-y-3 sm:space-y-4 md:space-y-6 py-4">
+              {/* Funnel Journey Section */}
+              {userFunnelJourney && (
+                <Card className="border-l-4 border-l-indigo-400 bg-indigo-50/50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <ClipboardList className="w-5 h-5 text-indigo-600" />
+                      <h4 className="font-semibold text-indigo-700">Funnel Journey</h4>
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      {/* Step 1: Quiz */}
+                      <div className={`flex-1 p-3 rounded-lg text-center ${
+                        userFunnelJourney.quizCompleted
+                          ? 'bg-green-100 border border-green-300'
+                          : 'bg-gray-100 border border-gray-200'
+                      }`}>
+                        <div className={`w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                          userFunnelJourney.quizCompleted ? 'bg-green-500' : 'bg-gray-300'
+                        }`}>
+                          {userFunnelJourney.quizCompleted
+                            ? <CircleCheck className="w-5 h-5 text-white" />
+                            : <CircleDashed className="w-5 h-5 text-gray-500" />
+                          }
+                        </div>
+                        <p className="text-xs font-medium">Quiz</p>
+                        {userFunnelJourney.quizCompletedAt && (
+                          <p className="text-[10px] text-muted-foreground">
+                            {new Date(userFunnelJourney.quizCompletedAt).toLocaleDateString("bg-BG")}
+                          </p>
+                        )}
+                      </div>
+
+                      <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+
+                      {/* Step 2: Order */}
+                      <div className={`flex-1 p-3 rounded-lg text-center ${
+                        userFunnelJourney.orderPlaced
+                          ? 'bg-green-100 border border-green-300'
+                          : 'bg-gray-100 border border-gray-200'
+                      }`}>
+                        <div className={`w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                          userFunnelJourney.orderPlaced ? 'bg-green-500' : 'bg-gray-300'
+                        }`}>
+                          {userFunnelJourney.orderPlaced
+                            ? <CircleCheck className="w-5 h-5 text-white" />
+                            : <CircleDashed className="w-5 h-5 text-gray-500" />
+                          }
+                        </div>
+                        <p className="text-xs font-medium">Поръчка</p>
+                        {userFunnelJourney.firstOrderAt && (
+                          <p className="text-[10px] text-muted-foreground">
+                            {new Date(userFunnelJourney.firstOrderAt).toLocaleDateString("bg-BG")}
+                          </p>
+                        )}
+                      </div>
+
+                      <ArrowRight className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+
+                      {/* Step 3: Payment */}
+                      <div className={`flex-1 p-3 rounded-lg text-center ${
+                        userFunnelJourney.paymentCompleted
+                          ? 'bg-green-100 border border-green-300'
+                          : userFunnelJourney.currentStep === 'pending_payment'
+                          ? 'bg-yellow-100 border border-yellow-300'
+                          : 'bg-gray-100 border border-gray-200'
+                      }`}>
+                        <div className={`w-8 h-8 mx-auto mb-2 rounded-full flex items-center justify-center ${
+                          userFunnelJourney.paymentCompleted
+                            ? 'bg-green-500'
+                            : userFunnelJourney.currentStep === 'pending_payment'
+                            ? 'bg-yellow-500'
+                            : 'bg-gray-300'
+                        }`}>
+                          {userFunnelJourney.paymentCompleted
+                            ? <CircleCheck className="w-5 h-5 text-white" />
+                            : userFunnelJourney.currentStep === 'pending_payment'
+                            ? <AlertCircle className="w-5 h-5 text-white" />
+                            : <CircleDashed className="w-5 h-5 text-gray-500" />
+                          }
+                        </div>
+                        <p className="text-xs font-medium">Плащане</p>
+                        {userFunnelJourney.firstPaymentAt ? (
+                          <p className="text-[10px] text-muted-foreground">
+                            {new Date(userFunnelJourney.firstPaymentAt).toLocaleDateString("bg-BG")}
+                          </p>
+                        ) : userFunnelJourney.currentStep === 'pending_payment' && (
+                          <p className="text-[10px] text-yellow-600 font-medium">Чакащо</p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Pending Orders Details */}
+                    {userFunnelJourney.pendingOrders && userFunnelJourney.pendingOrders.length > 0 && (
+                      <div className="mt-4 p-4 bg-yellow-50 rounded-lg border-2 border-yellow-300">
+                        <div className="flex items-center gap-2 mb-3">
+                          <AlertCircle className="w-5 h-5 text-yellow-600" />
+                          <span className="text-base font-semibold text-yellow-700">
+                            Чакащи плащания ({userFunnelJourney.pendingOrders.length})
+                          </span>
+                        </div>
+                        <div className="space-y-3">
+                          {userFunnelJourney.pendingOrders.map((order) => (
+                            <div key={order.id} className="bg-white p-3 rounded-lg border border-yellow-200">
+                              <div className="flex items-center justify-between mb-2">
+                                <span className="font-medium text-gray-800">
+                                  Поръчка #{order.orderNumber}
+                                </span>
+                                <Badge className="bg-yellow-500 text-white text-sm px-3 py-1">
+                                  {order.totalPrice} {order.currency}
+                                </Badge>
+                              </div>
+                              <div className="text-xs text-muted-foreground mb-2">
+                                Дата: {new Date(order.createdAt).toLocaleDateString("bg-BG", {
+                                  year: "numeric",
+                                  month: "long",
+                                  day: "numeric",
+                                  hour: "2-digit",
+                                  minute: "2-digit"
+                                })}
+                              </div>
+                              {/* Products List */}
+                              {order.products && Array.isArray(order.products) && order.products.length > 0 && (
+                                <div className="border-t pt-2 mt-2">
+                                  <p className="text-xs font-medium text-gray-600 mb-1">Поръчани продукти:</p>
+                                  <div className="space-y-1">
+                                    {order.products.map((product: any, idx: number) => (
+                                      <div key={idx} className="flex items-center justify-between text-sm bg-gray-50 p-2 rounded">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-lg">💊</span>
+                                          <div>
+                                            <span className="font-medium">{product.title || product.name || 'TestoUP'}</span>
+                                            {product.quantity && product.quantity > 1 && (
+                                              <Badge variant="secondary" className="text-xs ml-2">
+                                                x{product.quantity}
+                                              </Badge>
+                                            )}
+                                            {product.capsules && (
+                                              <span className="text-xs text-muted-foreground ml-2">
+                                                ({product.type === 'trial' ? 'Проба' : 'Пълен'} - {product.capsules} капс.)
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        {product.totalCapsules && (
+                                          <Badge className="bg-cyan-500 text-white">
+                                            {product.totalCapsules} капсули
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    ))}
+                                  </div>
+                                  {/* Total capsules */}
+                                  {order.products.some((p: any) => p.totalCapsules) && (
+                                    <div className="mt-2 flex items-center justify-between text-sm font-semibold bg-cyan-50 p-2 rounded border border-cyan-200">
+                                      <span>Общо капсули:</span>
+                                      <span className="text-cyan-700">
+                                        {order.products.reduce((sum: number, p: any) => sum + (p.totalCapsules || 0), 0)} капсули
+                                      </span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Quiz Info Section */}
               {loadingPurchases ? (
                 <Card className="border-l-4 border-l-muted">
@@ -1569,12 +2031,73 @@ export default function UsersPage() {
                         </div>
                       </div>
                     )}
+
+                    {/* Quiz Responses - Individual Answers */}
+                    {userQuizData.responses && userQuizData.responses.length > 0 && (
+                      <div className="border-t pt-3">
+                        <div className="flex items-center justify-between mb-2">
+                          <Label className="text-xs text-muted-foreground flex items-center gap-2">
+                            <FileText className="w-4 h-4" />
+                            Всички отговори от Quiz-a ({userQuizData.responses.length})
+                          </Label>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs h-6"
+                            onClick={() => {
+                              const el = document.getElementById('quiz-responses-list');
+                              if (el) el.classList.toggle('hidden');
+                            }}
+                          >
+                            Покажи/Скрий
+                          </Button>
+                        </div>
+                        <div id="quiz-responses-list" className="hidden space-y-1 max-h-64 overflow-y-auto">
+                          {userQuizData.responses.map((response, idx) => (
+                            <div
+                              key={idx}
+                              className="flex items-center justify-between p-2 bg-muted/30 rounded text-sm"
+                            >
+                              <div className="flex-1">
+                                <span className="text-muted-foreground text-xs font-mono">
+                                  {response.question_id}
+                                </span>
+                                <p className="font-medium truncate">{response.answer}</p>
+                              </div>
+                              <Badge variant="outline" className="ml-2 shrink-0">
+                                {response.points} т.
+                              </Badge>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </CardContent>
                 </Card>
               ) : (
-                <Card className="border-l-4 border-l-muted">
-                  <CardContent className="p-4 text-center text-muted-foreground">
-                    Няма попълнен Quiz
+                <Card className="border-l-4 border-l-orange-400 bg-orange-50/50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                          <AlertTriangle className="w-6 h-6 text-orange-600" />
+                        </div>
+                        <div>
+                          <h4 className="font-semibold text-orange-700">Няма попълнен Quiz</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Потребителят не е завършил Quiz-a за персонализирана програма
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        className="border-orange-400 text-orange-700 hover:bg-orange-100"
+                        onClick={() => setSendReminderModal(true)}
+                      >
+                        <Mail className="w-4 h-4 mr-2" />
+                        Изпрати напомняне
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               )}
@@ -1749,6 +2272,195 @@ export default function UsersPage() {
                 </CardContent>
               </Card>
 
+              {/* AI Coach Conversation Section */}
+              {userCoachMessages.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <MessageCircle className="w-5 h-5 text-indigo-500" />
+                      AI Coach разговори
+                      <Badge variant="secondary" className="ml-2">
+                        {userCoachMessages.length} съобщения
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="max-h-80 overflow-y-auto space-y-3 pr-2">
+                      {userCoachMessages.slice(0, 50).map((msg, index) => (
+                        <div
+                          key={msg.id || index}
+                          className={`p-3 rounded-lg ${
+                            msg.role === "user"
+                              ? "bg-blue-50 border-l-4 border-l-blue-500 ml-4"
+                              : "bg-gray-50 border-l-4 border-l-indigo-500 mr-4"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <Badge
+                              variant={msg.role === "user" ? "default" : "secondary"}
+                              className={`text-xs ${msg.role === "user" ? "bg-blue-600" : "bg-indigo-600"}`}
+                            >
+                              {msg.role === "user" ? "Потребител" : "AI Coach"}
+                            </Badge>
+                            {msg.is_proactive && (
+                              <Badge variant="outline" className="text-xs text-orange-600 border-orange-400">
+                                Proactive
+                              </Badge>
+                            )}
+                            <span className="text-xs text-muted-foreground ml-auto">
+                              {new Date(msg.created_at).toLocaleString("bg-BG", {
+                                day: "2-digit",
+                                month: "short",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
+                            </span>
+                          </div>
+                          <p className="text-sm whitespace-pre-wrap line-clamp-4">
+                            {msg.content}
+                          </p>
+                        </div>
+                      ))}
+                      {userCoachMessages.length > 50 && (
+                        <p className="text-center text-sm text-muted-foreground py-2">
+                          ... и още {userCoachMessages.length - 50} съобщения
+                        </p>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* Activity Calendar (Last 90 Days) */}
+              {userActivity && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <TrendingUp className="w-5 h-5 text-green-500" />
+                      Календар на активността (90 дни)
+                    </CardTitle>
+                    <div className="flex flex-wrap gap-3 mt-2 text-xs">
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 rounded-full bg-orange-500"></div>
+                        <span>Тренировка</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                        <span>Хранене</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                        <span>Сън</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <div className="w-3 h-3 rounded-full bg-blue-500"></div>
+                        <span>TestoUP</span>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    {(() => {
+                      // Create date maps for quick lookup
+                      const workoutDates = new Set(userActivity.workouts.map(w => w.date));
+                      const mealDates = new Set(userActivity.meals.map(m => m.date));
+                      const sleepDates = new Set(userActivity.sleep.map(s => s.date));
+                      const testoupDates = new Set(userActivity.testoup.filter(t => t.morning_taken || t.evening_taken).map(t => t.date));
+
+                      // Generate last 90 days
+                      const days: { date: Date; dateStr: string }[] = [];
+                      for (let i = 89; i >= 0; i--) {
+                        const d = new Date();
+                        d.setHours(0, 0, 0, 0);
+                        d.setDate(d.getDate() - i);
+                        days.push({
+                          date: d,
+                          dateStr: d.toISOString().split('T')[0]
+                        });
+                      }
+
+                      // Group by weeks (7 days each row)
+                      const weeks: typeof days[] = [];
+                      for (let i = 0; i < days.length; i += 7) {
+                        weeks.push(days.slice(i, i + 7));
+                      }
+
+                      return (
+                        <div className="space-y-1">
+                          {/* Day of week headers */}
+                          <div className="grid grid-cols-7 gap-1 text-[10px] text-muted-foreground text-center mb-1">
+                            <span>Пн</span>
+                            <span>Вт</span>
+                            <span>Ср</span>
+                            <span>Чт</span>
+                            <span>Пт</span>
+                            <span>Сб</span>
+                            <span>Нд</span>
+                          </div>
+                          {weeks.map((week, weekIndex) => (
+                            <div key={weekIndex} className="grid grid-cols-7 gap-1">
+                              {week.map(({ date, dateStr }) => {
+                                const hasWorkout = workoutDates.has(dateStr);
+                                const hasMeal = mealDates.has(dateStr);
+                                const hasSleep = sleepDates.has(dateStr);
+                                const hasTestoup = testoupDates.has(dateStr);
+                                const hasAny = hasWorkout || hasMeal || hasSleep || hasTestoup;
+                                const isToday = dateStr === new Date().toISOString().split('T')[0];
+
+                                return (
+                                  <div
+                                    key={dateStr}
+                                    className={`relative p-1 rounded text-center min-h-[36px] flex flex-col items-center justify-center ${
+                                      isToday ? 'ring-2 ring-primary' : ''
+                                    } ${hasAny ? 'bg-muted/50' : 'bg-muted/20'}`}
+                                    title={`${date.toLocaleDateString("bg-BG", { day: "2-digit", month: "short" })}
+${hasWorkout ? '✓ Тренировка' : ''}
+${hasMeal ? '✓ Хранене' : ''}
+${hasSleep ? '✓ Сън' : ''}
+${hasTestoup ? '✓ TestoUP' : ''}`}
+                                  >
+                                    <span className="text-[10px] text-muted-foreground">
+                                      {date.getDate()}
+                                    </span>
+                                    {hasAny && (
+                                      <div className="flex gap-[2px] mt-[2px]">
+                                        {hasWorkout && <div className="w-[6px] h-[6px] rounded-full bg-orange-500"></div>}
+                                        {hasMeal && <div className="w-[6px] h-[6px] rounded-full bg-green-500"></div>}
+                                        {hasSleep && <div className="w-[6px] h-[6px] rounded-full bg-purple-500"></div>}
+                                        {hasTestoup && <div className="w-[6px] h-[6px] rounded-full bg-blue-500"></div>}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
+
+                    {/* Summary stats */}
+                    <div className="grid grid-cols-4 gap-2 mt-4 pt-4 border-t">
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-orange-600">{userActivity.workouts.length}</div>
+                        <div className="text-[10px] text-muted-foreground">Тренировки</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-green-600">{userActivity.meals.length}</div>
+                        <div className="text-[10px] text-muted-foreground">Хранения</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-purple-600">{userActivity.sleep.length}</div>
+                        <div className="text-[10px] text-muted-foreground">Сън дни</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-lg font-bold text-blue-600">{userActivity.testoup.filter(t => t.morning_taken || t.evening_taken).length}</div>
+                        <div className="text-[10px] text-muted-foreground">TestoUP дни</div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               {/* Status */}
               <div className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">
                 <div>
@@ -1758,8 +2470,8 @@ export default function UsersPage() {
                       <Badge variant="destructive">BANNED</Badge>
                     ) : selectedUser.hasAppAccess ? (
                       <Badge className="bg-green-600">App User</Badge>
-                    ) : selectedUser.converted ? (
-                      <Badge variant="secondary">Site User</Badge>
+                    ) : selectedUser.quizDate ? (
+                      <Badge variant="secondary">Quiz User</Badge>
                     ) : (
                       <Badge variant="outline">Visitor</Badge>
                     )}
@@ -2236,6 +2948,60 @@ export default function UsersPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Send Quiz Reminder Modal */}
+      <Dialog open={sendReminderModal} onOpenChange={setSendReminderModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-orange-600" />
+              Изпрати Quiz напомняне
+            </DialogTitle>
+            <DialogDescription>
+              Ще изпратим email с напомняне на потребителя да завърши Quiz-a.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+              <p className="text-sm text-orange-800 mb-2">
+                <strong>Получател:</strong> {selectedUser?.email}
+              </p>
+              <p className="text-sm text-orange-800 mb-2">
+                <strong>Тема:</strong> Напомняне: Завърши своя Quiz в Testograph
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Съобщението включва линк към Quiz-a и информация за ползите от персонализираната програма.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setSendReminderModal(false)}
+              disabled={sendingReminder}
+            >
+              Отказ
+            </Button>
+            <Button
+              className="bg-orange-600 hover:bg-orange-700"
+              onClick={handleSendQuizReminder}
+              disabled={sendingReminder}
+            >
+              {sendingReminder ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Изпращане...
+                </>
+              ) : (
+                <>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Изпрати напомняне
+                </>
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </AdminLayout>

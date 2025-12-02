@@ -45,6 +45,25 @@ interface ShopifyOrder {
   }>;
 }
 
+// Check if product is a trial/sample pack
+function isTrialProduct(sku: string, title: string): boolean {
+  const skuLower = (sku || '').toLowerCase();
+  const titleLower = (title || '').toLowerCase();
+
+  // Check SKU patterns for trial
+  if (skuLower.includes('trial')) return true;
+  if (skuLower.includes('s14')) return true; // TUP-S14 is trial
+  if (skuLower.includes('7d')) return true;
+
+  // Check title patterns for trial
+  if (titleLower.includes('7-дневен')) return true;
+  if (titleLower.includes('7 дневен')) return true;
+  if (titleLower.includes('проба')) return true;
+  if (titleLower.includes('пробен')) return true;
+
+  return false;
+}
+
 interface SyncResult {
   shopifyOrders: number;
   dbOrders: number;
@@ -207,14 +226,17 @@ export async function POST(request: Request) {
           if (existing) continue;
 
           // Extract product info
-          const products = order.line_items.map(li => ({
-            title: li.title,
-            quantity: li.quantity,
-            sku: li.sku,
-            type: li.sku?.includes('TRIAL') ? 'trial' : 'full',
-            capsules: li.sku?.includes('TRIAL') ? 10 : 60,
-            totalCapsules: (li.sku?.includes('TRIAL') ? 10 : 60) * li.quantity
-          }));
+          const products = order.line_items.map(li => {
+            const isTrial = isTrialProduct(li.sku, li.title);
+            return {
+              title: li.title,
+              quantity: li.quantity,
+              sku: li.sku,
+              type: isTrial ? 'trial' : 'full',
+              capsules: isTrial ? 10 : 60,
+              totalCapsules: (isTrial ? 10 : 60) * li.quantity
+            };
+          });
 
           // Extract phone from multiple sources
           const phone = order.shipping_address?.phone
@@ -223,6 +245,44 @@ export async function POST(request: Request) {
             || order.phone
             || null;
 
+          // Get customer name from multiple sources (fallback chain)
+          const getCustomerName = (): string | null => {
+            // Try customer object first
+            if (order.customer?.first_name || order.customer?.last_name) {
+              const firstName = order.customer.first_name || '';
+              const lastName = order.customer.last_name || '';
+              const name = `${firstName} ${lastName}`.trim();
+              if (name && name !== 'undefined' && name !== 'undefined undefined') {
+                return name;
+              }
+            }
+            // Try shipping address
+            if (order.shipping_address?.name) {
+              return order.shipping_address.name;
+            }
+            if (order.shipping_address?.first_name || order.shipping_address?.last_name) {
+              const firstName = order.shipping_address.first_name || '';
+              const lastName = order.shipping_address.last_name || '';
+              const name = `${firstName} ${lastName}`.trim();
+              if (name && name !== 'undefined') {
+                return name;
+              }
+            }
+            // Try billing address
+            if (order.billing_address?.name) {
+              return order.billing_address.name;
+            }
+            if (order.billing_address?.first_name || order.billing_address?.last_name) {
+              const firstName = order.billing_address.first_name || '';
+              const lastName = order.billing_address.last_name || '';
+              const name = `${firstName} ${lastName}`.trim();
+              if (name && name !== 'undefined') {
+                return name;
+              }
+            }
+            return null;
+          };
+
           // Insert into pending_orders
           const { error: insertError } = await supabase
             .from('pending_orders')
@@ -230,9 +290,7 @@ export async function POST(request: Request) {
               order_id: order.id.toString(),
               order_number: order.order_number.toString(),
               email: order.email || order.customer?.email || '',
-              customer_name: order.customer
-                ? `${order.customer.first_name} ${order.customer.last_name}`.trim()
-                : null,
+              customer_name: getCustomerName(),
               total_price: parseFloat(order.total_price),
               currency: order.currency,
               status: order.financial_status === 'paid' ? 'paid' : 'pending',
@@ -320,6 +378,74 @@ export async function POST(request: Request) {
       }
 
       return NextResponse.json({ success: true, updated });
+    }
+
+    if (action === 'fix-customer-names') {
+      // Fix orders with missing or "undefined" customer names
+      const { data: ordersToFix } = await supabase
+        .from('pending_orders')
+        .select('id, order_id, customer_name, shipping_address')
+        .or('customer_name.is.null,customer_name.ilike.%undefined%');
+
+      if (!ordersToFix || ordersToFix.length === 0) {
+        return NextResponse.json({ success: true, fixed: 0, message: 'No orders need fixing' });
+      }
+
+      const shopifyOrders = await fetchAllShopifyOrders(shopDomain, accessToken);
+      const shopifyOrdersMap = new Map(shopifyOrders.map(o => [o.id.toString(), o]));
+      let fixed = 0;
+
+      for (const dbOrder of ordersToFix) {
+        const shopifyOrder = shopifyOrdersMap.get(dbOrder.order_id);
+        if (!shopifyOrder) continue;
+
+        // Get customer name from multiple sources (same logic as insert)
+        let customerName: string | null = null;
+
+        // Try customer object first
+        if (shopifyOrder.customer?.first_name || shopifyOrder.customer?.last_name) {
+          const firstName = shopifyOrder.customer.first_name || '';
+          const lastName = shopifyOrder.customer.last_name || '';
+          const name = `${firstName} ${lastName}`.trim();
+          if (name && name !== 'undefined' && name !== 'undefined undefined') {
+            customerName = name;
+          }
+        }
+        // Try shipping address
+        if (!customerName && shopifyOrder.shipping_address?.name) {
+          customerName = shopifyOrder.shipping_address.name;
+        }
+        if (!customerName && (shopifyOrder.shipping_address?.first_name || shopifyOrder.shipping_address?.last_name)) {
+          const firstName = shopifyOrder.shipping_address.first_name || '';
+          const lastName = shopifyOrder.shipping_address.last_name || '';
+          const name = `${firstName} ${lastName}`.trim();
+          if (name && name !== 'undefined') {
+            customerName = name;
+          }
+        }
+        // Try billing address
+        if (!customerName && shopifyOrder.billing_address?.name) {
+          customerName = shopifyOrder.billing_address.name;
+        }
+        if (!customerName && (shopifyOrder.billing_address?.first_name || shopifyOrder.billing_address?.last_name)) {
+          const firstName = shopifyOrder.billing_address.first_name || '';
+          const lastName = shopifyOrder.billing_address.last_name || '';
+          const name = `${firstName} ${lastName}`.trim();
+          if (name && name !== 'undefined') {
+            customerName = name;
+          }
+        }
+
+        if (customerName) {
+          await supabase
+            .from('pending_orders')
+            .update({ customer_name: customerName })
+            .eq('id', dbOrder.id);
+          fixed++;
+        }
+      }
+
+      return NextResponse.json({ success: true, fixed, total: ordersToFix.length });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

@@ -21,6 +21,7 @@ import {
   Loader2,
   ShoppingCart,
   Filter,
+  GitBranch,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -49,6 +50,11 @@ const navItems = [
     title: 'Quiz Analytics',
     href: '/admin/analytics',
     icon: Filter,
+  },
+  {
+    title: 'Quiz Flow',
+    href: '/admin/quiz-flow',
+    icon: GitBranch,
   },
   {
     title: 'Shopify Orders',

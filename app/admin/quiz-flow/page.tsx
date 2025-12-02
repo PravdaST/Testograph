@@ -1,0 +1,1164 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import AdminLayout from "@/components/admin/AdminLayout";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  PieChart,
+  Pie,
+} from "recharts";
+import {
+  RefreshCw,
+  Download,
+  TrendingDown,
+  Users,
+  Target,
+  Activity,
+  AlertTriangle,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Heart,
+  Dumbbell,
+  Zap,
+  Smartphone,
+  Monitor,
+  Tablet,
+  Globe,
+  ArrowLeft,
+  Eye,
+  MousePointer,
+  Timer,
+} from "lucide-react";
+
+// Interfaces
+interface FunnelStep {
+  step: number;
+  sessions: number;
+  dropRate: number;
+}
+
+interface DropOff {
+  step: number;
+  count: number;
+  percentage: number;
+  questionIds: string[];
+}
+
+interface Session {
+  session_id: string;
+  category: string;
+  started_at: string;
+  last_step: number;
+  total_time: number;
+  completed: boolean;
+  abandoned: boolean;
+  device: string | null;
+  utm_source: string | null;
+  back_clicks: number;
+}
+
+interface StatsData {
+  overview: {
+    totalSessions: number;
+    completedSessions: number;
+    abandonedSessions: number;
+    completionRate: number;
+    abandonmentEvents: number;
+  };
+  deviceBreakdown: Record<string, number>;
+  trafficSources: Array<{ source: string; count: number }>;
+  avgTimePerStep: Record<number, number>;
+}
+
+interface SessionDetail {
+  session_id: string;
+  category: string;
+  started_at: string;
+  deviceInfo: {
+    device: string | null;
+    screen: string | null;
+    referrer: string | null;
+    utm_source: string | null;
+    utm_medium: string | null;
+    utm_campaign: string | null;
+    language: string | null;
+    timezone: string | null;
+  };
+  stats: {
+    totalTime: number;
+    maxStep: number;
+    completed: boolean;
+    abandoned: boolean;
+    totalEvents: number;
+    backClicks: number;
+    pageHiddenCount: number;
+  };
+  timeline: Array<{
+    timestamp: string;
+    step: number;
+    question_id: string | null;
+    event_type: string;
+    time_spent: number | null;
+    answer: string | null;
+  }>;
+}
+
+const CATEGORY_COLORS: Record<string, string> = {
+  libido: "#ef4444",
+  muscle: "#3b82f6",
+  energy: "#f59e0b",
+};
+
+const CATEGORY_LABELS: Record<string, string> = {
+  libido: "Либидо",
+  muscle: "Мускули",
+  energy: "Енергия",
+};
+
+const DEVICE_COLORS: Record<string, string> = {
+  mobile: "#22c55e",
+  tablet: "#f59e0b",
+  desktop: "#3b82f6",
+  unknown: "#6b7280",
+};
+
+// Question labels matching actual quiz structure (27 questions + email)
+// All 3 categories (libido/energy/muscle) follow the same step order
+// Based on energy.json: 27 questions (0-26), email is step 27
+const STEP_LABELS: Record<number, string> = {
+  0: "Възраст",                       // eng_age - Каква е Вашата възраст?
+  1: "Основен проблем",              // eng_main_problem - Кой от следните проблеми...
+  2: "Име",                           // eng_name - Как да се обръщаме към Вас?
+  3: "Професия",                      // eng_profession - С какво се занимавате професионално?
+  4: "Работен стрес",                // eng_work_stress - Доколко е стресираща Вашата работа?
+  5: "[Transition] Телесни показатели", // eng_transition_body_metrics
+  6: "Височина",                      // eng_height - Каква е Вашата височина?
+  7: "Тегло",                         // eng_weight - Какво е Вашето тегло?
+  8: "Подкожни мазнини",             // eng_body_fat - Приблизително какъв е процентът...
+  9: "[Transition] Timeline",        // eng_transition_timeline - траектория на възстановяване
+  10: "[Transition] Хранене",        // eng_transition_nutrition
+  11: "Хранителен режим",            // eng_nutrition_regime - Какъв е Вашият хранителен режим?
+  12: "Пушене",                      // eng_smoking - Пушите ли?
+  13: "Алкохол",                     // eng_alcohol - Колко често консумирате алкохол?
+  14: "Сън (часове)",                // eng_sleep_hours - Колко часа спите средно?
+  15: "[Transition] Навици",         // eng_transition_habits - Благодаря Ви за откровеността
+  16: "[Transition] Симптоми",       // eng_transition_symptoms - Благодаря за откровеността
+  17: "Специфичен въпрос 1",         // eng: tired_time / lib: sex_frequency / mus: training_frequency
+  18: "Специфичен въпрос 2",         // eng: energy_level / lib: morning_erections / mus: progress_rating
+  19: "Разочарование",               // eng_frustration - Какво Ви разочарова най-много?
+  20: "Какво бих променил",          // eng_change_one_thing - Ако можехте да промените...
+  21: "[Transition] Social Proof",   // eng_transition_social_proof - Не сте сам в това
+  22: "Опитвани решения",            // eng_tried_solutions - Опитвали ли сте вече...
+  23: "Важен фактор при избор",      // eng_important_factor - Какво е най-важно за Вас?
+  24: "Визия (текст)",               // eng_vision - Представете си, че след 30 дни...
+  25: "Локация тренировка",          // eng_workout_location - Къде предпочитате да тренирате?
+  26: "[Transition] Резултати",      // eng_transition_results - Отлична работа!
+  27: "Email Capture",               // Final step - email collection
+};
+
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  step_entered: "Влезе в стъпка",
+  step_exited: "Излезе от стъпка",
+  answer_selected: "Избра отговор",
+  back_clicked: "Натисна Назад",
+  quiz_abandoned: "Напусна Quiz",
+  page_hidden: "Скри страницата",
+  page_visible: "Върна се",
+  quiz_completed: "Завърши Quiz",
+};
+
+export default function QuizFlowDashboard() {
+  const [statsData, setStatsData] = useState<StatsData | null>(null);
+  const [funnelData, setFunnelData] = useState<any>(null);
+  const [dropOffData, setDropOffData] = useState<any>(null);
+  const [sessionsData, setSessionsData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedDays, setSelectedDays] = useState(7);
+  const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [activeTab, setActiveTab] = useState<"stats" | "funnel" | "dropoffs" | "sessions">("stats");
+
+  // Session detail modal
+  const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null);
+  const [sessionModalOpen, setSessionModalOpen] = useState(false);
+  const [loadingSession, setLoadingSession] = useState(false);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const categoryParam = categoryFilter !== "all" ? `&category=${categoryFilter}` : "";
+
+      const [statsRes, funnelRes, dropOffRes, sessionsRes] = await Promise.all([
+        fetch(`${baseUrl}/api/admin/quiz-flow?view=stats&days=${selectedDays}${categoryParam}`),
+        fetch(`${baseUrl}/api/admin/quiz-flow?view=funnel&days=${selectedDays}${categoryParam}`),
+        fetch(`${baseUrl}/api/admin/quiz-flow?view=dropoffs&days=${selectedDays}${categoryParam}`),
+        fetch(`${baseUrl}/api/admin/quiz-flow?view=sessions&days=${selectedDays}${categoryParam}`),
+      ]);
+
+      if (statsRes.ok) setStatsData(await statsRes.json());
+      if (funnelRes.ok) setFunnelData(await funnelRes.json());
+      if (dropOffRes.ok) setDropOffData(await dropOffRes.json());
+      if (sessionsRes.ok) setSessionsData(await sessionsRes.json());
+    } catch (error) {
+      console.error("Error fetching quiz flow data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchSessionDetail = async (sessionId: string) => {
+    setLoadingSession(true);
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const res = await fetch(`${baseUrl}/api/admin/quiz-flow?view=session-detail&session_id=${sessionId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedSession(data);
+        setSessionModalOpen(true);
+      }
+    } catch (error) {
+      console.error("Error fetching session detail:", error);
+    } finally {
+      setLoadingSession(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [selectedDays, categoryFilter]);
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleString("bg-BG", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatTime = (seconds: number) => {
+    if (!seconds) return "0s";
+    if (seconds < 60) return `${seconds}s`;
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}m ${secs}s`;
+  };
+
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case "libido": return <Heart className="w-4 h-4" />;
+      case "muscle": return <Dumbbell className="w-4 h-4" />;
+      case "energy": return <Zap className="w-4 h-4" />;
+      default: return <Activity className="w-4 h-4" />;
+    }
+  };
+
+  const getDeviceIcon = (device: string | null) => {
+    switch (device) {
+      case "mobile": return <Smartphone className="w-4 h-4" />;
+      case "tablet": return <Tablet className="w-4 h-4" />;
+      case "desktop": return <Monitor className="w-4 h-4" />;
+      default: return <Globe className="w-4 h-4" />;
+    }
+  };
+
+  const getCategoryBadge = (category: string) => {
+    const color = CATEGORY_COLORS[category] || "#6b7280";
+    return (
+      <Badge style={{ backgroundColor: color, color: "white" }}>
+        {CATEGORY_LABELS[category] || category}
+      </Badge>
+    );
+  };
+
+  const exportToCSV = () => {
+    if (!sessionsData) return;
+
+    let csv = "Quiz Flow Report\n\n";
+    csv += `Date Range: Last ${selectedDays} days\n`;
+    csv += `Category: ${categoryFilter}\n\n`;
+    csv += "Sessions\n";
+    csv += "Session ID,Category,Device,UTM Source,Last Step,Total Time,Completed,Abandoned,Back Clicks,Started At\n";
+    sessionsData.sessions.forEach((s: Session) => {
+      csv += `${s.session_id},${s.category},${s.device || 'unknown'},${s.utm_source || 'direct'},${s.last_step},${s.total_time},${s.completed},${s.abandoned},${s.back_clicks},${s.started_at}\n`;
+    });
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `quiz-flow-${new Date().toISOString().split("T")[0]}.csv`;
+    a.click();
+  };
+
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex items-center justify-center py-12">
+          <div className="text-center">
+            <RefreshCw className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
+            <p className="text-muted-foreground">Зареждане на quiz flow данни...</p>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  // Prepare device pie chart data
+  const deviceChartData = statsData?.deviceBreakdown
+    ? Object.entries(statsData.deviceBreakdown)
+        .filter(([_, count]) => count > 0)
+        .map(([device, count]) => ({
+          name: device === "mobile" ? "Мобилен" : device === "tablet" ? "Таблет" : device === "desktop" ? "Десктоп" : "Неизвестен",
+          value: count,
+          fill: DEVICE_COLORS[device] || "#6b7280",
+        }))
+    : [];
+
+  // Prepare funnel chart data
+  const prepareFunnelChartData = () => {
+    if (!funnelData?.funnel) return [];
+    const categories = categoryFilter === "all" ? Object.keys(funnelData.funnel) : [categoryFilter];
+    const aggregated: Record<number, number> = {};
+
+    categories.forEach(cat => {
+      const catData = funnelData.funnel[cat] || [];
+      catData.forEach((step: FunnelStep) => {
+        aggregated[step.step] = (aggregated[step.step] || 0) + step.sessions;
+      });
+    });
+
+    return Object.entries(aggregated)
+      .map(([step, sessions]) => ({
+        step: parseInt(step),
+        name: STEP_LABELS[parseInt(step)] || `Step ${step}`,
+        sessions,
+        fill: sessions > 0 ? "#8b5cf6" : "#e5e7eb",
+      }))
+      .filter(d => d.step <= 24)
+      .sort((a, b) => a.step - b.step);
+  };
+
+  // Prepare drop-off chart data
+  const prepareDropOffChartData = () => {
+    if (!dropOffData?.dropOffs) return [];
+    return dropOffData.dropOffs.slice(0, 10).map((d: DropOff) => ({
+      step: d.step,
+      name: STEP_LABELS[d.step] || `Step ${d.step}`,
+      count: d.count,
+      percentage: d.percentage,
+      fill: d.percentage > 20 ? "#ef4444" : d.percentage > 10 ? "#f59e0b" : "#22c55e",
+    }));
+  };
+
+  // Prepare avg time chart data
+  const prepareAvgTimeChartData = () => {
+    if (!statsData?.avgTimePerStep) return [];
+    return Object.entries(statsData.avgTimePerStep)
+      .map(([step, time]) => ({
+        step: parseInt(step),
+        name: STEP_LABELS[parseInt(step)] || `Step ${step}`,
+        time,
+      }))
+      .sort((a, b) => a.step - b.step);
+  };
+
+  const funnelChartData = prepareFunnelChartData();
+  const dropOffChartData = prepareDropOffChartData();
+  const avgTimeChartData = prepareAvgTimeChartData();
+
+  return (
+    <AdminLayout>
+      <div className="max-w-7xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div>
+            <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+              Quiz Flow Анализ
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              Подробно проследяване на потребителското поведение
+            </p>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <div className="flex gap-1">
+              {[7, 14, 30].map((days) => (
+                <Button
+                  key={days}
+                  variant={selectedDays === days ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSelectedDays(days)}
+                >
+                  {days}д
+                </Button>
+              ))}
+            </div>
+
+            <div className="flex gap-1 border-l pl-2">
+              {(["all", "libido", "muscle", "energy"] as const).map((cat) => (
+                <Button
+                  key={cat}
+                  variant={categoryFilter === cat ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCategoryFilter(cat)}
+                >
+                  {cat === "all" ? "Всички" : CATEGORY_LABELS[cat]}
+                </Button>
+              ))}
+            </div>
+
+            <Button variant="outline" size="sm" onClick={fetchData}>
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Обнови
+            </Button>
+
+            <Button variant="outline" size="sm" onClick={exportToCSV}>
+              <Download className="w-4 h-4 mr-2" />
+              Експорт
+            </Button>
+          </div>
+        </div>
+
+        {/* Overview Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Users className="w-4 h-4" />
+                Започнали
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {statsData?.overview.totalSessions || 0}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                за {selectedDays} дни
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <CheckCircle className="w-4 h-4 text-green-500" />
+                Завършили
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600">
+                {statsData?.overview.completedSessions || 0}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {statsData?.overview.completionRate || 0}% completion
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <XCircle className="w-4 h-4 text-red-500" />
+                Отпаднали
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-red-600">
+                {statsData?.overview.abandonedSessions || 0}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {100 - (statsData?.overview.completionRate || 0)}% drop-off
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-500" />
+                Напуснали
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-amber-600">
+                {statsData?.overview.abandonmentEvents || 0}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                abandon events
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <Target className="w-4 h-4" />
+                Най-лош Step
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-xl font-bold">
+                {dropOffChartData.length > 0
+                  ? STEP_LABELS[dropOffChartData[0].step] || `Step ${dropOffChartData[0].step}`
+                  : "N/A"}
+              </div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {dropOffChartData.length > 0 ? `${dropOffChartData[0].count} отпаднали` : ""}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="flex gap-2 border-b pb-2">
+          <Button variant={activeTab === "stats" ? "default" : "ghost"} onClick={() => setActiveTab("stats")}>
+            <Activity className="w-4 h-4 mr-2" />
+            Статистики
+          </Button>
+          <Button variant={activeTab === "funnel" ? "default" : "ghost"} onClick={() => setActiveTab("funnel")}>
+            <TrendingDown className="w-4 h-4 mr-2" />
+            Funnel
+          </Button>
+          <Button variant={activeTab === "dropoffs" ? "default" : "ghost"} onClick={() => setActiveTab("dropoffs")}>
+            <AlertTriangle className="w-4 h-4 mr-2" />
+            Drop-offs
+          </Button>
+          <Button variant={activeTab === "sessions" ? "default" : "ghost"} onClick={() => setActiveTab("sessions")}>
+            <Users className="w-4 h-4 mr-2" />
+            Sessions
+          </Button>
+        </div>
+
+        {/* ============ STATS TAB ============ */}
+        {activeTab === "stats" && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Device Breakdown */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Smartphone className="w-5 h-5" />
+                  Device Breakdown
+                </CardTitle>
+                <CardDescription>Разпределение по устройство</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {deviceChartData.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">Няма данни</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={250}>
+                    <PieChart>
+                      <Pie
+                        data={deviceChartData}
+                        cx="50%"
+                        cy="50%"
+                        labelLine={false}
+                        label={({ name, value }) => `${name}: ${value}`}
+                        outerRadius={80}
+                        dataKey="value"
+                      >
+                        {deviceChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </PieChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Traffic Sources */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="w-5 h-5" />
+                  Traffic Sources
+                </CardTitle>
+                <CardDescription>Откъде идва трафикът</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {!statsData?.trafficSources || statsData.trafficSources.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">Няма данни</p>
+                ) : (
+                  <div className="space-y-3">
+                    {statsData.trafficSources.map((source, i) => (
+                      <div key={i} className="flex items-center justify-between">
+                        <span className="text-sm truncate max-w-[200px]" title={source.source}>
+                          {source.source === "direct" ? "Direct / Organic" : source.source}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <div className="w-24 h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-primary rounded-full"
+                              style={{
+                                width: `${Math.round((source.count / (statsData.overview.totalSessions || 1)) * 100)}%`,
+                              }}
+                            />
+                          </div>
+                          <span className="text-sm font-medium w-8 text-right">{source.count}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Average Time Per Step */}
+            <Card className="lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Timer className="w-5 h-5" />
+                  Средно време на стъпка
+                </CardTitle>
+                <CardDescription>Колко време средно отнема всяка стъпка (в секунди)</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {avgTimeChartData.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">Няма данни</p>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={avgTimeChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
+                      <YAxis />
+                      <Tooltip formatter={(value: number) => [`${value}s`, "Avg Time"]} />
+                      <Bar dataKey="time" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* ============ FUNNEL TAB ============ */}
+        {activeTab === "funnel" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Quiz Funnel</CardTitle>
+              <CardDescription>Брой потребители на всяка стъпка</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {funnelChartData.length === 0 ? (
+                <div className="text-center py-12">
+                  <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Няма данни за този период</p>
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={500}>
+                  <BarChart data={funnelChartData} layout="vertical">
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis type="number" />
+                    <YAxis dataKey="name" type="category" width={120} tick={{ fontSize: 11 }} />
+                    <Tooltip formatter={(value: number) => [`${value} sessions`, "Users"]} />
+                    <Bar dataKey="sessions" fill="#8b5cf6" radius={[0, 4, 4, 0]}>
+                      {funnelChartData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ============ DROPOFFS TAB ============ */}
+        {activeTab === "dropoffs" && (
+          <>
+            <Card>
+              <CardHeader>
+                <CardTitle>Top Drop-off Points</CardTitle>
+                <CardDescription>Стъпките с най-много отпаднали потребители</CardDescription>
+              </CardHeader>
+              <CardContent>
+                {dropOffChartData.length === 0 ? (
+                  <div className="text-center py-12">
+                    <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+                    <p className="text-muted-foreground">Няма отпаднали потребители</p>
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart data={dropOffChartData}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="name" tick={{ fontSize: 11 }} angle={-45} textAnchor="end" height={80} />
+                      <YAxis />
+                      <Tooltip formatter={(value: number) => [`${value} users`, "Drop-offs"]} />
+                      <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                        {dropOffChartData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.fill} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Drop-off Детайли</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {dropOffData?.dropOffs && dropOffData.dropOffs.length > 0 ? (
+                  <div className="rounded-md border overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Step</TableHead>
+                          <TableHead>Описание</TableHead>
+                          <TableHead>Отпаднали</TableHead>
+                          <TableHead>%</TableHead>
+                          <TableHead>Severity</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {dropOffData.dropOffs.map((d: DropOff) => (
+                          <TableRow key={d.step}>
+                            <TableCell className="font-mono">#{d.step}</TableCell>
+                            <TableCell className="font-medium">{STEP_LABELS[d.step] || `Step ${d.step}`}</TableCell>
+                            <TableCell><span className="font-bold">{d.count}</span></TableCell>
+                            <TableCell>{d.percentage}%</TableCell>
+                            <TableCell>
+                              <Badge
+                                variant="outline"
+                                className={
+                                  d.percentage > 20 ? "border-red-500 text-red-500" :
+                                  d.percentage > 10 ? "border-amber-500 text-amber-500" :
+                                  "border-green-500 text-green-500"
+                                }
+                              >
+                                {d.percentage > 20 ? "Critical" : d.percentage > 10 ? "Warning" : "OK"}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <p className="text-center text-muted-foreground py-8">Няма drop-off данни</p>
+                )}
+              </CardContent>
+            </Card>
+          </>
+        )}
+
+        {/* ============ SESSIONS TAB ============ */}
+        {activeTab === "sessions" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Sessions ({sessionsData?.totalSessions || 0})</CardTitle>
+              <CardDescription>Кликни върху session за детайли</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {sessionsData?.sessions && sessionsData.sessions.length > 0 ? (
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Session</TableHead>
+                        <TableHead>Категория</TableHead>
+                        <TableHead>Device</TableHead>
+                        <TableHead>Source</TableHead>
+                        <TableHead>Last Step</TableHead>
+                        <TableHead>Time</TableHead>
+                        <TableHead>Back</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                        <TableHead></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {sessionsData.sessions.map((session: Session) => (
+                        <TableRow key={session.session_id} className="cursor-pointer hover:bg-muted/50">
+                          <TableCell className="font-mono text-xs">
+                            {session.session_id.substring(0, 16)}...
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {getCategoryIcon(session.category)}
+                              {getCategoryBadge(session.category)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              {getDeviceIcon(session.device)}
+                              <span className="text-xs">{session.device || "?"}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-xs">{session.utm_source || "direct"}</span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              <span className="font-bold">#{session.last_step}</span>
+                              <span className="text-xs text-muted-foreground">
+                                {STEP_LABELS[session.last_step]?.substring(0, 8) || ""}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1 text-xs">
+                              <Clock className="w-3 h-3" />
+                              {formatTime(session.total_time)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {session.back_clicks > 0 && (
+                              <div className="flex items-center gap-1">
+                                <ArrowLeft className="w-3 h-3" />
+                                <span className="text-xs">{session.back_clicks}</span>
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {session.completed ? (
+                              <Badge className="bg-green-500 text-xs">Done</Badge>
+                            ) : session.abandoned ? (
+                              <Badge variant="destructive" className="text-xs">Left</Badge>
+                            ) : (
+                              <Badge variant="outline" className="text-xs">Drop</Badge>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {formatDate(session.started_at)}
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => fetchSessionDetail(session.session_id)}
+                              disabled={loadingSession}
+                            >
+                              <Eye className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Няма sessions за този период</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Session Detail Modal */}
+        <Dialog open={sessionModalOpen} onOpenChange={setSessionModalOpen}>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Activity className="w-5 h-5" />
+                Session Timeline
+              </DialogTitle>
+              <DialogDescription>
+                {selectedSession?.session_id}
+              </DialogDescription>
+            </DialogHeader>
+
+            {selectedSession && (
+              <div className="space-y-6">
+                {/* Progress Bar - Visual Step Progress */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-muted-foreground">Прогрес</span>
+                    <span className="font-medium">
+                      {selectedSession.stats.maxStep} / 24 стъпки ({Math.round((selectedSession.stats.maxStep / 24) * 100)}%)
+                    </span>
+                  </div>
+                  <div className="h-3 bg-muted rounded-full overflow-hidden">
+                    <div
+                      className={`h-full rounded-full transition-all ${
+                        selectedSession.stats.completed ? "bg-green-500" :
+                        selectedSession.stats.abandoned ? "bg-red-500" :
+                        "bg-amber-500"
+                      }`}
+                      style={{ width: `${Math.round((selectedSession.stats.maxStep / 24) * 100)}%` }}
+                    />
+                  </div>
+                  {/* Mini step indicators */}
+                  <div className="flex gap-0.5">
+                    {Array.from({ length: 25 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={`h-1.5 flex-1 rounded-sm ${
+                          i <= selectedSession.stats.maxStep
+                            ? selectedSession.stats.completed ? "bg-green-400" : "bg-primary"
+                            : "bg-muted"
+                        }`}
+                        title={STEP_LABELS[i] || `Step ${i}`}
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Session Info Cards */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground mb-1">Категория</p>
+                    {getCategoryBadge(selectedSession.category)}
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground mb-1">Device</p>
+                    <div className="flex items-center gap-1 font-medium">
+                      {getDeviceIcon(selectedSession.deviceInfo.device)}
+                      <span className="capitalize">{selectedSession.deviceInfo.device || "?"}</span>
+                    </div>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground mb-1">Време</p>
+                    <p className="font-bold text-lg">{formatTime(selectedSession.stats.totalTime)}</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground mb-1">Назад</p>
+                    <p className="font-bold text-lg">{selectedSession.stats.backClicks}x</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3">
+                    <p className="text-xs text-muted-foreground mb-1">Статус</p>
+                    {selectedSession.stats.completed ? (
+                      <Badge className="bg-green-500">Завършен</Badge>
+                    ) : selectedSession.stats.abandoned ? (
+                      <Badge variant="destructive">Напуснал</Badge>
+                    ) : (
+                      <Badge variant="outline" className="border-amber-500 text-amber-600">Отпаднал</Badge>
+                    )}
+                  </div>
+                </div>
+
+                {/* Traffic Source */}
+                {(selectedSession.deviceInfo.utm_source || selectedSession.deviceInfo.referrer) && (
+                  <div className="bg-blue-50 dark:bg-blue-950 rounded-lg p-3 border border-blue-200 dark:border-blue-800">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Globe className="w-4 h-4 text-blue-500" />
+                      <p className="text-xs font-medium text-blue-600 dark:text-blue-400">Traffic Source</p>
+                    </div>
+                    <div className="flex flex-wrap gap-3 text-sm">
+                      {selectedSession.deviceInfo.utm_source && (
+                        <Badge variant="secondary">utm_source: {selectedSession.deviceInfo.utm_source}</Badge>
+                      )}
+                      {selectedSession.deviceInfo.utm_medium && (
+                        <Badge variant="secondary">utm_medium: {selectedSession.deviceInfo.utm_medium}</Badge>
+                      )}
+                      {selectedSession.deviceInfo.utm_campaign && (
+                        <Badge variant="secondary">utm_campaign: {selectedSession.deviceInfo.utm_campaign}</Badge>
+                      )}
+                      {selectedSession.deviceInfo.referrer && (
+                        <span className="text-xs text-muted-foreground truncate max-w-[300px]">
+                          Referrer: {selectedSession.deviceInfo.referrer}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {/* Timeline - Grouped by Step */}
+                <div>
+                  <h4 className="font-medium mb-4 flex items-center gap-2">
+                    <Clock className="w-4 h-4" />
+                    Timeline ({selectedSession.stats.totalEvents} събития)
+                  </h4>
+
+                  <div className="relative max-h-[400px] overflow-y-auto pr-2">
+                    {/* Group events by step */}
+                    {(() => {
+                      const groupedByStep: Record<number, typeof selectedSession.timeline> = {};
+                      selectedSession.timeline.forEach(event => {
+                        if (!groupedByStep[event.step]) {
+                          groupedByStep[event.step] = [];
+                        }
+                        groupedByStep[event.step].push(event);
+                      });
+
+                      const steps = Object.keys(groupedByStep).map(Number).sort((a, b) => a - b);
+
+                      return (
+                        <div className="space-y-4">
+                          {steps.map((stepNum, stepIndex) => {
+                            const stepEvents = groupedByStep[stepNum];
+                            const enterEvent = stepEvents.find(e => e.event_type === "step_entered");
+                            const exitEvent = stepEvents.find(e => e.event_type === "step_exited");
+                            const answerEvent = stepEvents.find(e => e.event_type === "answer_selected");
+                            const backEvent = stepEvents.find(e => e.event_type === "back_clicked");
+                            const abandonEvent = stepEvents.find(e => e.event_type === "quiz_abandoned");
+                            const isLastStep = stepIndex === steps.length - 1;
+
+                            return (
+                              <div key={stepNum} className="relative">
+                                {/* Vertical line connecting steps */}
+                                {!isLastStep && (
+                                  <div className="absolute left-[19px] top-10 bottom-0 w-0.5 bg-border" />
+                                )}
+
+                                {/* Step header */}
+                                <div className="flex items-start gap-3">
+                                  {/* Step number circle */}
+                                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 ${
+                                    abandonEvent ? "bg-red-500 text-white" :
+                                    answerEvent ? "bg-green-500 text-white" :
+                                    exitEvent ? "bg-primary text-primary-foreground" :
+                                    "bg-muted text-muted-foreground"
+                                  }`}>
+                                    {stepNum}
+                                  </div>
+
+                                  {/* Step content */}
+                                  <div className="flex-1 pb-4">
+                                    {/* Step title & time */}
+                                    <div className="flex items-center justify-between mb-2">
+                                      <div>
+                                        <span className="font-semibold text-base">
+                                          {STEP_LABELS[stepNum] || `Step ${stepNum}`}
+                                        </span>
+                                        {exitEvent?.time_spent && (
+                                          <Badge variant="outline" className="ml-2 text-xs">
+                                            <Timer className="w-3 h-3 mr-1" />
+                                            {exitEvent.time_spent}s
+                                          </Badge>
+                                        )}
+                                      </div>
+                                      {enterEvent && (
+                                        <span className="text-xs text-muted-foreground">
+                                          {new Date(enterEvent.timestamp).toLocaleTimeString("bg-BG", {
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            second: "2-digit",
+                                          })}
+                                        </span>
+                                      )}
+                                    </div>
+
+                                    {/* Events for this step */}
+                                    <div className="space-y-1.5">
+                                      {/* Answer selected - most important */}
+                                      {answerEvent && (
+                                        <div className="flex items-center gap-2 bg-green-50 dark:bg-green-950 rounded-md px-3 py-2 border border-green-200 dark:border-green-800">
+                                          <MousePointer className="w-4 h-4 text-green-600" />
+                                          <span className="text-sm font-medium text-green-700 dark:text-green-300">
+                                            Избра: <span className="font-bold">{answerEvent.answer}</span>
+                                          </span>
+                                        </div>
+                                      )}
+
+                                      {/* Back clicked */}
+                                      {backEvent && (
+                                        <div className="flex items-center gap-2 bg-amber-50 dark:bg-amber-950 rounded-md px-3 py-2 border border-amber-200 dark:border-amber-800">
+                                          <ArrowLeft className="w-4 h-4 text-amber-600" />
+                                          <span className="text-sm text-amber-700 dark:text-amber-300">
+                                            Натисна Назад
+                                          </span>
+                                        </div>
+                                      )}
+
+                                      {/* Page hidden events */}
+                                      {stepEvents.filter(e => e.event_type === "page_hidden").map((e, i) => (
+                                        <div key={`hidden-${i}`} className="flex items-center gap-2 bg-gray-50 dark:bg-gray-900 rounded-md px-3 py-1.5 border border-gray-200 dark:border-gray-700">
+                                          <Eye className="w-3 h-3 text-gray-500" />
+                                          <span className="text-xs text-gray-600 dark:text-gray-400">
+                                            Скри таба
+                                          </span>
+                                        </div>
+                                      ))}
+
+                                      {/* Abandoned */}
+                                      {abandonEvent && (
+                                        <div className="flex items-center gap-2 bg-red-50 dark:bg-red-950 rounded-md px-3 py-2 border border-red-200 dark:border-red-800">
+                                          <XCircle className="w-4 h-4 text-red-600" />
+                                          <span className="text-sm font-medium text-red-700 dark:text-red-300">
+                                            Напусна quiz-а тук
+                                          </span>
+                                        </div>
+                                      )}
+
+                                      {/* No answer on this step (just visited) */}
+                                      {!answerEvent && !abandonEvent && !backEvent && stepEvents.filter(e => e.event_type === "page_hidden").length === 0 && (
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                          <Activity className="w-3 h-3" />
+                                          <span>Премина без действие</span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                {/* Device Details (collapsed by default) */}
+                <details className="group">
+                  <summary className="cursor-pointer text-sm text-muted-foreground hover:text-foreground flex items-center gap-2">
+                    <Monitor className="w-4 h-4" />
+                    Технически детайли
+                    <span className="text-xs">(клик за повече)</span>
+                  </summary>
+                  <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-3 text-sm">
+                    <div>
+                      <p className="text-xs text-muted-foreground">Screen</p>
+                      <p>{selectedSession.deviceInfo.screen || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Language</p>
+                      <p>{selectedSession.deviceInfo.language || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Timezone</p>
+                      <p>{selectedSession.deviceInfo.timezone || "N/A"}</p>
+                    </div>
+                    <div>
+                      <p className="text-xs text-muted-foreground">Started</p>
+                      <p>{formatDate(selectedSession.started_at)}</p>
+                    </div>
+                  </div>
+                </details>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
+    </AdminLayout>
+  );
+}

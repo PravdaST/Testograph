@@ -45,6 +45,7 @@ import {
   Pill,
   MapPin,
   Phone,
+  CloudDownload,
 } from "lucide-react";
 
 interface Product {
@@ -99,6 +100,8 @@ export default function ShopifyOrdersPage() {
   const [orders, setOrders] = useState<ShopifyOrder[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [syncResult, setSyncResult] = useState<{ synced?: number; fixed?: number; namesFixed?: number } | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<ShopifyOrder | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -106,6 +109,50 @@ export default function ShopifyOrdersPage() {
   useEffect(() => {
     fetchOrders();
   }, [statusFilter]);
+
+  // Sync orders from Shopify (import new + fix status mismatches + fix customer names)
+  const syncWithShopify = async () => {
+    setIsSyncing(true);
+    setSyncResult(null);
+    try {
+      // First sync missing orders
+      const syncResponse = await fetch('/api/admin/shopify-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sync-missing' }),
+      });
+      const syncData = await syncResponse.json();
+
+      // Then fix status mismatches (pending -> paid)
+      const fixResponse = await fetch('/api/admin/shopify-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'fix-status' }),
+      });
+      const fixData = await fixResponse.json();
+
+      // Also fix customer names that are null or "undefined"
+      const namesResponse = await fetch('/api/admin/shopify-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'fix-customer-names' }),
+      });
+      const namesData = await namesResponse.json();
+
+      setSyncResult({
+        synced: syncData.synced || 0,
+        fixed: fixData.fixed || 0,
+        namesFixed: namesData.fixed || 0,
+      });
+
+      // Refresh orders list
+      await fetchOrders();
+    } catch (error) {
+      console.error('Error syncing with Shopify:', error);
+    } finally {
+      setIsSyncing(false);
+    }
+  };
 
   const fetchOrders = async () => {
     setIsLoading(true);
@@ -205,12 +252,41 @@ export default function ShopifyOrdersPage() {
                 </Button>
               ))}
             </div>
-            <Button variant="outline" onClick={fetchOrders}>
+            <Button
+              variant="default"
+              onClick={syncWithShopify}
+              disabled={isSyncing}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isSyncing ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <CloudDownload className="w-4 h-4 mr-2" />
+              )}
+              {isSyncing ? 'Syncing...' : 'Sync with Shopify'}
+            </Button>
+            <Button variant="outline" onClick={fetchOrders} disabled={isSyncing}>
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
           </div>
         </div>
+
+        {/* Sync Result Message */}
+        {syncResult && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+            <CheckCircle className="w-5 h-5 text-green-600" />
+            <div>
+              <p className="font-medium text-green-800">Sync completed!</p>
+              <p className="text-sm text-green-700">
+                {syncResult.synced > 0 && `${syncResult.synced} new orders imported. `}
+                {syncResult.fixed > 0 && `${syncResult.fixed} orders updated to Paid. `}
+                {syncResult.namesFixed > 0 && `${syncResult.namesFixed} customer names fixed. `}
+                {syncResult.synced === 0 && syncResult.fixed === 0 && (syncResult.namesFixed || 0) === 0 && 'Everything is up to date.'}
+              </p>
+            </div>
+          </div>
+        )}
 
         {/* Summary Cards */}
         {summary && (
