@@ -858,11 +858,11 @@ export default function UsersPage() {
   };
 
   const handleSendQuizReminder = async () => {
-    if (!selectedUser?.email) return;
+    if (!selectedUser?.email || !adminId || !adminEmail) return;
 
     setSendingReminder(true);
     try {
-      const response = await fetch("/api/admin/email/send-smtp", {
+      const response = await fetch("/api/admin/communication/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -886,6 +886,9 @@ Quiz-ът отнема само 2-3 минути и е първата стъпк
 
 Поздрави,
 Екипът на Testograph`,
+          isBulk: false,
+          adminId,
+          adminEmail,
         }),
       });
 
