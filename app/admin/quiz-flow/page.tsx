@@ -185,6 +185,7 @@ const STEP_LABELS: Record<number, string> = {
   24: "Хранителни предпочитания",    // eng_dietary_preference - Имате ли ограничения?
   25: "[Transition] Резултати",      // eng_transition_results - Отлична работа!
   26: "Email Capture",               // Final step - email collection
+  27: "Оферта Избор",                // Results page - offer selection
 };
 
 // Human-readable answer labels for common option IDs
@@ -302,6 +303,11 @@ const ANSWER_LABELS: Record<string, string> = {
   diet_pescatarian: "Вегетарианец + риба",
   diet_vegetarian: "Вегетарианец",
   diet_vegan: "Веган",
+
+  // Offer selection (Results page)
+  testoup_3months: "3x TestoUP (90 дни)",
+  free_sample_7days: "Безплатна проба 7 дни",
+  login_app: "Вход в приложението",
 };
 
 // Helper function to get readable answer
@@ -319,6 +325,8 @@ const EVENT_TYPE_LABELS: Record<string, string> = {
   page_hidden: "Скри страницата",
   page_visible: "Върна се",
   quiz_completed: "Завърши Quiz",
+  results_viewed: "Видя резултатите",
+  offer_clicked: "Кликна оферта",
 };
 
 export default function QuizFlowDashboard() {
