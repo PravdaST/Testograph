@@ -34,6 +34,8 @@ interface UserData {
   // Payment status
   paymentStatus?: 'paid' | 'pending' | 'none';
   pendingOrderDate?: string;
+  // Reminder tracking
+  quizReminderSentAt?: string;
 }
 
 export async function GET(request: Request) {
@@ -58,6 +60,7 @@ export async function GET(request: Request) {
       chatSessionsRes,
       purchasesRes,
       pendingOrdersRes,
+      quizRemindersRes,
     ] = await Promise.all([
       // Quiz results (main user data)
       supabase
@@ -117,6 +120,14 @@ export async function GET(request: Request) {
         .from('pending_orders')
         .select('email, created_at, status')
         .eq('status', 'pending'),
+
+      // Quiz reminder emails sent
+      supabase
+        .from('email_logs')
+        .select('recipient_email, sent_at')
+        .ilike('subject', '%Quiz%напомняне%')
+        .eq('status', 'sent')
+        .order('sent_at', { ascending: false }),
     ]);
 
     // Check for errors
@@ -130,6 +141,7 @@ export async function GET(request: Request) {
     if (chatSessionsRes.error) console.error('Chat sessions error:', chatSessionsRes.error);
     if (purchasesRes.error) console.error('Purchases error:', purchasesRes.error);
     if (pendingOrdersRes.error) console.error('Pending orders error:', pendingOrdersRes.error);
+    if (quizRemindersRes.error) console.error('Quiz reminders error:', quizRemindersRes.error);
 
     const quizResults = quizResultsRes.data || [];
     const inventory = inventoryRes.data || [];
@@ -141,9 +153,18 @@ export async function GET(request: Request) {
     const chatSessions = chatSessionsRes.data || [];
     const purchases = purchasesRes.data || [];
     const pendingOrders = pendingOrdersRes.data || [];
+    const quizReminders = quizRemindersRes.data || [];
 
     // Create lookup maps for fast access
     const inventoryMap = new Map(inventory.map(i => [i.email, i.capsules_remaining]));
+
+    // Quiz reminders map (email -> most recent sent_at, since ordered desc)
+    const quizRemindersMap = new Map<string, string>();
+    quizReminders.forEach((reminder: any) => {
+      if (reminder.recipient_email && !quizRemindersMap.has(reminder.recipient_email)) {
+        quizRemindersMap.set(reminder.recipient_email, reminder.sent_at);
+      }
+    });
 
     // Create pending orders map (email -> earliest pending order date)
     const pendingOrdersMap = new Map<string, string>();
@@ -200,6 +221,7 @@ export async function GET(request: Request) {
         purchasesCount: 0,
         totalSpent: 0,
         hasAppAccess: true, // Has completed quiz = has app access
+        quizReminderSentAt: quizRemindersMap.get(quiz.email),
       });
     });
 
@@ -220,6 +242,7 @@ export async function GET(request: Request) {
         purchasesCount: 0,
         totalSpent: 0,
         hasAppAccess: false,
+        quizReminderSentAt: quizRemindersMap.get(inv.email),
       });
     });
 
@@ -261,6 +284,7 @@ export async function GET(request: Request) {
           totalSpent: Math.round(purchaseData.total * 100) / 100,
           latestPurchase: purchaseData.latest,
           hasAppAccess: false,
+          quizReminderSentAt: quizRemindersMap.get(email),
         });
       }
     });
@@ -277,6 +301,7 @@ export async function GET(request: Request) {
         hasAppAccess: false,
         paymentStatus: 'pending',
         pendingOrderDate: order.created_at,
+        quizReminderSentAt: quizRemindersMap.get(order.email),
       });
     });
 

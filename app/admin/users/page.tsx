@@ -102,6 +102,8 @@ interface User {
   // Payment status
   paymentStatus?: 'paid' | 'pending' | 'none';
   pendingOrderDate?: string;
+  // Reminder tracking
+  quizReminderSentAt?: string;
   // Admin fields
   banned?: boolean;
   name?: string;
@@ -499,6 +501,7 @@ export default function UsersPage() {
       "Sleep (7d)": user.sleepCount || 0,
       "TestoUP (7d)": user.testoupCount || 0,
       "Coach Messages": user.coachMessages || 0,
+      "Quiz Reminder Sent": user.quizReminderSentAt ? formatDate(user.quizReminderSentAt) : "Not sent",
       "Has App Access": user.hasAppAccess ? "Yes" : "No",
       Banned: user.banned ? "Yes" : "No",
     }));
@@ -862,30 +865,86 @@ export default function UsersPage() {
 
     setSendingReminder(true);
     try {
+      const firstName = selectedUser.firstName || '';
+      const quizUrl = 'https://app.testograph.eu/quiz';
+
+      const htmlContent = `
+        <div style="font-family: 'Segoe UI', Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+          <!-- Header -->
+          <div style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); padding: 40px 30px; text-align: center; border-radius: 8px 8px 0 0;">
+            <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 700;">Testograph</h1>
+            <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 14px;">Персонализирана програма за тестостерон</p>
+          </div>
+
+          <!-- Content -->
+          <div style="padding: 40px 30px; background-color: #ffffff;">
+            <h2 style="color: #1f2937; margin: 0 0 20px 0; font-size: 22px;">Здравей${firstName ? ` ${firstName}` : ''},</h2>
+
+            <p style="color: #4b5563; line-height: 1.7; font-size: 16px; margin: 0 0 20px 0;">
+              Забелязахме, че все още не си завършил своя <strong>Quiz</strong> в Testograph.
+            </p>
+
+            <p style="color: #4b5563; line-height: 1.7; font-size: 16px; margin: 0 0 25px 0;">
+              Quiz-ът отнема само <strong>2-3 минути</strong> и е първата стъпка към персонализираната ти програма за оптимизация на тестостерона.
+            </p>
+
+            <!-- Benefits Box -->
+            <div style="background-color: #f3f4f6; border-radius: 8px; padding: 25px; margin: 0 0 30px 0;">
+              <p style="color: #374151; font-weight: 600; margin: 0 0 15px 0; font-size: 16px;">След като го завършиш, ще получиш:</p>
+              <table style="width: 100%;" cellpadding="0" cellspacing="0">
+                <tr>
+                  <td style="padding: 8px 0; color: #4b5563; font-size: 15px;">
+                    <span style="color: #7c3aed; margin-right: 10px;">&#10003;</span> Персонализиран план за хранене
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #4b5563; font-size: 15px;">
+                    <span style="color: #7c3aed; margin-right: 10px;">&#10003;</span> Индивидуална тренировъчна програма
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #4b5563; font-size: 15px;">
+                    <span style="color: #7c3aed; margin-right: 10px;">&#10003;</span> Препоръки за сън и възстановяване
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 8px 0; color: #4b5563; font-size: 15px;">
+                    <span style="color: #7c3aed; margin-right: 10px;">&#10003;</span> Достъп до AI Coach асистента
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <!-- CTA Button -->
+            <div style="text-align: center; margin: 35px 0;">
+              <a href="${quizUrl}" style="display: inline-block; background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); color: white; text-decoration: none; padding: 16px 40px; border-radius: 8px; font-size: 18px; font-weight: 600; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">
+                Започни Quiz-а сега
+              </a>
+            </div>
+
+            <p style="color: #6b7280; line-height: 1.6; font-size: 14px; margin: 30px 0 0 0; text-align: center;">
+              Ако имаш въпроси, просто отговори на този имейл.
+            </p>
+          </div>
+
+          <!-- Footer -->
+          <div style="padding: 25px 30px; text-align: center; background-color: #f9fafb; border-top: 1px solid #e5e7eb; border-radius: 0 0 8px 8px;">
+            <p style="color: #9ca3af; font-size: 13px; margin: 0;">Поздрави,<br><strong style="color: #6b7280;">Екипът на Testograph</strong></p>
+            <p style="color: #9ca3af; font-size: 12px; margin: 15px 0 0 0;">
+              <a href="https://testograph.eu" style="color: #7c3aed; text-decoration: none;">testograph.eu</a>
+            </p>
+          </div>
+        </div>
+      `;
+
       const response = await fetch("/api/admin/communication/send-email", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           to: selectedUser.email,
-          subject: "Напомняне: Завърши своя Quiz в Testograph",
-          message: `Здравей${selectedUser.firstName ? ` ${selectedUser.firstName}` : ''},
-
-Забелязахме, че все още не си завършил своя Quiz в Testograph.
-
-Quiz-ът отнема само 2-3 минути и е първата стъпка към персонализираната ти програма за оптимизация на тестостерона.
-
-След като го завършиш, ще получиш:
-- Персонализиран план за хранене
-- Индивидуална тренировъчна програма
-- Препоръки за сън и възстановяване
-- Достъп до AI Coach асистента
-
-Започни сега: https://app.testograph.eu/quiz
-
-Ако имаш въпроси, просто отговори на този имейл.
-
-Поздрави,
-Екипът на Testograph`,
+          subject: "Завърши своя Quiz в Testograph",
+          message: "Quiz напомняне",
+          html: htmlContent,
           isBulk: false,
           adminId,
           adminEmail,
@@ -895,6 +954,15 @@ Quiz-ът отнема само 2-3 минути и е първата стъпк
       const data = await response.json();
 
       if (response.ok) {
+        const now = new Date().toISOString();
+        // Update local state to reflect the sent reminder
+        setUsers(prev => prev.map(u =>
+          u.email === selectedUser.email
+            ? { ...u, quizReminderSentAt: now }
+            : u
+        ));
+        setSelectedUser(prev => prev ? { ...prev, quizReminderSentAt: now } : prev);
+
         toast({
           title: "Успех",
           description: `Напомнянето е изпратено до ${selectedUser.email}`,
@@ -1168,6 +1236,7 @@ Quiz-ът отнема само 2-3 минути и е първата стъпк
                       <th className="text-center p-2 font-medium" title="Сън (7 дни)"><Moon className="w-4 h-4 mx-auto text-muted-foreground" /></th>
                       <th className="text-center p-2 font-medium" title="TestoUP (7 дни)"><Pill className="w-4 h-4 mx-auto text-muted-foreground" /></th>
                       <th className="text-center p-2 font-medium" title="AI Coach съобщения"><Bot className="w-4 h-4 mx-auto text-muted-foreground" /></th>
+                      <th className="text-center p-2 font-medium" title="Quiz напомняне"><Mail className="w-4 h-4 mx-auto text-muted-foreground" /></th>
                       <th className="text-center p-2 font-medium">Статус</th>
                     </tr>
                   </thead>
@@ -1319,6 +1388,17 @@ Quiz-ът отнема само 2-3 минути и е първата стъпк
                             <Badge variant="secondary" className="font-mono text-xs">
                               {user.coachMessages}
                             </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+
+                        {/* Quiz Reminder Sent */}
+                        <td className="p-2 text-center">
+                          {user.quizReminderSentAt ? (
+                            <span className="text-xs text-green-600 font-medium" title={`Изпратено на ${new Date(user.quizReminderSentAt).toLocaleString('bg-BG')}`}>
+                              {new Date(user.quizReminderSentAt).toLocaleDateString("bg-BG", { day: "2-digit", month: "short" })}
+                            </span>
                           ) : (
                             <span className="text-muted-foreground">-</span>
                           )}

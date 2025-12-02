@@ -16,6 +16,7 @@ export async function POST(request: Request) {
       to,          // string or string[] for bulk email
       subject,
       message,
+      html,        // optional - custom HTML content (bypasses auto-formatting)
       isBulk,      // boolean - true for bulk emails
       adminId,
       adminEmail,
@@ -64,17 +65,19 @@ export async function POST(request: Request) {
     // Send emails
     const results = [];
     const errors = [];
-    const emailHtml = `
+
+    // Use custom HTML if provided, otherwise auto-format the message
+    const emailHtml = html || `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <div style="background-color: #7c3aed; padding: 20px; text-align: center;">
           <h1 style="color: white; margin: 0;">Testograph</h1>
         </div>
         <div style="padding: 30px; background-color: #f9fafb;">
-          ${message.split('\n').map(line => `<p style="color: #374151; line-height: 1.6;">${line}</p>`).join('')}
+          ${message.split('\n').map((line: string) => `<p style="color: #374151; line-height: 1.6;">${line}</p>`).join('')}
         </div>
         <div style="padding: 20px; text-align: center; background-color: #e5e7eb; font-size: 12px; color: #6b7280;">
           <p>Това съобщение е изпратено от Testograph Admin Panel</p>
-          <p>За въпроси: <a href="mailto:support@testograph.eu" style="color: #7c3aed;">support@testograph.eu</a></p>
+          <p>За въпроси: <a href="mailto:contact@testograph.eu" style="color: #7c3aed;">contact@testograph.eu</a></p>
         </div>
       </div>
     `;
