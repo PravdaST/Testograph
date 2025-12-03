@@ -954,6 +954,7 @@ export default function QuizFlowDashboard() {
             </CardHeader>
             <CardContent>
               {sessionsData?.sessions && sessionsData.sessions.length > 0 ? (
+                <>
                 <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
@@ -1105,6 +1106,7 @@ export default function QuizFlowDashboard() {
                     </div>
                   </div>
                 )}
+                </>
               ) : (
                 <div className="text-center py-12">
                   <Activity className="w-12 h-12 text-muted-foreground mx-auto mb-4" />

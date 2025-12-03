@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import Link from 'next/link';
 import { ArrowLeft, Clock, Calendar, Check, Share2, Facebook, Twitter, Linkedin, MessageCircle, List, Eye, FileText, ArrowRight, Mail, ChevronDown } from 'lucide-react';
 import Image from 'next/image';
-import { insertImagesIntoContent, linkProductMentions, insertInternalLinks } from '@/lib/utils/insert-images';
+import { linkProductMentions, insertInternalLinks } from '@/lib/utils/insert-images';
 
 interface BlogPost {
   id: string;
@@ -743,10 +743,7 @@ export default function LearnGuideClient({ guide, category, slug }: LearnGuideCl
                   dangerouslySetInnerHTML={{
                     __html: linkProductMentions(
                       insertInternalLinks({
-                        content: insertImagesIntoContent({
-                          content: guide.content,
-                          imageUrls: guide.article_images || []
-                        }),
+                        content: guide.content, // Images are already embedded during article creation
                         relatedGuides: allGuides,
                         currentSlug: slug,
                         maxLinks: 5 // Link up to 5 related articles per page
