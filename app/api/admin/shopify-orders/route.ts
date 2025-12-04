@@ -13,16 +13,23 @@ const supabase = createClient(
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
-    const limit = parseInt(searchParams.get('limit') || '50');
-    const offset = parseInt(searchParams.get('offset') || '0');
+    const limit = parseInt(searchParams.get('limit') || '20');
+    const page = parseInt(searchParams.get('page') || '1');
+    const offset = (page - 1) * limit;
     const status = searchParams.get('status'); // pending, paid, all
+    const search = searchParams.get('search')?.trim(); // search by email, name, order number
 
     let query = supabase
       .from('pending_orders')
       .select('*', { count: 'exact' })
-      .order('created_at', { ascending: false })
-      .range(offset, offset + limit - 1);
+      .order('created_at', { ascending: false });
 
+    // Apply search filter
+    if (search && search.length > 0) {
+      query = query.or(`email.ilike.%${search}%,customer_name.ilike.%${search}%,order_number.ilike.%${search}%`);
+    }
+
+    // Apply status filter
     if (status && status !== 'all') {
       if (status === 'paid') {
         query = query.not('paid_at', 'is', null);
@@ -30,6 +37,9 @@ export async function GET(request: Request) {
         query = query.is('paid_at', null);
       }
     }
+
+    // Apply pagination
+    query = query.range(offset, offset + limit - 1);
 
     const { data: orders, error, count } = await query;
 
@@ -78,6 +88,12 @@ export async function GET(request: Request) {
       orders: transformedOrders,
       count,
       summary,
+      pagination: {
+        page,
+        limit,
+        totalPages: Math.ceil((count || 0) / limit),
+        totalItems: count || 0,
+      },
     });
   } catch (error: any) {
     console.error('Error in shopify-orders API:', error);

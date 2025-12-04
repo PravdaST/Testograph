@@ -46,7 +46,13 @@ import {
   MapPin,
   Phone,
   CloudDownload,
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 interface Product {
   sku: string;
@@ -96,19 +102,33 @@ interface Summary {
   pendingRevenue: number;
 }
 
+interface Pagination {
+  page: number;
+  limit: number;
+  totalPages: number;
+  totalItems: number;
+}
+
 export default function ShopifyOrdersPage() {
   const [orders, setOrders] = useState<ShopifyOrder[]>([]);
   const [summary, setSummary] = useState<Summary | null>(null);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<{ synced?: number; fixed?: number; namesFixed?: number } | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<ShopifyOrder | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1); // Reset to page 1 when filters change
+  }, [statusFilter, searchQuery]);
 
   useEffect(() => {
     fetchOrders();
-  }, [statusFilter]);
+  }, [statusFilter, currentPage, searchQuery]);
 
   // Sync orders from Shopify (import new + fix status mismatches + fix customer names)
   const syncWithShopify = async () => {
@@ -157,12 +177,18 @@ export default function ShopifyOrdersPage() {
   const fetchOrders = async () => {
     setIsLoading(true);
     try {
-      const statusParam = statusFilter !== "all" ? `&status=${statusFilter}` : "";
-      const response = await fetch(`/api/admin/shopify-orders?limit=100${statusParam}`);
+      const params = new URLSearchParams();
+      params.set('page', currentPage.toString());
+      params.set('limit', '20');
+      if (statusFilter !== "all") params.set('status', statusFilter);
+      if (searchQuery.trim()) params.set('search', searchQuery.trim());
+
+      const response = await fetch(`/api/admin/shopify-orders?${params.toString()}`);
       if (response.ok) {
         const data = await response.json();
         setOrders(data.orders || []);
         setSummary(data.summary || null);
+        setPagination(data.pagination || null);
       }
     } catch (error) {
       console.error("Error fetching orders:", error);
@@ -170,6 +196,16 @@ export default function ShopifyOrdersPage() {
       setIsLoading(false);
     }
   };
+
+  // Debounced search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery !== "") {
+        setCurrentPage(1);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleString("bg-BG", {
@@ -236,10 +272,22 @@ export default function ShopifyOrdersPage() {
               Shopify Orders
             </h1>
             <p className="text-muted-foreground mt-1">
-              {summary?.total || 0} orders from Shopify
+              {pagination?.totalItems || summary?.total || 0} orders from Shopify
+              {searchQuery && ` (searching: "${searchQuery}")`}
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {/* Search Input */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Search email, name, order #..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 w-64"
+              />
+            </div>
+            {/* Status Filter */}
             <div className="flex gap-1">
               {(["all", "pending", "paid"] as const).map((status) => (
                 <Button
@@ -265,7 +313,7 @@ export default function ShopifyOrdersPage() {
               )}
               {isSyncing ? 'Syncing...' : 'Sync with Shopify'}
             </Button>
-            <Button variant="outline" onClick={fetchOrders} disabled={isSyncing}>
+            <Button variant="outline" onClick={() => fetchOrders()} disabled={isSyncing}>
               <RefreshCw className="w-4 h-4 mr-2" />
               Refresh
             </Button>
@@ -442,6 +490,53 @@ export default function ShopifyOrdersPage() {
                     ))}
                   </TableBody>
                 </Table>
+              </div>
+            )}
+
+            {/* Pagination Controls */}
+            {pagination && pagination.totalPages > 1 && (
+              <div className="flex items-center justify-between pt-4 border-t">
+                <div className="text-sm text-muted-foreground">
+                  Showing {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.totalItems)} of {pagination.totalItems} orders
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronsLeft className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <div className="flex items-center gap-1 px-2">
+                    <span className="text-sm font-medium">Page {pagination.page}</span>
+                    <span className="text-sm text-muted-foreground">of {pagination.totalPages}</span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(p => Math.min(pagination.totalPages, p + 1))}
+                    disabled={currentPage === pagination.totalPages}
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCurrentPage(pagination.totalPages)}
+                    disabled={currentPage === pagination.totalPages}
+                  >
+                    <ChevronsRight className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
             )}
           </CardContent>
