@@ -993,7 +993,7 @@ export default function QuizFlowDashboard() {
                                 </span>
                               </div>
                             ) : (
-                              <span className="text-xs text-muted-foreground">-</span>
+                              <span className="text-xs text-red-400">няма поръчка</span>
                             )}
                           </TableCell>
                           <TableCell>
@@ -1421,7 +1421,7 @@ export default function QuizFlowDashboard() {
                                 )}
                               </div>
                             ) : (
-                              <span className="text-xs text-muted-foreground">-</span>
+                              <span className="text-xs text-red-400">няма поръчка</span>
                             )}
                           </TableCell>
                           <TableCell>
