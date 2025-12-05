@@ -89,8 +89,15 @@ interface DropOff {
 
 interface Session {
   session_id: string;
+  email: string | null;
+  first_name: string | null;
   category: string;
+  total_score: number;
+  determined_level: string;
+  workout_location: string | null;
   started_at: string;
+  // Tracking data
+  has_tracking: boolean;
   last_step: number;
   total_time: number;
   completed: boolean;
@@ -98,8 +105,13 @@ interface Session {
   device: string | null;
   utm_source: string | null;
   back_clicks: number;
-  email: string | null;
   offer_selected: string | null;
+  // Order data
+  order: {
+    status: string;
+    total_price: number;
+    order_number: string;
+  } | null;
 }
 
 interface StatsData {
@@ -422,7 +434,7 @@ export default function QuizFlowDashboard() {
         fetch(`${baseUrl}/api/admin/quiz-flow?view=stats&days=${selectedDays}${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=funnel&days=${selectedDays}${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=dropoffs&days=${selectedDays}${categoryParam}`),
-        fetch(`${baseUrl}/api/admin/quiz-flow?view=sessions&days=${selectedDays}${categoryParam}&limit=${sessionsPageSize}&offset=0`),
+        fetch(`${baseUrl}/api/admin/quiz-flow?view=sessions&days=0${categoryParam}&limit=${sessionsPageSize}&offset=0`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=completions&days=0${categoryParam}&limit=${completionsPageSize}&offset=0`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=overview${categoryParam}`),
       ]);
@@ -455,7 +467,7 @@ export default function QuizFlowDashboard() {
       const offset = (page - 1) * sessionsPageSize;
 
       const res = await fetch(
-        `${baseUrl}/api/admin/quiz-flow?view=sessions&days=${selectedDays}${categoryParam}&limit=${sessionsPageSize}&offset=${offset}`
+        `${baseUrl}/api/admin/quiz-flow?view=sessions&days=0${categoryParam}&limit=${sessionsPageSize}&offset=${offset}`
       );
 
       if (res.ok) {
@@ -1301,46 +1313,72 @@ export default function QuizFlowDashboard() {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center justify-between">
-                <span>Sessions ({sessionsData?.totalSessions || 0})</span>
+                <span className="flex items-center gap-2">
+                  <Users className="w-5 h-5" />
+                  Всички Потребители ({sessionsData?.totalSessions || 0})
+                </span>
                 {sessionsData?.pagination && (
                   <span className="text-sm font-normal text-muted-foreground">
                     Показване {((sessionsPage - 1) * sessionsPageSize) + 1}-{Math.min(sessionsPage * sessionsPageSize, sessionsData.totalSessions)} от {sessionsData.totalSessions}
                   </span>
                 )}
               </CardTitle>
-              <CardDescription>Кликни върху session за детайли</CardDescription>
+              <CardDescription>
+                Всички quiz завършвания. Кликни иконата за пълен timeline (само за tracked сесии).
+              </CardDescription>
             </CardHeader>
             <CardContent>
+              {/* Stats Summary */}
+              {sessionsData?.stats && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-primary">{sessionsData.totalSessions}</p>
+                    <p className="text-xs text-muted-foreground">Общо потребители</p>
+                  </div>
+                  <div className="bg-purple-50 dark:bg-purple-950 rounded-lg p-3 text-center border border-purple-200 dark:border-purple-800">
+                    <p className="text-2xl font-bold text-purple-600">{sessionsData.stats.tracked}</p>
+                    <p className="text-xs text-purple-600">С пълен tracking</p>
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-950 rounded-lg p-3 text-center border border-green-200 dark:border-green-800">
+                    <p className="text-2xl font-bold text-green-600">{sessionsData.stats.paid}</p>
+                    <p className="text-xs text-green-600">Paid Orders</p>
+                  </div>
+                  <div className="bg-amber-50 dark:bg-amber-950 rounded-lg p-3 text-center border border-amber-200 dark:border-amber-800">
+                    <p className="text-2xl font-bold text-amber-600">{sessionsData.stats.withOrder - sessionsData.stats.paid}</p>
+                    <p className="text-xs text-amber-600">Pending Orders</p>
+                  </div>
+                </div>
+              )}
+
               {sessionsData?.sessions && sessionsData.sessions.length > 0 ? (
                 <>
                 <div className="rounded-md border overflow-x-auto">
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Session</TableHead>
                         <TableHead>Email</TableHead>
+                        <TableHead>Име</TableHead>
                         <TableHead>Категория</TableHead>
+                        <TableHead>Резултат</TableHead>
+                        <TableHead>Поръчка</TableHead>
                         <TableHead>Device</TableHead>
-                        <TableHead>Last Step</TableHead>
-                        <TableHead>Offer</TableHead>
-                        <TableHead>Time</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Date</TableHead>
+                        <TableHead>Tracking</TableHead>
+                        <TableHead>Дата</TableHead>
                         <TableHead></TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {sessionsData.sessions.map((session: Session) => (
-                        <TableRow key={session.session_id} className="cursor-pointer hover:bg-muted/50">
-                          <TableCell className="font-mono text-xs">
-                            {session.session_id.substring(0, 12)}...
-                          </TableCell>
+                        <TableRow key={session.session_id} className={`hover:bg-muted/50 ${session.has_tracking ? '' : 'opacity-70'}`}>
                           <TableCell>
                             {session.email ? (
-                              <span className="text-xs font-medium text-blue-600">{session.email}</span>
+                              <span className="text-sm font-medium text-blue-600">{session.email}</span>
                             ) : (
                               <span className="text-xs text-muted-foreground">-</span>
                             )}
+                          </TableCell>
+                          <TableCell>
+                            {session.first_name || <span className="text-muted-foreground">-</span>}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-2">
@@ -1349,55 +1387,84 @@ export default function QuizFlowDashboard() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-1">
-                              {getDeviceIcon(session.device)}
-                              <span className="text-xs">{session.device || "?"}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-1">
-                              <span className="font-bold">#{session.last_step}</span>
-                              <span className="text-xs text-muted-foreground">
-                                {STEP_LABELS[session.last_step]?.substring(0, 10) || ""}
-                              </span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {session.offer_selected ? (
-                              <Badge variant="secondary" className="text-xs">
-                                {getReadableAnswer(session.offer_selected)}
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold">{session.total_score}</span>
+                              <Badge
+                                variant="outline"
+                                className={
+                                  session.determined_level === 'optimal' ? 'border-green-500 text-green-600 text-xs' :
+                                  session.determined_level === 'good' ? 'border-blue-500 text-blue-600 text-xs' :
+                                  session.determined_level === 'moderate' ? 'border-amber-500 text-amber-600 text-xs' :
+                                  'border-red-500 text-red-600 text-xs'
+                                }
+                              >
+                                {session.determined_level === 'optimal' ? 'Опт' :
+                                 session.determined_level === 'good' ? 'Добро' :
+                                 session.determined_level === 'moderate' ? 'Умер' :
+                                 'Ниско'}
                               </Badge>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {session.order ? (
+                              <div className="flex items-center gap-1">
+                                {session.order.status === 'paid' ? (
+                                  <Badge className="bg-green-500 text-white text-xs">
+                                    <CreditCard className="w-3 h-3 mr-1" />
+                                    {session.order.total_price} лв
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="border-amber-500 text-amber-600 text-xs">
+                                    <Package className="w-3 h-3 mr-1" />
+                                    {session.order.total_price} лв
+                                  </Badge>
+                                )}
+                              </div>
                             ) : (
                               <span className="text-xs text-muted-foreground">-</span>
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="flex items-center gap-1 text-xs">
-                              <Clock className="w-3 h-3" />
-                              {formatTime(session.total_time)}
-                            </div>
+                            {session.has_tracking ? (
+                              <div className="flex items-center gap-1">
+                                {getDeviceIcon(session.device)}
+                                <span className="text-xs">{session.device || "?"}</span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
                           </TableCell>
                           <TableCell>
-                            {session.completed ? (
-                              <Badge className="bg-green-500 text-xs">Done</Badge>
-                            ) : session.abandoned ? (
-                              <Badge variant="destructive" className="text-xs">Left</Badge>
+                            {session.has_tracking ? (
+                              <Badge className="bg-purple-500 text-white text-xs">
+                                <Activity className="w-3 h-3 mr-1" />
+                                {formatTime(session.total_time)}
+                              </Badge>
                             ) : (
-                              <Badge variant="outline" className="text-xs">Drop</Badge>
+                              <Badge variant="outline" className="text-xs text-muted-foreground">
+                                Без данни
+                              </Badge>
                             )}
                           </TableCell>
                           <TableCell className="text-xs text-muted-foreground">
                             {formatDate(session.started_at)}
                           </TableCell>
                           <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => fetchSessionDetail(session.session_id)}
-                              disabled={loadingSession}
-                            >
-                              <Eye className="w-4 h-4" />
-                            </Button>
+                            {session.has_tracking ? (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => fetchSessionDetail(session.session_id)}
+                                disabled={loadingSession}
+                                title="Виж timeline"
+                              >
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            ) : (
+                              <Button variant="ghost" size="sm" disabled title="Няма tracking данни">
+                                <Eye className="w-4 h-4 opacity-30" />
+                              </Button>
+                            )}
                           </TableCell>
                         </TableRow>
                       ))}

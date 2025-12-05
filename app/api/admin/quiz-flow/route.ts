@@ -264,26 +264,57 @@ export async function GET(request: NextRequest) {
     }
 
     // ============ SESSIONS VIEW ============
+    // Now shows ALL quiz completions with tracking status indicator
     if (view === 'sessions') {
-      let query = supabase
-        .from('quiz_step_events')
-        .select('session_id, category, step_number, event_type, time_spent_seconds, metadata, answer_value, created_at')
-        .gte('created_at', startDateStr)
+      // First, get all quiz completions from quiz_results_v2
+      let completionsQuery = supabase
+        .from('quiz_results_v2')
+        .select('id, session_id, email, first_name, category, total_score, determined_level, workout_location, created_at')
         .order('created_at', { ascending: false })
 
       if (category !== 'all') {
-        query = query.eq('category', category)
+        completionsQuery = completionsQuery.eq('category', category)
       }
 
-      const { data: events, error } = await query.limit(5000)
+      if (days > 0) {
+        completionsQuery = completionsQuery.gte('created_at', startDateStr)
+      }
 
-      if (error) throw error
+      // Get total count
+      let countQuery = supabase
+        .from('quiz_results_v2')
+        .select('*', { count: 'exact', head: true })
 
-      // Group events by session
-      const sessionMap: Record<string, {
-        session_id: string
-        category: string
-        started_at: string
+      if (category !== 'all') {
+        countQuery = countQuery.eq('category', category)
+      }
+
+      if (days > 0) {
+        countQuery = countQuery.gte('created_at', startDateStr)
+      }
+
+      const { count: totalCount } = await countQuery
+
+      // Apply pagination
+      completionsQuery = completionsQuery.range(offset, offset + limit - 1)
+
+      const { data: completions, error: completionsError } = await completionsQuery
+
+      if (completionsError) throw completionsError
+
+      // Get all session_ids that have tracking data
+      const { data: trackedSessions } = await supabase
+        .from('quiz_step_events')
+        .select('session_id')
+
+      const trackedSessionIds = new Set(trackedSessions?.map(s => s.session_id) || [])
+
+      // For sessions with tracking, get their detailed data
+      const sessionsWithTracking = completions?.filter(c => c.session_id && trackedSessionIds.has(c.session_id)) || []
+      const trackingSessionIds = sessionsWithTracking.map(s => s.session_id).filter(Boolean)
+
+      // Fetch tracking details for these sessions
+      const trackingDataMap: Record<string, {
         last_step: number
         total_time: number
         completed: boolean
@@ -291,94 +322,139 @@ export async function GET(request: NextRequest) {
         device: string | null
         utm_source: string | null
         back_clicks: number
-        email: string | null
         offer_selected: string | null
       }> = {}
 
-      events?.forEach(event => {
-        if (!sessionMap[event.session_id]) {
-          sessionMap[event.session_id] = {
-            session_id: event.session_id,
-            category: event.category,
-            started_at: event.created_at,
-            last_step: 0,
-            total_time: 0,
-            completed: false,
-            abandoned: false,
-            device: null,
-            utm_source: null,
-            back_clicks: 0,
-            email: null,
-            offer_selected: null,
+      if (trackingSessionIds.length > 0) {
+        const { data: events } = await supabase
+          .from('quiz_step_events')
+          .select('session_id, step_number, event_type, time_spent_seconds, metadata, answer_value')
+          .in('session_id', trackingSessionIds)
+
+        events?.forEach(event => {
+          if (!trackingDataMap[event.session_id]) {
+            trackingDataMap[event.session_id] = {
+              last_step: 0,
+              total_time: 0,
+              completed: false,
+              abandoned: false,
+              device: null,
+              utm_source: null,
+              back_clicks: 0,
+              offer_selected: null,
+            }
           }
-        }
 
-        const session = sessionMap[event.session_id]
+          const session = trackingDataMap[event.session_id]
 
-        // Extract device info from first step
-        if (event.event_type === 'step_entered' && event.step_number === 0 && event.metadata) {
-          const meta = event.metadata as Record<string, any>
-          session.device = meta.device || null
-          session.utm_source = meta.utm_source || null
-        }
+          if (event.event_type === 'step_entered' && event.step_number === 0 && event.metadata) {
+            const meta = event.metadata as Record<string, any>
+            session.device = meta.device || null
+            session.utm_source = meta.utm_source || null
+          }
 
-        if (event.step_number > session.last_step) {
-          session.last_step = event.step_number
-        }
+          if (event.step_number > session.last_step) {
+            session.last_step = event.step_number
+          }
 
-        if (event.time_spent_seconds) {
-          session.total_time += event.time_spent_seconds
-        }
+          if (event.time_spent_seconds) {
+            session.total_time += event.time_spent_seconds
+          }
 
-        if (event.step_number === 24 && event.event_type === 'step_entered') {
-          session.completed = true
-        }
+          if (event.step_number >= 24 && event.event_type === 'step_entered') {
+            session.completed = true
+          }
 
-        if (event.event_type === 'quiz_abandoned') {
-          session.abandoned = true
-        }
+          if (event.event_type === 'quiz_abandoned') {
+            session.abandoned = true
+          }
 
-        if (event.event_type === 'back_clicked') {
-          session.back_clicks++
-        }
+          if (event.event_type === 'back_clicked') {
+            session.back_clicks++
+          }
 
-        // Track offer selection
-        if (event.event_type === 'offer_clicked' && event.answer_value) {
-          session.offer_selected = event.answer_value
-        }
-      })
-
-      // Fetch emails from quiz_results_v2 for all session_ids
-      const sessionIds = Object.keys(sessionMap)
-      if (sessionIds.length > 0) {
-        const { data: quizResults } = await supabase
-          .from('quiz_results_v2')
-          .select('session_id, email')
-          .in('session_id', sessionIds)
-
-        // Map emails to sessions
-        quizResults?.forEach(result => {
-          if (result.session_id && sessionMap[result.session_id]) {
-            sessionMap[result.session_id].email = result.email
+          if (event.event_type === 'offer_clicked' && event.answer_value) {
+            session.offer_selected = event.answer_value
           }
         })
       }
 
-      const allSessions = Object.values(sessionMap)
-        .sort((a, b) => new Date(b.started_at).getTime() - new Date(a.started_at).getTime())
+      // Fetch order data for all emails
+      const emails = completions?.map(c => c.email).filter(Boolean) || []
+      const orderMap: Record<string, { status: string; total_price: number; order_number: string }> = {}
 
-      const totalSessions = allSessions.length
+      if (emails.length > 0) {
+        const { data: orders } = await supabase
+          .from('pending_orders')
+          .select('email, status, total_price, order_number')
+          .in('email', emails)
+
+        orders?.forEach(order => {
+          const emailLower = order.email?.toLowerCase()
+          if (emailLower && (!orderMap[emailLower] || order.status === 'paid')) {
+            orderMap[emailLower] = {
+              status: order.status,
+              total_price: order.total_price,
+              order_number: order.order_number
+            }
+          }
+        })
+      }
+
+      const totalSessions = totalCount || 0
       const totalPages = Math.ceil(totalSessions / limit)
       const currentPage = Math.floor(offset / limit) + 1
 
-      // Apply pagination
-      const sessions = allSessions.slice(offset, offset + limit)
+      // Build unified sessions list
+      const sessions = completions?.map(c => {
+        const hasTracking = c.session_id && trackedSessionIds.has(c.session_id)
+        const trackingData = c.session_id ? trackingDataMap[c.session_id] : null
+        const emailLower = c.email?.toLowerCase()
+        const order = emailLower ? orderMap[emailLower] : null
+
+        return {
+          session_id: c.session_id || c.id,
+          email: c.email,
+          first_name: c.first_name,
+          category: c.category,
+          total_score: c.total_score,
+          determined_level: c.determined_level,
+          workout_location: c.workout_location,
+          started_at: c.created_at,
+          // Tracking data (if available)
+          has_tracking: hasTracking,
+          last_step: trackingData?.last_step ?? (c.total_score ? 26 : 0),
+          total_time: trackingData?.total_time ?? 0,
+          completed: trackingData?.completed ?? (c.total_score ? true : false),
+          abandoned: trackingData?.abandoned ?? false,
+          device: trackingData?.device ?? null,
+          utm_source: trackingData?.utm_source ?? null,
+          back_clicks: trackingData?.back_clicks ?? 0,
+          offer_selected: trackingData?.offer_selected ?? null,
+          // Order data
+          order: order ? {
+            status: order.status,
+            total_price: order.total_price,
+            order_number: order.order_number
+          } : null
+        }
+      }) || []
+
+      // Stats
+      const trackedCount = sessions.filter(s => s.has_tracking).length
+      const withOrderCount = sessions.filter(s => s.order).length
+      const paidCount = sessions.filter(s => s.order?.status === 'paid').length
 
       return NextResponse.json({
         view: 'sessions',
-        period: { days, startDate: startDateStr },
+        period: days > 0 ? { days, startDate: startDateStr } : { days: 'all', startDate: null },
         category,
         totalSessions,
+        stats: {
+          tracked: trackedCount,
+          withOrder: withOrderCount,
+          paid: paidCount
+        },
         sessions,
         pagination: {
           total: totalSessions,
