@@ -302,12 +302,21 @@ export async function GET(request: NextRequest) {
 
       if (completionsError) throw completionsError
 
-      // Get all session_ids that have tracking data
-      const { data: trackedSessions } = await supabase
-        .from('quiz_step_events')
-        .select('session_id')
+      // Get session_ids from current page of completions that have tracking data
+      // Instead of fetching ALL tracking session_ids (which hits Supabase 1000 row limit),
+      // we only check for the specific session_ids we need
+      const completionSessionIds = completions?.map(c => c.session_id).filter(Boolean) || []
 
-      const trackedSessionIds = new Set(trackedSessions?.map(s => s.session_id) || [])
+      let trackedSessionIds = new Set<string>()
+
+      if (completionSessionIds.length > 0) {
+        const { data: trackedSessions } = await supabase
+          .from('quiz_step_events')
+          .select('session_id')
+          .in('session_id', completionSessionIds)
+
+        trackedSessionIds = new Set(trackedSessions?.map(s => s.session_id) || [])
+      }
 
       // For sessions with tracking, get their detailed data
       const sessionsWithTracking = completions?.filter(c => c.session_id && trackedSessionIds.has(c.session_id)) || []
