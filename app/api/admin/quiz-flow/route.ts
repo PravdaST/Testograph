@@ -581,6 +581,44 @@ export async function GET(request: NextRequest) {
 
       if (error) throw error
 
+      // Fetch order data for all emails in this page
+      const emails = completions?.map(c => c.email).filter(Boolean) || []
+      const orderMap: Record<string, { status: string; total_price: number; paid_at: string | null; order_number: string }> = {}
+
+      if (emails.length > 0) {
+        const { data: orders } = await supabase
+          .from('pending_orders')
+          .select('email, status, total_price, paid_at, order_number')
+          .in('email', emails)
+
+        orders?.forEach(order => {
+          const emailLower = order.email?.toLowerCase()
+          if (emailLower) {
+            // If multiple orders, keep the most recent paid one, or most recent pending
+            if (!orderMap[emailLower] ||
+                (order.status === 'paid' && orderMap[emailLower].status !== 'paid')) {
+              orderMap[emailLower] = {
+                status: order.status,
+                total_price: order.total_price,
+                paid_at: order.paid_at,
+                order_number: order.order_number
+              }
+            }
+          }
+        })
+      }
+
+      // Get overall order stats
+      const { data: allOrders } = await supabase
+        .from('pending_orders')
+        .select('status')
+
+      const orderStats = { paid: 0, pending: 0 }
+      allOrders?.forEach(o => {
+        if (o.status === 'paid') orderStats.paid++
+        else orderStats.pending++
+      })
+
       // Calculate stats
       const avgScore = completions?.length
         ? Math.round(completions.reduce((sum, c) => sum + (c.total_score || 0), 0) / completions.length)
@@ -602,24 +640,35 @@ export async function GET(request: NextRequest) {
         totalCompletions,
         avgScore,
         levelDistribution: levelCounts,
-        completions: completions?.map(c => ({
-          id: c.id,
-          session_id: c.session_id,
-          email: c.email,
-          first_name: c.first_name,
-          category: c.category,
-          total_score: c.total_score,
-          determined_level: c.determined_level,
-          workout_location: c.workout_location,
-          created_at: c.created_at,
-          breakdown: {
-            symptoms: c.breakdown_symptoms,
-            nutrition: c.breakdown_nutrition,
-            training: c.breakdown_training,
-            sleep_recovery: c.breakdown_sleep_recovery,
-            context: c.breakdown_context
+        orderStats,
+        completions: completions?.map(c => {
+          const emailLower = c.email?.toLowerCase()
+          const order = emailLower ? orderMap[emailLower] : null
+          return {
+            id: c.id,
+            session_id: c.session_id,
+            email: c.email,
+            first_name: c.first_name,
+            category: c.category,
+            total_score: c.total_score,
+            determined_level: c.determined_level,
+            workout_location: c.workout_location,
+            created_at: c.created_at,
+            breakdown: {
+              symptoms: c.breakdown_symptoms,
+              nutrition: c.breakdown_nutrition,
+              training: c.breakdown_training,
+              sleep_recovery: c.breakdown_sleep_recovery,
+              context: c.breakdown_context
+            },
+            order: order ? {
+              status: order.status,
+              total_price: order.total_price,
+              paid_at: order.paid_at,
+              order_number: order.order_number
+            } : null
           }
-        })) || [],
+        }) || [],
         pagination: {
           total: totalCompletions,
           page: currentPage,

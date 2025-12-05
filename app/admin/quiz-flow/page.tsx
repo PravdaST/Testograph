@@ -68,6 +68,9 @@ import {
   BarChart3,
   Home,
   Building2,
+  ShoppingCart,
+  CreditCard,
+  Package,
 } from "lucide-react";
 
 // Interfaces
@@ -162,6 +165,12 @@ interface QuizCompletion {
     sleep_recovery: number | null;
     context: number | null;
   };
+  order: {
+    status: string;
+    total_price: number;
+    paid_at: string | null;
+    order_number: string;
+  } | null;
 }
 
 interface OverviewData {
@@ -859,10 +868,10 @@ export default function QuizFlowDashboard() {
             <CardContent>
               {/* Summary Stats */}
               {completionsData && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div className="grid grid-cols-2 md:grid-cols-6 gap-4 mb-6">
                   <div className="bg-muted/50 rounded-lg p-3 text-center">
                     <p className="text-2xl font-bold text-primary">{completionsData.totalCompletions}</p>
-                    <p className="text-xs text-muted-foreground">Общо завършени</p>
+                    <p className="text-xs text-muted-foreground">Quiz завършени</p>
                   </div>
                   <div className="bg-muted/50 rounded-lg p-3 text-center">
                     <p className="text-2xl font-bold">{completionsData.avgScore}</p>
@@ -875,6 +884,14 @@ export default function QuizFlowDashboard() {
                   <div className="bg-muted/50 rounded-lg p-3 text-center">
                     <p className="text-2xl font-bold text-green-500">{(completionsData.levelDistribution?.good || 0) + (completionsData.levelDistribution?.optimal || 0)}</p>
                     <p className="text-xs text-muted-foreground">Good/Optimal</p>
+                  </div>
+                  <div className="bg-green-50 dark:bg-green-950 rounded-lg p-3 text-center border border-green-200 dark:border-green-800">
+                    <p className="text-2xl font-bold text-green-600">{completionsData.orderStats?.paid || 0}</p>
+                    <p className="text-xs text-green-600">Paid Orders</p>
+                  </div>
+                  <div className="bg-amber-50 dark:bg-amber-950 rounded-lg p-3 text-center border border-amber-200 dark:border-amber-800">
+                    <p className="text-2xl font-bold text-amber-600">{completionsData.orderStats?.pending || 0}</p>
+                    <p className="text-xs text-amber-600">Pending Orders</p>
                   </div>
                 </div>
               )}
@@ -890,6 +907,7 @@ export default function QuizFlowDashboard() {
                         <TableHead>Категория</TableHead>
                         <TableHead>Резултат</TableHead>
                         <TableHead>Ниво</TableHead>
+                        <TableHead>Поръчка</TableHead>
                         <TableHead>Локация</TableHead>
                         <TableHead>Дата</TableHead>
                       </TableRow>
@@ -943,6 +961,28 @@ export default function QuizFlowDashboard() {
                                completion.determined_level === 'moderate' ? 'Умерено' :
                                'Ниско'}
                             </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {completion.order ? (
+                              <div className="flex items-center gap-2">
+                                {completion.order.status === 'paid' ? (
+                                  <Badge className="bg-green-500 text-white text-xs">
+                                    <CreditCard className="w-3 h-3 mr-1" />
+                                    Paid
+                                  </Badge>
+                                ) : (
+                                  <Badge variant="outline" className="border-amber-500 text-amber-600 text-xs">
+                                    <Package className="w-3 h-3 mr-1" />
+                                    Pending
+                                  </Badge>
+                                )}
+                                <span className="text-xs text-muted-foreground">
+                                  {completion.order.total_price} лв
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center gap-1 text-xs">
