@@ -1495,19 +1495,19 @@ export default function QuizAnalyticsDashboard() {
                 <Card>
                   <CardContent className="p-4 text-center">
                     <p className="text-3xl font-bold text-blue-600">{crmData.summary.totalQuizUsers}</p>
-                    <p className="text-sm text-muted-foreground">Quiz Users</p>
+                    <p className="text-sm text-muted-foreground">Quiz Users (unique emails)</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4 text-center">
                     <p className="text-3xl font-bold text-green-600">{crmData.summary.totalOrderUsers}</p>
-                    <p className="text-sm text-muted-foreground">Order Users</p>
+                    <p className="text-sm text-muted-foreground">Order Users (unique emails)</p>
                   </CardContent>
                 </Card>
                 <Card>
                   <CardContent className="p-4 text-center">
                     <p className="text-3xl font-bold text-purple-600">{crmData.summary.overlap}</p>
-                    <p className="text-sm text-muted-foreground">Quiz + Order</p>
+                    <p className="text-sm text-muted-foreground">Quiz + Order (both)</p>
                   </CardContent>
                 </Card>
               </div>
@@ -1526,18 +1526,48 @@ export default function QuizAnalyticsDashboard() {
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-3xl font-bold text-red-600">{crmData.segments.quizNoOrder.count}</span>
-                      <Button size="sm" onClick={() => openEmailModal("quizNoOrder")} disabled={crmData.segments.quizNoOrder.count === 0}>
-                        <Send className="w-4 h-4 mr-2" />
-                        Изпрати Email
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const emails = crmData.segments.quizNoOrder.users.map(u => u.email).join('\n');
+                            navigator.clipboard.writeText(emails);
+                            toast({ title: "Emails копирани!", description: `${crmData.segments.quizNoOrder.count} emails в clipboard` });
+                          }}
+                          disabled={crmData.segments.quizNoOrder.count === 0}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" onClick={() => openEmailModal("quizNoOrder")} disabled={crmData.segments.quizNoOrder.count === 0}>
+                          <Send className="w-4 h-4 mr-2" />
+                          Email
+                        </Button>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">{crmData.segments.quizNoOrder.action}</p>
-                    {crmData.segments.quizNoOrder.users.slice(0, 3).map((user, i) => (
-                      <div key={i} className="text-xs text-muted-foreground truncate">{user.email}</div>
-                    ))}
-                    {crmData.segments.quizNoOrder.count > 3 && (
-                      <p className="text-xs text-muted-foreground mt-1">...и още {crmData.segments.quizNoOrder.count - 3}</p>
-                    )}
+                    <p className="text-xs text-muted-foreground mb-3">{crmData.segments.quizNoOrder.action}</p>
+
+                    {/* Expandable email list */}
+                    <details className="group">
+                      <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2">
+                        <span>Покажи всички {crmData.segments.quizNoOrder.count} emails</span>
+                      </summary>
+                      <div className="mt-2 max-h-48 overflow-y-auto space-y-1 bg-muted/30 rounded-lg p-2">
+                        {crmData.segments.quizNoOrder.users.map((user, i) => (
+                          <div key={i} className="flex items-center justify-between text-xs py-1 px-2 bg-background/50 rounded hover:bg-background">
+                            <span className="truncate flex-1">{user.email}</span>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 shrink-0"
+                              onClick={() => copyEmail(user.email)}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                   </CardContent>
                 </Card>
 
@@ -1553,18 +1583,53 @@ export default function QuizAnalyticsDashboard() {
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-3xl font-bold text-amber-600">{crmData.segments.orderNoQuiz.count}</span>
-                      <Button size="sm" onClick={() => openEmailModal("orderNoQuiz")} disabled={crmData.segments.orderNoQuiz.count === 0}>
-                        <Send className="w-4 h-4 mr-2" />
-                        Изпрати Email
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const emails = crmData.segments.orderNoQuiz.users.map(u => u.email).join('\n');
+                            navigator.clipboard.writeText(emails);
+                            toast({ title: "Emails копирани!", description: `${crmData.segments.orderNoQuiz.count} emails в clipboard` });
+                          }}
+                          disabled={crmData.segments.orderNoQuiz.count === 0}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" onClick={() => openEmailModal("orderNoQuiz")} disabled={crmData.segments.orderNoQuiz.count === 0}>
+                          <Send className="w-4 h-4 mr-2" />
+                          Email
+                        </Button>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">{crmData.segments.orderNoQuiz.action}</p>
-                    {crmData.segments.orderNoQuiz.users.slice(0, 3).map((user, i) => (
-                      <div key={i} className="text-xs text-muted-foreground truncate">{user.email}</div>
-                    ))}
-                    {crmData.segments.orderNoQuiz.count > 3 && (
-                      <p className="text-xs text-muted-foreground mt-1">...и още {crmData.segments.orderNoQuiz.count - 3}</p>
-                    )}
+                    <p className="text-xs text-muted-foreground mb-3">{crmData.segments.orderNoQuiz.action}</p>
+
+                    {/* Expandable email list */}
+                    <details className="group">
+                      <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2">
+                        <span>Покажи всички {crmData.segments.orderNoQuiz.count} emails</span>
+                      </summary>
+                      <div className="mt-2 max-h-48 overflow-y-auto space-y-1 bg-muted/30 rounded-lg p-2">
+                        {crmData.segments.orderNoQuiz.users.map((user, i) => (
+                          <div key={i} className="flex items-center justify-between text-xs py-1 px-2 bg-background/50 rounded hover:bg-background">
+                            <div className="flex-1 truncate">
+                              <span>{user.email}</span>
+                              {user.status === 'paid' && (
+                                <Badge variant="outline" className="ml-2 text-[10px] bg-green-500/10 text-green-600">PAID</Badge>
+                              )}
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 shrink-0"
+                              onClick={() => copyEmail(user.email)}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                   </CardContent>
                 </Card>
 
@@ -1580,18 +1645,51 @@ export default function QuizAnalyticsDashboard() {
                   <CardContent className="pt-4">
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-3xl font-bold text-green-600">{crmData.segments.paidNoQuiz.count}</span>
-                      <Button size="sm" onClick={() => openEmailModal("paidNoQuiz")} disabled={crmData.segments.paidNoQuiz.count === 0}>
-                        <Send className="w-4 h-4 mr-2" />
-                        Изпрати Email
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            const emails = crmData.segments.paidNoQuiz.users.map(u => u.email).join('\n');
+                            navigator.clipboard.writeText(emails);
+                            toast({ title: "Emails копирани!", description: `${crmData.segments.paidNoQuiz.count} emails в clipboard` });
+                          }}
+                          disabled={crmData.segments.paidNoQuiz.count === 0}
+                        >
+                          <Copy className="w-4 h-4" />
+                        </Button>
+                        <Button size="sm" onClick={() => openEmailModal("paidNoQuiz")} disabled={crmData.segments.paidNoQuiz.count === 0}>
+                          <Send className="w-4 h-4 mr-2" />
+                          Email
+                        </Button>
+                      </div>
                     </div>
-                    <p className="text-xs text-muted-foreground mb-2">{crmData.segments.paidNoQuiz.action}</p>
-                    {crmData.segments.paidNoQuiz.users.slice(0, 3).map((user, i) => (
-                      <div key={i} className="text-xs text-muted-foreground truncate">{user.email}</div>
-                    ))}
-                    {crmData.segments.paidNoQuiz.count > 3 && (
-                      <p className="text-xs text-muted-foreground mt-1">...и още {crmData.segments.paidNoQuiz.count - 3}</p>
-                    )}
+                    <p className="text-xs text-muted-foreground mb-3">{crmData.segments.paidNoQuiz.action}</p>
+
+                    {/* Expandable email list */}
+                    <details className="group">
+                      <summary className="cursor-pointer text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 mb-2">
+                        <span>Покажи всички {crmData.segments.paidNoQuiz.count} emails</span>
+                      </summary>
+                      <div className="mt-2 max-h-48 overflow-y-auto space-y-1 bg-muted/30 rounded-lg p-2">
+                        {crmData.segments.paidNoQuiz.users.map((user, i) => (
+                          <div key={i} className="flex items-center justify-between text-xs py-1 px-2 bg-background/50 rounded hover:bg-background">
+                            <div className="flex-1 truncate">
+                              <span>{user.email}</span>
+                              <span className="text-muted-foreground ml-2">{user.total_price} лв</span>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 shrink-0"
+                              onClick={() => copyEmail(user.email)}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </details>
                   </CardContent>
                 </Card>
               </div>
