@@ -1629,17 +1629,63 @@ export default function QuizAnalyticsDashboard() {
                   </div>
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground mb-2">Timeline ({selectedSession.timeline.length} events)</p>
-                  <div className="max-h-60 overflow-y-auto space-y-1 text-xs">
-                    {selectedSession.timeline.map((event, i) => (
-                      <div key={i} className="flex gap-2 p-2 bg-muted/50 rounded">
-                        <span className="text-muted-foreground">{new Date(event.timestamp).toLocaleTimeString("bg-BG")}</span>
-                        <Badge variant="outline" className="text-xs">{event.event_type}</Badge>
-                        <span>Step {event.step}</span>
-                        {event.answer && <span className="text-primary">: {event.answer}</span>}
-                      </div>
-                    ))}
-                  </div>
+                  {/* Process timeline to show only final answer for each step (consolidate keystroke events) */}
+                  {(() => {
+                    // Group answer_selected events by step, keep only the last one (final answer)
+                    const processedTimeline: typeof selectedSession.timeline = [];
+                    const lastAnswerByStep = new Map<number, typeof selectedSession.timeline[0]>();
+
+                    selectedSession.timeline.forEach(event => {
+                      if (event.event_type === 'answer_selected') {
+                        // Track the last answer for each step
+                        lastAnswerByStep.set(event.step, event);
+                      } else {
+                        // For non-answer events, add them directly
+                        // But first, flush any pending answer for earlier steps
+                        lastAnswerByStep.forEach((answerEvent, step) => {
+                          if (step < event.step || event.event_type === 'step_exited') {
+                            processedTimeline.push(answerEvent);
+                            lastAnswerByStep.delete(step);
+                          }
+                        });
+                        processedTimeline.push(event);
+                      }
+                    });
+
+                    // Flush remaining answers
+                    lastAnswerByStep.forEach(answerEvent => {
+                      processedTimeline.push(answerEvent);
+                    });
+
+                    // Sort by timestamp
+                    processedTimeline.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+
+                    const originalCount = selectedSession.timeline.length;
+                    const consolidatedCount = originalCount - processedTimeline.length;
+
+                    return (
+                      <>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          Timeline ({processedTimeline.length} events)
+                          {consolidatedCount > 0 && (
+                            <span className="text-xs ml-2 text-muted-foreground/70">
+                              ({consolidatedCount} keystroke events скрити)
+                            </span>
+                          )}
+                        </p>
+                        <div className="max-h-60 overflow-y-auto space-y-1 text-xs">
+                          {processedTimeline.map((event, i) => (
+                            <div key={i} className="flex gap-2 p-2 bg-muted/50 rounded">
+                              <span className="text-muted-foreground">{new Date(event.timestamp).toLocaleTimeString("bg-BG")}</span>
+                              <Badge variant="outline" className="text-xs">{event.event_type}</Badge>
+                              <span>Step {event.step}</span>
+                              {event.answer && <span className="text-primary truncate max-w-[200px]">: {event.answer}</span>}
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             )}
