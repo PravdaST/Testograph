@@ -1601,91 +1601,161 @@ export default function QuizAnalyticsDashboard() {
 
         {/* ============ SESSION DETAIL MODAL ============ */}
         <Dialog open={sessionModalOpen} onOpenChange={setSessionModalOpen}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Session Detail</DialogTitle>
-              <DialogDescription>
-                {selectedSession?.session_id}
-              </DialogDescription>
-            </DialogHeader>
-            {selectedSession && (
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Категория</p>
-                    <p className="font-medium">{CATEGORY_LABELS[selectedSession.category] || selectedSession.category}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Device</p>
-                    <p className="font-medium">{selectedSession.deviceInfo.device || "Unknown"}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Общо време</p>
-                    <p className="font-medium">{formatTime(selectedSession.stats.totalTime)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Max Step</p>
-                    <p className="font-medium">{selectedSession.stats.maxStep}</p>
-                  </div>
+          <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden flex flex-col">
+            <DialogHeader className="pb-4 border-b">
+              <DialogTitle className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ backgroundColor: CATEGORY_COLORS[selectedSession?.category || ""] + "20" }}>
+                  {selectedSession && getCategoryIcon(selectedSession.category)}
                 </div>
                 <div>
-                  {/* Process timeline to show only final answer for each step (consolidate keystroke events) */}
-                  {(() => {
-                    // Group answer_selected events by step, keep only the last one (final answer)
-                    const processedTimeline: typeof selectedSession.timeline = [];
-                    const lastAnswerByStep = new Map<number, typeof selectedSession.timeline[0]>();
+                  <span>Session Journey</span>
+                  <p className="text-sm font-normal text-muted-foreground mt-0.5">
+                    {selectedSession?.session_id.substring(0, 20)}...
+                  </p>
+                </div>
+              </DialogTitle>
+            </DialogHeader>
+            {selectedSession && (
+              <div className="flex-1 overflow-hidden flex flex-col">
+                {/* Stats Row */}
+                <div className="grid grid-cols-4 gap-3 py-4 border-b">
+                  <div className="text-center">
+                    <p className="text-2xl font-bold" style={{ color: CATEGORY_COLORS[selectedSession.category] }}>
+                      {CATEGORY_LABELS[selectedSession.category]}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Категория</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{formatTime(selectedSession.stats.totalTime)}</p>
+                    <p className="text-xs text-muted-foreground">Общо време</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-2xl font-bold">{selectedSession.stats.maxStep}</p>
+                    <p className="text-xs text-muted-foreground">Max Step</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="flex items-center justify-center gap-1">
+                      {getDeviceIcon(selectedSession.deviceInfo.device)}
+                      <p className="text-lg font-medium capitalize">{selectedSession.deviceInfo.device || "Unknown"}</p>
+                    </div>
+                    <p className="text-xs text-muted-foreground">Device</p>
+                  </div>
+                </div>
 
+                {/* Answers Table */}
+                <div className="flex-1 overflow-auto py-4">
+                  {(() => {
+                    // Extract only answer_selected events and group by step (keep last answer per step)
+                    const answersByStep = new Map<number, { answer: string; timestamp: string; timeSpent: number | null }>();
+                    const timeByStep = new Map<number, number>();
+
+                    // Calculate time spent per step from step_exited events
                     selectedSession.timeline.forEach(event => {
-                      if (event.event_type === 'answer_selected') {
-                        // Track the last answer for each step
-                        lastAnswerByStep.set(event.step, event);
-                      } else {
-                        // For non-answer events, add them directly
-                        // But first, flush any pending answer for earlier steps
-                        lastAnswerByStep.forEach((answerEvent, step) => {
-                          if (step < event.step || event.event_type === 'step_exited') {
-                            processedTimeline.push(answerEvent);
-                            lastAnswerByStep.delete(step);
-                          }
+                      if (event.event_type === 'step_exited' && event.time_spent) {
+                        timeByStep.set(event.step, event.time_spent);
+                      }
+                      if (event.event_type === 'answer_selected' && event.answer) {
+                        answersByStep.set(event.step, {
+                          answer: event.answer,
+                          timestamp: event.timestamp,
+                          timeSpent: timeByStep.get(event.step) || null
                         });
-                        processedTimeline.push(event);
                       }
                     });
 
-                    // Flush remaining answers
-                    lastAnswerByStep.forEach(answerEvent => {
-                      processedTimeline.push(answerEvent);
-                    });
+                    // Convert to sorted array
+                    const sortedAnswers = Array.from(answersByStep.entries())
+                      .sort((a, b) => a[0] - b[0]);
 
-                    // Sort by timestamp
-                    processedTimeline.sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
-
-                    const originalCount = selectedSession.timeline.length;
-                    const consolidatedCount = originalCount - processedTimeline.length;
+                    if (sortedAnswers.length === 0) {
+                      return (
+                        <div className="text-center py-8 text-muted-foreground">
+                          Няма записани отговори
+                        </div>
+                      );
+                    }
 
                     return (
-                      <>
-                        <p className="text-sm text-muted-foreground mb-2">
-                          Timeline ({processedTimeline.length} events)
-                          {consolidatedCount > 0 && (
-                            <span className="text-xs ml-2 text-muted-foreground/70">
-                              ({consolidatedCount} keystroke events скрити)
-                            </span>
-                          )}
-                        </p>
-                        <div className="max-h-60 overflow-y-auto space-y-1 text-xs">
-                          {processedTimeline.map((event, i) => (
-                            <div key={i} className="flex gap-2 p-2 bg-muted/50 rounded">
-                              <span className="text-muted-foreground">{new Date(event.timestamp).toLocaleTimeString("bg-BG")}</span>
-                              <Badge variant="outline" className="text-xs">{event.event_type}</Badge>
-                              <span>Step {event.step}</span>
-                              {event.answer && <span className="text-primary truncate max-w-[200px]">: {event.answer}</span>}
-                            </div>
-                          ))}
-                        </div>
-                      </>
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="w-16 text-center">#</TableHead>
+                            <TableHead className="min-w-[200px]">Въпрос</TableHead>
+                            <TableHead className="min-w-[150px]">Отговор</TableHead>
+                            <TableHead className="w-24 text-center">Време</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {sortedAnswers.map(([step, data]) => {
+                            const questionLabel = STEP_LABELS[step] || `Въпрос ${step + 1}`;
+                            const isTransition = questionLabel.startsWith('[Transition]');
+
+                            // Skip transition messages in the answers table
+                            if (isTransition) return null;
+
+                            return (
+                              <TableRow key={step} className="hover:bg-muted/30">
+                                <TableCell className="text-center">
+                                  <Badge variant="outline" className="text-xs font-mono">
+                                    {step + 1}
+                                  </Badge>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm">{questionLabel}</span>
+                                </TableCell>
+                                <TableCell>
+                                  <span className="text-sm font-medium text-primary">
+                                    {data.answer.length > 50 ? data.answer.substring(0, 50) + "..." : data.answer}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-center">
+                                  {data.timeSpent ? (
+                                    <span className="text-xs text-muted-foreground flex items-center justify-center gap-1">
+                                      <Clock className="w-3 h-3" />
+                                      {formatTime(data.timeSpent)}
+                                    </span>
+                                  ) : (
+                                    <span className="text-xs text-muted-foreground">-</span>
+                                  )}
+                                </TableCell>
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
                     );
                   })()}
+                </div>
+
+                {/* Footer with raw timeline toggle */}
+                <div className="pt-3 border-t">
+                  <details className="text-xs">
+                    <summary className="cursor-pointer text-muted-foreground hover:text-foreground flex items-center gap-2">
+                      <Activity className="w-3 h-3" />
+                      Покажи пълен Timeline ({selectedSession.timeline.length} events)
+                    </summary>
+                    <div className="mt-2 max-h-40 overflow-y-auto space-y-1 bg-muted/30 rounded-lg p-2">
+                      {selectedSession.timeline.map((event, i) => (
+                        <div key={i} className="flex gap-2 p-1.5 bg-background/50 rounded text-xs">
+                          <span className="text-muted-foreground w-16 shrink-0">
+                            {new Date(event.timestamp).toLocaleTimeString("bg-BG")}
+                          </span>
+                          <Badge variant="outline" className="text-[10px] h-5">
+                            {event.event_type}
+                          </Badge>
+                          <span className="text-muted-foreground">Step {event.step}</span>
+                          {event.answer && (
+                            <span className="text-primary truncate">
+                              {event.answer.length > 30 ? event.answer.substring(0, 30) + "..." : event.answer}
+                            </span>
+                          )}
+                          {event.time_spent && (
+                            <span className="text-muted-foreground ml-auto">{event.time_spent}s</span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </details>
                 </div>
               </div>
             )}
