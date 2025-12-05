@@ -62,6 +62,12 @@ import {
   Timer,
   ChevronLeft,
   ChevronRight,
+  Database,
+  Calendar,
+  Info,
+  BarChart3,
+  Home,
+  Building2,
 } from "lucide-react";
 
 // Interfaces
@@ -137,6 +143,45 @@ interface SessionDetail {
     time_spent: number | null;
     answer: string | null;
   }>;
+}
+
+interface QuizCompletion {
+  id: string;
+  session_id: string;
+  email: string | null;
+  first_name: string | null;
+  category: string;
+  total_score: number;
+  determined_level: string;
+  workout_location: string | null;
+  created_at: string;
+  breakdown: {
+    symptoms: number | null;
+    nutrition: number | null;
+    training: number | null;
+    sleep_recovery: number | null;
+    context: number | null;
+  };
+}
+
+interface OverviewData {
+  tracking: {
+    enabled: boolean;
+    firstEvent: string | null;
+    lastEvent: string | null;
+    totalSessions: number;
+    note: string;
+  };
+  completions: {
+    total: number;
+    firstCompletion: string | null;
+    lastCompletion: string | null;
+    byCategory: Record<string, number>;
+    byLevel: Record<string, number>;
+  };
+  summary: {
+    message: string;
+  };
 }
 
 const CATEGORY_COLORS: Record<string, string> = {
@@ -338,14 +383,20 @@ export default function QuizFlowDashboard() {
   const [funnelData, setFunnelData] = useState<any>(null);
   const [dropOffData, setDropOffData] = useState<any>(null);
   const [sessionsData, setSessionsData] = useState<any>(null);
+  const [completionsData, setCompletionsData] = useState<any>(null);
+  const [overviewData, setOverviewData] = useState<OverviewData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDays, setSelectedDays] = useState(7);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState<"stats" | "funnel" | "dropoffs" | "sessions">("stats");
+  const [activeTab, setActiveTab] = useState<"stats" | "funnel" | "dropoffs" | "sessions" | "completions">("completions");
 
   // Sessions pagination
   const [sessionsPage, setSessionsPage] = useState(1);
   const sessionsPageSize = 50;
+
+  // Completions pagination
+  const [completionsPage, setCompletionsPage] = useState(1);
+  const completionsPageSize = 50;
 
   // Session detail modal
   const [selectedSession, setSelectedSession] = useState<SessionDetail | null>(null);
@@ -358,11 +409,13 @@ export default function QuizFlowDashboard() {
       const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
       const categoryParam = categoryFilter !== "all" ? `&category=${categoryFilter}` : "";
 
-      const [statsRes, funnelRes, dropOffRes, sessionsRes] = await Promise.all([
+      const [statsRes, funnelRes, dropOffRes, sessionsRes, completionsRes, overviewRes] = await Promise.all([
         fetch(`${baseUrl}/api/admin/quiz-flow?view=stats&days=${selectedDays}${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=funnel&days=${selectedDays}${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=dropoffs&days=${selectedDays}${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=sessions&days=${selectedDays}${categoryParam}&limit=${sessionsPageSize}&offset=0`),
+        fetch(`${baseUrl}/api/admin/quiz-flow?view=completions&days=0${categoryParam}&limit=${completionsPageSize}&offset=0`),
+        fetch(`${baseUrl}/api/admin/quiz-flow?view=overview${categoryParam}`),
       ]);
 
       if (statsRes.ok) setStatsData(await statsRes.json());
@@ -370,7 +423,14 @@ export default function QuizFlowDashboard() {
       if (dropOffRes.ok) setDropOffData(await dropOffRes.json());
       if (sessionsRes.ok) {
         setSessionsData(await sessionsRes.json());
-        setSessionsPage(1); // Reset to page 1 on new data fetch
+        setSessionsPage(1);
+      }
+      if (completionsRes.ok) {
+        setCompletionsData(await completionsRes.json());
+        setCompletionsPage(1);
+      }
+      if (overviewRes.ok) {
+        setOverviewData(await overviewRes.json());
       }
     } catch (error) {
       console.error("Error fetching quiz flow data:", error);
@@ -395,6 +455,25 @@ export default function QuizFlowDashboard() {
       }
     } catch (error) {
       console.error("Error fetching sessions page:", error);
+    }
+  };
+
+  const fetchCompletionsPage = async (page: number) => {
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const categoryParam = categoryFilter !== "all" ? `&category=${categoryFilter}` : "";
+      const offset = (page - 1) * completionsPageSize;
+
+      const res = await fetch(
+        `${baseUrl}/api/admin/quiz-flow?view=completions&days=0${categoryParam}&limit=${completionsPageSize}&offset=${offset}`
+      );
+
+      if (res.ok) {
+        setCompletionsData(await res.json());
+        setCompletionsPage(page);
+      }
+    } catch (error) {
+      console.error("Error fetching completions page:", error);
     }
   };
 
@@ -702,8 +781,44 @@ export default function QuizFlowDashboard() {
           </Card>
         </div>
 
+        {/* Tracking Status Banner */}
+        {overviewData && (
+          <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <Info className="w-5 h-5 text-blue-500 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <div className="flex flex-wrap items-center gap-4 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Database className="w-4 h-4 text-green-500" />
+                    <span><strong>{overviewData.completions.total}</strong> Quiz завършени</span>
+                    <span className="text-muted-foreground text-xs">
+                      ({overviewData.completions.firstCompletion ? new Date(overviewData.completions.firstCompletion).toLocaleDateString('bg-BG') : 'N/A'} - сега)
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-purple-500" />
+                    <span><strong>{overviewData.tracking.totalSessions}</strong> Step-tracked сесии</span>
+                    <span className="text-muted-foreground text-xs">
+                      (от {overviewData.tracking.firstEvent ? new Date(overviewData.tracking.firstEvent).toLocaleDateString('bg-BG') : 'N/A'})
+                    </span>
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Step-by-step tracking беше добавен на {overviewData.tracking.firstEvent ? new Date(overviewData.tracking.firstEvent).toLocaleDateString('bg-BG', { day: 'numeric', month: 'long', year: 'numeric' }) : 'N/A'}.
+                  За пълен преглед на всички quiz резултати използвай таба "Всички Резултати".
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Tab Navigation */}
-        <div className="flex gap-2 border-b pb-2">
+        <div className="flex flex-wrap gap-2 border-b pb-2">
+          <Button variant={activeTab === "completions" ? "default" : "ghost"} onClick={() => setActiveTab("completions")}>
+            <Database className="w-4 h-4 mr-2" />
+            Всички Резултати
+            {overviewData && <Badge variant="secondary" className="ml-2 text-xs">{overviewData.completions.total}</Badge>}
+          </Button>
           <Button variant={activeTab === "stats" ? "default" : "ghost"} onClick={() => setActiveTab("stats")}>
             <Activity className="w-4 h-4 mr-2" />
             Статистики
@@ -721,6 +836,209 @@ export default function QuizFlowDashboard() {
             Sessions
           </Button>
         </div>
+
+        {/* ============ COMPLETIONS TAB ============ */}
+        {activeTab === "completions" && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span className="flex items-center gap-2">
+                  <Database className="w-5 h-5" />
+                  Всички Quiz Резултати ({completionsData?.totalCompletions || 0})
+                </span>
+                {completionsData?.pagination && (
+                  <span className="text-sm font-normal text-muted-foreground">
+                    Показване {((completionsPage - 1) * completionsPageSize) + 1}-{Math.min(completionsPage * completionsPageSize, completionsData.totalCompletions)} от {completionsData.totalCompletions}
+                  </span>
+                )}
+              </CardTitle>
+              <CardDescription>
+                Пълен списък на всички завършени quiz-ове от quiz_results_v2 таблицата
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Summary Stats */}
+              {completionsData && (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-primary">{completionsData.totalCompletions}</p>
+                    <p className="text-xs text-muted-foreground">Общо завършени</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold">{completionsData.avgScore}</p>
+                    <p className="text-xs text-muted-foreground">Среден резултат</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-red-500">{completionsData.levelDistribution?.low || 0}</p>
+                    <p className="text-xs text-muted-foreground">Low Level</p>
+                  </div>
+                  <div className="bg-muted/50 rounded-lg p-3 text-center">
+                    <p className="text-2xl font-bold text-green-500">{(completionsData.levelDistribution?.good || 0) + (completionsData.levelDistribution?.optimal || 0)}</p>
+                    <p className="text-xs text-muted-foreground">Good/Optimal</p>
+                  </div>
+                </div>
+              )}
+
+              {completionsData?.completions && completionsData.completions.length > 0 ? (
+                <>
+                <div className="rounded-md border overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Email</TableHead>
+                        <TableHead>Име</TableHead>
+                        <TableHead>Категория</TableHead>
+                        <TableHead>Резултат</TableHead>
+                        <TableHead>Ниво</TableHead>
+                        <TableHead>Локация</TableHead>
+                        <TableHead>Дата</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {completionsData.completions.map((completion: QuizCompletion) => (
+                        <TableRow key={completion.id}>
+                          <TableCell>
+                            {completion.email ? (
+                              <span className="text-sm font-medium text-blue-600">{completion.email}</span>
+                            ) : (
+                              <span className="text-xs text-muted-foreground">-</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {completion.first_name || <span className="text-muted-foreground">-</span>}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {getCategoryIcon(completion.category)}
+                              {getCategoryBadge(completion.category)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold">{completion.total_score}</span>
+                              <div className="w-16 h-2 bg-muted rounded-full overflow-hidden">
+                                <div
+                                  className={`h-full rounded-full ${
+                                    completion.total_score >= 70 ? 'bg-green-500' :
+                                    completion.total_score >= 50 ? 'bg-amber-500' :
+                                    'bg-red-500'
+                                  }`}
+                                  style={{ width: `${completion.total_score}%` }}
+                                />
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant="outline"
+                              className={
+                                completion.determined_level === 'optimal' ? 'border-green-500 text-green-600' :
+                                completion.determined_level === 'good' ? 'border-blue-500 text-blue-600' :
+                                completion.determined_level === 'moderate' ? 'border-amber-500 text-amber-600' :
+                                'border-red-500 text-red-600'
+                              }
+                            >
+                              {completion.determined_level === 'optimal' ? 'Оптимално' :
+                               completion.determined_level === 'good' ? 'Добро' :
+                               completion.determined_level === 'moderate' ? 'Умерено' :
+                               'Ниско'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1 text-xs">
+                              {completion.workout_location === 'home' ? (
+                                <>
+                                  <Home className="w-3 h-3" />
+                                  <span>Вкъщи</span>
+                                </>
+                              ) : completion.workout_location === 'gym' ? (
+                                <>
+                                  <Building2 className="w-3 h-3" />
+                                  <span>Фитнес</span>
+                                </>
+                              ) : (
+                                <span className="text-muted-foreground">-</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-xs text-muted-foreground">
+                            {formatDate(completion.created_at)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {/* Pagination Controls */}
+                {completionsData?.pagination && completionsData.pagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                    <div className="text-sm text-muted-foreground">
+                      Страница {completionsPage} от {completionsData.pagination.totalPages}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchCompletionsPage(completionsPage - 1)}
+                        disabled={completionsPage <= 1}
+                      >
+                        <ChevronLeft className="w-4 h-4 mr-1" />
+                        Назад
+                      </Button>
+
+                      {/* Page numbers */}
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, completionsData.pagination.totalPages) }).map((_, i) => {
+                          let pageNum: number;
+                          const totalPages = completionsData.pagination.totalPages;
+
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (completionsPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (completionsPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = completionsPage - 2 + i;
+                          }
+
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={completionsPage === pageNum ? "default" : "outline"}
+                              size="sm"
+                              className="w-8 h-8 p-0"
+                              onClick={() => fetchCompletionsPage(pageNum)}
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => fetchCompletionsPage(completionsPage + 1)}
+                        disabled={!completionsData.pagination.hasMore}
+                      >
+                        Напред
+                        <ChevronRight className="w-4 h-4 ml-1" />
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                </>
+              ) : (
+                <div className="text-center py-12">
+                  <Database className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                  <p className="text-muted-foreground">Няма quiz резултати</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* ============ STATS TAB ============ */}
         {activeTab === "stats" && (

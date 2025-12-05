@@ -12,8 +12,8 @@ const supabase = createClient(
  *
  * Query params:
  * - category: 'libido' | 'energy' | 'muscle' | 'all' (default: 'all')
- * - days: number of days to look back (default: 7)
- * - view: 'funnel' | 'sessions' | 'dropoffs' | 'stats' | 'session-detail' (default: 'funnel')
+ * - days: number of days to look back (default: 7, use 0 or 'all' for all time)
+ * - view: 'funnel' | 'sessions' | 'dropoffs' | 'stats' | 'session-detail' | 'completions' | 'overview' (default: 'funnel')
  * - session_id: required for session-detail view
  * - limit: number of sessions per page for sessions view (default: 50)
  * - offset: starting position for pagination (default: 0)
@@ -450,6 +450,183 @@ export async function GET(request: NextRequest) {
         totalIncomplete,
         totalCompleted: Object.values(sessionMaxSteps).filter(s => s.maxStep >= 24).length,
         dropOffs: sortedDropOffs
+      })
+    }
+
+    // ============ OVERVIEW VIEW ============
+    // Shows combined stats from both quiz_step_events (tracking) and quiz_results_v2 (completions)
+    if (view === 'overview') {
+      // Get tracking data range
+      const { data: trackingRange } = await supabase
+        .from('quiz_step_events')
+        .select('created_at')
+        .order('created_at', { ascending: true })
+        .limit(1)
+
+      const { data: trackingLatest } = await supabase
+        .from('quiz_step_events')
+        .select('created_at')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      // Count tracking sessions
+      const { data: trackingSessions } = await supabase
+        .from('quiz_step_events')
+        .select('session_id')
+
+      const uniqueTrackingSessions = new Set(trackingSessions?.map(s => s.session_id) || [])
+
+      // Get completions from quiz_results_v2
+      let completionsQuery = supabase
+        .from('quiz_results_v2')
+        .select('*', { count: 'exact', head: true })
+
+      if (category !== 'all') {
+        completionsQuery = completionsQuery.eq('category', category)
+      }
+
+      const { count: totalCompletions } = await completionsQuery
+
+      // Get completions date range
+      const { data: completionsFirst } = await supabase
+        .from('quiz_results_v2')
+        .select('created_at')
+        .order('created_at', { ascending: true })
+        .limit(1)
+
+      const { data: completionsLatest } = await supabase
+        .from('quiz_results_v2')
+        .select('created_at')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      // Count completions by category
+      const { data: byCategory } = await supabase
+        .from('quiz_results_v2')
+        .select('category')
+
+      const categoryCounts: Record<string, number> = {}
+      byCategory?.forEach(r => {
+        categoryCounts[r.category] = (categoryCounts[r.category] || 0) + 1
+      })
+
+      // Count by level
+      const { data: byLevel } = await supabase
+        .from('quiz_results_v2')
+        .select('determined_level')
+
+      const levelCounts: Record<string, number> = {}
+      byLevel?.forEach(r => {
+        levelCounts[r.determined_level || 'unknown'] = (levelCounts[r.determined_level || 'unknown'] || 0) + 1
+      })
+
+      return NextResponse.json({
+        view: 'overview',
+        tracking: {
+          enabled: true,
+          firstEvent: trackingRange?.[0]?.created_at || null,
+          lastEvent: trackingLatest?.[0]?.created_at || null,
+          totalSessions: uniqueTrackingSessions.size,
+          note: 'Step-by-step tracking started on this date'
+        },
+        completions: {
+          total: totalCompletions || 0,
+          firstCompletion: completionsFirst?.[0]?.created_at || null,
+          lastCompletion: completionsLatest?.[0]?.created_at || null,
+          byCategory: categoryCounts,
+          byLevel: levelCounts
+        },
+        summary: {
+          message: `Total ${totalCompletions} quiz completions recorded. Step tracking available for ${uniqueTrackingSessions.size} sessions.`
+        }
+      })
+    }
+
+    // ============ COMPLETIONS VIEW ============
+    // Shows ALL quiz completions from quiz_results_v2 (historical data)
+    if (view === 'completions') {
+      let query = supabase
+        .from('quiz_results_v2')
+        .select('id, session_id, email, first_name, category, total_score, determined_level, workout_location, created_at, breakdown_symptoms, breakdown_nutrition, breakdown_training, breakdown_sleep_recovery, breakdown_context')
+        .order('created_at', { ascending: false })
+
+      if (category !== 'all') {
+        query = query.eq('category', category)
+      }
+
+      // Apply date filter if days > 0
+      if (days > 0) {
+        query = query.gte('created_at', startDateStr)
+      }
+
+      // Get total count first
+      let countQuery = supabase
+        .from('quiz_results_v2')
+        .select('*', { count: 'exact', head: true })
+
+      if (category !== 'all') {
+        countQuery = countQuery.eq('category', category)
+      }
+
+      if (days > 0) {
+        countQuery = countQuery.gte('created_at', startDateStr)
+      }
+
+      const { count: totalCount } = await countQuery
+
+      // Apply pagination
+      query = query.range(offset, offset + limit - 1)
+
+      const { data: completions, error } = await query
+
+      if (error) throw error
+
+      // Calculate stats
+      const avgScore = completions?.length
+        ? Math.round(completions.reduce((sum, c) => sum + (c.total_score || 0), 0) / completions.length)
+        : 0
+
+      const levelCounts: Record<string, number> = {}
+      completions?.forEach(c => {
+        levelCounts[c.determined_level || 'unknown'] = (levelCounts[c.determined_level || 'unknown'] || 0) + 1
+      })
+
+      const totalCompletions = totalCount || 0
+      const totalPages = Math.ceil(totalCompletions / limit)
+      const currentPage = Math.floor(offset / limit) + 1
+
+      return NextResponse.json({
+        view: 'completions',
+        period: days > 0 ? { days, startDate: startDateStr } : { days: 'all', startDate: null },
+        category,
+        totalCompletions,
+        avgScore,
+        levelDistribution: levelCounts,
+        completions: completions?.map(c => ({
+          id: c.id,
+          session_id: c.session_id,
+          email: c.email,
+          first_name: c.first_name,
+          category: c.category,
+          total_score: c.total_score,
+          determined_level: c.determined_level,
+          workout_location: c.workout_location,
+          created_at: c.created_at,
+          breakdown: {
+            symptoms: c.breakdown_symptoms,
+            nutrition: c.breakdown_nutrition,
+            training: c.breakdown_training,
+            sleep_recovery: c.breakdown_sleep_recovery,
+            context: c.breakdown_context
+          }
+        })) || [],
+        pagination: {
+          total: totalCompletions,
+          page: currentPage,
+          pageSize: limit,
+          totalPages,
+          hasMore: offset + limit < totalCompletions
+        }
       })
     }
 
