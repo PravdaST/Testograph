@@ -111,6 +111,8 @@ interface Session {
     status: string;
     total_price: number;
     order_number: string;
+    products: Array<{ title: string; quantity: number; capsules: number }>;
+    totalCapsules: number;
   } | null;
 }
 
@@ -182,6 +184,8 @@ interface QuizCompletion {
     total_price: number;
     paid_at: string | null;
     order_number: string;
+    products: Array<{ title: string; quantity: number; capsules: number }>;
+    totalCapsules: number;
   } | null;
 }
 
@@ -976,21 +980,31 @@ export default function QuizFlowDashboard() {
                           </TableCell>
                           <TableCell>
                             {completion.order ? (
-                              <div className="flex items-center gap-2">
-                                {completion.order.status === 'paid' ? (
-                                  <Badge className="bg-green-500 text-white text-xs">
-                                    <CreditCard className="w-3 h-3 mr-1" />
-                                    Paid
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="border-amber-500 text-amber-600 text-xs">
-                                    <Package className="w-3 h-3 mr-1" />
-                                    Pending
-                                  </Badge>
-                                )}
-                                <span className="text-xs text-muted-foreground">
-                                  {completion.order.total_price} лв
-                                </span>
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-1">
+                                  {completion.order.status === 'paid' ? (
+                                    <Badge className="bg-green-500 text-white text-xs">
+                                      <CreditCard className="w-3 h-3 mr-1" />
+                                      Paid {completion.order.total_price} лв
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="border-amber-500 text-amber-600 text-xs">
+                                      <Package className="w-3 h-3 mr-1" />
+                                      Pending {completion.order.total_price} лв
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {completion.order.products?.map((p, i) => (
+                                    <span key={i}>
+                                      {p.quantity}x {p.title?.replace('TestoUP - Натурална Тесто Формула', 'TestoUP').replace('TESTOGRAPH', 'App')}
+                                      {i < completion.order!.products.length - 1 ? ', ' : ''}
+                                    </span>
+                                  ))}
+                                </div>
+                                <div className="text-xs font-medium text-purple-600">
+                                  {completion.order.totalCapsules} капсули
+                                </div>
                               </div>
                             ) : (
                               <span className="text-xs text-red-400">няма поръчка</span>
@@ -1407,18 +1421,31 @@ export default function QuizFlowDashboard() {
                           </TableCell>
                           <TableCell>
                             {session.order ? (
-                              <div className="flex items-center gap-1">
-                                {session.order.status === 'paid' ? (
-                                  <Badge className="bg-green-500 text-white text-xs">
-                                    <CreditCard className="w-3 h-3 mr-1" />
-                                    {session.order.total_price} лв
-                                  </Badge>
-                                ) : (
-                                  <Badge variant="outline" className="border-amber-500 text-amber-600 text-xs">
-                                    <Package className="w-3 h-3 mr-1" />
-                                    {session.order.total_price} лв
-                                  </Badge>
-                                )}
+                              <div className="flex flex-col gap-1">
+                                <div className="flex items-center gap-1">
+                                  {session.order.status === 'paid' ? (
+                                    <Badge className="bg-green-500 text-white text-xs">
+                                      <CreditCard className="w-3 h-3 mr-1" />
+                                      Paid {session.order.total_price} лв
+                                    </Badge>
+                                  ) : (
+                                    <Badge variant="outline" className="border-amber-500 text-amber-600 text-xs">
+                                      <Package className="w-3 h-3 mr-1" />
+                                      Pending {session.order.total_price} лв
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-xs text-muted-foreground">
+                                  {session.order.products?.map((p, i) => (
+                                    <span key={i}>
+                                      {p.quantity}x {p.title?.replace('TestoUP - Натурална Тесто Формула', 'TestoUP').replace('TESTOGRAPH', 'App')}
+                                      {i < session.order!.products.length - 1 ? ', ' : ''}
+                                    </span>
+                                  ))}
+                                </div>
+                                <div className="text-xs font-medium text-purple-600">
+                                  {session.order.totalCapsules} капсули
+                                </div>
                               </div>
                             ) : (
                               <span className="text-xs text-red-400">няма поръчка</span>

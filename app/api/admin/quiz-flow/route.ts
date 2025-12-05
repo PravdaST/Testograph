@@ -381,21 +381,25 @@ export async function GET(request: NextRequest) {
 
       // Fetch order data for all emails
       const emails = completions?.map(c => c.email).filter(Boolean) || []
-      const orderMap: Record<string, { status: string; total_price: number; order_number: string }> = {}
+      const orderMap: Record<string, { status: string; total_price: number; order_number: string; products: any[]; totalCapsules: number }> = {}
 
       if (emails.length > 0) {
         const { data: orders } = await supabase
           .from('pending_orders')
-          .select('email, status, total_price, order_number')
+          .select('email, status, total_price, order_number, products')
           .in('email', emails)
 
         orders?.forEach(order => {
           const emailLower = order.email?.toLowerCase()
           if (emailLower && (!orderMap[emailLower] || order.status === 'paid')) {
+            const products = order.products || []
+            const totalCapsules = products.reduce((sum: number, p: any) => sum + (p.totalCapsules || 0), 0)
             orderMap[emailLower] = {
               status: order.status,
               total_price: order.total_price,
-              order_number: order.order_number
+              order_number: order.order_number,
+              products: products,
+              totalCapsules: totalCapsules
             }
           }
         })
@@ -435,7 +439,13 @@ export async function GET(request: NextRequest) {
           order: order ? {
             status: order.status,
             total_price: order.total_price,
-            order_number: order.order_number
+            order_number: order.order_number,
+            products: order.products.map((p: any) => ({
+              title: p.title,
+              quantity: p.quantity,
+              capsules: p.totalCapsules || p.capsules
+            })),
+            totalCapsules: order.totalCapsules
           } : null
         }
       }) || []
@@ -659,12 +669,12 @@ export async function GET(request: NextRequest) {
 
       // Fetch order data for all emails in this page
       const emails = completions?.map(c => c.email).filter(Boolean) || []
-      const orderMap: Record<string, { status: string; total_price: number; paid_at: string | null; order_number: string }> = {}
+      const orderMap: Record<string, { status: string; total_price: number; paid_at: string | null; order_number: string; products: any[]; totalCapsules: number }> = {}
 
       if (emails.length > 0) {
         const { data: orders } = await supabase
           .from('pending_orders')
-          .select('email, status, total_price, paid_at, order_number')
+          .select('email, status, total_price, paid_at, order_number, products')
           .in('email', emails)
 
         orders?.forEach(order => {
@@ -673,11 +683,15 @@ export async function GET(request: NextRequest) {
             // If multiple orders, keep the most recent paid one, or most recent pending
             if (!orderMap[emailLower] ||
                 (order.status === 'paid' && orderMap[emailLower].status !== 'paid')) {
+              const products = order.products || []
+              const totalCapsules = products.reduce((sum: number, p: any) => sum + (p.totalCapsules || 0), 0)
               orderMap[emailLower] = {
                 status: order.status,
                 total_price: order.total_price,
                 paid_at: order.paid_at,
-                order_number: order.order_number
+                order_number: order.order_number,
+                products: products,
+                totalCapsules: totalCapsules
               }
             }
           }
@@ -741,7 +755,13 @@ export async function GET(request: NextRequest) {
               status: order.status,
               total_price: order.total_price,
               paid_at: order.paid_at,
-              order_number: order.order_number
+              order_number: order.order_number,
+              products: order.products.map((p: any) => ({
+                title: p.title,
+                quantity: p.quantity,
+                capsules: p.totalCapsules || p.capsules
+              })),
+              totalCapsules: order.totalCapsules
             } : null
           }
         }) || [],
