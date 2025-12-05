@@ -1715,6 +1715,67 @@ export default function QuizAnalyticsDashboard() {
             </DialogHeader>
             {selectedSession && (
               <div className="flex-1 overflow-hidden flex flex-col">
+                {/* Status Banner - Completed or Abandoned */}
+                {(() => {
+                  const isCompleted = selectedSession.stats.completed;
+                  const isAbandoned = selectedSession.stats.abandoned || (!isCompleted && selectedSession.stats.maxStep < 24);
+
+                  // Find when they left (last event or quiz_abandoned event)
+                  const lastEvent = selectedSession.timeline[selectedSession.timeline.length - 1];
+                  const abandonedEvent = selectedSession.timeline.find(e => e.event_type === 'quiz_abandoned');
+                  const pageHiddenEvents = selectedSession.timeline.filter(e => e.event_type === 'page_hidden');
+                  const lastPageHidden = pageHiddenEvents[pageHiddenEvents.length - 1];
+
+                  const exitTime = abandonedEvent?.timestamp || lastPageHidden?.timestamp || lastEvent?.timestamp;
+                  const exitStep = selectedSession.stats.maxStep;
+                  const exitStepLabel = STEP_LABELS[exitStep] || `Step ${exitStep}`;
+
+                  if (isCompleted) {
+                    return (
+                      <div className="bg-green-500/10 border border-green-500/30 rounded-lg p-3 mb-3">
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="w-5 h-5 text-green-500" />
+                          <span className="font-medium text-green-600">Завършен Quiz</span>
+                          <span className="text-xs text-muted-foreground ml-auto">
+                            {new Date(lastEvent?.timestamp).toLocaleString("bg-BG")}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  } else if (isAbandoned) {
+                    return (
+                      <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 mb-3">
+                        <div className="flex items-center gap-2">
+                          <XCircle className="w-5 h-5 text-red-500" />
+                          <span className="font-medium text-red-600">Напуснал Quiz</span>
+                          <Badge variant="outline" className="ml-2 text-red-600 border-red-300">
+                            на Step {exitStep + 1}: {exitStepLabel.replace('[Transition] ', '')}
+                          </Badge>
+                        </div>
+                        <div className="mt-2 text-xs text-muted-foreground flex items-center gap-4">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            Последна активност: {exitTime ? new Date(exitTime).toLocaleString("bg-BG") : "Неизвестно"}
+                          </span>
+                          {pageHiddenEvents.length > 0 && (
+                            <span className="flex items-center gap-1 text-amber-600">
+                              <AlertTriangle className="w-3 h-3" />
+                              {pageHiddenEvents.length}x скрил страницата
+                            </span>
+                          )}
+                          {selectedSession.stats.backClicks > 0 && (
+                            <span className="flex items-center gap-1">
+                              <ChevronLeft className="w-3 h-3" />
+                              {selectedSession.stats.backClicks}x назад
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
                 {/* Stats Row */}
                 <div className="grid grid-cols-4 gap-3 py-4 border-b">
                   <div className="text-center">
@@ -1728,8 +1789,8 @@ export default function QuizAnalyticsDashboard() {
                     <p className="text-xs text-muted-foreground">Общо време</p>
                   </div>
                   <div className="text-center">
-                    <p className="text-2xl font-bold">{selectedSession.stats.maxStep}</p>
-                    <p className="text-xs text-muted-foreground">Max Step</p>
+                    <p className="text-2xl font-bold">{selectedSession.stats.maxStep + 1} / 28</p>
+                    <p className="text-xs text-muted-foreground">Стъпка достигната</p>
                   </div>
                   <div className="text-center">
                     <div className="flex items-center justify-center gap-1">
