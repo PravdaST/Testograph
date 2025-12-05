@@ -775,6 +775,337 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // ============ TRENDS VIEW ============
+    // Daily trend data for charts (from Analytics)
+    if (view === 'trends') {
+      let query = supabase
+        .from('quiz_results_v2')
+        .select('created_at, category, total_score, determined_level')
+        .order('created_at', { ascending: true })
+
+      if (days > 0) {
+        query = query.gte('created_at', startDateStr)
+      }
+
+      if (category !== 'all') {
+        query = query.eq('category', category)
+      }
+
+      const { data: quizResults, error } = await query
+
+      if (error) throw error
+
+      // Calculate daily stats
+      const dailyStats: Record<string, {
+        total: number
+        categories: Record<string, number>
+        scores: number[]
+      }> = {}
+
+      quizResults?.forEach((quiz) => {
+        const date = new Date(quiz.created_at).toISOString().split('T')[0]
+        if (!dailyStats[date]) {
+          dailyStats[date] = { total: 0, categories: { libido: 0, muscle: 0, energy: 0 }, scores: [] }
+        }
+        dailyStats[date].total += 1
+        if (quiz.category) {
+          dailyStats[date].categories[quiz.category] = (dailyStats[date].categories[quiz.category] || 0) + 1
+        }
+        if (quiz.total_score) {
+          dailyStats[date].scores.push(quiz.total_score)
+        }
+      })
+
+      const trendData = Object.entries(dailyStats)
+        .map(([date, stats]) => ({
+          date,
+          total: stats.total,
+          libido: stats.categories.libido || 0,
+          muscle: stats.categories.muscle || 0,
+          energy: stats.categories.energy || 0,
+          avgScore: stats.scores.length > 0
+            ? Math.round(stats.scores.reduce((a, b) => a + b, 0) / stats.scores.length)
+            : 0,
+        }))
+        .sort((a, b) => a.date.localeCompare(b.date))
+
+      // Category breakdown
+      const categoryBreakdown = {
+        libido: quizResults?.filter(q => q.category === 'libido').length || 0,
+        muscle: quizResults?.filter(q => q.category === 'muscle').length || 0,
+        energy: quizResults?.filter(q => q.category === 'energy').length || 0,
+      }
+
+      // Level breakdown
+      const levelBreakdown = {
+        low: quizResults?.filter(q => q.determined_level === 'low').length || 0,
+        moderate: quizResults?.filter(q => q.determined_level === 'moderate').length || 0,
+        good: quizResults?.filter(q => q.determined_level === 'good').length || 0,
+        optimal: quizResults?.filter(q => q.determined_level === 'optimal').length || 0,
+      }
+
+      // Average score
+      const avgScore = quizResults && quizResults.length > 0
+        ? Math.round(quizResults.reduce((sum, q) => sum + (q.total_score || 0), 0) / quizResults.length)
+        : 0
+
+      return NextResponse.json({
+        view: 'trends',
+        period: days > 0 ? { days, startDate: startDateStr } : { days: 'all', startDate: null },
+        category,
+        totalQuizzes: quizResults?.length || 0,
+        avgScore,
+        categoryBreakdown,
+        levelBreakdown,
+        trendData,
+      })
+    }
+
+    // ============ USER JOURNEY VIEW ============
+    // User Journey conversion funnel (from Quiz Results)
+    if (view === 'user-journey') {
+      // Get all quiz results with emails
+      let query = supabase
+        .from('quiz_results_v2')
+        .select('id, email, first_name, category, total_score, determined_level, created_at')
+        .not('email', 'is', null)
+        .order('created_at', { ascending: false })
+
+      if (days > 0) {
+        query = query.gte('created_at', startDateStr)
+      }
+
+      if (category !== 'all') {
+        query = query.eq('category', category)
+      }
+
+      // Apply pagination
+      query = query.range(offset, offset + limit - 1)
+
+      const { data: quizResults, error } = await query
+
+      if (error) throw error
+
+      // Get total count
+      let countQuery = supabase
+        .from('quiz_results_v2')
+        .select('*', { count: 'exact', head: true })
+        .not('email', 'is', null)
+
+      if (days > 0) {
+        countQuery = countQuery.gte('created_at', startDateStr)
+      }
+
+      if (category !== 'all') {
+        countQuery = countQuery.eq('category', category)
+      }
+
+      const { count: totalCount } = await countQuery
+
+      // Get unique emails for user lookup
+      const emails = [...new Set(quizResults?.map(r => r.email).filter(Boolean))]
+
+      // Fetch user data
+      const { data: usersData } = await supabase
+        .from('users')
+        .select('email, id, has_active_subscription, subscription_expires_at, current_day, created_at')
+        .in('email', emails)
+
+      // Fetch profile data
+      const userIds = usersData?.map(u => u.id).filter(Boolean) || []
+      const { data: profilesData } = userIds.length > 0
+        ? await supabase
+            .from('profiles')
+            .select('id, shopify_customer_id, total_spent, onboarding_completed, last_login_at')
+            .in('id', userIds)
+        : { data: [] }
+
+      // Create lookup maps
+      const usersByEmail = new Map(usersData?.map(u => [u.email, u]) || [])
+      const profilesById = new Map(profilesData?.map(p => [p.id, p]) || [])
+
+      // Enrich results
+      const enrichedResults = quizResults?.map(quiz => {
+        const user = usersByEmail.get(quiz.email)
+        const profile = user ? profilesById.get(user.id) : null
+
+        return {
+          id: quiz.id,
+          email: quiz.email,
+          first_name: quiz.first_name,
+          category: quiz.category,
+          total_score: quiz.total_score,
+          determined_level: quiz.determined_level,
+          created_at: quiz.created_at,
+          userJourney: {
+            isRegistered: !!user,
+            registeredAt: user?.created_at || null,
+            hasActiveSubscription: user?.has_active_subscription || false,
+            subscriptionExpiresAt: user?.subscription_expires_at || null,
+            currentDay: user?.current_day || null,
+            lastSignIn: profile?.last_login_at || null,
+            userId: user?.id || null,
+            hasPurchased: !!profile?.shopify_customer_id || (profile?.total_spent || 0) > 0,
+            totalSpent: profile?.total_spent || 0,
+            onboardingCompleted: profile?.onboarding_completed || false,
+          }
+        }
+      }) || []
+
+      // Calculate conversion stats (for all quiz submissions, not just current page)
+      const { data: allQuizEmails } = await supabase
+        .from('quiz_results_v2')
+        .select('email')
+        .not('email', 'is', null)
+
+      const uniqueQuizEmails = [...new Set(allQuizEmails?.map(r => r.email).filter(Boolean))]
+
+      const { data: allUsersData } = await supabase
+        .from('users')
+        .select('email, has_active_subscription')
+        .in('email', uniqueQuizEmails)
+
+      const registeredEmails = new Set(allUsersData?.map(u => u.email) || [])
+      const subscribedEmails = new Set(allUsersData?.filter(u => u.has_active_subscription).map(u => u.email) || [])
+
+      const conversionStats = {
+        totalQuizSubmissions: uniqueQuizEmails.length,
+        registeredInApp: registeredEmails.size,
+        withSubscription: subscribedEmails.size,
+        registrationRate: uniqueQuizEmails.length > 0
+          ? Math.round((registeredEmails.size / uniqueQuizEmails.length) * 100)
+          : 0,
+        subscriptionRate: registeredEmails.size > 0
+          ? Math.round((subscribedEmails.size / registeredEmails.size) * 100)
+          : 0,
+        notRegisteredCount: uniqueQuizEmails.length - registeredEmails.size,
+      }
+
+      const totalResults = totalCount || 0
+      const totalPages = Math.ceil(totalResults / limit)
+      const currentPage = Math.floor(offset / limit) + 1
+
+      return NextResponse.json({
+        view: 'user-journey',
+        period: days > 0 ? { days, startDate: startDateStr } : { days: 'all', startDate: null },
+        category,
+        conversionStats,
+        results: enrichedResults,
+        pagination: {
+          total: totalResults,
+          page: currentPage,
+          pageSize: limit,
+          totalPages,
+          hasMore: offset + limit < totalResults
+        }
+      })
+    }
+
+    // ============ CRM VIEW ============
+    // Shows user segments for email campaigns
+    if (view === 'crm') {
+      // Get all quiz completions with emails
+      const { data: quizUsers } = await supabase
+        .from('quiz_results_v2')
+        .select('email, first_name, category, total_score, determined_level, created_at')
+        .not('email', 'is', null)
+
+      const quizEmailMap: Record<string, any> = {}
+      quizUsers?.forEach(u => {
+        const email = u.email?.toLowerCase()
+        if (email) quizEmailMap[email] = u
+      })
+
+      // Get all orders with emails
+      const { data: orderUsers } = await supabase
+        .from('pending_orders')
+        .select('email, status, total_price, products, created_at')
+        .not('email', 'is', null)
+
+      const orderEmailMap: Record<string, any> = {}
+      orderUsers?.forEach(u => {
+        const email = u.email?.toLowerCase()
+        if (email) {
+          // Keep the paid order if exists, otherwise keep any order
+          if (!orderEmailMap[email] || u.status === 'paid') {
+            orderEmailMap[email] = u
+          }
+        }
+      })
+
+      const quizEmails = new Set(Object.keys(quizEmailMap))
+      const orderEmails = new Set(Object.keys(orderEmailMap))
+
+      // Segment 1: Quiz done + No order
+      const quizNoOrder: any[] = []
+      quizEmails.forEach(email => {
+        if (!orderEmails.has(email)) {
+          const user = quizEmailMap[email]
+          quizNoOrder.push({
+            email,
+            first_name: user.first_name,
+            category: user.category,
+            total_score: user.total_score,
+            determined_level: user.determined_level,
+            quiz_date: user.created_at
+          })
+        }
+      })
+
+      // Segment 2: Has order + No quiz
+      const orderNoQuiz: any[] = []
+      orderEmails.forEach(email => {
+        if (!quizEmails.has(email)) {
+          const order = orderEmailMap[email]
+          const products = order.products || []
+          const totalCapsules = products.reduce((sum: number, p: any) => sum + (p.totalCapsules || 0), 0)
+          orderNoQuiz.push({
+            email,
+            status: order.status,
+            total_price: order.total_price,
+            products: products.map((p: any) => p.title).join(', '),
+            totalCapsules,
+            order_date: order.created_at
+          })
+        }
+      })
+
+      // Segment 3: PAID order + No quiz (subset of segment 2)
+      const paidNoQuiz = orderNoQuiz.filter(u => u.status === 'paid')
+
+      return NextResponse.json({
+        view: 'crm',
+        segments: {
+          quizNoOrder: {
+            name: 'Quiz завършен + Няма поръчка',
+            description: 'Потребители които са завършили quiz-а но не са направили поръчка',
+            action: 'Изпрати: "Купи за да използваш приложението"',
+            count: quizNoOrder.length,
+            users: quizNoOrder.sort((a, b) => new Date(b.quiz_date).getTime() - new Date(a.quiz_date).getTime())
+          },
+          orderNoQuiz: {
+            name: 'Има поръчка + Няма Quiz',
+            description: 'Потребители които са направили поръчка но не са завършили quiz-а',
+            action: 'Изпрати: "Завърши Quiz-а за персонализиран план"',
+            count: orderNoQuiz.length,
+            users: orderNoQuiz.sort((a, b) => new Date(b.order_date).getTime() - new Date(a.order_date).getTime())
+          },
+          paidNoQuiz: {
+            name: 'ПЛАТЕНА поръчка + Няма Quiz',
+            description: 'ВАЖНО! Платили са но не са завършили quiz-а',
+            action: 'Приоритет! Изпрати: "Завърши Quiz-а за да активираш плана си"',
+            count: paidNoQuiz.length,
+            users: paidNoQuiz
+          }
+        },
+        summary: {
+          totalQuizUsers: quizEmails.size,
+          totalOrderUsers: orderEmails.size,
+          overlap: [...quizEmails].filter(e => orderEmails.has(e)).length
+        }
+      })
+    }
+
     return NextResponse.json({ error: 'Invalid view parameter' }, { status: 400 })
 
   } catch (error: any) {

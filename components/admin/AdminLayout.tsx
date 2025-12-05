@@ -15,13 +15,11 @@ import {
   Mail,
   Settings as SettingsIcon,
   TrendingUp,
-  ClipboardCheck,
   Handshake,
   BookOpen,
   Loader2,
   ShoppingCart,
   Filter,
-  GitBranch,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -47,14 +45,9 @@ const navItems = [
     icon: TrendingUp,
   },
   {
-    title: 'Quiz Analytics',
-    href: '/admin/analytics',
+    title: 'Quiz Analytics (All)',
+    href: '/admin/quiz-analytics',
     icon: Filter,
-  },
-  {
-    title: 'Quiz Flow',
-    href: '/admin/quiz-flow',
-    icon: GitBranch,
   },
   {
     title: 'Shopify Orders',
@@ -70,11 +63,6 @@ const navItems = [
     title: 'Chat Sessions',
     href: '/admin/chat-sessions',
     icon: MessageSquare,
-  },
-  {
-    title: 'Quiz Резултати',
-    href: '/admin/quiz-results',
-    icon: ClipboardCheck,
   },
   {
     title: 'Афилиейти',

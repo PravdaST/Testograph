@@ -71,6 +71,11 @@ import {
   ShoppingCart,
   CreditCard,
   Package,
+  Mail,
+  Send,
+  UserX,
+  ShoppingBag,
+  AlertCircle,
 } from "lucide-react";
 
 // Interfaces
@@ -187,6 +192,39 @@ interface QuizCompletion {
     products: Array<{ title: string; quantity: number; capsules: number }>;
     totalCapsules: number;
   } | null;
+}
+
+interface CrmSegment {
+  name: string;
+  description: string;
+  action: string;
+  count: number;
+  users: Array<{
+    email: string;
+    first_name?: string;
+    category?: string;
+    total_score?: number;
+    determined_level?: string;
+    quiz_date?: string;
+    status?: string;
+    total_price?: number;
+    products?: string;
+    totalCapsules?: number;
+    order_date?: string;
+  }>;
+}
+
+interface CrmData {
+  segments: {
+    quizNoOrder: CrmSegment;
+    orderNoQuiz: CrmSegment;
+    paidNoQuiz: CrmSegment;
+  };
+  summary: {
+    totalQuizUsers: number;
+    totalOrderUsers: number;
+    overlap: number;
+  };
 }
 
 interface OverviewData {
@@ -410,10 +448,18 @@ export default function QuizFlowDashboard() {
   const [sessionsData, setSessionsData] = useState<any>(null);
   const [completionsData, setCompletionsData] = useState<any>(null);
   const [overviewData, setOverviewData] = useState<OverviewData | null>(null);
+  const [crmData, setCrmData] = useState<CrmData | null>(null);
   const [loading, setLoading] = useState(true);
   const [selectedDays, setSelectedDays] = useState(7);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
-  const [activeTab, setActiveTab] = useState<"stats" | "funnel" | "dropoffs" | "sessions" | "completions">("completions");
+  const [activeTab, setActiveTab] = useState<"stats" | "funnel" | "dropoffs" | "sessions" | "completions" | "crm">("completions");
+
+  // CRM email compose state
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [emailSubject, setEmailSubject] = useState("");
+  const [emailMessage, setEmailMessage] = useState("");
+  const [selectedSegment, setSelectedSegment] = useState<string | null>(null);
+  const [sendingEmail, setSendingEmail] = useState(false);
 
   // Sessions pagination
   const [sessionsPage, setSessionsPage] = useState(1);
@@ -434,13 +480,14 @@ export default function QuizFlowDashboard() {
       const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
       const categoryParam = categoryFilter !== "all" ? `&category=${categoryFilter}` : "";
 
-      const [statsRes, funnelRes, dropOffRes, sessionsRes, completionsRes, overviewRes] = await Promise.all([
+      const [statsRes, funnelRes, dropOffRes, sessionsRes, completionsRes, overviewRes, crmRes] = await Promise.all([
         fetch(`${baseUrl}/api/admin/quiz-flow?view=stats&days=${selectedDays}${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=funnel&days=${selectedDays}${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=dropoffs&days=${selectedDays}${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=sessions&days=0${categoryParam}&limit=${sessionsPageSize}&offset=0`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=completions&days=0${categoryParam}&limit=${completionsPageSize}&offset=0`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=overview${categoryParam}`),
+        fetch(`${baseUrl}/api/admin/quiz-flow?view=crm`),
       ]);
 
       if (statsRes.ok) setStatsData(await statsRes.json());
@@ -456,6 +503,9 @@ export default function QuizFlowDashboard() {
       }
       if (overviewRes.ok) {
         setOverviewData(await overviewRes.json());
+      }
+      if (crmRes.ok) {
+        setCrmData(await crmRes.json());
       }
     } catch (error) {
       console.error("Error fetching quiz flow data:", error);
@@ -859,6 +909,15 @@ export default function QuizFlowDashboard() {
           <Button variant={activeTab === "sessions" ? "default" : "ghost"} onClick={() => setActiveTab("sessions")}>
             <Users className="w-4 h-4 mr-2" />
             Sessions
+          </Button>
+          <Button variant={activeTab === "crm" ? "default" : "ghost"} onClick={() => setActiveTab("crm")}>
+            <Mail className="w-4 h-4 mr-2" />
+            CRM
+            {crmData && (
+              <Badge variant="destructive" className="ml-2 text-xs">
+                {crmData.segments.quizNoOrder.count + crmData.segments.orderNoQuiz.count}
+              </Badge>
+            )}
           </Button>
         </div>
 
@@ -1568,6 +1627,436 @@ export default function QuizFlowDashboard() {
             </CardContent>
           </Card>
         )}
+
+        {/* ============ CRM TAB ============ */}
+        {activeTab === "crm" && (
+          <div className="space-y-6">
+            {/* CRM Summary */}
+            {crmData && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <Database className="w-4 h-4 text-purple-500" />
+                      Quiz Потребители
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">{crmData.summary.totalQuizUsers}</div>
+                    <p className="text-xs text-muted-foreground">Завършили Quiz</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <ShoppingBag className="w-4 h-4 text-green-500" />
+                      Поръчки
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">{crmData.summary.totalOrderUsers}</div>
+                    <p className="text-xs text-muted-foreground">Потребители с поръчка</p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-blue-500" />
+                      Overlap
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold">{crmData.summary.overlap}</div>
+                    <p className="text-xs text-muted-foreground">Quiz + Поръчка</p>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {/* Segment Cards */}
+            {crmData && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Segment 1: Quiz но НЯМА поръчка */}
+                <Card className="border-red-200 dark:border-red-800">
+                  <CardHeader className="bg-red-50 dark:bg-red-950 rounded-t-lg">
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center gap-2 text-red-700 dark:text-red-300">
+                        <UserX className="w-5 h-5" />
+                        Quiz без поръчка
+                      </span>
+                      <Badge variant="destructive" className="text-lg px-3">
+                        {crmData.segments.quizNoOrder.count}
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-red-600 dark:text-red-400">
+                      {crmData.segments.quizNoOrder.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm font-medium">{crmData.segments.quizNoOrder.action}</p>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedSegment("quizNoOrder");
+                          setEmailSubject("Активирай TestoUP Приложението");
+                          setEmailMessage(`Здравей,
+
+Видяхме, че завърши нашия тест за тестостерон - поздравления за първата стъпка!
+
+За да получиш достъп до персонализираната си програма в TestoUP приложението, трябва да си закупиш TestoUP добавката.
+
+С нея ще получиш:
+- 30-дневна програма за хранене
+- Персонализирани тренировки
+- План за сън и възстановяване
+- Ежедневен прием на добавки
+
+Поръчай сега: https://shop.testograph.eu
+
+Поздрави,
+Екипът на Testograph`);
+                          setEmailModalOpen(true);
+                        }}
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        Изпрати имейл
+                      </Button>
+                    </div>
+
+                    {/* User List */}
+                    <div className="max-h-64 overflow-y-auto rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Име</TableHead>
+                            <TableHead>Категория</TableHead>
+                            <TableHead>Дата</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {crmData.segments.quizNoOrder.users.slice(0, 20).map((user, idx) => (
+                            <TableRow key={idx}>
+                              <TableCell className="text-xs font-medium text-blue-600">{user.email}</TableCell>
+                              <TableCell className="text-xs">{user.first_name || "-"}</TableCell>
+                              <TableCell>
+                                {user.category && getCategoryBadge(user.category)}
+                              </TableCell>
+                              <TableCell className="text-xs text-muted-foreground">
+                                {user.quiz_date ? formatDate(user.quiz_date) : "-"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    {crmData.segments.quizNoOrder.count > 20 && (
+                      <p className="text-xs text-muted-foreground mt-2 text-center">
+                        Показани първите 20 от {crmData.segments.quizNoOrder.count}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Segment 2: Поръчка но НЯМА Quiz */}
+                <Card className="border-amber-200 dark:border-amber-800">
+                  <CardHeader className="bg-amber-50 dark:bg-amber-950 rounded-t-lg">
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center gap-2 text-amber-700 dark:text-amber-300">
+                        <ShoppingCart className="w-5 h-5" />
+                        Поръчка без Quiz
+                      </span>
+                      <Badge className="bg-amber-500 text-white text-lg px-3">
+                        {crmData.segments.orderNoQuiz.count}
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-amber-600 dark:text-amber-400">
+                      {crmData.segments.orderNoQuiz.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm font-medium">{crmData.segments.orderNoQuiz.action}</p>
+                      <Button
+                        className="bg-amber-500 hover:bg-amber-600 text-white"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedSegment("orderNoQuiz");
+                          setEmailSubject("Завърши Quiz-а за да активираш програмата");
+                          setEmailMessage(`Здравей,
+
+Благодарим за поръчката на TestoUP!
+
+За да получиш персонализирана програма в приложението, трябва да завършиш нашия кратък тест. Той ще ни помогне да създадем план специално за теб.
+
+Започни сега: https://www.testograph.eu/quiz
+
+Тестът отнема само 2-3 минути и ще получиш:
+- Анализ на текущото ти състояние
+- Персонализиран хранителен план
+- Тренировъчна програма според целите ти
+- План за оптимизиране на съня
+
+Поздрави,
+Екипът на Testograph`);
+                          setEmailModalOpen(true);
+                        }}
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        Изпрати имейл
+                      </Button>
+                    </div>
+
+                    {/* User List */}
+                    <div className="max-h-64 overflow-y-auto rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead>Email</TableHead>
+                            <TableHead>Статус</TableHead>
+                            <TableHead>Сума</TableHead>
+                            <TableHead>Дата</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {crmData.segments.orderNoQuiz.users.slice(0, 20).map((user, idx) => (
+                            <TableRow key={idx}>
+                              <TableCell className="text-xs font-medium text-blue-600">{user.email}</TableCell>
+                              <TableCell>
+                                {user.status === "paid" ? (
+                                  <Badge className="bg-green-500 text-white text-xs">Paid</Badge>
+                                ) : (
+                                  <Badge variant="outline" className="border-amber-500 text-amber-600 text-xs">Pending</Badge>
+                                )}
+                              </TableCell>
+                              <TableCell className="text-xs">{user.total_price} лв</TableCell>
+                              <TableCell className="text-xs text-muted-foreground">
+                                {user.order_date ? formatDate(user.order_date) : "-"}
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                    {crmData.segments.orderNoQuiz.count > 20 && (
+                      <p className="text-xs text-muted-foreground mt-2 text-center">
+                        Показани първите 20 от {crmData.segments.orderNoQuiz.count}
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* Segment 3: PAID поръчка без Quiz - Priority! */}
+                <Card className="border-green-200 dark:border-green-800 lg:col-span-2">
+                  <CardHeader className="bg-green-50 dark:bg-green-950 rounded-t-lg">
+                    <CardTitle className="flex items-center justify-between">
+                      <span className="flex items-center gap-2 text-green-700 dark:text-green-300">
+                        <AlertCircle className="w-5 h-5" />
+                        ПЛАТЕНИ без Quiz (Приоритет!)
+                      </span>
+                      <Badge className="bg-green-600 text-white text-lg px-3">
+                        {crmData.segments.paidNoQuiz.count}
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-green-600 dark:text-green-400">
+                      {crmData.segments.paidNoQuiz.description} - Тези клиенти са платили но не могат да използват приложението!
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <p className="text-sm font-medium text-green-700">{crmData.segments.paidNoQuiz.action}</p>
+                      <Button
+                        className="bg-green-600 hover:bg-green-700 text-white"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedSegment("paidNoQuiz");
+                          setEmailSubject("ВАЖНО: Завърши Quiz-а за да активираш програмата си");
+                          setEmailMessage(`Здравей,
+
+Благодарим за покупката на TestoUP! Плащането е получено успешно.
+
+Имаме важна стъпка за теб - за да активираш персонализираната си програма в приложението, трябва да завършиш нашия кратък тест.
+
+Отнема само 2-3 минути: https://www.testograph.eu/quiz
+
+След теста веднага ще получиш достъп до:
+- Твоят персонален хранителен план
+- Тренировки според целите ти
+- Оптимизация на съня
+- Ежедневно проследяване на напредъка
+
+Ако имаш въпроси, пиши ни!
+
+Поздрави,
+Екипът на Testograph`);
+                          setEmailModalOpen(true);
+                        }}
+                      >
+                        <Send className="w-4 h-4 mr-2" />
+                        Изпрати имейл
+                      </Button>
+                    </div>
+
+                    {crmData.segments.paidNoQuiz.count > 0 ? (
+                      <div className="rounded-md border">
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Email</TableHead>
+                              <TableHead>Продукти</TableHead>
+                              <TableHead>Капсули</TableHead>
+                              <TableHead>Сума</TableHead>
+                              <TableHead>Дата на плащане</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {crmData.segments.paidNoQuiz.users.map((user, idx) => (
+                              <TableRow key={idx} className="bg-green-50/50 dark:bg-green-950/50">
+                                <TableCell className="text-sm font-medium text-blue-600">{user.email}</TableCell>
+                                <TableCell className="text-xs">{user.products || "-"}</TableCell>
+                                <TableCell>
+                                  <Badge variant="outline" className="text-purple-600 border-purple-500">
+                                    {user.totalCapsules || 0} капс.
+                                  </Badge>
+                                </TableCell>
+                                <TableCell className="text-sm font-medium">{user.total_price} лв</TableCell>
+                                <TableCell className="text-xs text-muted-foreground">
+                                  {user.order_date ? formatDate(user.order_date) : "-"}
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-green-600">
+                        <CheckCircle className="w-12 h-12 mx-auto mb-2" />
+                        <p>Всички платени клиенти са завършили Quiz!</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+
+            {!crmData && (
+              <div className="text-center py-12">
+                <Mail className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground">Зареждане на CRM данни...</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Email Compose Modal */}
+        <Dialog open={emailModalOpen} onOpenChange={setEmailModalOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Mail className="w-5 h-5" />
+                Изпрати имейл до сегмент
+              </DialogTitle>
+              <DialogDescription>
+                {selectedSegment === "quizNoOrder" && `${crmData?.segments.quizNoOrder.count} потребители - Quiz без поръчка`}
+                {selectedSegment === "orderNoQuiz" && `${crmData?.segments.orderNoQuiz.count} потребители - Поръчка без Quiz`}
+                {selectedSegment === "paidNoQuiz" && `${crmData?.segments.paidNoQuiz.count} потребители - ПЛАТЕНИ без Quiz`}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">Тема</label>
+                <input
+                  type="text"
+                  value={emailSubject}
+                  onChange={(e) => setEmailSubject(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md bg-background"
+                  placeholder="Тема на имейла..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-2">Съобщение</label>
+                <textarea
+                  value={emailMessage}
+                  onChange={(e) => setEmailMessage(e.target.value)}
+                  className="w-full px-3 py-2 border border-border rounded-md bg-background min-h-[300px] font-mono text-sm"
+                  placeholder="Текст на имейла..."
+                />
+              </div>
+
+              <div className="flex items-center justify-between pt-4 border-t">
+                <p className="text-sm text-muted-foreground">
+                  Ще бъдат изпратени{" "}
+                  <strong>
+                    {selectedSegment === "quizNoOrder" && crmData?.segments.quizNoOrder.count}
+                    {selectedSegment === "orderNoQuiz" && crmData?.segments.orderNoQuiz.count}
+                    {selectedSegment === "paidNoQuiz" && crmData?.segments.paidNoQuiz.count}
+                  </strong>{" "}
+                  имейла
+                </p>
+                <div className="flex gap-2">
+                  <Button variant="outline" onClick={() => setEmailModalOpen(false)}>
+                    Отказ
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      if (!selectedSegment || !crmData) return;
+
+                      setSendingEmail(true);
+                      try {
+                        const segment = crmData.segments[selectedSegment as keyof typeof crmData.segments];
+                        const recipients = segment.users.map((u) => u.email);
+
+                        const response = await fetch("/api/admin/communication/send-email", {
+                          method: "POST",
+                          headers: { "Content-Type": "application/json" },
+                          body: JSON.stringify({
+                            to: recipients,
+                            subject: emailSubject,
+                            message: emailMessage,
+                            isBulk: true,
+                            adminId: "quiz-flow-crm",
+                            adminEmail: "admin@testograph.eu",
+                          }),
+                        });
+
+                        const result = await response.json();
+
+                        if (response.ok) {
+                          alert(`Успешно изпратени ${result.results?.length || recipients.length} имейла!`);
+                          setEmailModalOpen(false);
+                        } else {
+                          alert(`Грешка: ${result.error || "Неуспешно изпращане"}`);
+                        }
+                      } catch (error) {
+                        console.error("Email send error:", error);
+                        alert("Грешка при изпращане на имейлите");
+                      } finally {
+                        setSendingEmail(false);
+                      }
+                    }}
+                    disabled={sendingEmail || !emailSubject || !emailMessage}
+                  >
+                    {sendingEmail ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                        Изпращане...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Изпрати
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         {/* Session Detail Modal */}
         <Dialog open={sessionModalOpen} onOpenChange={setSessionModalOpen}>
