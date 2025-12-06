@@ -1,5 +1,64 @@
 # Testograph Project Documentation
 
+## IMPORTANT: Current User Journey (December 2024)
+
+**НЕ използвай стари термини като "PRO достъп", "PRO users", "subscription" - те са ОСТАРЕЛИ!**
+
+### Текуща Система (3 стъпки):
+
+1. **Quiz** (`/quiz/*`)
+   - Потребителят попълва quiz за тестостерон
+   - Избира категория: `libido`, `muscle`, или `energy`
+   - Получава score и персонализиран план
+   - Данни в: `quiz_results_v2`
+
+2. **Shopify Покупка** (`shop.testograph.eu`)
+   - Купува TestoUp добавка
+   - Данни в: `pending_orders`
+   - Webhook автоматично записва поръчката
+
+3. **App Регистрация** (`/app/*`)
+   - Влиза в мобилното приложение
+   - Следи тренировки, хранене, сън, добавки
+   - Данни в: `app_users` + много други таблици
+
+### Admin Pages Mapping:
+- `/admin/users` - Quiz потребители (от стъпка 1)
+- `/admin/shopify-orders` - Поръчки (от стъпка 2)
+- `/admin/users/[email]` - 360° профил на потребител (всичко заедно)
+- `/admin/quiz-analytics` - Quiz статистики и Session Explorer
+
+### НЯМА:
+- ❌ PRO subscription система
+- ❌ Платени планове в приложението
+- ❌ Access control за features
+
+### Database Tables - Кое откъде идва:
+
+| Таблица | Източник | Описание |
+|---------|----------|----------|
+| `quiz_results_v2` | Quiz (стъпка 1) | Email, име, категория, score, level, breakdown scores |
+| `quiz_step_events` | Quiz (стъпка 1) | Всяка стъпка от quiz-а, отговори, време |
+| `pending_orders` | Shopify (стъпка 2) | Поръчки, продукти, адрес, телефон |
+| `app_users` | App (стъпка 3) | Регистрирани потребители в приложението |
+| `workout_sessions` | App (стъпка 3) | Завършени тренировки |
+| `meal_completions` | App (стъпка 3) | Логнати хранения |
+| `sleep_logs` | App (стъпка 3) | Записи за сън |
+| `supplement_tracking` | App (стъпка 3) | TestoUp приемане |
+| `progress_photos` | App (стъпка 3) | Снимки за прогрес |
+| `chat_sessions` | App (стъпка 3) | AI Coach разговори |
+| `chat_messages` | App (стъпка 3) | Съобщения в чата |
+| `admin_users` | Admin | Списък с админи |
+| `audit_logs` | Admin | Действия на админи |
+| `email_logs` | Admin | Изпратени имейли |
+
+### Свързване на потребител:
+- **Email** е primary key - свързва quiz → shopify → app
+- Един потребител може да има данни във всички 3 стъпки
+- `/admin/users/[email]` показва 360° изглед от всички таблици
+
+---
+
 ## Project Overview
 
 Testograph is a Next.js application for testosterone health assessment and personalized recommendations. It includes a quiz system, admin panel, Shopify integration, and user management.
@@ -27,19 +86,19 @@ Testograph is a Next.js application for testosterone health assessment and perso
 | Page | Path | Description |
 |------|------|-------------|
 | Dashboard | `/admin/dashboard` | Overview stats, recent activity |
-| Users | `/admin/users` | Quiz users management |
-| App Users | `/admin/pro-users` | Mobile app users |
+| Users | `/admin/users` | Quiz потребители (списък) |
+| User Profile | `/admin/users/[email]` | 360° профил на потребител |
 | Business Analytics | `/admin/business-analytics` | Revenue & operations |
-| Quiz Analytics | `/admin/analytics` | Quiz completion stats |
+| Quiz Analytics | `/admin/quiz-analytics` | Quiz stats, Session Explorer, CSV Export |
 | **Shopify Orders** | `/admin/shopify-orders` | Order management |
 | Chat Sessions | `/admin/chat-sessions` | AI chat logs |
-| Access Control | `/admin/access` | Admin permissions |
 | App Data | `/admin/app-data` | App content management |
 | Quiz Results | `/admin/quiz-results` | Individual quiz results |
 | Affiliates | `/admin/affiliates` | Affiliate tracking |
 | Learn Content | `/admin/learn-content` | Educational content |
 | Audit Logs | `/admin/audit-logs` | System logs |
 | Settings | `/admin/settings` | App configuration |
+| Communication | `/admin/communication` | Email templates & sending |
 
 ---
 
