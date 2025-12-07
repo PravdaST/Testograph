@@ -1310,6 +1310,151 @@ export async function GET(request: NextRequest) {
       })
     }
 
+    // ============ COHORT ANALYSIS VIEW ============
+    // Groups users by week/month and shows conversion comparison
+    if (view === 'cohort') {
+      const groupBy = searchParams.get('groupBy') || 'week' // 'week' | 'month'
+
+      // Get all quiz completions
+      const { data: quizResults } = await supabase
+        .from('quiz_results_v2')
+        .select('email, category, total_score, determined_level, created_at')
+        .not('email', 'is', null)
+        .order('created_at', { ascending: true })
+
+      // Get all orders
+      const { data: orders } = await supabase
+        .from('pending_orders')
+        .select('email, status, total_price, created_at')
+        .not('email', 'is', null)
+
+      // Get all app registrations
+      const { data: appUsers } = await supabase
+        .from('app_users')
+        .select('email, created_at')
+        .not('email', 'is', null)
+
+      // Build email maps
+      const ordersByEmail: Record<string, { status: string; total_price: number; created_at: string }> = {}
+      orders?.forEach(o => {
+        const email = o.email?.toLowerCase()
+        if (email && (!ordersByEmail[email] || o.status === 'paid')) {
+          ordersByEmail[email] = o
+        }
+      })
+
+      const appUsersByEmail = new Set(appUsers?.map(u => u.email?.toLowerCase()).filter(Boolean) || [])
+
+      // Helper function to get week/month key
+      const getTimeKey = (dateStr: string): string => {
+        const date = new Date(dateStr)
+        if (groupBy === 'month') {
+          return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+        }
+        // Week: Get start of week (Monday)
+        const day = date.getDay()
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1)
+        const monday = new Date(date)
+        monday.setDate(diff)
+        return `${monday.getFullYear()}-W${String(Math.ceil((monday.getDate() + new Date(monday.getFullYear(), 0, 1).getDay()) / 7)).padStart(2, '0')}`
+      }
+
+      // Group quiz results by time period
+      const cohorts: Record<string, {
+        period: string
+        startDate: string
+        quizCompletions: number
+        withOrder: number
+        withPaidOrder: number
+        withAppRegistration: number
+        totalRevenue: number
+        categoryBreakdown: { libido: number; muscle: number; energy: number }
+        levelBreakdown: { low: number; normal: number; good: number }
+      }> = {}
+
+      quizResults?.forEach(result => {
+        const email = result.email?.toLowerCase()
+        if (!email) return
+
+        const timeKey = getTimeKey(result.created_at)
+        if (!cohorts[timeKey]) {
+          cohorts[timeKey] = {
+            period: timeKey,
+            startDate: result.created_at,
+            quizCompletions: 0,
+            withOrder: 0,
+            withPaidOrder: 0,
+            withAppRegistration: 0,
+            totalRevenue: 0,
+            categoryBreakdown: { libido: 0, muscle: 0, energy: 0 },
+            levelBreakdown: { low: 0, normal: 0, good: 0 }
+          }
+        }
+
+        const cohort = cohorts[timeKey]
+        cohort.quizCompletions++
+
+        // Category
+        if (result.category && cohort.categoryBreakdown[result.category as keyof typeof cohort.categoryBreakdown] !== undefined) {
+          cohort.categoryBreakdown[result.category as keyof typeof cohort.categoryBreakdown]++
+        }
+
+        // Level
+        const level = result.determined_level === 'low' ? 'low' :
+                      result.determined_level === 'normal' || result.determined_level === 'moderate' ? 'normal' : 'good'
+        cohort.levelBreakdown[level]++
+
+        // Check order status
+        const order = ordersByEmail[email]
+        if (order) {
+          cohort.withOrder++
+          if (order.status === 'paid') {
+            cohort.withPaidOrder++
+            cohort.totalRevenue += order.total_price || 0
+          }
+        }
+
+        // Check app registration
+        if (appUsersByEmail.has(email)) {
+          cohort.withAppRegistration++
+        }
+      })
+
+      // Convert to array and calculate rates
+      const cohortArray = Object.values(cohorts)
+        .sort((a, b) => a.period.localeCompare(b.period))
+        .map(cohort => ({
+          ...cohort,
+          orderRate: cohort.quizCompletions > 0 ? Math.round((cohort.withOrder / cohort.quizCompletions) * 100) : 0,
+          paidRate: cohort.quizCompletions > 0 ? Math.round((cohort.withPaidOrder / cohort.quizCompletions) * 100) : 0,
+          appRate: cohort.quizCompletions > 0 ? Math.round((cohort.withAppRegistration / cohort.quizCompletions) * 100) : 0,
+          avgRevenue: cohort.withPaidOrder > 0 ? Math.round(cohort.totalRevenue / cohort.withPaidOrder) : 0
+        }))
+
+      // Calculate summary stats
+      const totals = cohortArray.reduce((acc, c) => ({
+        quizCompletions: acc.quizCompletions + c.quizCompletions,
+        withOrder: acc.withOrder + c.withOrder,
+        withPaidOrder: acc.withPaidOrder + c.withPaidOrder,
+        withAppRegistration: acc.withAppRegistration + c.withAppRegistration,
+        totalRevenue: acc.totalRevenue + c.totalRevenue
+      }), { quizCompletions: 0, withOrder: 0, withPaidOrder: 0, withAppRegistration: 0, totalRevenue: 0 })
+
+      return NextResponse.json({
+        view: 'cohort',
+        groupBy,
+        cohorts: cohortArray,
+        summary: {
+          totalCohorts: cohortArray.length,
+          totalQuizCompletions: totals.quizCompletions,
+          avgOrderRate: totals.quizCompletions > 0 ? Math.round((totals.withOrder / totals.quizCompletions) * 100) : 0,
+          avgPaidRate: totals.quizCompletions > 0 ? Math.round((totals.withPaidOrder / totals.quizCompletions) * 100) : 0,
+          avgAppRate: totals.quizCompletions > 0 ? Math.round((totals.withAppRegistration / totals.quizCompletions) * 100) : 0,
+          totalRevenue: totals.totalRevenue
+        }
+      })
+    }
+
     // ============ CRM VIEW ============
     // Shows user segments for email campaigns
     if (view === 'crm') {
@@ -2214,6 +2359,528 @@ export async function GET(request: NextRequest) {
           'Content-Type': 'text/csv; charset=utf-8',
           'Content-Disposition': `attachment; filename="quiz-data-export-${new Date().toISOString().split('T')[0]}.csv"`,
         },
+      })
+    }
+
+    // ============ EMAIL CAMPAIGNS VIEW ============
+    // Email campaign tracking and stats from Resend API
+    if (view === 'email-campaigns') {
+      const resendApiKey = process.env.RESEND_API_KEY
+
+      if (!resendApiKey) {
+        return NextResponse.json({
+          error: 'RESEND_API_KEY not configured',
+          view: 'email-campaigns',
+          stats: { total: 0, sent: 0, delivered: 0, bounced: 0, complained: 0 },
+          recentEmails: [],
+          dailyTrend: []
+        })
+      }
+
+      try {
+        // Fetch emails from Resend API (max 100 per request)
+        // We'll fetch multiple pages to get more data
+        let allEmails: any[] = []
+        let hasMore = true
+        let lastEmailId: string | null = null
+        let pageCount = 0
+        const maxPages = 5 // Fetch up to 500 emails
+
+        while (hasMore && pageCount < maxPages) {
+          const url = lastEmailId
+            ? `https://api.resend.com/emails?limit=100&after=${lastEmailId}`
+            : 'https://api.resend.com/emails?limit=100'
+
+          const response = await fetch(url, {
+            headers: {
+              'Authorization': `Bearer ${resendApiKey}`,
+              'Content-Type': 'application/json'
+            }
+          })
+
+          if (!response.ok) {
+            const errorText = await response.text()
+            console.error('Resend API error:', response.status, errorText)
+            break
+          }
+
+          const data = await response.json()
+          const emails = data.data || []
+          allEmails = [...allEmails, ...emails]
+          hasMore = data.has_more === true && emails.length > 0
+
+          if (emails.length > 0) {
+            lastEmailId = emails[emails.length - 1].id
+          }
+          pageCount++
+        }
+
+        // Calculate stats based on last_event
+        const totalEmails = allEmails.length
+        const deliveredEmails = allEmails.filter(e => e.last_event === 'delivered').length
+        const bouncedEmails = allEmails.filter(e => e.last_event === 'bounced').length
+        const complainedEmails = allEmails.filter(e => e.last_event === 'complained').length
+        const openedEmails = allEmails.filter(e => e.last_event === 'opened' || e.last_event === 'clicked').length
+        const clickedEmails = allEmails.filter(e => e.last_event === 'clicked').length
+
+        // Calculate rates
+        const deliveryRate = totalEmails > 0 ? Math.round((deliveredEmails / totalEmails) * 100) : 0
+        const bounceRate = totalEmails > 0 ? Math.round((bouncedEmails / totalEmails) * 100) : 0
+        const openRate = deliveredEmails > 0 ? Math.round((openedEmails / deliveredEmails) * 100) : 0
+        const clickRate = deliveredEmails > 0 ? Math.round((clickedEmails / deliveredEmails) * 100) : 0
+
+        // Daily trend (last 30 days)
+        const now = new Date()
+        const dailyTrend: { date: string; sent: number; delivered: number; bounced: number }[] = []
+        for (let i = 29; i >= 0; i--) {
+          const dayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i)
+          const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
+          const dayStr = dayStart.toISOString().split('T')[0]
+
+          const daySent = allEmails.filter(e => {
+            const createdAt = new Date(e.created_at)
+            return createdAt >= dayStart && createdAt < dayEnd
+          }).length
+
+          const dayDelivered = allEmails.filter(e => {
+            const createdAt = new Date(e.created_at)
+            return createdAt >= dayStart && createdAt < dayEnd && e.last_event === 'delivered'
+          }).length
+
+          const dayBounced = allEmails.filter(e => {
+            const createdAt = new Date(e.created_at)
+            return createdAt >= dayStart && createdAt < dayEnd && e.last_event === 'bounced'
+          }).length
+
+          dailyTrend.push({ date: dayStr, sent: daySent, delivered: dayDelivered, bounced: dayBounced })
+        }
+
+        // Recent emails (last 50)
+        const recentEmails = allEmails.slice(0, 50).map(email => ({
+          id: email.id,
+          recipient: Array.isArray(email.to) ? email.to.join(', ') : email.to,
+          from: email.from,
+          subject: email.subject,
+          status: email.last_event,
+          createdAt: email.created_at,
+          scheduledAt: email.scheduled_at
+        }))
+
+        // Top recipients
+        const recipientCounts: Record<string, { email: string; count: number; delivered: number; bounced: number }> = {}
+        allEmails.forEach(email => {
+          const recipients = Array.isArray(email.to) ? email.to : [email.to]
+          recipients.forEach((recipientEmail: string) => {
+            const emailLower = recipientEmail?.toLowerCase()
+            if (!emailLower) return
+            if (!recipientCounts[emailLower]) {
+              recipientCounts[emailLower] = { email: emailLower, count: 0, delivered: 0, bounced: 0 }
+            }
+            recipientCounts[emailLower].count++
+            if (email.last_event === 'delivered') recipientCounts[emailLower].delivered++
+            if (email.last_event === 'bounced') recipientCounts[emailLower].bounced++
+          })
+        })
+
+        const topRecipients = Object.values(recipientCounts)
+          .sort((a, b) => b.count - a.count)
+          .slice(0, 20)
+
+        // Group by subject (as proxy for template)
+        const subjectStats: Record<string, { subject: string; sent: number; delivered: number; bounced: number }> = {}
+        allEmails.forEach(email => {
+          const subject = email.subject || 'No Subject'
+          if (!subjectStats[subject]) {
+            subjectStats[subject] = { subject, sent: 0, delivered: 0, bounced: 0 }
+          }
+          subjectStats[subject].sent++
+          if (email.last_event === 'delivered') subjectStats[subject].delivered++
+          if (email.last_event === 'bounced') subjectStats[subject].bounced++
+        })
+
+        return NextResponse.json({
+          view: 'email-campaigns',
+          source: 'resend',
+          stats: {
+            total: totalEmails,
+            sent: totalEmails,
+            delivered: deliveredEmails,
+            bounced: bouncedEmails,
+            complained: complainedEmails,
+            opened: openedEmails,
+            clicked: clickedEmails,
+            deliveryRate,
+            bounceRate,
+            openRate,
+            clickRate
+          },
+          subjectStats: Object.values(subjectStats).sort((a, b) => b.sent - a.sent).slice(0, 10),
+          dailyTrend,
+          recentEmails,
+          topRecipients
+        })
+      } catch (error) {
+        console.error('Error fetching from Resend:', error)
+        return NextResponse.json({
+          error: 'Failed to fetch emails from Resend',
+          view: 'email-campaigns',
+          stats: { total: 0, sent: 0, delivered: 0, bounced: 0 },
+          recentEmails: [],
+          dailyTrend: []
+        }, { status: 500 })
+      }
+    }
+
+    // ============ RETENTION VIEW ============
+    // DAU/WAU/MAU and churn rate metrics
+    if (view === 'retention') {
+      const now = new Date()
+      const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+      const weekStart = new Date(todayStart.getTime() - 7 * 24 * 60 * 60 * 1000)
+      const monthStart = new Date(todayStart.getTime() - 30 * 24 * 60 * 60 * 1000)
+      const prevMonthStart = new Date(todayStart.getTime() - 60 * 24 * 60 * 60 * 1000)
+      const prevWeekStart = new Date(weekStart.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+      // Get all quiz results for activity tracking
+      const { data: quizResults } = await supabase
+        .from('quiz_results_v2')
+        .select('email, created_at')
+        .not('email', 'is', null)
+
+      // Get all app users with their last activity
+      const { data: appUsers } = await supabase
+        .from('app_users')
+        .select('email, created_at, updated_at')
+
+      // Get all orders
+      const { data: orders } = await supabase
+        .from('pending_orders')
+        .select('email, created_at')
+        .not('email', 'is', null)
+
+      // Get workout sessions for activity
+      const { data: workoutSessions } = await supabase
+        .from('workout_sessions')
+        .select('user_email, created_at')
+
+      // Get meal completions for activity
+      const { data: mealCompletions } = await supabase
+        .from('meal_completions')
+        .select('user_email, created_at')
+
+      // Get supplement tracking for activity
+      const { data: supplementTracking } = await supabase
+        .from('supplement_tracking')
+        .select('user_email, created_at')
+
+      // Build user activity map - last activity date per email
+      const userActivity: Record<string, Date> = {}
+
+      const updateActivity = (email: string | null, dateStr: string) => {
+        if (!email) return
+        const emailLower = email.toLowerCase()
+        const date = new Date(dateStr)
+        if (!userActivity[emailLower] || date > userActivity[emailLower]) {
+          userActivity[emailLower] = date
+        }
+      }
+
+      // Track all activities
+      quizResults?.forEach(r => updateActivity(r.email, r.created_at))
+      appUsers?.forEach(u => {
+        updateActivity(u.email, u.created_at)
+        if (u.updated_at) updateActivity(u.email, u.updated_at)
+      })
+      orders?.forEach(o => updateActivity(o.email, o.created_at))
+      workoutSessions?.forEach(w => updateActivity(w.user_email, w.created_at))
+      mealCompletions?.forEach(m => updateActivity(m.user_email, m.created_at))
+      supplementTracking?.forEach(s => updateActivity(s.user_email, s.created_at))
+
+      // Calculate DAU/WAU/MAU
+      let dau = 0, wau = 0, mau = 0
+      let prevWau = 0, prevMau = 0
+
+      Object.values(userActivity).forEach(lastActive => {
+        if (lastActive >= todayStart) dau++
+        if (lastActive >= weekStart) wau++
+        if (lastActive >= monthStart) mau++
+        if (lastActive >= prevWeekStart && lastActive < weekStart) prevWau++
+        if (lastActive >= prevMonthStart && lastActive < monthStart) prevMau++
+      })
+
+      // Calculate churn rate (users active in prev period but not in current)
+      // Churn = (Users lost) / (Users at start of period)
+      const weeklyChurn = prevWau > 0 ? Math.round(((prevWau - (wau - dau)) / prevWau) * 100) : 0
+      const monthlyChurn = prevMau > 0 ? Math.round(((prevMau - mau) / prevMau) * 100) : 0
+
+      // Get daily trend for the last 30 days
+      const dailyTrend: { date: string; activeUsers: number; newUsers: number }[] = []
+
+      // Build first activity date map
+      const firstActivity: Record<string, Date> = {}
+      quizResults?.forEach(r => {
+        if (!r.email) return
+        const emailLower = r.email.toLowerCase()
+        const date = new Date(r.created_at)
+        if (!firstActivity[emailLower] || date < firstActivity[emailLower]) {
+          firstActivity[emailLower] = date
+        }
+      })
+
+      for (let i = 29; i >= 0; i--) {
+        const dayStart = new Date(todayStart.getTime() - i * 24 * 60 * 60 * 1000)
+        const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000)
+
+        let activeCount = 0
+        let newCount = 0
+
+        Object.entries(userActivity).forEach(([email, lastActive]) => {
+          if (lastActive >= dayStart && lastActive < dayEnd) {
+            activeCount++
+          }
+        })
+
+        Object.entries(firstActivity).forEach(([email, first]) => {
+          if (first >= dayStart && first < dayEnd) {
+            newCount++
+          }
+        })
+
+        dailyTrend.push({
+          date: dayStart.toISOString().split('T')[0],
+          activeUsers: activeCount,
+          newUsers: newCount
+        })
+      }
+
+      // Calculate weekly trend for the last 12 weeks
+      const weeklyTrend: { week: string; activeUsers: number; newUsers: number; retention: number }[] = []
+
+      for (let i = 11; i >= 0; i--) {
+        const weekStartDate = new Date(todayStart.getTime() - (i + 1) * 7 * 24 * 60 * 60 * 1000)
+        const weekEndDate = new Date(weekStartDate.getTime() + 7 * 24 * 60 * 60 * 1000)
+        const prevWeekStartDate = new Date(weekStartDate.getTime() - 7 * 24 * 60 * 60 * 1000)
+
+        let activeCount = 0
+        let newCount = 0
+        let prevWeekActive = 0
+        let retainedFromPrevWeek = 0
+
+        const activeThisWeek = new Set<string>()
+        const activePrevWeek = new Set<string>()
+
+        Object.entries(userActivity).forEach(([email, lastActive]) => {
+          if (lastActive >= weekStartDate && lastActive < weekEndDate) {
+            activeCount++
+            activeThisWeek.add(email)
+          }
+          if (lastActive >= prevWeekStartDate && lastActive < weekStartDate) {
+            activePrevWeek.add(email)
+          }
+        })
+
+        Object.entries(firstActivity).forEach(([email, first]) => {
+          if (first >= weekStartDate && first < weekEndDate) {
+            newCount++
+          }
+        })
+
+        // Count retained users (active in both weeks)
+        activeThisWeek.forEach(email => {
+          if (activePrevWeek.has(email)) {
+            retainedFromPrevWeek++
+          }
+        })
+
+        const retention = activePrevWeek.size > 0
+          ? Math.round((retainedFromPrevWeek / activePrevWeek.size) * 100)
+          : 0
+
+        weeklyTrend.push({
+          week: weekStartDate.toISOString().split('T')[0],
+          activeUsers: activeCount,
+          newUsers: newCount,
+          retention
+        })
+      }
+
+      // Engagement metrics by activity type
+      const engagementByType = {
+        quiz: quizResults?.length || 0,
+        orders: orders?.length || 0,
+        workouts: workoutSessions?.length || 0,
+        meals: mealCompletions?.length || 0,
+        supplements: supplementTracking?.length || 0
+      }
+
+      return NextResponse.json({
+        view: 'retention',
+        metrics: {
+          dau,
+          wau,
+          mau,
+          totalUsers: Object.keys(userActivity).length,
+          weeklyChurn: Math.max(0, weeklyChurn),
+          monthlyChurn: Math.max(0, monthlyChurn),
+          wauGrowth: prevWau > 0 ? Math.round(((wau - prevWau) / prevWau) * 100) : 0,
+          mauGrowth: prevMau > 0 ? Math.round(((mau - prevMau) / prevMau) * 100) : 0
+        },
+        dailyTrend,
+        weeklyTrend,
+        engagementByType
+      })
+    }
+
+    // ============ STEP HEATMAP VIEW ============
+    // Visualization of time spent per quiz question
+    if (view === 'step-heatmap') {
+      // Get all step events with time data
+      let query = supabase
+        .from('quiz_step_events')
+        .select('session_id, category, step_number, question_id, event_type, time_spent_seconds, created_at')
+        .eq('event_type', 'step_exited')
+        .not('time_spent_seconds', 'is', null)
+        .gte('created_at', startDateStr)
+
+      if (category !== 'all') {
+        query = query.eq('category', category)
+      }
+
+      const { data: stepEvents, error: stepError } = await query
+
+      if (stepError) {
+        console.error('Step heatmap error:', stepError)
+        return NextResponse.json({ error: stepError.message }, { status: 500 })
+      }
+
+      // Group by question and calculate stats
+      interface StepStats {
+        questionId: string;
+        stepNumber: number;
+        sampleCount: number;
+        totalTime: number;
+        avgTime: number;
+        minTime: number;
+        maxTime: number;
+        times: number[];
+        categories: Record<string, { count: number; totalTime: number }>;
+      }
+
+      const stepStats: Record<string, StepStats> = {}
+
+      stepEvents?.forEach(event => {
+        const key = event.question_id || `step_${event.step_number}`
+        const time = event.time_spent_seconds || 0
+
+        if (!stepStats[key]) {
+          stepStats[key] = {
+            questionId: key,
+            stepNumber: event.step_number,
+            sampleCount: 0,
+            totalTime: 0,
+            avgTime: 0,
+            minTime: Infinity,
+            maxTime: 0,
+            times: [],
+            categories: {}
+          }
+        }
+
+        stepStats[key].sampleCount++
+        stepStats[key].totalTime += time
+        stepStats[key].times.push(time)
+        stepStats[key].minTime = Math.min(stepStats[key].minTime, time)
+        stepStats[key].maxTime = Math.max(stepStats[key].maxTime, time)
+
+        // Track by category
+        const cat = event.category || 'unknown'
+        if (!stepStats[key].categories[cat]) {
+          stepStats[key].categories[cat] = { count: 0, totalTime: 0 }
+        }
+        stepStats[key].categories[cat].count++
+        stepStats[key].categories[cat].totalTime += time
+      })
+
+      // Calculate averages and percentiles
+      const heatmapData = Object.values(stepStats).map(stats => {
+        stats.avgTime = stats.sampleCount > 0 ? stats.totalTime / stats.sampleCount : 0
+
+        // Calculate median
+        const sorted = [...stats.times].sort((a, b) => a - b)
+        const median = sorted.length > 0
+          ? (sorted.length % 2 === 0
+              ? (sorted[sorted.length / 2 - 1] + sorted[sorted.length / 2]) / 2
+              : sorted[Math.floor(sorted.length / 2)])
+          : 0
+
+        // Calculate p90
+        const p90Index = Math.floor(sorted.length * 0.9)
+        const p90 = sorted[p90Index] || stats.maxTime
+
+        // Category breakdown
+        const categoryBreakdown = Object.entries(stats.categories).map(([cat, data]) => ({
+          category: cat,
+          count: data.count,
+          avgTime: data.count > 0 ? data.totalTime / data.count : 0
+        }))
+
+        return {
+          questionId: stats.questionId,
+          stepNumber: stats.stepNumber,
+          sampleCount: stats.sampleCount,
+          avgTime: Math.round(stats.avgTime * 10) / 10,
+          medianTime: Math.round(median * 10) / 10,
+          minTime: Math.round(stats.minTime * 10) / 10,
+          maxTime: Math.round(stats.maxTime * 10) / 10,
+          p90Time: Math.round(p90 * 10) / 10,
+          categoryBreakdown
+        }
+      }).sort((a, b) => a.stepNumber - b.stepNumber)
+
+      // Calculate overall stats
+      const totalSamples = heatmapData.reduce((sum, s) => sum + s.sampleCount, 0)
+      const avgAllTime = totalSamples > 0
+        ? heatmapData.reduce((sum, s) => sum + s.avgTime * s.sampleCount, 0) / totalSamples
+        : 0
+
+      // Find slowest and fastest questions
+      const slowestQuestions = [...heatmapData]
+        .sort((a, b) => b.avgTime - a.avgTime)
+        .slice(0, 5)
+
+      const fastestQuestions = [...heatmapData]
+        .filter(q => q.sampleCount > 10) // Only include questions with enough data
+        .sort((a, b) => a.avgTime - b.avgTime)
+        .slice(0, 5)
+
+      // Calculate time distribution buckets
+      const timeBuckets = {
+        '0-5s': 0,
+        '5-15s': 0,
+        '15-30s': 0,
+        '30-60s': 0,
+        '60s+': 0
+      }
+
+      stepEvents?.forEach(event => {
+        const time = event.time_spent_seconds || 0
+        if (time <= 5) timeBuckets['0-5s']++
+        else if (time <= 15) timeBuckets['5-15s']++
+        else if (time <= 30) timeBuckets['15-30s']++
+        else if (time <= 60) timeBuckets['30-60s']++
+        else timeBuckets['60s+']++
+      })
+
+      return NextResponse.json({
+        heatmapData,
+        summary: {
+          totalSamples,
+          avgTimePerStep: Math.round(avgAllTime * 10) / 10,
+          totalQuestions: heatmapData.length,
+          slowestQuestions,
+          fastestQuestions,
+          timeBuckets
+        }
       })
     }
 

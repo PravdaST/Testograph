@@ -457,10 +457,97 @@ export async function GET(
       });
     });
 
+    // Add workouts to timeline
+    workoutSessions.forEach((workout) => {
+      if (workout.finished_at) {
+        timeline.push({
+          id: workout.id,
+          type: 'workout',
+          timestamp: workout.finished_at,
+          data: {
+            workout_name: workout.workout_name,
+            category: workout.category,
+            duration_minutes: workout.duration_minutes,
+            exercises_completed: workout.exercises_completed,
+            total_exercises: workout.total_exercises,
+            calories_burned: workout.calories_burned,
+          },
+        });
+      }
+    });
+
+    // Add meals to timeline
+    mealCompletions.forEach((meal) => {
+      timeline.push({
+        id: meal.id,
+        type: 'meal',
+        timestamp: meal.completed_at,
+        data: {
+          meal_type: meal.meal_type,
+          meal_name: meal.meal_name,
+          calories: meal.calories,
+          protein: meal.protein,
+          carbs: meal.carbs,
+          fat: meal.fat,
+        },
+      });
+    });
+
+    // Add sleep logs to timeline
+    sleepTracking.forEach((sleep) => {
+      timeline.push({
+        id: sleep.id,
+        type: 'sleep',
+        timestamp: sleep.created_at,
+        data: {
+          sleep_duration: sleep.sleep_duration,
+          sleep_quality: sleep.sleep_quality,
+          bed_time: sleep.bed_time,
+          wake_time: sleep.wake_time,
+          notes: sleep.notes,
+        },
+      });
+    });
+
+    // Add TestoUp tracking to timeline
+    testoupTracking.forEach((testoup) => {
+      if (testoup.morning_taken || testoup.evening_taken) {
+        timeline.push({
+          id: testoup.id,
+          type: 'testoup',
+          timestamp: testoup.created_at,
+          data: {
+            morning_taken: testoup.morning_taken,
+            evening_taken: testoup.evening_taken,
+            morning_time: testoup.morning_time,
+            evening_time: testoup.evening_time,
+            notes: testoup.notes,
+          },
+        });
+      }
+    });
+
+    // Add coach messages to timeline (limit to last 20 for performance)
+    coachMessages?.slice(0, 20).forEach((message) => {
+      timeline.push({
+        id: message.id,
+        type: 'coach_message',
+        timestamp: message.created_at,
+        data: {
+          role: message.role,
+          content: message.content?.substring(0, 200) + (message.content?.length > 200 ? '...' : ''),
+          is_proactive: message.is_proactive,
+        },
+      });
+    });
+
     // Sort timeline by timestamp (most recent first)
     timeline.sort((a, b) => {
       return new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime();
     });
+
+    // Limit timeline to last 100 events for performance
+    const limitedTimeline = timeline.slice(0, 100);
 
     // Calculate stats
     const totalSpent = purchases.reduce((sum, p) => sum + (p.amount || 0), 0);
@@ -510,7 +597,7 @@ export async function GET(
       banned: banInfo !== null,
       banInfo: banInfo,
       stats,
-      timeline,
+      timeline: limitedTimeline,
       chatSessions: chatSessions || [],
       purchases: purchases || [],
       inventory: inventory,

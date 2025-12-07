@@ -26,9 +26,26 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   BarChart,
   Bar,
@@ -88,6 +105,17 @@ import {
   MessageSquare,
   Filter,
   BarChart2,
+  MoreVertical,
+  StickyNote,
+  Tag,
+  Plus,
+  MailOpen,
+  MousePointerClick,
+  Bell,
+  BellRing,
+  Settings,
+  Trash2,
+  Power,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
@@ -96,6 +124,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { DataSheet, quizSessionColumns, sessionEventColumns, quizNoOrderColumns, orderNoQuizColumns, orderColumns, conversionColumns } from "@/components/admin/DataSheet";
 
 // ============ INTERFACES ============
 interface FunnelStep {
@@ -531,8 +560,233 @@ export default function QuizAnalyticsDashboard() {
   const [metricDialogOpen, setMetricDialogOpen] = useState(false);
   const [selectedMetric, setSelectedMetric] = useState<'total' | 'tracked' | 'completed' | 'abandoned' | null>(null);
 
+  // DataSheet for full data access
+  const [dataSheetOpen, setDataSheetOpen] = useState(false);
+  const [dataSheetConfig, setDataSheetConfig] = useState<{
+    title: string;
+    description: string;
+    dataType: string;
+    additionalFilters?: Record<string, string>;
+  } | null>(null);
+
   // Sub-tab for sessions-crm
-  const [sessionsSubTab, setSessionsSubTab] = useState<'users' | 'crm' | 'explorer'>('users');
+  const [sessionsSubTab, setSessionsSubTab] = useState<'users' | 'crm' | 'explorer' | 'cohort' | 'retention' | 'emails' | 'heatmap'>('users');
+
+  // Cohort Analysis state
+  const [cohortData, setCohortData] = useState<{
+    groupBy: string;
+    cohorts: Array<{
+      period: string;
+      startDate: string;
+      quizCompletions: number;
+      withOrder: number;
+      withPaidOrder: number;
+      withAppRegistration: number;
+      totalRevenue: number;
+      orderRate: number;
+      paidRate: number;
+      appRate: number;
+      avgRevenue: number;
+      categoryBreakdown: { libido: number; muscle: number; energy: number };
+      levelBreakdown: { low: number; normal: number; good: number };
+    }>;
+    summary: {
+      totalCohorts: number;
+      totalQuizCompletions: number;
+      avgOrderRate: number;
+      avgPaidRate: number;
+      avgAppRate: number;
+      totalRevenue: number;
+    };
+  } | null>(null);
+  const [cohortGroupBy, setCohortGroupBy] = useState<'week' | 'month'>('week');
+  const [isLoadingCohort, setIsLoadingCohort] = useState(false);
+
+  // Retention Metrics state
+  // Email Campaign Tracking state
+  const [emailCampaignData, setEmailCampaignData] = useState<{
+    stats: {
+      total: number;
+      sent: number;
+      pending: number;
+      failed: number;
+      bounced: number;
+      opened: number;
+      clicked: number;
+      openRate: number;
+      clickRate: number;
+      clickToOpenRate: number;
+      deliveryRate: number;
+      bounceRate: number;
+    };
+    templateStats: Array<{ name: string; sent: number; opened: number; clicked: number }>;
+    dailyTrend: Array<{ date: string; sent: number; opened: number; clicked: number }>;
+    recentEmails: Array<{
+      id: string;
+      recipient: string;
+      recipientName: string | null;
+      subject: string;
+      templateName: string | null;
+      status: string;
+      sentAt: string | null;
+      openedAt: string | null;
+      clickedAt: string | null;
+      isBulk: boolean;
+      sentByEmail: string;
+    }>;
+    topRecipients: Array<{ email: string; count: number; opened: number; clicked: number }>;
+  } | null>(null);
+  const [isLoadingEmailCampaigns, setIsLoadingEmailCampaigns] = useState(false);
+
+  const [retentionData, setRetentionData] = useState<{
+    metrics: {
+      dau: number;
+      wau: number;
+      mau: number;
+      totalUsers: number;
+      weeklyChurn: number;
+      monthlyChurn: number;
+      wauGrowth: number;
+      mauGrowth: number;
+    };
+    dailyTrend: Array<{
+      date: string;
+      activeUsers: number;
+      newUsers: number;
+    }>;
+    weeklyTrend: Array<{
+      week: string;
+      activeUsers: number;
+      newUsers: number;
+      retention: number;
+    }>;
+    engagementByType: {
+      quiz: number;
+      orders: number;
+      workouts: number;
+      meals: number;
+      supplements: number;
+    };
+  } | null>(null);
+  const [isLoadingRetention, setIsLoadingRetention] = useState(false);
+
+  // Saved Filters state
+  interface SavedFilter {
+    id: string;
+    name: string;
+    description: string | null;
+    filter_config: {
+      selectedDays: number;
+      categoryFilter: string;
+      sessionsSubTab?: string;
+      cohortGroupBy?: string;
+    };
+    created_at: string;
+    use_count: number;
+  }
+  const [savedFilters, setSavedFilters] = useState<SavedFilter[]>([]);
+  const [saveFilterDialogOpen, setSaveFilterDialogOpen] = useState(false);
+  const [newFilterName, setNewFilterName] = useState('');
+  const [newFilterDescription, setNewFilterDescription] = useState('');
+  const [isSavingFilter, setIsSavingFilter] = useState(false);
+  const [isLoadingFilters, setIsLoadingFilters] = useState(false);
+
+  // Comparison Mode state
+  const [comparisonEnabled, setComparisonEnabled] = useState(false);
+  const [comparisonPeriod, setComparisonPeriod] = useState<'previous' | 'custom'>('previous');
+  const [comparisonCategory, setComparisonCategory] = useState<string>('none');
+  const [comparisonData, setComparisonData] = useState<{
+    current: {
+      period: string;
+      category: string;
+      stats: {
+        totalSessions: number;
+        completedSessions: number;
+        abandonedSessions: number;
+        completionRate: number;
+      };
+    };
+    comparison: {
+      period: string;
+      category: string;
+      stats: {
+        totalSessions: number;
+        completedSessions: number;
+        abandonedSessions: number;
+        completionRate: number;
+      };
+    };
+    changes: {
+      totalSessions: { value: number; percent: number };
+      completedSessions: { value: number; percent: number };
+      abandonedSessions: { value: number; percent: number };
+      completionRate: { value: number; percent: number };
+    };
+  } | null>(null);
+  const [isLoadingComparison, setIsLoadingComparison] = useState(false);
+
+  // Alerts state
+  interface AdminAlert {
+    id: string;
+    name: string;
+    description: string | null;
+    metric_type: string;
+    condition: string;
+    threshold: number;
+    category: string;
+    is_active: boolean;
+    last_triggered_at: string | null;
+    trigger_count: number;
+    created_at: string;
+  }
+  interface AlertNotification {
+    id: string;
+    alert_id: string;
+    triggered_at: string;
+    metric_value: number;
+    threshold_value: number;
+    message: string;
+    is_read: boolean;
+    admin_alerts?: { name: string; metric_type: string };
+  }
+  const [alerts, setAlerts] = useState<AdminAlert[]>([]);
+  const [alertNotifications, setAlertNotifications] = useState<AlertNotification[]>([]);
+  const [alertsUnreadCount, setAlertsUnreadCount] = useState(0);
+  const [alertsDialogOpen, setAlertsDialogOpen] = useState(false);
+  const [createAlertDialogOpen, setCreateAlertDialogOpen] = useState(false);
+  const [isLoadingAlerts, setIsLoadingAlerts] = useState(false);
+  const [newAlert, setNewAlert] = useState({
+    name: '',
+    description: '',
+    metric_type: 'completion_rate',
+    condition: 'below',
+    threshold: 50,
+    category: 'all',
+  });
+
+  // Step Heatmap
+  interface HeatmapStep {
+    questionId: string;
+    stepNumber: number;
+    sampleCount: number;
+    avgTime: number;
+    medianTime: number;
+    minTime: number;
+    maxTime: number;
+    p90Time: number;
+    categoryBreakdown: { category: string; count: number; avgTime: number }[];
+  }
+  interface HeatmapSummary {
+    totalSamples: number;
+    avgTimePerStep: number;
+    totalQuestions: number;
+    slowestQuestions: HeatmapStep[];
+    fastestQuestions: HeatmapStep[];
+    timeBuckets: Record<string, number>;
+  }
+  const [heatmapData, setHeatmapData] = useState<HeatmapStep[]>([]);
+  const [heatmapSummary, setHeatmapSummary] = useState<HeatmapSummary | null>(null);
+  const [isLoadingHeatmap, setIsLoadingHeatmap] = useState(false);
 
   // User search and filter
   const [userSearchQuery, setUserSearchQuery] = useState('');
@@ -546,7 +800,7 @@ export default function QuizAnalyticsDashboard() {
       const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
       const categoryParam = categoryFilter !== "all" ? `&category=${categoryFilter}` : "";
 
-      const [statsRes, funnelRes, dropOffRes, sessionsRes, trendsRes, userJourneyRes, overviewRes, crmRes, sessionExplorerRes] = await Promise.all([
+      const [statsRes, funnelRes, dropOffRes, sessionsRes, trendsRes, userJourneyRes, overviewRes, crmRes, sessionExplorerRes, cohortRes] = await Promise.all([
         fetch(`${baseUrl}/api/admin/quiz-flow?view=stats&days=${selectedDays}${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=funnel&days=${selectedDays}${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=dropoffs&days=${selectedDays}${categoryParam}`),
@@ -556,6 +810,7 @@ export default function QuizAnalyticsDashboard() {
         fetch(`${baseUrl}/api/admin/quiz-flow?view=overview${categoryParam}`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=crm`),
         fetch(`${baseUrl}/api/admin/quiz-flow?view=session-explorer&days=0${categoryParam}`),
+        fetch(`${baseUrl}/api/admin/quiz-flow?view=cohort&groupBy=${cohortGroupBy}`),
       ]);
 
       if (statsRes.ok) setStatsData(await statsRes.json());
@@ -576,6 +831,7 @@ export default function QuizAnalyticsDashboard() {
         setSessionExplorerData(await sessionExplorerRes.json());
         setAbandonedPage(1);
       }
+      if (cohortRes.ok) setCohortData(await cohortRes.json());
     } catch (error) {
       console.error("Error fetching data:", error);
     } finally {
@@ -623,6 +879,598 @@ export default function QuizAnalyticsDashboard() {
       console.error("Error fetching user journey page:", error);
     } finally {
       setIsSearching(false);
+    }
+  };
+
+  // CSV Export state
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Quick Actions state - Notes dialog
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [selectedUserForNote, setSelectedUserForNote] = useState<{ email: string; name: string } | null>(null);
+  const [newNote, setNewNote] = useState("");
+  const [isAddingNote, setIsAddingNote] = useState(false);
+  const [userNotes, setUserNotes] = useState<{ id: string; note: string; created_at: string; created_by: string }[]>([]);
+
+  // Fetch notes for a user
+  const fetchUserNotes = async (email: string) => {
+    try {
+      const res = await fetch(`/api/admin/user-notes?email=${encodeURIComponent(email)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setUserNotes(data.notes || []);
+      }
+    } catch (error) {
+      console.error("Error fetching notes:", error);
+    }
+  };
+
+  // Add note to user
+  const addNoteToUser = async () => {
+    if (!selectedUserForNote || !newNote.trim()) return;
+
+    setIsAddingNote(true);
+    try {
+      const res = await fetch("/api/admin/user-notes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: selectedUserForNote.email,
+          note: newNote.trim(),
+        }),
+      });
+
+      if (res.ok) {
+        toast({ title: "Бележката е добавена" });
+        setNewNote("");
+        fetchUserNotes(selectedUserForNote.email);
+      } else {
+        throw new Error("Failed to add note");
+      }
+    } catch (error) {
+      toast({ title: "Грешка при добавяне на бележка", variant: "destructive" });
+    } finally {
+      setIsAddingNote(false);
+    }
+  };
+
+  // Delete note
+  const deleteNote = async (noteId: string) => {
+    try {
+      const res = await fetch(`/api/admin/user-notes?id=${noteId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        toast({ title: "Бележката е изтрита" });
+        if (selectedUserForNote) {
+          fetchUserNotes(selectedUserForNote.email);
+        }
+      }
+    } catch (error) {
+      toast({ title: "Грешка при изтриване", variant: "destructive" });
+    }
+  };
+
+  // Open notes dialog for a user
+  const openNotesDialog = (email: string, name: string) => {
+    setSelectedUserForNote({ email, name });
+    setNewNote("");
+    setUserNotes([]);
+    fetchUserNotes(email);
+    setNotesDialogOpen(true);
+  };
+
+  // Fetch cohort data with specific groupBy
+  const fetchCohortData = async (groupBy: 'week' | 'month') => {
+    setIsLoadingCohort(true);
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const res = await fetch(`${baseUrl}/api/admin/quiz-flow?view=cohort&groupBy=${groupBy}`);
+      if (res.ok) {
+        setCohortData(await res.json());
+        setCohortGroupBy(groupBy);
+      }
+    } catch (error) {
+      console.error("Error fetching cohort data:", error);
+    } finally {
+      setIsLoadingCohort(false);
+    }
+  };
+
+  // Fetch retention metrics
+  const fetchRetentionData = async () => {
+    setIsLoadingRetention(true);
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const res = await fetch(`${baseUrl}/api/admin/quiz-flow?view=retention`);
+      if (res.ok) {
+        setRetentionData(await res.json());
+      }
+    } catch (error) {
+      console.error("Error fetching retention data:", error);
+    } finally {
+      setIsLoadingRetention(false);
+    }
+  };
+
+  // Fetch email campaign data
+  const fetchEmailCampaignData = async () => {
+    setIsLoadingEmailCampaigns(true);
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const res = await fetch(`${baseUrl}/api/admin/quiz-flow?view=email-campaigns`);
+      if (res.ok) {
+        setEmailCampaignData(await res.json());
+      }
+    } catch (error) {
+      console.error("Error fetching email campaign data:", error);
+    } finally {
+      setIsLoadingEmailCampaigns(false);
+    }
+  };
+
+  // Fetch comparison data
+  const fetchComparisonData = async () => {
+    if (!comparisonEnabled) return;
+
+    setIsLoadingComparison(true);
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+
+      // Calculate comparison period dates
+      let compDays = selectedDays;
+      if (selectedDays === -1) compDays = 365; // Default to year for "all time"
+
+      // Current period
+      const currentCategoryParam = categoryFilter !== "all" ? `&category=${categoryFilter}` : "";
+      const currentRes = await fetch(`${baseUrl}/api/admin/quiz-flow?view=stats&days=${selectedDays}${currentCategoryParam}`);
+
+      // Comparison period (previous period or different category)
+      let comparisonRes;
+      let compPeriodLabel = "";
+      let compCategoryLabel = "";
+
+      if (comparisonCategory !== 'none' && comparisonCategory !== categoryFilter) {
+        // Compare with different category (same time period)
+        const compCategoryParam = `&category=${comparisonCategory}`;
+        comparisonRes = await fetch(`${baseUrl}/api/admin/quiz-flow?view=stats&days=${selectedDays}${compCategoryParam}`);
+        compPeriodLabel = selectedDays === -1 ? "Всички" : `${selectedDays} дни`;
+        compCategoryLabel = comparisonCategory;
+      } else {
+        // Compare with previous period
+        // For 30 days current, compare with 30-60 days ago
+        const comparisonRes2 = await fetch(`${baseUrl}/api/admin/quiz-flow?view=stats&days=${compDays * 2}${currentCategoryParam}`);
+        comparisonRes = comparisonRes2;
+        compPeriodLabel = `Предишни ${compDays} дни`;
+        compCategoryLabel = categoryFilter;
+      }
+
+      if (currentRes.ok && comparisonRes.ok) {
+        const currentData = await currentRes.json();
+        const compData = await comparisonRes.json();
+
+        // For previous period comparison, subtract current from extended period
+        let compStats = compData.overview;
+        if (comparisonCategory === 'none' || comparisonCategory === categoryFilter) {
+          // Calculate the previous period stats by subtracting
+          compStats = {
+            totalSessions: Math.max(0, compData.overview.totalSessions - currentData.overview.totalSessions),
+            completedSessions: Math.max(0, compData.overview.completedSessions - currentData.overview.completedSessions),
+            abandonedSessions: Math.max(0, compData.overview.abandonedSessions - currentData.overview.abandonedSessions),
+            completionRate: compData.overview.totalSessions - currentData.overview.totalSessions > 0
+              ? ((compData.overview.completedSessions - currentData.overview.completedSessions) /
+                 (compData.overview.totalSessions - currentData.overview.totalSessions) * 100)
+              : 0
+          };
+        }
+
+        // Calculate changes
+        const calcChange = (current: number, comp: number) => ({
+          value: current - comp,
+          percent: comp > 0 ? ((current - comp) / comp * 100) : (current > 0 ? 100 : 0)
+        });
+
+        setComparisonData({
+          current: {
+            period: selectedDays === -1 ? "Всички" : `${selectedDays} дни`,
+            category: categoryFilter === "all" ? "Всички" : categoryFilter,
+            stats: {
+              totalSessions: currentData.overview.totalSessions,
+              completedSessions: currentData.overview.completedSessions,
+              abandonedSessions: currentData.overview.abandonedSessions,
+              completionRate: currentData.overview.completionRate,
+            }
+          },
+          comparison: {
+            period: compPeriodLabel,
+            category: compCategoryLabel === "all" ? "Всички" : compCategoryLabel,
+            stats: {
+              totalSessions: compStats.totalSessions,
+              completedSessions: compStats.completedSessions,
+              abandonedSessions: compStats.abandonedSessions,
+              completionRate: compStats.completionRate,
+            }
+          },
+          changes: {
+            totalSessions: calcChange(currentData.overview.totalSessions, compStats.totalSessions),
+            completedSessions: calcChange(currentData.overview.completedSessions, compStats.completedSessions),
+            abandonedSessions: calcChange(currentData.overview.abandonedSessions, compStats.abandonedSessions),
+            completionRate: calcChange(currentData.overview.completionRate, compStats.completionRate),
+          }
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching comparison data:", error);
+    } finally {
+      setIsLoadingComparison(false);
+    }
+  };
+
+  // Alerts functions
+  const fetchAlerts = async () => {
+    setIsLoadingAlerts(true);
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const res = await fetch(`${baseUrl}/api/admin/alerts`);
+      if (res.ok) {
+        const data = await res.json();
+        setAlerts(data.alerts || []);
+        setAlertsUnreadCount(data.unreadCount || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching alerts:", error);
+    } finally {
+      setIsLoadingAlerts(false);
+    }
+  };
+
+  const fetchAlertNotifications = async () => {
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const res = await fetch(`${baseUrl}/api/admin/alerts?view=notifications`);
+      if (res.ok) {
+        const data = await res.json();
+        setAlertNotifications(data.notifications || []);
+      }
+    } catch (error) {
+      console.error("Error fetching alert notifications:", error);
+    }
+  };
+
+  const createAlert = async () => {
+    if (!newAlert.name.trim()) {
+      toast({ title: "Моля въведи име за алерта", variant: "destructive" });
+      return;
+    }
+
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const res = await fetch(`${baseUrl}/api/admin/alerts`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newAlert),
+      });
+
+      if (res.ok) {
+        toast({ title: "Алертът е създаден успешно!" });
+        setCreateAlertDialogOpen(false);
+        setNewAlert({
+          name: '',
+          description: '',
+          metric_type: 'completion_rate',
+          condition: 'below',
+          threshold: 50,
+          category: 'all',
+        });
+        fetchAlerts();
+      } else {
+        throw new Error("Failed to create alert");
+      }
+    } catch (error) {
+      console.error("Error creating alert:", error);
+      toast({ title: "Грешка при създаване на алерт", variant: "destructive" });
+    }
+  };
+
+  const toggleAlert = async (alertId: string, isActive: boolean) => {
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      await fetch(`${baseUrl}/api/admin/alerts`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: alertId, is_active: !isActive }),
+      });
+      fetchAlerts();
+    } catch (error) {
+      console.error("Error toggling alert:", error);
+    }
+  };
+
+  const deleteAlert = async (alertId: string) => {
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      await fetch(`${baseUrl}/api/admin/alerts?id=${alertId}`, {
+        method: "DELETE",
+      });
+      toast({ title: "Алертът е изтрит" });
+      fetchAlerts();
+    } catch (error) {
+      console.error("Error deleting alert:", error);
+    }
+  };
+
+  const markNotificationsAsRead = async () => {
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      await fetch(`${baseUrl}/api/admin/alerts`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mark_read: true }),
+      });
+      setAlertsUnreadCount(0);
+      setAlertNotifications([]);
+    } catch (error) {
+      console.error("Error marking notifications as read:", error);
+    }
+  };
+
+  // Step Heatmap functions
+  const fetchHeatmapData = async () => {
+    setIsLoadingHeatmap(true);
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const categoryParam = categoryFilter !== "all" ? `&category=${categoryFilter}` : "";
+      const res = await fetch(`${baseUrl}/api/admin/quiz-flow?view=step-heatmap&days=${selectedDays}${categoryParam}`);
+      if (res.ok) {
+        const data = await res.json();
+        setHeatmapData(data.heatmapData || []);
+        setHeatmapSummary(data.summary || null);
+      }
+    } catch (error) {
+      console.error("Error fetching heatmap data:", error);
+    } finally {
+      setIsLoadingHeatmap(false);
+    }
+  };
+
+  // Saved Filters functions
+  const fetchSavedFilters = async () => {
+    setIsLoadingFilters(true);
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const res = await fetch(`${baseUrl}/api/admin/saved-filters`);
+      if (res.ok) {
+        const data = await res.json();
+        setSavedFilters(data.filters || []);
+      }
+    } catch (error) {
+      console.error("Error fetching saved filters:", error);
+    } finally {
+      setIsLoadingFilters(false);
+    }
+  };
+
+  const saveCurrentFilter = async () => {
+    if (!newFilterName.trim()) {
+      toast({ title: "Моля въведи име за филтъра", variant: "destructive" });
+      return;
+    }
+
+    setIsSavingFilter(true);
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const filterConfig = {
+        selectedDays,
+        categoryFilter,
+        sessionsSubTab,
+        cohortGroupBy,
+      };
+
+      const res = await fetch(`${baseUrl}/api/admin/saved-filters`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newFilterName.trim(),
+          description: newFilterDescription.trim() || null,
+          filter_config: filterConfig,
+        }),
+      });
+
+      if (res.ok) {
+        toast({ title: "Филтърът е запазен успешно!" });
+        setSaveFilterDialogOpen(false);
+        setNewFilterName('');
+        setNewFilterDescription('');
+        fetchSavedFilters();
+      } else {
+        throw new Error("Failed to save filter");
+      }
+    } catch (error) {
+      console.error("Error saving filter:", error);
+      toast({ title: "Грешка при запазване на филтъра", variant: "destructive" });
+    } finally {
+      setIsSavingFilter(false);
+    }
+  };
+
+  const loadSavedFilter = async (filter: SavedFilter) => {
+    // Apply filter config
+    if (filter.filter_config.selectedDays !== undefined) {
+      setSelectedDays(filter.filter_config.selectedDays);
+    }
+    if (filter.filter_config.categoryFilter !== undefined) {
+      setCategoryFilter(filter.filter_config.categoryFilter);
+    }
+    if (filter.filter_config.sessionsSubTab !== undefined) {
+      setSessionsSubTab(filter.filter_config.sessionsSubTab as 'users' | 'crm' | 'explorer' | 'cohort' | 'retention' | 'emails' | 'heatmap');
+    }
+    if (filter.filter_config.cohortGroupBy !== undefined) {
+      setCohortGroupBy(filter.filter_config.cohortGroupBy as 'week' | 'month');
+    }
+
+    // Increment use count
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      await fetch(`${baseUrl}/api/admin/saved-filters`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: filter.id, increment_use: true }),
+      });
+      fetchSavedFilters();
+    } catch (error) {
+      console.error("Error updating filter use count:", error);
+    }
+
+    toast({ title: `Филтър "${filter.name}" е зареден` });
+  };
+
+  const deleteSavedFilter = async (filterId: string) => {
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const res = await fetch(`${baseUrl}/api/admin/saved-filters?id=${filterId}`, {
+        method: "DELETE",
+      });
+
+      if (res.ok) {
+        toast({ title: "Филтърът е изтрит" });
+        fetchSavedFilters();
+      } else {
+        throw new Error("Failed to delete filter");
+      }
+    } catch (error) {
+      console.error("Error deleting filter:", error);
+      toast({ title: "Грешка при изтриване на филтъра", variant: "destructive" });
+    }
+  };
+
+  // Load saved filters and alerts on mount
+  useEffect(() => {
+    fetchSavedFilters();
+    fetchAlerts();
+    fetchAlertNotifications();
+
+    // Check for new notifications every 5 minutes
+    const notificationInterval = setInterval(() => {
+      fetchAlertNotifications();
+    }, 5 * 60 * 1000);
+
+    return () => clearInterval(notificationInterval);
+  }, []);
+
+  // Export users to CSV
+  const exportUsersToCSV = async () => {
+    setIsExporting(true);
+    try {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      const categoryParam = categoryFilter !== "all" ? `&category=${categoryFilter}` : "";
+      const daysParam = selectedPeriod === -1 ? "&days=-1" : `&days=0`;
+      const searchParam = userSearchQuery ? `&search=${encodeURIComponent(userSearchQuery)}` : "";
+      const statusParam = userStatusFilter !== 'all' ? `&status=${userStatusFilter}` : "";
+
+      // Fetch ALL users (limit=10000 to get all)
+      const res = await fetch(
+        `${baseUrl}/api/admin/quiz-flow?view=user-journey${daysParam}${categoryParam}${searchParam}${statusParam}&limit=10000&offset=0`
+      );
+
+      if (!res.ok) throw new Error("Failed to fetch data");
+
+      const data = await res.json();
+      const users = data.results || [];
+
+      if (users.length === 0) {
+        toast({ title: "Няма данни за експорт", variant: "destructive" });
+        return;
+      }
+
+      // CSV Headers
+      const headers = [
+        "Email",
+        "Име",
+        "Категория",
+        "Score",
+        "Ниво",
+        "Локация",
+        "Quiz дата",
+        "Поръчка",
+        "Сума поръчка",
+        "Дата поръчка",
+        "App регистрация",
+        "App дата",
+        "Тренировки",
+        "Хранения",
+        "Сън логове",
+        "Chat сесии",
+        "Chat съобщения",
+        "Breakdown: Симптоми",
+        "Breakdown: Хранене",
+        "Breakdown: Тренировка",
+        "Breakdown: Сън",
+        "Breakdown: Контекст",
+      ];
+
+      // CSV Rows
+      const rows = users.map((user: any) => [
+        user.email || "",
+        user.firstName || "",
+        user.category || "",
+        user.totalScore || 0,
+        user.determinedLevel || "",
+        user.workoutLocation || "",
+        user.quizCreatedAt ? new Date(user.quizCreatedAt).toLocaleDateString("bg-BG") : "",
+        user.userJourney?.hasPurchased ? "Да" : "Не",
+        user.userJourney?.orderTotal || "",
+        user.userJourney?.orderDate ? new Date(user.userJourney.orderDate).toLocaleDateString("bg-BG") : "",
+        user.userJourney?.isRegistered ? "Да" : "Не",
+        user.userJourney?.registeredAt ? new Date(user.userJourney.registeredAt).toLocaleDateString("bg-BG") : "",
+        user.userJourney?.workouts || 0,
+        user.userJourney?.meals || 0,
+        user.userJourney?.sleepLogs || 0,
+        user.userJourney?.chatSessions || 0,
+        user.userJourney?.totalMessages || 0,
+        user.breakdown?.symptoms || 0,
+        user.breakdown?.nutrition || 0,
+        user.breakdown?.training || 0,
+        user.breakdown?.sleep_recovery || 0,
+        user.breakdown?.context || 0,
+      ]);
+
+      // Build CSV content
+      const csvContent = [
+        headers.join(","),
+        ...rows.map(row => row.map((cell: any) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+      ].join("\n");
+
+      // Add BOM for Excel UTF-8 compatibility
+      const BOM = "\uFEFF";
+      const blob = new Blob([BOM + csvContent], { type: "text/csv;charset=utf-8;" });
+
+      // Generate filename with date and filter info
+      const dateStr = new Date().toISOString().split("T")[0];
+      const filterStr = userStatusFilter !== 'all' ? `-${userStatusFilter}` : "";
+      const searchStr = userSearchQuery ? `-search` : "";
+      const filename = `testograph-users-${dateStr}${filterStr}${searchStr}.csv`;
+
+      // Download
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast({
+        title: "CSV експортиран успешно!",
+        description: `${users.length} потребители експортирани`
+      });
+
+    } catch (error) {
+      console.error("Error exporting CSV:", error);
+      toast({ title: "Грешка при експорт", variant: "destructive" });
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -698,6 +1546,13 @@ export default function QuizAnalyticsDashboard() {
   useEffect(() => {
     fetchData();
   }, [selectedDays, categoryFilter]);
+
+  // Fetch comparison data when comparison mode is enabled or settings change
+  useEffect(() => {
+    if (comparisonEnabled) {
+      fetchComparisonData();
+    }
+  }, [comparisonEnabled, selectedDays, categoryFilter, comparisonCategory]);
 
   // ============ REALTIME SUBSCRIPTION ============
   // Listen for order status changes (pending -> paid) and auto-refresh
@@ -1145,6 +2000,177 @@ export default function QuizAnalyticsDashboard() {
                 <Download className="w-4 h-4 mr-2" />
                 Export CSV
               </Button>
+
+              {/* Comparison Mode Toggle */}
+              <div className="border-l pl-2 flex gap-1 items-center">
+                <Button
+                  variant={comparisonEnabled ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setComparisonEnabled(!comparisonEnabled)}
+                  className={comparisonEnabled ? "bg-purple-600 hover:bg-purple-700" : ""}
+                >
+                  <BarChart2 className="w-4 h-4 mr-1" />
+                  Сравнение
+                </Button>
+                {comparisonEnabled && (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        {comparisonCategory === 'none' ? 'Предишен период' : `vs ${comparisonCategory === 'all' ? 'Всички' : comparisonCategory}`}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent>
+                      <DropdownMenuLabel>Сравни с</DropdownMenuLabel>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => setComparisonCategory('none')}>
+                        Предишен период
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuLabel className="text-xs">Друга категория</DropdownMenuLabel>
+                      {(["all", "libido", "muscle", "energy"] as const)
+                        .filter(cat => cat !== categoryFilter)
+                        .map((cat) => (
+                          <DropdownMenuItem key={cat} onClick={() => setComparisonCategory(cat)}>
+                            {cat === "all" ? "Всички" : cat}
+                          </DropdownMenuItem>
+                        ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                )}
+              </div>
+
+              {/* Saved Filters */}
+              <div className="border-l pl-2 flex gap-1">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" disabled={isLoadingFilters}>
+                      <Filter className="w-4 h-4 mr-2" />
+                      Филтри ({savedFilters.length})
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-64">
+                    <DropdownMenuLabel>Запазени филтри</DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {savedFilters.length === 0 ? (
+                      <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                        Няма запазени филтри
+                      </div>
+                    ) : (
+                      savedFilters.map((filter) => (
+                        <DropdownMenuItem
+                          key={filter.id}
+                          className="flex items-center justify-between cursor-pointer"
+                          onClick={() => loadSavedFilter(filter)}
+                        >
+                          <div className="flex-1 min-w-0">
+                            <div className="font-medium truncate">{filter.name}</div>
+                            {filter.description && (
+                              <div className="text-xs text-muted-foreground truncate">{filter.description}</div>
+                            )}
+                            <div className="text-xs text-muted-foreground">
+                              {filter.filter_config.selectedDays === -1 ? 'Всички' : `${filter.filter_config.selectedDays}д`}
+                              {filter.filter_config.categoryFilter !== 'all' && ` / ${filter.filter_config.categoryFilter}`}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 ml-2">
+                            <Badge variant="secondary" className="text-xs">{filter.use_count}x</Badge>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 hover:bg-red-100 hover:text-red-600"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteSavedFilter(filter.id);
+                              }}
+                            >
+                              <XCircle className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </DropdownMenuItem>
+                      ))
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSaveFilterDialogOpen(true)}
+                  className="bg-blue-50 hover:bg-blue-100 border-blue-300 text-blue-700"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Запази
+                </Button>
+              </div>
+
+              {/* Alerts & Notifications */}
+              <div className="border-l pl-2 flex gap-1">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="relative">
+                      {alertsUnreadCount > 0 ? (
+                        <BellRing className="w-4 h-4 text-orange-500" />
+                      ) : (
+                        <Bell className="w-4 h-4" />
+                      )}
+                      {alertsUnreadCount > 0 && (
+                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                          {alertsUnreadCount > 9 ? '9+' : alertsUnreadCount}
+                        </span>
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-80">
+                    <DropdownMenuLabel className="flex items-center justify-between">
+                      <span>Известия</span>
+                      {alertsUnreadCount > 0 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 text-xs"
+                          onClick={async () => {
+                            await fetch('/api/admin/alerts', {
+                              method: 'PUT',
+                              headers: { 'Content-Type': 'application/json' },
+                              body: JSON.stringify({ mark_read: true }),
+                            });
+                            setAlertNotifications([]);
+                            setAlertsUnreadCount(0);
+                          }}
+                        >
+                          Маркирай като прочетени
+                        </Button>
+                      )}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {alertNotifications.length === 0 ? (
+                      <div className="px-2 py-4 text-center text-sm text-muted-foreground">
+                        Няма нови известия
+                      </div>
+                    ) : (
+                      alertNotifications.slice(0, 5).map((notification) => (
+                        <div
+                          key={notification.id}
+                          className="px-2 py-2 border-b last:border-0 hover:bg-muted/50"
+                        >
+                          <div className="font-medium text-sm">{notification.message}</div>
+                          <div className="text-xs text-muted-foreground mt-1">
+                            {new Date(notification.triggered_at).toLocaleString('bg-BG')}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      className="justify-center cursor-pointer"
+                      onClick={() => setAlertsDialogOpen(true)}
+                    >
+                      <Settings className="w-4 h-4 mr-2" />
+                      Управление на известия
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
             </div>
           </div>
 
@@ -1183,6 +2209,88 @@ export default function QuizAnalyticsDashboard() {
                     </TooltipProvider>
                   ))}
                 </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Comparison Mode Results */}
+          {comparisonEnabled && comparisonData && (
+            <Card className="border-purple-300 bg-purple-50/50 dark:bg-purple-950/30 mb-4">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2 text-purple-700 dark:text-purple-400">
+                  <BarChart2 className="w-4 h-4" />
+                  Сравнение: {comparisonData.current.period} ({comparisonData.current.category}) vs {comparisonData.comparison.period} ({comparisonData.comparison.category})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                {isLoadingComparison ? (
+                  <div className="flex items-center justify-center py-4">
+                    <RefreshCw className="w-5 h-5 animate-spin text-purple-600" />
+                    <span className="ml-2 text-muted-foreground">Зареждане...</span>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {/* Total Sessions Comparison */}
+                    <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
+                      <div className="text-xs text-muted-foreground mb-1">Сесии</div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-lg font-bold">{comparisonData.current.stats.totalSessions}</div>
+                          <div className="text-xs text-muted-foreground">vs {comparisonData.comparison.stats.totalSessions}</div>
+                        </div>
+                        <div className={`flex items-center gap-1 text-sm font-medium ${comparisonData.changes.totalSessions.value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {comparisonData.changes.totalSessions.value >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                          {comparisonData.changes.totalSessions.percent.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Completed Sessions Comparison */}
+                    <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
+                      <div className="text-xs text-muted-foreground mb-1">Завършени</div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-lg font-bold">{comparisonData.current.stats.completedSessions}</div>
+                          <div className="text-xs text-muted-foreground">vs {comparisonData.comparison.stats.completedSessions}</div>
+                        </div>
+                        <div className={`flex items-center gap-1 text-sm font-medium ${comparisonData.changes.completedSessions.value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {comparisonData.changes.completedSessions.value >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                          {comparisonData.changes.completedSessions.percent.toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Abandoned Sessions Comparison */}
+                    <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
+                      <div className="text-xs text-muted-foreground mb-1">Изоставени</div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-lg font-bold">{comparisonData.current.stats.abandonedSessions}</div>
+                          <div className="text-xs text-muted-foreground">vs {comparisonData.comparison.stats.abandonedSessions}</div>
+                        </div>
+                        <div className={`flex items-center gap-1 text-sm font-medium ${comparisonData.changes.abandonedSessions.value <= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {comparisonData.changes.abandonedSessions.value <= 0 ? <TrendingDown className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
+                          {Math.abs(comparisonData.changes.abandonedSessions.percent).toFixed(1)}%
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Completion Rate Comparison */}
+                    <div className="bg-white dark:bg-gray-900 rounded-lg p-3 border">
+                      <div className="text-xs text-muted-foreground mb-1">Completion Rate</div>
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="text-lg font-bold">{comparisonData.current.stats.completionRate.toFixed(1)}%</div>
+                          <div className="text-xs text-muted-foreground">vs {comparisonData.comparison.stats.completionRate.toFixed(1)}%</div>
+                        </div>
+                        <div className={`flex items-center gap-1 text-sm font-medium ${comparisonData.changes.completionRate.value >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {comparisonData.changes.completionRate.value >= 0 ? <TrendingUp className="w-4 h-4" /> : <TrendingDown className="w-4 h-4" />}
+                          {comparisonData.changes.completionRate.value >= 0 ? '+' : ''}{comparisonData.changes.completionRate.value.toFixed(1)}pp
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           )}
@@ -1438,10 +2546,10 @@ export default function QuizAnalyticsDashboard() {
               {/* Pie Charts Row */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Category Pie */}
-                <Card>
+                <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base">Категории</CardTitle>
-                    <CardDescription className="text-xs">Общо: {categoryChartData.reduce((a, b) => a + b.value, 0)}</CardDescription>
+                    <CardDescription className="text-xs">Общо: {categoryChartData.reduce((a, b) => a + b.value, 0)} (кликни за детайли)</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
                     <ResponsiveContainer width="100%" height={180}>
@@ -1463,20 +2571,37 @@ export default function QuizAnalyticsDashboard() {
                     </ResponsiveContainer>
                     <div className="flex flex-wrap justify-center gap-2 mt-2">
                       {categoryChartData.map((entry) => (
-                        <div key={entry.name} className="flex items-center gap-1 text-xs">
+                        <button
+                          key={entry.name}
+                          className="flex items-center gap-1 text-xs hover:bg-muted px-2 py-1 rounded transition-colors cursor-pointer"
+                          onClick={() => {
+                            const categoryMap: Record<string, string> = {
+                              Libido: "libido",
+                              Muscle: "muscle",
+                              Energy: "energy",
+                            };
+                            setDataSheetConfig({
+                              title: `Категория: ${entry.name}`,
+                              description: `Всички quiz completions за категория ${entry.name}`,
+                              dataType: "by_category",
+                              additionalFilters: { targetCategory: categoryMap[entry.name] || entry.name.toLowerCase() },
+                            });
+                            setDataSheetOpen(true);
+                          }}
+                        >
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
                           <span>{entry.name}: <strong>{entry.value}</strong></span>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Level Pie */}
-                <Card>
+                <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base">Нива</CardTitle>
-                    <CardDescription className="text-xs">Общо: {levelChartData.reduce((a, b) => a + b.value, 0)}</CardDescription>
+                    <CardDescription className="text-xs">Общо: {levelChartData.reduce((a, b) => a + b.value, 0)} (кликни за детайли)</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
                     <ResponsiveContainer width="100%" height={180}>
@@ -1498,19 +2623,49 @@ export default function QuizAnalyticsDashboard() {
                     </ResponsiveContainer>
                     <div className="flex flex-wrap justify-center gap-2 mt-2">
                       {levelChartData.map((entry) => (
-                        <div key={entry.name} className="flex items-center gap-1 text-xs">
+                        <button
+                          key={entry.name}
+                          className="flex items-center gap-1 text-xs hover:bg-muted px-2 py-1 rounded transition-colors cursor-pointer"
+                          onClick={() => {
+                            const levelMap: Record<string, string> = {
+                              Low: "low",
+                              Moderate: "moderate",
+                              Good: "good",
+                              Optimal: "optimal",
+                            };
+                            setDataSheetConfig({
+                              title: `Ниво: ${entry.name}`,
+                              description: `Всички quiz completions за ниво ${entry.name}`,
+                              dataType: "by_level",
+                              additionalFilters: { targetLevel: levelMap[entry.name] || entry.name.toLowerCase() },
+                            });
+                            setDataSheetOpen(true);
+                          }}
+                        >
                           <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.color }} />
                           <span>{entry.name}: <strong>{entry.value}</strong></span>
-                        </div>
+                        </button>
                       ))}
                     </div>
                   </CardContent>
                 </Card>
 
                 {/* Device Pie */}
-                <Card>
+                <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Устройства</CardTitle>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      Устройства
+                      <TooltipProvider>
+                        <UITooltip>
+                          <TooltipTrigger>
+                            <Info className="w-3 h-3 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">Данни от Session Tracking</p>
+                          </TooltipContent>
+                        </UITooltip>
+                      </TooltipProvider>
+                    </CardTitle>
                     <CardDescription className="text-xs">Tracked: {deviceChartData.reduce((a, b) => a + b.value, 0)}</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
@@ -1537,9 +2692,12 @@ export default function QuizAnalyticsDashboard() {
                         </ResponsiveContainer>
                         <div className="flex flex-wrap justify-center gap-2 mt-2">
                           {deviceChartData.map((entry) => (
-                            <div key={entry.name} className="flex items-center gap-1 text-xs">
+                            <div key={entry.name} className="flex items-center gap-1 text-xs bg-muted/50 px-2 py-1 rounded">
                               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.fill }} />
                               <span>{entry.name}: <strong>{entry.value}</strong></span>
+                              <span className="text-muted-foreground">
+                                ({((entry.value / deviceChartData.reduce((a, b) => a + b.value, 0)) * 100).toFixed(0)}%)
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -1549,9 +2707,21 @@ export default function QuizAnalyticsDashboard() {
                 </Card>
 
                 {/* Age Pie */}
-                <Card>
+                <Card className="hover:shadow-lg transition-shadow">
                   <CardHeader className="pb-2">
-                    <CardTitle className="text-base">Възраст</CardTitle>
+                    <CardTitle className="text-base flex items-center gap-2">
+                      Възраст
+                      <TooltipProvider>
+                        <UITooltip>
+                          <TooltipTrigger>
+                            <Info className="w-3 h-3 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="text-xs">От quiz отговори (Step 2)</p>
+                          </TooltipContent>
+                        </UITooltip>
+                      </TooltipProvider>
+                    </CardTitle>
                     <CardDescription className="text-xs">Tracked: {ageChartData.reduce((a, b) => a + b.value, 0)}</CardDescription>
                   </CardHeader>
                   <CardContent className="pt-0">
@@ -1578,9 +2748,12 @@ export default function QuizAnalyticsDashboard() {
                         </ResponsiveContainer>
                         <div className="flex flex-wrap justify-center gap-2 mt-2">
                           {ageChartData.map((entry) => (
-                            <div key={entry.name} className="flex items-center gap-1 text-xs">
+                            <div key={entry.name} className="flex items-center gap-1 text-xs bg-muted/50 px-2 py-1 rounded">
                               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: entry.fill }} />
                               <span>{entry.name}: <strong>{entry.value}</strong></span>
+                              <span className="text-muted-foreground">
+                                ({((entry.value / ageChartData.reduce((a, b) => a + b.value, 0)) * 100).toFixed(0)}%)
+                              </span>
                             </div>
                           ))}
                         </div>
@@ -1982,6 +3155,67 @@ export default function QuizAnalyticsDashboard() {
                     </Badge>
                   )}
                 </Button>
+                <Button
+                  variant={sessionsSubTab === "cohort" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => setSessionsSubTab("cohort")}
+                >
+                  <BarChart2 className="w-4 h-4 mr-2" />
+                  Cohort Analysis
+                  {cohortData && (
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      {cohortData.summary.totalCohorts} групи
+                    </Badge>
+                  )}
+                </Button>
+                <Button
+                  variant={sessionsSubTab === "retention" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => {
+                    setSessionsSubTab("retention");
+                    if (!retentionData) fetchRetentionData();
+                  }}
+                >
+                  <Activity className="w-4 h-4 mr-2" />
+                  Retention
+                  {retentionData && (
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      DAU: {retentionData.metrics.dau}
+                    </Badge>
+                  )}
+                </Button>
+                <Button
+                  variant={sessionsSubTab === "emails" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => {
+                    setSessionsSubTab("emails");
+                    if (!emailCampaignData) fetchEmailCampaignData();
+                  }}
+                >
+                  <Mail className="w-4 h-4 mr-2" />
+                  Email Campaigns
+                  {emailCampaignData && (
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      {emailCampaignData.stats.sent} sent
+                    </Badge>
+                  )}
+                </Button>
+                <Button
+                  variant={sessionsSubTab === "heatmap" ? "secondary" : "ghost"}
+                  size="sm"
+                  onClick={() => {
+                    setSessionsSubTab("heatmap");
+                    if (heatmapData.length === 0) fetchHeatmapData();
+                  }}
+                >
+                  <Clock className="w-4 h-4 mr-2" />
+                  Step Heatmap
+                  {heatmapSummary && (
+                    <Badge variant="outline" className="ml-2 text-xs">
+                      {heatmapSummary.totalQuestions} steps
+                    </Badge>
+                  )}
+                </Button>
               </div>
 
               {/* Users Sub-tab */}
@@ -2053,6 +3287,22 @@ export default function QuizAnalyticsDashboard() {
                       </Button>
                     ))}
                   </div>
+
+                  {/* CSV Export Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={exportUsersToCSV}
+                    disabled={isExporting}
+                    className="bg-green-50 border-green-200 hover:bg-green-100 text-green-700"
+                  >
+                    {isExporting ? (
+                      <RefreshCw className="h-4 w-4 animate-spin mr-1" />
+                    ) : (
+                      <Download className="h-4 w-4 mr-1" />
+                    )}
+                    {isExporting ? "Експортиране..." : "CSV Export"}
+                  </Button>
                 </div>
               </div>
 
@@ -2073,7 +3323,17 @@ export default function QuizAnalyticsDashboard() {
                   </Card>
 
                   {/* 2. Paid Orders (step 2 in funnel) */}
-                  <Card className="border-l-4 border-l-green-500">
+                  <Card
+                    className="border-l-4 border-l-green-500 cursor-pointer hover:bg-green-50/50 dark:hover:bg-green-950/20 transition-colors"
+                    onClick={() => {
+                      setDataSheetConfig({
+                        title: "Конверсии (Quiz + Поръчка)",
+                        description: "Потребители с Quiz И Shopify поръчка",
+                        dataType: "conversions",
+                      });
+                      setDataSheetOpen(true);
+                    }}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
@@ -2127,7 +3387,17 @@ export default function QuizAnalyticsDashboard() {
                   </Card>
 
                   {/* 5. Follow-up needed */}
-                  <Card className="border-l-4 border-l-red-500">
+                  <Card
+                    className="border-l-4 border-l-red-500 cursor-pointer hover:bg-red-50/50 dark:hover:bg-red-950/20 transition-colors"
+                    onClick={() => {
+                      setDataSheetConfig({
+                        title: "Quiz без поръчка",
+                        description: "Потребители завършили quiz, но без Shopify поръчка",
+                        dataType: "quiz_no_order",
+                      });
+                      setDataSheetOpen(true);
+                    }}
+                  >
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div>
@@ -2452,6 +3722,35 @@ export default function QuizAnalyticsDashboard() {
                                       </TooltipTrigger>
                                       <TooltipContent>Изпрати email</TooltipContent>
                                     </UITooltip>
+                                    {/* Quick Actions Dropdown */}
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="icon" className="h-7 w-7">
+                                          <MoreVertical className="h-3.5 w-3.5" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end" className="w-48">
+                                        <DropdownMenuLabel>Quick Actions</DropdownMenuLabel>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => openNotesDialog(result.email, result.first_name || result.email)}>
+                                          <StickyNote className="h-4 w-4 mr-2" />
+                                          Добави бележка
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => window.open(`mailto:${result.email}?subject=Testograph%20-%20`, "_blank")}>
+                                          <Mail className="h-4 w-4 mr-2" />
+                                          Изпрати email
+                                        </DropdownMenuItem>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuItem onClick={() => window.open(`/admin/users/${encodeURIComponent(result.email)}`, "_blank")}>
+                                          <ExternalLink className="h-4 w-4 mr-2" />
+                                          Отвори профил
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem onClick={() => copyEmail(result.email)}>
+                                          <Copy className="h-4 w-4 mr-2" />
+                                          Копирай email
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
                                   </div>
                                 </TableCell>
                               </TableRow>
@@ -2544,6 +3843,21 @@ export default function QuizAnalyticsDashboard() {
                           size="sm"
                           variant="outline"
                           onClick={() => {
+                            setDataSheetConfig({
+                              title: "Quiz без поръчка",
+                              description: "Потребители завършили quiz, но без Shopify поръчка",
+                              dataType: "quiz_no_order",
+                            });
+                            setDataSheetOpen(true);
+                          }}
+                          disabled={crmData.segments.quizNoOrder.count === 0}
+                        >
+                          <Database className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
                             const emails = crmData.segments.quizNoOrder.users.map(u => u.email).join('\n');
                             navigator.clipboard.writeText(emails);
                             toast({ title: "Emails копирани!", description: `${crmData.segments.quizNoOrder.count} emails в clipboard` });
@@ -2597,6 +3911,21 @@ export default function QuizAnalyticsDashboard() {
                     <div className="flex items-center justify-between mb-4">
                       <span className="text-3xl font-bold text-amber-600">{crmData.segments.orderNoQuiz.count}</span>
                       <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setDataSheetConfig({
+                              title: "Поръчка без Quiz",
+                              description: "Shopify поръчки без завършен quiz",
+                              dataType: "order_no_quiz",
+                            });
+                            setDataSheetOpen(true);
+                          }}
+                          disabled={crmData.segments.orderNoQuiz.count === 0}
+                        >
+                          <Database className="w-4 h-4" />
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
@@ -2993,6 +4322,925 @@ export default function QuizAnalyticsDashboard() {
               )}
                 </div>
               )}
+
+              {/* Cohort Analysis Sub-tab */}
+              {sessionsSubTab === "cohort" && cohortData && (
+                <div className="space-y-6">
+                  {/* Group By Toggle */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold">Cohort Analysis</h3>
+                      <Badge variant="outline">{cohortData.summary.totalCohorts} групи</Badge>
+                    </div>
+                    <div className="flex items-center gap-2 bg-muted rounded-lg p-1">
+                      <Button
+                        variant={cohortGroupBy === "week" ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => fetchCohortData("week")}
+                        disabled={isLoadingCohort}
+                      >
+                        По седмица
+                      </Button>
+                      <Button
+                        variant={cohortGroupBy === "month" ? "secondary" : "ghost"}
+                        size="sm"
+                        onClick={() => fetchCohortData("month")}
+                        disabled={isLoadingCohort}
+                      >
+                        По месец
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <Card>
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-medium">Quiz Completions</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold">{cohortData.summary.totalQuizCompletions}</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-amber-50 dark:bg-amber-950 border-amber-200">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-medium text-amber-600">Avg Order Rate</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-amber-600">{cohortData.summary.avgOrderRate}%</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-green-50 dark:bg-green-950 border-green-200">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-medium text-green-600">Avg Paid Rate</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-green-600">{cohortData.summary.avgPaidRate}%</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-purple-50 dark:bg-purple-950 border-purple-200">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-medium text-purple-600">Avg App Rate</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-purple-600">{cohortData.summary.avgAppRate}%</div>
+                      </CardContent>
+                    </Card>
+                    <Card className="bg-blue-50 dark:bg-blue-950 border-blue-200">
+                      <CardHeader className="pb-2">
+                        <CardTitle className="text-xs font-medium text-blue-600">Total Revenue</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="text-2xl font-bold text-blue-600">{cohortData.summary.totalRevenue.toLocaleString()} лв</div>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  {/* Cohort Chart */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Conversion по период</CardTitle>
+                      <CardDescription>Сравнение на conversion rates по {cohortGroupBy === 'week' ? 'седмици' : 'месеци'}</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <ResponsiveContainer width="100%" height={300}>
+                        <BarChart data={cohortData.cohorts.slice(-12)}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="period" tick={{ fontSize: 11 }} />
+                          <YAxis tick={{ fontSize: 11 }} />
+                          <Tooltip
+                            formatter={(value: number, name: string) => {
+                              const labels: Record<string, string> = {
+                                orderRate: "Order Rate",
+                                paidRate: "Paid Rate",
+                                appRate: "App Rate",
+                              };
+                              return [`${value}%`, labels[name] || name];
+                            }}
+                          />
+                          <Legend />
+                          <Bar dataKey="orderRate" fill="#f59e0b" name="Order Rate" />
+                          <Bar dataKey="paidRate" fill="#22c55e" name="Paid Rate" />
+                          <Bar dataKey="appRate" fill="#8b5cf6" name="App Rate" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </CardContent>
+                  </Card>
+
+                  {/* Cohort Table */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Детайли по Cohort</CardTitle>
+                      <CardDescription>Всички периоди с пълна статистика</CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="rounded-md border overflow-x-auto">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-muted/50">
+                              <TableHead>Период</TableHead>
+                              <TableHead className="text-right">Quiz</TableHead>
+                              <TableHead className="text-right">Orders</TableHead>
+                              <TableHead className="text-right">Paid</TableHead>
+                              <TableHead className="text-right">App</TableHead>
+                              <TableHead className="text-right">Revenue</TableHead>
+                              <TableHead className="text-right">Categories</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {cohortData.cohorts.slice(-20).reverse().map((cohort) => (
+                              <TableRow key={cohort.period}>
+                                <TableCell className="font-medium">{cohort.period}</TableCell>
+                                <TableCell className="text-right">{cohort.quizCompletions}</TableCell>
+                                <TableCell className="text-right">
+                                  <span className="text-amber-600">{cohort.withOrder}</span>
+                                  <span className="text-muted-foreground text-xs ml-1">({cohort.orderRate}%)</span>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <span className="text-green-600 font-medium">{cohort.withPaidOrder}</span>
+                                  <span className="text-muted-foreground text-xs ml-1">({cohort.paidRate}%)</span>
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <span className="text-purple-600">{cohort.withAppRegistration}</span>
+                                  <span className="text-muted-foreground text-xs ml-1">({cohort.appRate}%)</span>
+                                </TableCell>
+                                <TableCell className="text-right font-medium">
+                                  {cohort.totalRevenue > 0 ? `${cohort.totalRevenue.toLocaleString()} лв` : "-"}
+                                </TableCell>
+                                <TableCell className="text-right">
+                                  <div className="flex gap-1 justify-end">
+                                    <UITooltip>
+                                      <TooltipTrigger>
+                                        <Badge variant="outline" className="text-rose-500 border-rose-300 text-xs">
+                                          {cohort.categoryBreakdown.libido}
+                                        </Badge>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Libido</TooltipContent>
+                                    </UITooltip>
+                                    <UITooltip>
+                                      <TooltipTrigger>
+                                        <Badge variant="outline" className="text-blue-500 border-blue-300 text-xs">
+                                          {cohort.categoryBreakdown.muscle}
+                                        </Badge>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Muscle</TooltipContent>
+                                    </UITooltip>
+                                    <UITooltip>
+                                      <TooltipTrigger>
+                                        <Badge variant="outline" className="text-amber-500 border-amber-300 text-xs">
+                                          {cohort.categoryBreakdown.energy}
+                                        </Badge>
+                                      </TooltipTrigger>
+                                      <TooltipContent>Energy</TooltipContent>
+                                    </UITooltip>
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
+
+              {/* Retention Metrics Sub-tab */}
+              {sessionsSubTab === "retention" && (
+                <div className="space-y-6">
+                  {isLoadingRetention ? (
+                    <div className="flex items-center justify-center py-12">
+                      <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+                      <span className="ml-2 text-muted-foreground">Зареждане на retention данни...</span>
+                    </div>
+                  ) : retentionData ? (
+                    <>
+                      {/* Key Metrics Cards */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                              <Activity className="w-4 h-4" />
+                              DAU (Daily)
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-3xl font-bold">{retentionData.metrics.dau}</div>
+                            <p className="text-xs text-muted-foreground">активни днес</p>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                              <Activity className="w-4 h-4" />
+                              WAU (Weekly)
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-3xl font-bold">{retentionData.metrics.wau}</div>
+                            <div className="flex items-center text-xs">
+                              {retentionData.metrics.wauGrowth >= 0 ? (
+                                <TrendingUp className="w-3 h-3 mr-1 text-green-500" />
+                              ) : (
+                                <TrendingDown className="w-3 h-3 mr-1 text-red-500" />
+                              )}
+                              <span className={retentionData.metrics.wauGrowth >= 0 ? "text-green-600" : "text-red-600"}>
+                                {retentionData.metrics.wauGrowth > 0 ? "+" : ""}{retentionData.metrics.wauGrowth}%
+                              </span>
+                              <span className="text-muted-foreground ml-1">vs предходна седмица</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                              <Activity className="w-4 h-4" />
+                              MAU (Monthly)
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-3xl font-bold">{retentionData.metrics.mau}</div>
+                            <div className="flex items-center text-xs">
+                              {retentionData.metrics.mauGrowth >= 0 ? (
+                                <TrendingUp className="w-3 h-3 mr-1 text-green-500" />
+                              ) : (
+                                <TrendingDown className="w-3 h-3 mr-1 text-red-500" />
+                              )}
+                              <span className={retentionData.metrics.mauGrowth >= 0 ? "text-green-600" : "text-red-600"}>
+                                {retentionData.metrics.mauGrowth > 0 ? "+" : ""}{retentionData.metrics.mauGrowth}%
+                              </span>
+                              <span className="text-muted-foreground ml-1">vs предходен месец</span>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm text-muted-foreground flex items-center gap-2">
+                              <Users className="w-4 h-4" />
+                              Total Users
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="text-3xl font-bold">{retentionData.metrics.totalUsers}</div>
+                            <p className="text-xs text-muted-foreground">всички уникални потребители</p>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Churn Rate Cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <Card className={retentionData.metrics.weeklyChurn > 20 ? "border-red-300" : ""}>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm text-muted-foreground">Weekly Churn Rate</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className={`text-3xl font-bold ${
+                              retentionData.metrics.weeklyChurn > 30 ? "text-red-600" :
+                              retentionData.metrics.weeklyChurn > 15 ? "text-amber-600" : "text-green-600"
+                            }`}>
+                              {retentionData.metrics.weeklyChurn}%
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {retentionData.metrics.weeklyChurn < 10 ? "Отличен" :
+                               retentionData.metrics.weeklyChurn < 20 ? "Добър" :
+                               retentionData.metrics.weeklyChurn < 30 ? "Среден" : "Висок - изисква внимание!"}
+                            </p>
+                          </CardContent>
+                        </Card>
+
+                        <Card className={retentionData.metrics.monthlyChurn > 30 ? "border-red-300" : ""}>
+                          <CardHeader className="pb-2">
+                            <CardTitle className="text-sm text-muted-foreground">Monthly Churn Rate</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className={`text-3xl font-bold ${
+                              retentionData.metrics.monthlyChurn > 40 ? "text-red-600" :
+                              retentionData.metrics.monthlyChurn > 25 ? "text-amber-600" : "text-green-600"
+                            }`}>
+                              {retentionData.metrics.monthlyChurn}%
+                            </div>
+                            <p className="text-xs text-muted-foreground">
+                              {retentionData.metrics.monthlyChurn < 15 ? "Отличен" :
+                               retentionData.metrics.monthlyChurn < 25 ? "Добър" :
+                               retentionData.metrics.monthlyChurn < 40 ? "Среден" : "Висок - изисква внимание!"}
+                            </p>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Engagement by Type */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Engagement по тип активност</CardTitle>
+                          <CardDescription>Общ брой действия по вид</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            <div className="text-center p-4 bg-muted/50 rounded-lg">
+                              <div className="text-2xl font-bold text-blue-600">{retentionData.engagementByType.quiz}</div>
+                              <div className="text-xs text-muted-foreground">Quiz-ове</div>
+                            </div>
+                            <div className="text-center p-4 bg-muted/50 rounded-lg">
+                              <div className="text-2xl font-bold text-amber-600">{retentionData.engagementByType.orders}</div>
+                              <div className="text-xs text-muted-foreground">Поръчки</div>
+                            </div>
+                            <div className="text-center p-4 bg-muted/50 rounded-lg">
+                              <div className="text-2xl font-bold text-green-600">{retentionData.engagementByType.workouts}</div>
+                              <div className="text-xs text-muted-foreground">Тренировки</div>
+                            </div>
+                            <div className="text-center p-4 bg-muted/50 rounded-lg">
+                              <div className="text-2xl font-bold text-purple-600">{retentionData.engagementByType.meals}</div>
+                              <div className="text-xs text-muted-foreground">Хранения</div>
+                            </div>
+                            <div className="text-center p-4 bg-muted/50 rounded-lg">
+                              <div className="text-2xl font-bold text-rose-600">{retentionData.engagementByType.supplements}</div>
+                              <div className="text-xs text-muted-foreground">Добавки</div>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Weekly Retention Chart */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Weekly Retention Trend</CardTitle>
+                          <CardDescription>Retention rate по седмици (последни 12 седмици)</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={retentionData.weeklyTrend}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis
+                                dataKey="week"
+                                tick={{ fontSize: 12 }}
+                                tickFormatter={(value) => {
+                                  const date = new Date(value);
+                                  return `${date.getDate()}/${date.getMonth() + 1}`;
+                                }}
+                              />
+                              <YAxis yAxisId="left" orientation="left" stroke="#8884d8" />
+                              <YAxis yAxisId="right" orientation="right" stroke="#82ca9d" domain={[0, 100]} />
+                              <Tooltip
+                                labelFormatter={(value) => {
+                                  const date = new Date(value);
+                                  return `Седмица от ${date.toLocaleDateString('bg-BG')}`;
+                                }}
+                              />
+                              <Legend />
+                              <Bar yAxisId="left" dataKey="activeUsers" name="Активни" fill="#8884d8" />
+                              <Bar yAxisId="left" dataKey="newUsers" name="Нови" fill="#82ca9d" />
+                              <Line yAxisId="right" type="monotone" dataKey="retention" name="Retention %" stroke="#ff7300" strokeWidth={2} dot />
+                            </BarChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+
+                      {/* Daily Activity Chart */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Daily Activity (последни 30 дни)</CardTitle>
+                          <CardDescription>Активни и нови потребители по дни</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <ResponsiveContainer width="100%" height={250}>
+                            <LineChart data={retentionData.dailyTrend}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis
+                                dataKey="date"
+                                tick={{ fontSize: 10 }}
+                                tickFormatter={(value) => {
+                                  const date = new Date(value);
+                                  return `${date.getDate()}/${date.getMonth() + 1}`;
+                                }}
+                              />
+                              <YAxis />
+                              <Tooltip
+                                labelFormatter={(value) => new Date(value).toLocaleDateString('bg-BG')}
+                              />
+                              <Legend />
+                              <Line type="monotone" dataKey="activeUsers" name="Активни" stroke="#8884d8" strokeWidth={2} dot={false} />
+                              <Line type="monotone" dataKey="newUsers" name="Нови" stroke="#82ca9d" strokeWidth={2} dot={false} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+
+                      {/* Refresh button */}
+                      <div className="flex justify-end">
+                        <Button variant="outline" onClick={fetchRetentionData} disabled={isLoadingRetention}>
+                          <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingRetention ? 'animate-spin' : ''}`} />
+                          Опресни данните
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Activity className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Кликни на бутона за зареждане на retention данни</p>
+                      <Button variant="outline" className="mt-4" onClick={fetchRetentionData}>
+                        Зареди данни
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* ============ EMAIL CAMPAIGNS SUB-TAB ============ */}
+              {sessionsSubTab === "emails" && (
+                <div className="space-y-6">
+                  {isLoadingEmailCampaigns ? (
+                    <div className="flex items-center justify-center py-12">
+                      <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : emailCampaignData ? (
+                    <>
+                      {/* Email Stats Overview */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className="text-center">
+                              <Send className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+                              <div className="text-2xl font-bold">{emailCampaignData.stats.sent || emailCampaignData.stats.total || 0}</div>
+                              <p className="text-sm text-muted-foreground">Изпратени</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className="text-center">
+                              <CheckCircle className="w-8 h-8 mx-auto mb-2 text-green-500" />
+                              <div className="text-2xl font-bold">{emailCampaignData.stats.delivered || emailCampaignData.stats.opened || 0}</div>
+                              <p className="text-sm text-muted-foreground">Доставени</p>
+                              <Badge variant="outline" className="mt-1">{emailCampaignData.stats.deliveryRate || 0}%</Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className="text-center">
+                              <MailOpen className="w-8 h-8 mx-auto mb-2 text-purple-500" />
+                              <div className="text-2xl font-bold">{emailCampaignData.stats.opened || 0}</div>
+                              <p className="text-sm text-muted-foreground">Отворени</p>
+                              <Badge variant="outline" className="mt-1">{emailCampaignData.stats.openRate || 0}%</Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card>
+                          <CardContent className="pt-6">
+                            <div className="text-center">
+                              <XCircle className="w-8 h-8 mx-auto mb-2 text-red-500" />
+                              <div className="text-2xl font-bold">{(emailCampaignData.stats.bounced || 0) + (emailCampaignData.stats.complained || 0)}</div>
+                              <p className="text-sm text-muted-foreground">Bounce/Spam</p>
+                              <Badge variant="outline" className="mt-1">{emailCampaignData.stats.bounceRate || 0}%</Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Source indicator */}
+                      {emailCampaignData.source === 'resend' && (
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Badge variant="outline" className="bg-blue-50">Resend API</Badge>
+                          <span>Данните са директно от Resend</span>
+                        </div>
+                      )}
+
+                      {/* Rates Cards */}
+                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <Card className="bg-blue-50 dark:bg-blue-900/20">
+                          <CardContent className="pt-4 pb-4">
+                            <div className="text-center">
+                              <div className="text-xl font-bold text-blue-600">{emailCampaignData.stats.deliveryRate || 0}%</div>
+                              <p className="text-xs text-muted-foreground">Delivery Rate</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card className="bg-green-50 dark:bg-green-900/20">
+                          <CardContent className="pt-4 pb-4">
+                            <div className="text-center">
+                              <div className="text-xl font-bold text-green-600">{emailCampaignData.stats.openRate || 0}%</div>
+                              <p className="text-xs text-muted-foreground">Open Rate</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card className="bg-purple-50 dark:bg-purple-900/20">
+                          <CardContent className="pt-4 pb-4">
+                            <div className="text-center">
+                              <div className="text-xl font-bold text-purple-600">{emailCampaignData.stats.clickRate || 0}%</div>
+                              <p className="text-xs text-muted-foreground">Click Rate</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                        <Card className="bg-red-50 dark:bg-red-900/20">
+                          <CardContent className="pt-4 pb-4">
+                            <div className="text-center">
+                              <div className="text-xl font-bold text-red-600">{emailCampaignData.stats.bounceRate || 0}%</div>
+                              <p className="text-xs text-muted-foreground">Bounce Rate</p>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Daily Trend Chart */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Email Activity Trend (последни 30 дни)</CardTitle>
+                          <CardDescription>Изпратени и доставени имейли по дни</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <ResponsiveContainer width="100%" height={250}>
+                            <LineChart data={emailCampaignData.dailyTrend || []}>
+                              <CartesianGrid strokeDasharray="3 3" />
+                              <XAxis
+                                dataKey="date"
+                                tick={{ fontSize: 10 }}
+                                tickFormatter={(value) => {
+                                  const date = new Date(value);
+                                  return `${date.getDate()}/${date.getMonth() + 1}`;
+                                }}
+                              />
+                              <YAxis />
+                              <Tooltip
+                                labelFormatter={(value) => new Date(value).toLocaleDateString('bg-BG')}
+                              />
+                              <Legend />
+                              <Line type="monotone" dataKey="sent" name="Изпратени" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                              <Line type="monotone" dataKey="delivered" name="Доставени" stroke="#22c55e" strokeWidth={2} dot={false} />
+                              <Line type="monotone" dataKey="bounced" name="Bounced" stroke="#ef4444" strokeWidth={2} dot={false} />
+                            </LineChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+
+                      {/* Subject/Template Stats */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Performance по Subject</CardTitle>
+                          <CardDescription>Статистика по email subject lines (от Resend)</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Subject</TableHead>
+                                  <TableHead className="text-right">Изпратени</TableHead>
+                                  <TableHead className="text-right">Доставени</TableHead>
+                                  <TableHead className="text-right">Bounced</TableHead>
+                                  <TableHead className="text-right">Delivery Rate</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {(emailCampaignData.subjectStats || emailCampaignData.templateStats || []).map((item: any, idx: number) => (
+                                  <TableRow key={item.subject || item.name || idx}>
+                                    <TableCell className="font-medium max-w-[300px] truncate">{item.subject || item.name || 'Без subject'}</TableCell>
+                                    <TableCell className="text-right">{item.sent || 0}</TableCell>
+                                    <TableCell className="text-right">{item.delivered || item.opened || 0}</TableCell>
+                                    <TableCell className="text-right">{item.bounced || 0}</TableCell>
+                                    <TableCell className="text-right">
+                                      <Badge variant={(item.sent > 0 && ((item.delivered || item.opened || 0) / item.sent * 100) > 80) ? "default" : "secondary"}>
+                                        {item.sent > 0 ? Math.round((item.delivered || item.opened || 0) / item.sent * 100) : 0}%
+                                      </Badge>
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                                {(emailCampaignData.subjectStats || emailCampaignData.templateStats || []).length === 0 && (
+                                  <TableRow>
+                                    <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                                      Няма данни
+                                    </TableCell>
+                                  </TableRow>
+                                )}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Top Recipients & Recent Emails Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Top Recipients */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Top Recipients</CardTitle>
+                            <CardDescription>Потребители с най-много получени имейли</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3">
+                              {(emailCampaignData.topRecipients || []).slice(0, 5).map((recipient: any, index: number) => (
+                                <div key={recipient.email} className="flex items-center justify-between p-2 bg-muted/50 rounded-lg">
+                                  <div className="flex items-center gap-3">
+                                    <span className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center text-xs font-bold">
+                                      {index + 1}
+                                    </span>
+                                    <span className="text-sm truncate max-w-[150px]">{recipient.email}</span>
+                                  </div>
+                                  <div className="flex items-center gap-2 text-xs">
+                                    <Badge variant="outline">{recipient.count} sent</Badge>
+                                    <Badge variant="secondary" className="bg-green-100 text-green-700">{recipient.delivered || recipient.opened || 0} delivered</Badge>
+                                  </div>
+                                </div>
+                              ))}
+                              {(emailCampaignData.topRecipients || []).length === 0 && (
+                                <p className="text-center text-muted-foreground py-4">Няма данни</p>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        {/* Recent Emails */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Последни имейли</CardTitle>
+                            <CardDescription>Най-скорошни изпратени имейли (от Resend)</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-3 max-h-[300px] overflow-y-auto">
+                              {(emailCampaignData.recentEmails || []).slice(0, 10).map((email: any) => (
+                                <div key={email.id} className="flex items-start justify-between p-2 bg-muted/50 rounded-lg">
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-sm font-medium truncate">{email.recipient || email.recipient_email || 'N/A'}</p>
+                                    <p className="text-xs text-muted-foreground truncate">{email.subject || email.template_name || 'No subject'}</p>
+                                  </div>
+                                  <div className="flex flex-col items-end gap-1 ml-2">
+                                    <Badge
+                                      variant={
+                                        email.status === 'delivered' ? 'default' :
+                                        email.status === 'bounced' ? 'destructive' :
+                                        email.status === 'sent' ? 'default' :
+                                        email.status === 'complained' ? 'destructive' :
+                                        email.status === 'opened' || email.status === 'clicked' ? 'default' : 'secondary'
+                                      }
+                                      className="text-xs"
+                                    >
+                                      {email.status}
+                                    </Badge>
+                                    <span className="text-xs text-muted-foreground">
+                                      {email.createdAt || email.created_at ? new Date(email.createdAt || email.created_at).toLocaleDateString('bg-BG') : ''}
+                                    </span>
+                                  </div>
+                                </div>
+                              ))}
+                              {(emailCampaignData.recentEmails || []).length === 0 && (
+                                <p className="text-center text-muted-foreground py-4">Няма изпратени имейли</p>
+                              )}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Refresh button */}
+                      <div className="flex justify-end">
+                        <Button variant="outline" onClick={fetchEmailCampaignData} disabled={isLoadingEmailCampaigns}>
+                          <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingEmailCampaigns ? 'animate-spin' : ''}`} />
+                          Опресни данните
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Mail className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Кликни на бутона за зареждане на email данни</p>
+                      <Button variant="outline" className="mt-4" onClick={fetchEmailCampaignData}>
+                        Зареди данни
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Step Heatmap Sub-tab */}
+              {sessionsSubTab === "heatmap" && (
+                <div className="space-y-6">
+                  {isLoadingHeatmap ? (
+                    <div className="flex items-center justify-center py-12">
+                      <RefreshCw className="w-8 h-8 animate-spin text-muted-foreground" />
+                    </div>
+                  ) : heatmapData.length > 0 ? (
+                    <>
+                      {/* Summary Cards */}
+                      {heatmapSummary && (
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                          <Card>
+                            <CardContent className="pt-6">
+                              <div className="text-center">
+                                <Clock className="w-8 h-8 mx-auto mb-2 text-blue-500" />
+                                <div className="text-2xl font-bold">{heatmapSummary.avgTimePerStep}s</div>
+                                <p className="text-sm text-muted-foreground">Средно време/стъпка</p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                          <Card>
+                            <CardContent className="pt-6">
+                              <div className="text-center">
+                                <Activity className="w-8 h-8 mx-auto mb-2 text-green-500" />
+                                <div className="text-2xl font-bold">{heatmapSummary.totalSamples}</div>
+                                <p className="text-sm text-muted-foreground">Общо измервания</p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                          <Card>
+                            <CardContent className="pt-6">
+                              <div className="text-center">
+                                <CheckCircle className="w-8 h-8 mx-auto mb-2 text-purple-500" />
+                                <div className="text-2xl font-bold">{heatmapSummary.totalQuestions}</div>
+                                <p className="text-sm text-muted-foreground">Въпроси</p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                          <Card>
+                            <CardContent className="pt-6">
+                              <div className="text-center">
+                                <TrendingUp className="w-8 h-8 mx-auto mb-2 text-amber-500" />
+                                <div className="text-2xl font-bold">{heatmapSummary.slowestQuestions[0]?.avgTime || 0}s</div>
+                                <p className="text-sm text-muted-foreground">Макс време</p>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      )}
+
+                      {/* Time Distribution Buckets */}
+                      {heatmapSummary?.timeBuckets && (
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-lg">Разпределение на времето</CardTitle>
+                            <CardDescription>Колко потребители прекарват определено време на въпрос</CardDescription>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="grid grid-cols-5 gap-2">
+                              {Object.entries(heatmapSummary.timeBuckets).map(([bucket, count]) => {
+                                const total = Object.values(heatmapSummary.timeBuckets).reduce((sum, c) => sum + c, 0);
+                                const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+                                return (
+                                  <div key={bucket} className="text-center p-3 bg-muted/50 rounded-lg">
+                                    <div className="text-xs text-muted-foreground mb-1">{bucket}</div>
+                                    <div className="text-xl font-bold">{count}</div>
+                                    <div className="text-xs text-muted-foreground">{percent}%</div>
+                                    <div className="w-full bg-gray-200 rounded-full h-1 mt-2">
+                                      <div
+                                        className="bg-blue-500 h-1 rounded-full"
+                                        style={{ width: `${percent}%` }}
+                                      />
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      )}
+
+                      {/* Heatmap Visualization */}
+                      <Card>
+                        <CardHeader>
+                          <CardTitle className="text-lg">Време по въпроси (Heatmap)</CardTitle>
+                          <CardDescription>По-тъмен цвят = по-дълго време за отговор</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                            {heatmapData.map((step) => {
+                              // Calculate heat color based on avgTime relative to max
+                              const maxTime = heatmapSummary?.slowestQuestions[0]?.avgTime || 30;
+                              const intensity = Math.min(step.avgTime / maxTime, 1);
+                              const hue = 120 - (intensity * 120); // 120 = green, 0 = red
+                              const saturation = 70 + (intensity * 20);
+                              const lightness = 85 - (intensity * 35);
+
+                              return (
+                                <TooltipProvider key={step.questionId}>
+                                  <UITooltip>
+                                    <TooltipTrigger asChild>
+                                      <div
+                                        className="p-3 rounded-lg text-center cursor-pointer transition-transform hover:scale-105 border"
+                                        style={{
+                                          backgroundColor: `hsl(${hue}, ${saturation}%, ${lightness}%)`,
+                                        }}
+                                      >
+                                        <div className="text-xs font-medium text-gray-700">Q{step.stepNumber}</div>
+                                        <div className="text-lg font-bold text-gray-900">{step.avgTime}s</div>
+                                        <div className="text-xs text-gray-600">{step.sampleCount} resp</div>
+                                      </div>
+                                    </TooltipTrigger>
+                                    <TooltipContent className="max-w-xs">
+                                      <div className="space-y-1">
+                                        <p className="font-medium">Question {step.stepNumber}</p>
+                                        <p className="text-xs">ID: {step.questionId}</p>
+                                        <div className="grid grid-cols-2 gap-x-4 text-xs">
+                                          <span>Средно:</span><span className="font-medium">{step.avgTime}s</span>
+                                          <span>Медиана:</span><span className="font-medium">{step.medianTime}s</span>
+                                          <span>Min:</span><span className="font-medium">{step.minTime}s</span>
+                                          <span>Max:</span><span className="font-medium">{step.maxTime}s</span>
+                                          <span>P90:</span><span className="font-medium">{step.p90Time}s</span>
+                                          <span>Samples:</span><span className="font-medium">{step.sampleCount}</span>
+                                        </div>
+                                        {step.categoryBreakdown.length > 1 && (
+                                          <div className="border-t pt-1 mt-1">
+                                            <p className="text-xs font-medium">По категория:</p>
+                                            {step.categoryBreakdown.map(cat => (
+                                              <p key={cat.category} className="text-xs">
+                                                {cat.category}: {Math.round(cat.avgTime * 10) / 10}s ({cat.count})
+                                              </p>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </TooltipContent>
+                                  </UITooltip>
+                                </TooltipProvider>
+                              );
+                            })}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Slowest and Fastest Questions */}
+                      {heatmapSummary && (
+                        <div className="grid md:grid-cols-2 gap-4">
+                          {/* Slowest Questions */}
+                          <Card className="border-red-200 bg-red-50/50 dark:bg-red-900/20">
+                            <CardHeader>
+                              <CardTitle className="text-lg flex items-center gap-2 text-red-700 dark:text-red-400">
+                                <Clock className="w-5 h-5" />
+                                Най-бавни въпроси
+                              </CardTitle>
+                              <CardDescription>Въпроси с най-дълго средно време</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3">
+                                {heatmapSummary.slowestQuestions.map((q, idx) => (
+                                  <div key={q.questionId} className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                      <Badge variant="destructive">{idx + 1}</Badge>
+                                      <div>
+                                        <p className="font-medium">Q{q.stepNumber}</p>
+                                        <p className="text-xs text-muted-foreground">{q.sampleCount} отговора</p>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="font-bold text-red-600">{q.avgTime}s</p>
+                                      <p className="text-xs text-muted-foreground">p90: {q.p90Time}s</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+
+                          {/* Fastest Questions */}
+                          <Card className="border-green-200 bg-green-50/50 dark:bg-green-900/20">
+                            <CardHeader>
+                              <CardTitle className="text-lg flex items-center gap-2 text-green-700 dark:text-green-400">
+                                <TrendingUp className="w-5 h-5" />
+                                Най-бързи въпроси
+                              </CardTitle>
+                              <CardDescription>Въпроси с най-кратко средно време</CardDescription>
+                            </CardHeader>
+                            <CardContent>
+                              <div className="space-y-3">
+                                {heatmapSummary.fastestQuestions.map((q, idx) => (
+                                  <div key={q.questionId} className="flex items-center justify-between p-2 bg-white dark:bg-gray-900 rounded-lg">
+                                    <div className="flex items-center gap-3">
+                                      <Badge variant="default" className="bg-green-500">{idx + 1}</Badge>
+                                      <div>
+                                        <p className="font-medium">Q{q.stepNumber}</p>
+                                        <p className="text-xs text-muted-foreground">{q.sampleCount} отговора</p>
+                                      </div>
+                                    </div>
+                                    <div className="text-right">
+                                      <p className="font-bold text-green-600">{q.avgTime}s</p>
+                                      <p className="text-xs text-muted-foreground">p90: {q.p90Time}s</p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+                      )}
+
+                      {/* Refresh button */}
+                      <div className="flex justify-end">
+                        <Button variant="outline" onClick={fetchHeatmapData} disabled={isLoadingHeatmap}>
+                          <RefreshCw className={`w-4 h-4 mr-2 ${isLoadingHeatmap ? 'animate-spin' : ''}`} />
+                          Опресни данните
+                        </Button>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center py-12 text-muted-foreground">
+                      <Clock className="w-12 h-12 mx-auto mb-4 opacity-50" />
+                      <p>Кликни на бутона за зареждане на heatmap данни</p>
+                      <Button variant="outline" className="mt-4" onClick={fetchHeatmapData}>
+                        Зареди данни
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -3199,8 +5447,80 @@ export default function QuizAnalyticsDashboard() {
                 </>
               )}
             </div>
+            {/* View All Button */}
+            <DialogFooter className="border-t pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  const configs: Record<string, { title: string; description: string; dataType: string; additionalFilters?: Record<string, string> }> = {
+                    total: {
+                      title: "Всички Quiz Completions",
+                      description: "Пълен списък на завършените quiz-ове (all-time)",
+                      dataType: "quiz_completions",
+                    },
+                    tracked: {
+                      title: "Tracked Sessions",
+                      description: `Всички tracked сесии за последните ${selectedDays} дни`,
+                      dataType: "quiz_sessions",
+                    },
+                    completed: {
+                      title: "Завършени Quiz-ове",
+                      description: `Успешно завършени quiz-ове за последните ${selectedDays} дни`,
+                      dataType: "quiz_sessions",
+                      additionalFilters: { completed: "true" },
+                    },
+                    abandoned: {
+                      title: "Изоставени Сесии",
+                      description: `Изоставени quiz сесии за последните ${selectedDays} дни`,
+                      dataType: "abandoned_sessions",
+                    },
+                  };
+                  if (selectedMetric && configs[selectedMetric]) {
+                    setDataSheetConfig(configs[selectedMetric]);
+                    setMetricDialogOpen(false);
+                    setDataSheetOpen(true);
+                  }
+                }}
+                className="w-full"
+              >
+                <Database className="w-4 h-4 mr-2" />
+                Виж всички записи
+              </Button>
+            </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* ============ DATA SHEET FOR FULL DATA ACCESS ============ */}
+        {dataSheetConfig && (
+          <DataSheet
+            open={dataSheetOpen}
+            onOpenChange={setDataSheetOpen}
+            title={dataSheetConfig.title}
+            description={dataSheetConfig.description}
+            dataType={dataSheetConfig.dataType}
+            columns={
+              dataSheetConfig.dataType === "quiz_completions" || dataSheetConfig.dataType === "by_category" || dataSheetConfig.dataType === "by_level"
+                ? quizSessionColumns
+                : dataSheetConfig.dataType === "quiz_no_order"
+                ? quizNoOrderColumns
+                : dataSheetConfig.dataType === "order_no_quiz"
+                ? orderNoQuizColumns
+                : dataSheetConfig.dataType === "orders" || dataSheetConfig.dataType === "shopify_orders"
+                ? orderColumns
+                : dataSheetConfig.dataType === "conversions" || dataSheetConfig.dataType === "quiz_to_order"
+                ? conversionColumns
+                : sessionEventColumns
+            }
+            fetchUrl="/api/admin/card-details"
+            additionalFilters={dataSheetConfig.additionalFilters}
+            enableSearch={true}
+            enableCategoryFilter={["quiz_completions", "by_category", "by_level", "quiz_no_order", "conversions", "quiz_to_order"].includes(dataSheetConfig.dataType)}
+            enableLevelFilter={["quiz_completions", "by_category", "by_level", "quiz_no_order", "conversions", "quiz_to_order"].includes(dataSheetConfig.dataType)}
+            enableDateFilter={true}
+            enableExport={true}
+            navigateToProfile={true}
+          />
+        )}
 
         {/* ============ SESSION TIMELINE MODAL ============ */}
         <Dialog open={sessionTimelineModalOpen} onOpenChange={setSessionTimelineModalOpen}>
@@ -3676,6 +5996,386 @@ export default function QuizAnalyticsDashboard() {
                 </Button>
               </div>
             </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* ============ SAVE FILTER DIALOG ============ */}
+        <Dialog open={saveFilterDialogOpen} onOpenChange={setSaveFilterDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Filter className="w-5 h-5" />
+                Запази текущия филтър
+              </DialogTitle>
+              <DialogDescription>
+                Запази текущите настройки за бърз достъп в бъдеще
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="filter-name">Име на филтъра *</Label>
+                <Input
+                  id="filter-name"
+                  value={newFilterName}
+                  onChange={(e) => setNewFilterName(e.target.value)}
+                  placeholder="напр. Libido 30 дни"
+                />
+              </div>
+              <div>
+                <Label htmlFor="filter-description">Описание (по избор)</Label>
+                <Textarea
+                  id="filter-description"
+                  value={newFilterDescription}
+                  onChange={(e) => setNewFilterDescription(e.target.value)}
+                  placeholder="Кратко описание на филтъра..."
+                  rows={2}
+                />
+              </div>
+              <div className="bg-muted/50 p-3 rounded-lg text-sm">
+                <p className="font-medium mb-2">Текущи настройки:</p>
+                <ul className="space-y-1 text-muted-foreground">
+                  <li>Период: {selectedDays === -1 ? 'Всички' : `${selectedDays} дни`}</li>
+                  <li>Категория: {categoryFilter === 'all' ? 'Всички' : categoryFilter}</li>
+                  <li>Sub-tab: {sessionsSubTab}</li>
+                  {sessionsSubTab === 'cohort' && <li>Cohort групиране: {cohortGroupBy}</li>}
+                </ul>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setSaveFilterDialogOpen(false)}>
+                Откажи
+              </Button>
+              <Button onClick={saveCurrentFilter} disabled={isSavingFilter || !newFilterName.trim()}>
+                {isSavingFilter ? (
+                  <>
+                    <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+                    Запазване...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Запази филтър
+                  </>
+                )}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ============ ALERTS MANAGEMENT DIALOG ============ */}
+        <Dialog open={alertsDialogOpen} onOpenChange={setAlertsDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Bell className="w-5 h-5" />
+                Управление на известия
+              </DialogTitle>
+              <DialogDescription>
+                Настройте условия за получаване на известия при промяна на метрики
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="flex justify-end">
+                <Button onClick={() => setCreateAlertDialogOpen(true)} size="sm">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Ново известие
+                </Button>
+              </div>
+
+              {isLoadingAlerts ? (
+                <div className="flex items-center justify-center py-8">
+                  <RefreshCw className="w-6 h-6 animate-spin text-muted-foreground" />
+                </div>
+              ) : alerts.length === 0 ? (
+                <div className="text-center py-8 text-muted-foreground">
+                  <Bell className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p>Няма настроени известия</p>
+                  <p className="text-sm mt-1">Създайте ново известие за да получавате уведомления</p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {alerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className={`p-4 border rounded-lg ${alert.is_active ? 'bg-white dark:bg-gray-900' : 'bg-gray-50 dark:bg-gray-800 opacity-60'}`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-medium">{alert.name}</h4>
+                            <Badge variant={alert.is_active ? 'default' : 'secondary'}>
+                              {alert.is_active ? 'Активно' : 'Неактивно'}
+                            </Badge>
+                          </div>
+                          {alert.description && (
+                            <p className="text-sm text-muted-foreground mt-1">{alert.description}</p>
+                          )}
+                          <div className="flex flex-wrap gap-2 mt-2 text-xs">
+                            <Badge variant="outline">
+                              {alert.metric_type === 'completion_rate' ? 'Completion Rate' :
+                               alert.metric_type === 'daily_sessions' ? 'Daily Sessions' :
+                               alert.metric_type === 'conversion_rate' ? 'Conversion Rate' :
+                               alert.metric_type === 'abandoned_rate' ? 'Abandoned Rate' : alert.metric_type}
+                            </Badge>
+                            <Badge variant="outline">
+                              {alert.condition === 'below' ? 'под' : alert.condition === 'above' ? 'над' : 'промяна с'} {alert.threshold}
+                              {['completion_rate', 'conversion_rate', 'abandoned_rate'].includes(alert.metric_type) ? '%' : ''}
+                            </Badge>
+                            {alert.category !== 'all' && (
+                              <Badge variant="outline">{alert.category}</Badge>
+                            )}
+                          </div>
+                          {alert.trigger_count > 0 && (
+                            <p className="text-xs text-muted-foreground mt-2">
+                              Задействано {alert.trigger_count} пъти
+                              {alert.last_triggered_at && ` (последно: ${new Date(alert.last_triggered_at).toLocaleString('bg-BG')})`}
+                            </p>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleAlert(alert.id, !alert.is_active)}
+                            className={alert.is_active ? 'hover:bg-yellow-100 hover:text-yellow-700' : 'hover:bg-green-100 hover:text-green-700'}
+                          >
+                            <Power className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteAlert(alert.id)}
+                            className="hover:bg-red-100 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setAlertsDialogOpen(false)}>
+                Затвори
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* ============ CREATE ALERT DIALOG ============ */}
+        <Dialog open={createAlertDialogOpen} onOpenChange={setCreateAlertDialogOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Plus className="w-5 h-5" />
+                Ново известие
+              </DialogTitle>
+              <DialogDescription>
+                Настройте условие за получаване на известие
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="alert-name">Име на известието *</Label>
+                <Input
+                  id="alert-name"
+                  value={newAlert.name}
+                  onChange={(e) => setNewAlert({ ...newAlert, name: e.target.value })}
+                  placeholder="напр. Нисък Completion Rate"
+                />
+              </div>
+              <div>
+                <Label htmlFor="alert-description">Описание (по избор)</Label>
+                <Textarea
+                  id="alert-description"
+                  value={newAlert.description}
+                  onChange={(e) => setNewAlert({ ...newAlert, description: e.target.value })}
+                  placeholder="Кратко описание..."
+                  rows={2}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Метрика *</Label>
+                  <Select
+                    value={newAlert.metric_type}
+                    onValueChange={(value) => setNewAlert({ ...newAlert, metric_type: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="completion_rate">Completion Rate (%)</SelectItem>
+                      <SelectItem value="daily_sessions">Daily Sessions</SelectItem>
+                      <SelectItem value="conversion_rate">Conversion Rate (%)</SelectItem>
+                      <SelectItem value="abandoned_rate">Abandoned Rate (%)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label>Условие *</Label>
+                  <Select
+                    value={newAlert.condition}
+                    onValueChange={(value) => setNewAlert({ ...newAlert, condition: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="below">Под</SelectItem>
+                      <SelectItem value="above">Над</SelectItem>
+                      <SelectItem value="change_percent">Промяна с</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="alert-threshold">
+                    Праг *
+                    {['completion_rate', 'conversion_rate', 'abandoned_rate'].includes(newAlert.metric_type) && ' (%)'}
+                  </Label>
+                  <Input
+                    id="alert-threshold"
+                    type="number"
+                    value={newAlert.threshold}
+                    onChange={(e) => setNewAlert({ ...newAlert, threshold: parseFloat(e.target.value) || 0 })}
+                    min={0}
+                    max={newAlert.metric_type === 'daily_sessions' ? 10000 : 100}
+                  />
+                </div>
+                <div>
+                  <Label>Категория</Label>
+                  <Select
+                    value={newAlert.category}
+                    onValueChange={(value) => setNewAlert({ ...newAlert, category: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Всички</SelectItem>
+                      <SelectItem value="libido">Libido</SelectItem>
+                      <SelectItem value="muscle">Muscle</SelectItem>
+                      <SelectItem value="energy">Energy</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="bg-muted/50 p-3 rounded-lg text-sm">
+                <p className="font-medium mb-1">Преглед:</p>
+                <p className="text-muted-foreground">
+                  Ще получите известие когато{' '}
+                  <span className="font-medium">
+                    {newAlert.metric_type === 'completion_rate' ? 'Completion Rate' :
+                     newAlert.metric_type === 'daily_sessions' ? 'Daily Sessions' :
+                     newAlert.metric_type === 'conversion_rate' ? 'Conversion Rate' :
+                     newAlert.metric_type === 'abandoned_rate' ? 'Abandoned Rate' : newAlert.metric_type}
+                  </span>
+                  {' '}
+                  {newAlert.condition === 'below' ? 'падне под' : newAlert.condition === 'above' ? 'надхвърли' : 'се промени с'}
+                  {' '}
+                  <span className="font-medium">
+                    {newAlert.threshold}
+                    {['completion_rate', 'conversion_rate', 'abandoned_rate'].includes(newAlert.metric_type) ? '%' : ''}
+                  </span>
+                  {newAlert.category !== 'all' && ` за категория ${newAlert.category}`}
+                </p>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setCreateAlertDialogOpen(false)}>
+                Откажи
+              </Button>
+              <Button onClick={createAlert} disabled={!newAlert.name.trim()}>
+                <Plus className="w-4 h-4 mr-2" />
+                Създай известие
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* User Notes Dialog */}
+        <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <StickyNote className="h-5 w-5" />
+                Бележки за {selectedUserForNote?.name}
+              </DialogTitle>
+              <DialogDescription>
+                {selectedUserForNote?.email}
+              </DialogDescription>
+            </DialogHeader>
+
+            {/* Add new note */}
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <Label>Нова бележка</Label>
+                <Textarea
+                  placeholder="Напишете бележка за този потребител..."
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  className="min-h-[80px]"
+                />
+              </div>
+              <Button
+                onClick={addNoteToUser}
+                disabled={!newNote.trim() || isAddingNote}
+                className="w-full"
+              >
+                {isAddingNote ? (
+                  <RefreshCw className="h-4 w-4 animate-spin mr-2" />
+                ) : (
+                  <Plus className="h-4 w-4 mr-2" />
+                )}
+                Добави бележка
+              </Button>
+            </div>
+
+            {/* Existing notes */}
+            {userNotes.length > 0 && (
+              <div className="space-y-2 mt-4">
+                <Label className="text-muted-foreground">Предишни бележки ({userNotes.length})</Label>
+                <div className="max-h-[200px] overflow-y-auto space-y-2">
+                  {userNotes.map((note) => (
+                    <div
+                      key={note.id}
+                      className="bg-muted/50 rounded-lg p-3 space-y-1 group relative"
+                    >
+                      <p className="text-sm whitespace-pre-wrap">{note.note}</p>
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span>
+                          {new Date(note.created_at).toLocaleDateString("bg-BG", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 px-2 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => deleteNote(note.id)}
+                        >
+                          <XCircle className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {userNotes.length === 0 && (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                Няма бележки за този потребител
+              </p>
+            )}
           </DialogContent>
         </Dialog>
       </TooltipProvider>

@@ -59,7 +59,7 @@ import {
 
 interface TimelineEvent {
   id: string;
-  type: "chat_session" | "funnel_session" | "funnel_event" | "purchase";
+  type: "chat_session" | "coach_message" | "funnel_session" | "funnel_event" | "purchase" | "workout" | "meal" | "sleep" | "testoup";
   timestamp: string;
   data: any;
 }
@@ -606,8 +606,13 @@ export default function UserProfilePage() {
 
   const getEventIcon = (type: string, eventType?: string) => {
     if (type === "chat_session") return <MessageSquare className="h-4 w-4" />;
+    if (type === "coach_message") return <Bot className="h-4 w-4" />;
     if (type === "funnel_session") return <TrendingUp className="h-4 w-4" />;
     if (type === "purchase") return <ShoppingCart className="h-4 w-4" />;
+    if (type === "workout") return <Dumbbell className="h-4 w-4" />;
+    if (type === "meal") return <Utensils className="h-4 w-4" />;
+    if (type === "sleep") return <Moon className="h-4 w-4" />;
+    if (type === "testoup") return <Pill className="h-4 w-4" />;
     if (eventType === "offer_viewed") return <Eye className="h-4 w-4" />;
     if (eventType === "button_clicked")
       return <MousePointer className="h-4 w-4" />;
@@ -618,11 +623,37 @@ export default function UserProfilePage() {
     if (event.type === "chat_session") {
       return "Нова Chat Сесия";
     }
+    if (event.type === "coach_message") {
+      return event.data.role === "user" ? "Съобщение до Coach" : "Отговор от AI Coach";
+    }
     if (event.type === "funnel_session") {
       return event.data.completed ? "Завършен Funnel" : "Започнат Funnel";
     }
     if (event.type === "purchase") {
       return `Покупка: ${event.data.productName || "Неизвестен продукт"}`;
+    }
+    if (event.type === "workout") {
+      return `Тренировка: ${event.data.workout_name || event.data.category || "Завършена"}`;
+    }
+    if (event.type === "meal") {
+      const mealTypes: Record<string, string> = {
+        breakfast: "Закуска",
+        lunch: "Обяд",
+        dinner: "Вечеря",
+        snack: "Снак"
+      };
+      return mealTypes[event.data.meal_type] || event.data.meal_name || "Хранене";
+    }
+    if (event.type === "sleep") {
+      const quality = event.data.sleep_quality;
+      const qualityText = quality >= 4 ? "Добър" : quality >= 2 ? "Среден" : "Слаб";
+      return `Сън: ${qualityText} (${event.data.sleep_duration || 0}ч)`;
+    }
+    if (event.type === "testoup") {
+      const parts = [];
+      if (event.data.morning_taken) parts.push("сутрин");
+      if (event.data.evening_taken) parts.push("вечер");
+      return `TestoUp: ${parts.join(" + ") || "взето"}`;
     }
     if (event.type === "funnel_event") {
       const eventType = event.data.event_type;
@@ -645,12 +676,40 @@ export default function UserProfilePage() {
         ? `PDF: ${event.data.pdf_filename}`
         : "Без PDF файл";
     }
+    if (event.type === "coach_message") {
+      return event.data.content || "";
+    }
     if (event.type === "funnel_session") {
       return `Offer: ${event.data.offer_tier || "Няма"} | Step ${event.data.exit_step || "N/A"}`;
     }
     if (event.type === "purchase") {
       const apps = event.data.appsIncluded || [];
       return `${event.data.amount || 0} ${event.data.currency || "BGN"} | ${apps.length} apps`;
+    }
+    if (event.type === "workout") {
+      const parts = [];
+      if (event.data.duration_minutes) parts.push(`${event.data.duration_minutes} мин`);
+      if (event.data.exercises_completed) parts.push(`${event.data.exercises_completed}/${event.data.total_exercises || '?'} упражнения`);
+      if (event.data.calories_burned) parts.push(`${event.data.calories_burned} kcal`);
+      return parts.join(" | ") || "Завършена тренировка";
+    }
+    if (event.type === "meal") {
+      const parts = [];
+      if (event.data.calories) parts.push(`${event.data.calories} kcal`);
+      if (event.data.protein) parts.push(`${event.data.protein}g протеин`);
+      return parts.join(" | ") || event.data.meal_name || "";
+    }
+    if (event.type === "sleep") {
+      const parts = [];
+      if (event.data.bed_time) parts.push(`Легнал: ${event.data.bed_time}`);
+      if (event.data.wake_time) parts.push(`Станал: ${event.data.wake_time}`);
+      return parts.join(" | ") || "";
+    }
+    if (event.type === "testoup") {
+      const times = [];
+      if (event.data.morning_time) times.push(`Сутрин: ${event.data.morning_time}`);
+      if (event.data.evening_time) times.push(`Вечер: ${event.data.evening_time}`);
+      return times.join(" | ") || "";
     }
     if (event.type === "funnel_event") {
       return `Step ${event.data.step_number}`;
@@ -2165,11 +2224,21 @@ export default function UserProfilePage() {
                         className={`flex items-center justify-center w-8 h-8 rounded-full ${
                           event.type === "chat_session"
                             ? "bg-blue-100 text-blue-600"
-                            : event.type === "funnel_session"
-                              ? "bg-purple-100 text-purple-600"
-                              : event.type === "purchase"
-                                ? "bg-green-100 text-green-600"
-                                : "bg-gray-100 text-gray-600"
+                            : event.type === "coach_message"
+                              ? "bg-indigo-100 text-indigo-600"
+                              : event.type === "funnel_session"
+                                ? "bg-purple-100 text-purple-600"
+                                : event.type === "purchase"
+                                  ? "bg-green-100 text-green-600"
+                                  : event.type === "workout"
+                                    ? "bg-orange-100 text-orange-600"
+                                    : event.type === "meal"
+                                      ? "bg-yellow-100 text-yellow-600"
+                                      : event.type === "sleep"
+                                        ? "bg-slate-100 text-slate-600"
+                                        : event.type === "testoup"
+                                          ? "bg-pink-100 text-pink-600"
+                                          : "bg-gray-100 text-gray-600"
                         }`}
                       >
                         {getEventIcon(event.type, event.data.event_type)}

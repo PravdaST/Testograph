@@ -5,13 +5,110 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type'
 };
-const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+
+// OpenRouter API configuration (free models from coach-client)
+const OPENROUTER_API_URL = 'https://openrouter.ai/api/v1/chat/completions';
+const openRouterApiKey = Deno.env.get('OPENROUTER_API_KEY');
+
+// Free models - ordered by preference (all verified to exist on OpenRouter)
+// Multiple providers to maximize availability during rate limits
+const FREE_MODELS = {
+  primary: 'google/gemma-3n-e4b-it:free',
+  fallback1: 'google/gemini-2.0-flash-exp:free',
+  fallback2: 'google/gemma-3-27b-it:free',
+  fallback3: 'mistralai/mistral-small-3.1-24b-instruct:free',
+  fallback4: 'meta-llama/llama-3.2-3b-instruct:free',
+  fallback5: 'qwen/qwen-2.5-72b-instruct:free',
+  fallback6: 'deepseek/deepseek-r1-distill-qwen-14b:free',
+  fallback7: 'deepseek/deepseek-chat-v3-0324:free',
+};
+
 const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 if (!supabaseUrl || !supabaseKey) {
   throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY');
 }
 const supabase = createClient(supabaseUrl, supabaseKey);
+
+/**
+ * Call OpenRouter API with automatic fallback through multiple free models
+ */
+async function callOpenRouterWithFallback(
+  conversationMessages: Array<{ role: string; content: string }>,
+  maxTokens: number = 600,
+  temperature: number = 0.75
+): Promise<{ content: string; model: string }> {
+  if (!openRouterApiKey) {
+    throw new Error('OPENROUTER_API_KEY is not configured');
+  }
+
+  const modelsToTry = [
+    FREE_MODELS.primary,
+    FREE_MODELS.fallback1,
+    FREE_MODELS.fallback2,
+    FREE_MODELS.fallback3,
+    FREE_MODELS.fallback4,
+    FREE_MODELS.fallback5,
+    FREE_MODELS.fallback6,
+    FREE_MODELS.fallback7,
+  ];
+
+  let lastError: Error | null = null;
+
+  for (const model of modelsToTry) {
+    console.log(`Trying model: ${model}`);
+
+    try {
+      const response = await fetch(OPENROUTER_API_URL, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openRouterApiKey}`,
+          'Content-Type': 'application/json',
+          'HTTP-Referer': 'https://testograph.eu',
+          'X-Title': 'Testograph Chat Assistant',
+        },
+        body: JSON.stringify({
+          model,
+          messages: conversationMessages,
+          max_tokens: maxTokens,
+          temperature,
+          stream: false,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        console.log(`Success with model: ${model}`);
+        return {
+          content: data.choices?.[0]?.message?.content || 'Съжалявам, възникна грешка.',
+          model,
+        };
+      }
+
+      // If rate limited (429), try next model
+      if (response.status === 429) {
+        const errorText = await response.text();
+        console.warn(`Model ${model} rate limited (429), trying next...`, errorText);
+        lastError = new Error(`Rate limited: ${model}`);
+        continue;
+      }
+
+      // Other errors - log but try next model
+      const errorText = await response.text();
+      console.error(`Model ${model} error:`, response.status, errorText);
+      lastError = new Error(`OpenRouter API error: ${response.status}`);
+      continue;
+    } catch (fetchError) {
+      console.error(`Fetch error for model ${model}:`, fetchError);
+      lastError = fetchError as Error;
+      continue;
+    }
+  }
+
+  // All models failed
+  console.error('All models failed. Last error:', lastError?.message);
+  throw new Error('Всички AI модели са временно заети. Моля, опитай отново след минута.');
+}
 serve(async (req)=>{
   if (req.method === 'OPTIONS') {
     return new Response(null, {
@@ -19,14 +116,66 @@ serve(async (req)=>{
     });
   }
   try {
-    const { message, email, sessionId } = await req.json();
+    const { message, email, sessionId, source } = await req.json();
     if (!message || !email) {
       throw new Error('Message and email are required');
     }
-    // Check if OpenAI API key is available
-    if (!openAIApiKey) {
-      console.error('OpenAI API key is missing');
-      throw new Error('OpenAI API key is not configured');
+
+    // Check if this is from the website (simple coach mode)
+    const isWebsiteSource = source === 'website';
+
+    // For website visitors, check quiz_results_v2 for personalization
+    let websiteQuizData: {
+      hasQuiz: boolean;
+      firstName?: string;
+      category?: string;
+      totalScore?: number;
+      level?: string;
+      workoutLocation?: string;
+      breakdownSymptoms?: number;
+      breakdownNutrition?: number;
+      breakdownTraining?: number;
+      breakdownSleep?: number;
+    } = { hasQuiz: false };
+
+    if (isWebsiteSource) {
+      console.log(`🔍 Website visitor - checking quiz_results_v2 for: ${email}`);
+
+      const { data: quizV2Result, error: quizV2Error } = await supabase
+        .from('quiz_results_v2')
+        .select('*')
+        .eq('email', email)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (quizV2Result && !quizV2Error) {
+        console.log('✅ Quiz results found from app.testograph.eu!');
+        console.log('📊 Category:', quizV2Result.category);
+        console.log('🎯 Score:', quizV2Result.total_score);
+        console.log('📈 Level:', quizV2Result.determined_level);
+
+        websiteQuizData = {
+          hasQuiz: true,
+          firstName: quizV2Result.first_name,
+          category: quizV2Result.category,
+          totalScore: quizV2Result.total_score,
+          level: quizV2Result.determined_level,
+          workoutLocation: quizV2Result.workout_location,
+          breakdownSymptoms: quizV2Result.breakdown_symptoms,
+          breakdownNutrition: quizV2Result.breakdown_nutrition,
+          breakdownTraining: quizV2Result.breakdown_training,
+          breakdownSleep: quizV2Result.breakdown_sleep_recovery
+        };
+      } else {
+        console.log('ℹ️ No quiz_results_v2 found for website visitor');
+      }
+    }
+
+    // Check if OpenRouter API key is available
+    if (!openRouterApiKey) {
+      console.error('OpenRouter API key is missing');
+      throw new Error('OpenRouter API key is not configured');
     }
     console.log(`Processing chat message for email: ${email}`);
     // Get or create session
@@ -395,8 +544,80 @@ serve(async (req)=>{
     // Fallback to generic value if testosterone not found
     const testosteroneDisplay = testosteroneValue || '**[стойността от анализа]**';
 
-    // Prepare system prompt - SMART FRIEND COACH
-    const systemPrompt = hasPdfContent ?
+    // SIMPLE WEBSITE COACH PROMPT (used when source: 'website')
+    // Build quiz context if available
+    const quizContextBlock = websiteQuizData.hasQuiz ? `
+ВАЖНО - ДАННИ ОТ QUIZ НА ПОТРЕБИТЕЛЯ:
+- Име: ${websiteQuizData.firstName}
+- Фокус категория: ${websiteQuizData.category === 'libido' ? 'Либидо' : websiteQuizData.category === 'muscle' ? 'Мускулна маса' : 'Енергия'}
+- Общ резултат: ${websiteQuizData.totalScore}/100
+- Ниво: ${websiteQuizData.level === 'low' ? 'Ниско' : websiteQuizData.level === 'moderate' ? 'Умерено' : websiteQuizData.level === 'good' ? 'Добро' : 'Оптимално'}
+- Тренировки: ${websiteQuizData.workoutLocation === 'home' ? 'Вкъщи' : 'Фитнес'}
+- Симптоми score: ${websiteQuizData.breakdownSymptoms}/100
+- Хранене score: ${websiteQuizData.breakdownNutrition}/100
+- Тренировки score: ${websiteQuizData.breakdownTraining}/100
+- Сън score: ${websiteQuizData.breakdownSleep}/100
+
+ИЗПОЛЗВАЙ ТЕЗИ ДАННИ:
+- Обръщай се с името му (${websiteQuizData.firstName})
+- Съобразявай съветите с фокус категорията (${websiteQuizData.category})
+- Ако score-а е нисък в някоя област, давай съвети за там
+- Съобразявай тренировки с локацията (${websiteQuizData.workoutLocation})
+` : `
+ПОТРЕБИТЕЛЯТ НЕ Е ПОПЪЛНИЛ QUIZ!
+- Не знаеш нищо за състоянието му
+- На всеки 2-3 съобщения ДИСКРЕТНО подканвай да попълни quiz-а
+- НЕ натрапвай! Просто спомени: "За да ти дам по-точен съвет, попълни безплатния тест на app.testograph.eu/quiz - отнема 2 минути."
+- Продължи да отговаряш на въпросите му въпреки това
+`;
+
+    const websiteCoachPrompt = `Ти си К. Богданов - личен коуч по тестостерон и мъжко здраве в Testograph.
+${quizContextBlock}
+ТВОЯТА ЛИЧНОСТ:
+- Приятелски и директен
+- Даваш конкретни, практични съвети
+- Кратки отговори (2-4 изречения)
+- Говориш на "ти"
+- БЕЗ емоджита освен ако не е много емоционален контекст
+
+ТЕМИ КОИТО ПОКРИВАШ:
+- Повишаване на тестостерон по естествен път
+- Енергия и справяне с умората
+- Либидо и сексуално здраве
+- Хранене за хормонален баланс
+- Тренировки (вкъщи или фитнес)
+- Сън и възстановяване
+- Стрес и кортизол
+- Добавки за тестостерон
+
+ИЗВЪН ТЕМАТА:
+Ако питат за нещо извън тези теми, кажи:
+"Аз съм коуч по тестостерон и мъжко здраве. За [тяхната тема] не мога да помогна. Имаш ли въпрос за здравето си?"
+
+ПРАВИЛА:
+1. Отговаряй директно на въпроса
+2. Давай 1-2 конкретни съвета, не списъци
+3. Питай follow-up въпрос за да продължиш разговора
+4. ${websiteQuizData.hasQuiz
+  ? `Ако питат за пълна програма, насочи към приложението: "Виждам че вече си попълнил теста. За пълната програма влез в app.testograph.eu"`
+  : `Ако питат за пълна програма, насочи към quiz: "За персонализиран план, попълни безплатния тест на app.testograph.eu/quiz"`}
+
+ПРИМЕРИ:
+${websiteQuizData.hasQuiz ? `
+Q: "Как да повиша тестостерона?"
+A: "${websiteQuizData.firstName}, при твоя резултат ${websiteQuizData.totalScore}/100 и фокус върху ${websiteQuizData.category === 'libido' ? 'либидото' : websiteQuizData.category === 'muscle' ? 'мускулната маса' : 'енергията'}, започни със съня - минимум 7 часа. Колко спиш в момента?"
+` : `
+Q: "Как да повиша тестостерона?"
+A: "Най-бързият начин е да оптимизираш съня - 7-8 часа качествен сън е база. Колко спиш в момента?"
+`}
+Q: "Защо съм уморен постоянно?"
+A: "Умората обикновено идва от лош сън или нисък тестостерон. Ставаш ли отпочинал сутрин или се влачиш?"
+
+Q: "Какво да ям за либидо?"
+A: "Цинкът е ключов - ядки, говеждо, тиквени семки. Приемаш ли добавки в момента?"`;
+
+    // Prepare system prompt - SMART FRIEND COACH (for complex hormone analysis)
+    const systemPrompt = isWebsiteSource ? websiteCoachPrompt : (hasPdfContent ?
         `Ти си Теодор - най-добрият приятел на ${email.split('@')[0]}, който случайно е и топ хормонален експерт.
 
 ДАННИ: ${keyFindings}
@@ -560,7 +781,7 @@ A: "При ${testosteroneDisplay} е нормално. Тестостеронъ�
 2. Ще получиш PDF с анализа си на имейла
 3. Качи го тук и ще ти кажа точно какво става с хормоните ти
 
-Имаш ли вече анализ? Качи го да започнем!"`;
+Имаш ли вече анализ? Качи го да започнем!"`);
 
     // Add context about conversation history and make messages interactive
     const isFirstMessage = !messages || messages.length === 0;
@@ -586,7 +807,26 @@ A: "При ${testosteroneDisplay} е нормално. Тестостеронъ�
     const conversationTurns = messages ? messages.length / 2 : 0; // User + Bot messages
 
     // Context-aware prompting with HORMOZI TRIGGERS
-    if (objectionsDetected && hasPdfContent) {
+    // Skip complex triggers for website visitors - they get simple coaching
+    if (isWebsiteSource) {
+      // For website visitors without quiz, periodically remind them
+      if (!websiteQuizData.hasQuiz && conversationTurns > 0 && conversationTurns % 3 === 0) {
+        contextualMessage = `${message}
+
+КОНТЕКСТ: Това е ${conversationTurns + 1}-то съобщение и потребителят НЕ Е попълнил quiz.
+ИНСТРУКЦИЯ: Отговори на въпроса и в края ДИСКРЕТНО добави:
+"Между другото, ако искаш по-персонализирани съвети за твоето състояние, попълни бързия тест на app.testograph.eu/quiz - отнема само 2 минути."`;
+      } else if (websiteQuizData.hasQuiz && isFirstMessage) {
+        contextualMessage = `${message}
+
+КОНТЕКСТ: Първо съобщение от потребител с попълнен quiz!
+QUIZ ДАННИ: ${websiteQuizData.firstName}, категория ${websiteQuizData.category}, score ${websiteQuizData.totalScore}/100, ниво ${websiteQuizData.level}
+ИНСТРУКЦИЯ: Поздрави го по име и спомени че виждаш резултата му от теста. Пример:
+"Здравей ${websiteQuizData.firstName}! Виждам че си попълнил теста - имаш ${websiteQuizData.totalScore}/100 с фокус върху ${websiteQuizData.category === 'libido' ? 'либидото' : websiteQuizData.category === 'muscle' ? 'мускулната маса' : 'енергията'}. Как мога да ти помогна?"`;
+      } else {
+        contextualMessage = message;
+      }
+    } else if (objectionsDetected && hasPdfContent) {
       // OBJECTION HANDLING - Highest priority!
       contextualMessage = `${message}
 
@@ -732,7 +972,7 @@ A: "При ${testosteroneDisplay} е нормално. Тестостеронъ�
       }
     ];
 
-    console.log('🔥 SENDING TO AI:', {
+    console.log('🔥 SENDING TO AI (OpenRouter):', {
       email,
       hasPdfContent,
       extractedHormonesCount: Object.keys(extractedHormones).length,
@@ -741,30 +981,10 @@ A: "При ${testosteroneDisplay} е нормално. Тестостеронъ�
       pdfContentLength: sessionWithPdf?.pdf_content?.length || 0
     });
 
-    // Call OpenAI
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'gpt-4o',
-        messages: conversationMessages,
-        max_tokens: 600,
-        temperature: 0.75,
-        presence_penalty: 0.4,
-        frequency_penalty: 0.3,
-        top_p: 0.9
-      })
-    });
-    if (!response.ok) {
-      const error = await response.text();
-      console.error('OpenAI API error:', error);
-      throw new Error('Failed to get AI response');
-    }
-    const data = await response.json();
-    const assistantMessage = data.choices[0].message.content;
+    // Call OpenRouter with fallback models
+    const aiResponse = await callOpenRouterWithFallback(conversationMessages, 600, 0.75);
+    const assistantMessage = aiResponse.content;
+    console.log(`✅ AI response received from model: ${aiResponse.model}`);
     // Save assistant response
     const { error: assistantMessageError } = await supabase.from('chat_messages').insert({
       session_id: session.id,

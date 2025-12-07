@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { QueryProvider } from '@/components/providers/query-provider'
 import { CookieConsent } from "@/components/CookieConsent"
 import { AnalyticsScripts } from "@/components/AnalyticsScripts"
+import { ChatBubble } from "@/components/ChatBubble"
 
 const inter = Inter({
   subsets: ['latin', 'cyrillic'],
@@ -227,6 +228,7 @@ export default function RootLayout({
             <Sonner />
             <CookieConsent />
             <AnalyticsScripts />
+            <ChatBubble />
           </TooltipProvider>
         </QueryProvider>
       </body>
