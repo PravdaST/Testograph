@@ -544,12 +544,19 @@ export default function UsersPage() {
       const response = await fetch(`/api/admin/users?${params}`);
       const data: UsersResponse = await response.json();
 
-      if (response.ok) {
-        setUsers(data.users);
-        setStats(data.stats);
-        setTotalFiltered(data.total);
-        setTotalPages(data.pagination.totalPages);
-        setCurrentPage(data.pagination.page);
+      if (response.ok && data.pagination) {
+        setUsers(data.users || []);
+        setStats(data.stats || null);
+        setTotalFiltered(data.total || 0);
+        setTotalPages(data.pagination.totalPages || 1);
+        setCurrentPage(data.pagination.page || 1);
+      } else if (!response.ok) {
+        console.error("API error:", data);
+        toast({
+          title: "Грешка",
+          description: data.error || "Не успя да се заредят потребителите",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error("Error fetching users:", error);
