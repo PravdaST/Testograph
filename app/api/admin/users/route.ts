@@ -68,10 +68,8 @@ export async function GET(request: Request) {
         .select('email, first_name, category, determined_level, total_score, workout_location, created_at')
         .order('created_at', { ascending: false }),
 
-      // TestoUP inventory
-      supabase
-        .from('testoup_inventory')
-        .select('email, capsules_remaining'),
+      // TestoUP inventory - table may not exist, skip
+      Promise.resolve({ data: [], error: null }),
 
       // Workout sessions (last 7 days)
       supabase
