@@ -23,51 +23,30 @@
    - Данни в: `app_users` + много други таблици
 
 ### Admin Pages Mapping:
-- `/admin/users` - Quiz потребители (от стъпка 1)
+- `/admin/users` - Quiz потребители (от стъпка 1) с pagination и filtering
 - `/admin/shopify-orders` - Поръчки (от стъпка 2)
-- `/admin/users/[email]` - 360° профил на потребител (всичко заедно)
+- `/admin/econt` - Econt проследяване на пратки (доставки)
+- `/admin/users` popup - 360° профил на потребител (всичко заедно)
 - `/admin/quiz-analytics` - Quiz статистики и Session Explorer
+- `/admin/learn-content` - AI Learn Content System
 
 ### НЯМА:
 - ❌ PRO subscription система
 - ❌ Платени планове в приложението
 - ❌ Access control за features
 
-### Database Tables - Кое откъде идва:
-
-| Таблица | Източник | Описание |
-|---------|----------|----------|
-| `quiz_results_v2` | Quiz (стъпка 1) | Email, име, категория, score, level, breakdown scores |
-| `quiz_step_events` | Quiz (стъпка 1) | Всяка стъпка от quiz-а, отговори, време |
-| `pending_orders` | Shopify (стъпка 2) | Поръчки, продукти, адрес, телефон |
-| `app_users` | App (стъпка 3) | Регистрирани потребители в приложението |
-| `workout_sessions` | App (стъпка 3) | Завършени тренировки |
-| `meal_completions` | App (стъпка 3) | Логнати хранения |
-| `sleep_tracking` | App (стъпка 3) | Записи за сън |
-| `testoup_tracking` | App (стъпка 3) | TestoUp приемане |
-| `progress_photos` | App (стъпка 3) | Снимки за прогрес |
-| `chat_sessions` | App (стъпка 3) | AI Coach разговори |
-| `chat_messages` | App (стъпка 3) | Съобщения в чата |
-| `admin_users` | Admin | Списък с админи |
-| `admin_audit_logs` | Admin | Действия на админи |
-| `email_logs` | Admin | Изпратени имейли |
-
-### Свързване на потребител:
-- **Email** е primary key - свързва quiz → shopify → app
-- Един потребител може да има данни във всички 3 стъпки
-- `/admin/users/[email]` показва 360° изглед от всички таблици
-
 ---
 
 ## Project Overview
 
-Testograph is a Next.js application for testosterone health assessment and personalized recommendations. It includes a quiz system, admin panel, Shopify integration, and user management.
+Testograph is a Next.js application for testosterone health assessment and personalized recommendations. It includes a quiz system, admin panel, Shopify integration, AI content generation, and user management.
 
 **Tech Stack:**
-- Next.js 16 (App Router)
+- Next.js 14+ (App Router)
 - TypeScript
-- Supabase (Database & Auth)
+- Supabase (Database & Auth & Storage)
 - Tailwind CSS + shadcn/ui
+- OpenRouter API (Google Gemini for AI content)
 - Shopify Admin API integration
 
 **Dev Server:** `npm run dev` runs on port 3006
@@ -80,25 +59,125 @@ Testograph is a Next.js application for testosterone health assessment and perso
 - Admin access controlled via `admin_users` table in Supabase
 - Login at `/admin` redirects to `/admin/dashboard` after auth
 - Layout component: `components/admin/AdminLayout.tsx`
+- All admin API calls use `adminFetch()` from `lib/admin/api.ts`
 
 ### Admin Pages
 
 | Page | Path | Description |
 |------|------|-------------|
 | Dashboard | `/admin/dashboard` | Overview stats, recent activity |
-| Users | `/admin/users` | Quiz потребители (списък) |
-| User Profile | `/admin/users/[email]` | 360° профил на потребител |
+| **Users** | `/admin/users` | Quiz потребители с pagination, filtering, popup детайли |
 | Business Analytics | `/admin/business-analytics` | Revenue & operations |
 | Quiz Analytics | `/admin/quiz-analytics` | Quiz stats, Session Explorer, CSV Export |
 | **Shopify Orders** | `/admin/shopify-orders` | Order management |
+| **Econt Tracking** | `/admin/econt` | Econt delivery tracking |
 | Chat Sessions | `/admin/chat-sessions` | AI chat logs |
-| App Data | `/admin/app-data` | App content management |
-| Quiz Results | `/admin/quiz-results` | Individual quiz results |
 | Affiliates | `/admin/affiliates` | Affiliate tracking |
-| Learn Content | `/admin/learn-content` | Educational content |
+| **Learn Content** | `/admin/learn-content` | AI Content Generation System |
 | Audit Logs | `/admin/audit-logs` | System logs |
 | Settings | `/admin/settings` | App configuration |
 | Communication | `/admin/communication` | Email templates & sending |
+
+---
+
+## Learn Content System (`/admin/learn-content`)
+
+### Cluster-Pillar Architecture
+
+AI-powered educational content generation with SEO-optimized cluster/pillar model:
+
+**Cluster (Hub Page):**
+- 3,500+ words comprehensive overview
+- Links to 8-12 related pillar articles
+- Example: "Пълно ръководство за тестостерон"
+
+**Pillar (Spoke Page):**
+- 5,500+ words in-depth article
+- Links back to parent cluster + sibling pillars
+- Example: "Как да повишиш тестостерона естествено"
+
+### Features
+- **AI Content Generation** - Full articles with one click via Google Gemini
+- **AI Image Generation** - Hero images via Gemini 2.5 Flash Image
+- **Smart Internal Linking** - Auto-links to existing content
+- **Dashboard** - Visual cluster/pillar tree
+- **AI Cluster Suggestions** - Analyzes site and suggests new topics
+
+### API Routes
+
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/admin/learn-content/create-cluster` | POST | Generate cluster (3,500+ words) |
+| `/api/admin/learn-content/create-pillar` | POST | Generate pillar (5,500+ words) |
+| `/api/admin/learn-content/stats` | GET | Dashboard statistics |
+| `/api/admin/learn-content/guides` | GET/PUT/DELETE | CRUD for guides |
+| `/api/admin/learn-content/suggest-clusters` | POST | AI suggestions |
+
+### Database Table: `blog_posts`
+
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key |
+| title | text | Article title |
+| slug | text | URL slug (unique, Latin) |
+| content | text | HTML content |
+| guide_type | text | 'cluster' or 'pillar' |
+| guide_category | text | testosterone/potency/fitness/nutrition/supplements/lifestyle |
+| suggested_pillars | text[] | AI-suggested pillar topics |
+| parent_cluster_slug | text | For pillars: parent cluster slug |
+| featured_image_url | text | Hero image URL |
+| is_published | boolean | Publication status |
+
+### Key Files
+- `app/admin/learn-content/page.tsx` - Admin page
+- `components/admin/LearnContentTab.tsx` - Main tab container
+- `components/admin/LearnContentDashboard.tsx` - Visual cluster/pillar tree
+- `lib/ai/image-generation.ts` - AI image generation
+- `lib/utils/slugify.ts` - Cyrillic → Latin transliteration
+
+---
+
+## Users System (`/admin/users`)
+
+### Features
+- **Pagination** - 50 users per page with navigation
+- **Filtering** - By quiz status, payment status, activity
+- **Search** - By email or name
+- **User Popup** - Full 360° view when clicking a row
+- **Admin Notes** - Notes per user stored in `admin_user_notes`
+- **Export CSV** - Download user data
+
+### API Routes
+
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/admin/users` | GET | Paginated users with stats |
+| `/api/admin/users/[email]` | GET | Single user details |
+| `/api/admin/users/notes` | GET/POST | Admin notes for users |
+
+### User Data Sources (All Time Counts)
+
+| Data | Source Table |
+|------|--------------|
+| Quiz results | `quiz_results_v2` |
+| Payment status | `pending_orders` |
+| Capsules | `testoup_inventory` + `testoup_purchase_history` |
+| Workouts | `workout_sessions` |
+| Meals | `meal_completions` |
+| Sleep | `sleep_tracking` |
+| TestoUP tracking | `testoup_tracking` |
+| Coach messages | `coach_messages` |
+| Body measurements | `body_measurements` |
+| Progress photos | `progress_photos` |
+
+### Stats Cards
+
+The users page shows aggregate stats:
+- Total users (811+)
+- With/Without Quiz
+- Paid Orders (133) vs Pending Orders (488)
+- Total Revenue (10,257 лв + 26,925 лв pending)
+- Active users (last 7 days)
 
 ---
 
@@ -111,27 +190,9 @@ SHOPIFY_ADMIN_ACCESS_TOKEN="shpat_xxx"
 SHOPIFY_WEBHOOK_SECRET="xxx"
 ```
 
-### API Routes
-
-#### GET `/api/admin/shopify-sync`
-Compares Shopify orders with database, returns:
-- Missing orders in DB
-- Missing orders in Shopify
-- Status mismatches
-
-#### POST `/api/admin/shopify-sync`
-Actions:
-- `sync-missing` - Import missing orders from Shopify
-- `fix-status` - Update payment status mismatches
-- `update-shipping` - Backfill shipping addresses for existing orders
-
-#### GET `/api/admin/shopify-orders`
-Returns paginated orders from `pending_orders` table with:
-- Order details
-- Customer info
-- Products
-- Shipping address
-- Phone number
+### Webhook Endpoints
+- `POST /api/webhooks/shopify` - Handles Order creation and Order payment events
+- Webhooks receive full PII data (name, address, phone) on all Shopify plans
 
 ### Database Table: `pending_orders`
 
@@ -144,85 +205,157 @@ Returns paginated orders from `pending_orders` table with:
 | customer_name | text | Full name |
 | phone | text | Phone number |
 | total_price | numeric | Order total |
-| currency | text | BGN |
 | status | text | pending/paid |
 | products | jsonb | Line items array |
 | shipping_address | jsonb | Address object |
 | paid_at | timestamp | Payment timestamp |
-| created_at | timestamp | Order creation |
-
-### Shopify Webhooks (Recommended)
-
-**Why Webhooks:** Shopify Basic plan restricts PII (Personally Identifiable Information) access via API. However, webhooks **DO receive full PII data** including customer names, addresses, emails, and phone numbers - even on Basic plan.
-
-**Webhook Endpoints:**
-- `POST /api/webhooks/shopify` - Handles both Order creation and Order payment events
-- `POST /api/webhooks/shopify/order-created` - Re-exports from parent route
-
-**Registered Webhooks in Shopify Admin:**
-- Event: "Order creation" → `https://www.testograph.eu/api/webhooks/shopify`
-- Event: "Order payment" → `https://www.testograph.eu/api/webhooks/shopify`
-
-**Webhook Data Flow:**
-1. Customer places order on shop.testograph.eu
-2. Shopify sends webhook with FULL order data (including PII)
-3. Webhook endpoint verifies HMAC signature
-4. Order is inserted/updated in `pending_orders` table with complete customer info
-
-**Security:**
-- All webhooks are verified using HMAC-SHA256 signature
-- Secret stored in `SHOPIFY_WEBHOOK_SECRET` environment variable
-
-### Known Issue: Shopify API PII Restriction
-
-**Problem:** Shopify Admin API on Basic plan returns `shipping_address` with only `country: "Bulgaria"` - no street address, city, phone, or customer name.
-
-**Cause:** Protected Customer Data Access (PII) is restricted on Shopify Basic plan. API scopes don't help - this is a plan-level restriction.
-
-**Solution:** Use Shopify Webhooks instead of API polling. Webhooks receive full PII data on all plans. The webhook endpoints (`/api/webhooks/shopify`) are now configured and registered in Shopify Admin.
+| tracking_number | text | Econt shipment number |
+| tracking_company | text | Courier company (Econt) |
+| fulfillment_status | text | Fulfillment status |
 
 ---
 
-## Database Tables (Supabase)
+## Econt Integration (`/admin/econt`)
+
+### Overview
+Real-time tracking of shipments through Econt courier API. Shows all paid orders with delivery status.
+
+### Features
+- **Live Tracking** - Fetches current status from Econt API
+- **Stats Dashboard** - Delivered, in transit, no tracking counts
+- **Order Details** - Expandable rows with tracking events history
+- **Filters** - All, Delivered, In Transit, No Tracking
+
+### Environment Variables
+```env
+ECONT_API_URL=https://ee.econt.com/services/Shipments/ShipmentService.getShipmentStatuses.json
+ECONT_USERNAME=your_econt_username
+ECONT_PASSWORD=your_econt_password
+```
+
+### API Routes
+
+| Route | Method | Description |
+|-------|--------|-------------|
+| `/api/admin/econt` | GET | List paid orders with Econt status |
+| `/api/admin/econt` | POST | Check status for specific tracking numbers |
+
+### Key Files
+- `app/admin/econt/page.tsx` - Admin tracking page
+- `app/api/admin/econt/route.ts` - Econt API integration
+
+### Econt API Response
+```typescript
+interface EcontShipmentStatus {
+  shipmentNumber: string;
+  shortDeliveryStatus?: string;      // BG status
+  shortDeliveryStatusEn?: string;    // EN status
+  deliveryTime?: string;             // Delivery timestamp
+  trackingEvents?: EcontTrackingEvent[];
+}
+```
+
+---
+
+## Database Tables Overview
 
 ### Core Tables
-- `quiz_results_v2` - Quiz completions with scores
-- `pending_orders` - Shopify orders
-- `testoup_purchase_history` - Completed purchases
-- `admin_users` - Admin access list
-- `app_users` - Mobile app registrations
-- `chat_sessions` - AI coach conversations
 
-### Quiz Results Schema (`quiz_results_v2`)
-- `email`, `first_name`
-- `category` (libido/muscle/energy)
-- `total_score`
-- `determined_level` (low/moderate/good/optimal)
-- `workout_location` (home/gym)
-- `breakdown_*` scores (symptoms, nutrition, training, sleep_recovery, context)
+| Table | Source | Description |
+|-------|--------|-------------|
+| `quiz_results_v2` | Quiz | Email, name, category, score, level |
+| `quiz_step_events` | Quiz | Each step, answers, timing |
+| `pending_orders` | Shopify | Orders, products, addresses |
+| `app_users` | App | Registered app users |
+| `admin_users` | Admin | Admin access list |
+| `admin_user_notes` | Admin | Notes per user |
+| `admin_audit_logs` | Admin | Action logs |
+| `blog_posts` | Learn Content | Educational articles |
+
+### App Activity Tables
+
+| Table | Description |
+|-------|-------------|
+| `workout_sessions` | Completed workouts |
+| `meal_completions` | Logged meals |
+| `sleep_tracking` | Sleep records |
+| `testoup_tracking` | Supplement tracking |
+| `testoup_inventory` | Capsules remaining |
+| `progress_photos` | Progress photos |
+| `body_measurements` | Body measurements |
+| `chat_sessions` | AI Coach conversations |
+| `coach_messages` | Chat messages |
+
+### User Connection
+- **Email** is the primary key connecting quiz → shopify → app
+- One user can have data in all 3 systems
+
+---
+
+## AI Integration (OpenRouter)
+
+### Environment
+```env
+OPENROUTER_API_KEY="sk-or-v1-xxx"
+```
+
+### Models Used
+| Model | Purpose | Cost |
+|-------|---------|------|
+| `google/gemini-2.5-pro` | Long content generation | ~$0.02-0.03 |
+| `google/gemini-2.5-flash-lite` | Quick suggestions, metadata | ~$0.001 |
+| `google/gemini-2.5-flash-image` | Image generation | ~$0.02 |
+
+### AI Features
+1. **Learn Content** - Full article generation (3,500-5,500 words)
+2. **Cluster Suggestions** - Analyze site, suggest new topics
+3. **Image Generation** - Hero images for articles
+4. **Smart Linking** - Auto-link to related content
 
 ---
 
 ## Key Files Reference
 
 ### Admin Components
-- `app/admin/shopify-orders/page.tsx` - Shopify orders UI with Sheet details view
-- `components/admin/AdminLayout.tsx` - Sidebar navigation
+```
+components/admin/
+├── AdminLayout.tsx          # Sidebar navigation
+├── LearnContentTab.tsx      # Learn content main UI
+├── LearnContentDashboard.tsx # Cluster/pillar tree
+├── CreateClusterDialog.tsx  # Create cluster modal
+└── PublishScheduler.tsx     # Schedule publishing
+```
 
 ### API Routes
-- `app/api/admin/shopify-sync/route.ts` - Shopify sync logic
-- `app/api/admin/shopify-orders/route.ts` - Orders CRUD
-- `app/api/analytics/funnel-stats/route.ts` - Quiz analytics
-- `app/api/webhooks/shopify/route.ts` - Shopify webhook handler (order creation & payment)
-- `app/api/webhooks/shopify/order-created/route.ts` - Re-exports from parent
+```
+app/api/admin/
+├── users/route.ts           # Users list with pagination
+├── users/notes/route.ts     # Admin notes CRUD
+├── shopify-orders/route.ts  # Orders CRUD
+├── shopify-sync/route.ts    # Shopify sync logic
+├── econt/route.ts           # Econt tracking API
+├── learn-content/
+│   ├── create-cluster/      # AI cluster generation
+│   ├── create-pillar/       # AI pillar generation
+│   ├── stats/               # Dashboard stats
+│   ├── guides/              # Guides CRUD
+│   └── suggest-clusters/    # AI suggestions
+└── webhooks/shopify/        # Shopify webhooks
+```
 
-### Integrations
-- `integrations/supabase/client.ts` - Supabase browser client
-- Uses service role key for API routes to bypass RLS
+### Utilities
+```
+lib/
+├── admin/api.ts             # adminFetch() helper
+├── ai/image-generation.ts   # AI image generation
+├── utils/slugify.ts         # Cyrillic → Latin
+├── utils/insert-images.ts   # Insert images in HTML
+└── utils/smart-linking.ts   # Internal linking
+```
 
 ---
 
-## Development Notes
+## Development
 
 ### Running the Project
 ```bash
@@ -230,7 +363,31 @@ cd Testograph
 npm run dev  # Starts on port 3006
 ```
 
-### Common Tasks
+### Environment Variables Required
+```env
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=xxx
+NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
+SUPABASE_SERVICE_ROLE_KEY=xxx
+
+# Shopify
+SHOPIFY_STORE_DOMAIN=shop.testograph.eu
+SHOPIFY_ADMIN_ACCESS_TOKEN=shpat_xxx
+SHOPIFY_WEBHOOK_SECRET=xxx
+
+# OpenRouter (AI)
+OPENROUTER_API_KEY=sk-or-v1-xxx
+
+# Econt Courier
+ECONT_API_URL=https://ee.econt.com/services/Shipments/ShipmentService.getShipmentStatuses.json
+ECONT_USERNAME=xxx
+ECONT_PASSWORD=xxx
+
+# App
+NEXT_PUBLIC_APP_URL=http://localhost:3006
+```
+
+### Common Commands
 
 **Sync Shopify Orders:**
 ```bash
@@ -239,62 +396,44 @@ curl -X POST http://localhost:3006/api/admin/shopify-sync \
   -d '{"action": "sync-missing"}'
 ```
 
-**Update Shipping Data:**
+**Generate Learn Content Cluster:**
 ```bash
-curl -X POST http://localhost:3006/api/admin/shopify-sync \
+curl -X POST http://localhost:3006/api/admin/learn-content/create-cluster \
   -H "Content-Type: application/json" \
-  -d '{"action": "update-shipping"}'
-```
-
-### TypeScript Interfaces
-
-```typescript
-interface ShopifyOrder {
-  id: string;
-  shopify_order_id: string;
-  shopify_order_number: string;
-  customer_email: string;
-  customer_name: string | null;
-  customer_phone: string | null;
-  shipping_address: ShippingAddress | null;
-  products: Product[];
-  total_price: number;
-  currency: string;
-  status: string;
-  is_paid: boolean;
-  paid_at: string | null;
-  created_at: string;
-}
-
-interface ShippingAddress {
-  first_name?: string;
-  last_name?: string;
-  name?: string;
-  address1?: string;
-  address2?: string;
-  city?: string;
-  province?: string;
-  country?: string;
-  zip?: string;
-  phone?: string;
-}
+  -H "Authorization: Bearer <token>" \
+  -d '{"title": "Тестостерон - пълно ръководство", "category": "testosterone"}'
 ```
 
 ---
 
 ## Recent Changes Log
 
+### 2024-12-09: Econt Tracking Integration
+- Created `/admin/econt` page for shipment tracking
+- Integrated Econt API for real-time delivery status
+- Added stats: total, delivered, in transit, no tracking
+- Expandable rows with tracking event history
+- Added Econt environment variables
+
+### 2024-12-09: Users Page Pagination & Learn Content Export
+- Added pagination to /admin/users (50 users per page)
+- Changed activity counts from 7-day to ALL TIME
+- Added body measurements and progress photos tracking
+- Fixed production issue with pagination response
+- Exported Learn Content System to standalone folder (`learn-content-export/`)
+- Added comprehensive documentation for Learn Content adaptation
+
+### 2024-12-08: User Details Popup & Admin Notes
+- Implemented user details popup (click row to see full profile)
+- Added admin_user_notes table for per-user notes
+- Added 7 new features to user details popup
+- Fixed data consistency between Shopify Orders and Users pages
+
 ### 2024-12-02: Shopify Webhook Integration
-- Discovered Shopify Basic plan restricts PII access via Admin API (regardless of scopes)
-- Implemented webhook solution as webhooks receive full PII data on all plans
+- Implemented webhook solution for full PII data on Basic plan
 - Created webhook endpoint: `app/api/webhooks/shopify/route.ts`
-- Registered webhooks in Shopify Admin for Order creation and Order payment events
-- Webhooks now automatically capture full customer info (name, email, phone, shipping address)
-- Updated documentation with webhook architecture details
+- Webhooks now automatically capture full customer info
 
 ### 2024-12-01: Shipping Address Feature
-- Added `shipping_address` (JSONB) and `phone` (TEXT) columns to `pending_orders`
-- Updated Shopify sync to capture shipping data from multiple sources
-- Added `update-shipping` action to backfill existing orders
-- Updated admin UI to display shipping address in order details
-- **Note:** API-based sync has PII limitations on Basic plan - use webhooks instead
+- Added `shipping_address` and `phone` columns to `pending_orders`
+- Updated Shopify sync to capture shipping data

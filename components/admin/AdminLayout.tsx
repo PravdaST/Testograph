@@ -50,7 +50,7 @@ const navItems = [
     icon: Filter,
   },
   {
-    title: 'Shopify Orders',
+    title: 'Shopify & Econt',
     href: '/admin/shopify-orders',
     icon: ShoppingCart,
   },

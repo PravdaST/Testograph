@@ -53,6 +53,9 @@ import {
   ChevronsRight,
   Truck,
   Copy,
+  PackageCheck,
+  PackageX,
+  AlertCircle,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -78,6 +81,14 @@ interface ShippingAddress {
   phone?: string;
 }
 
+interface EcontTrackingEvent {
+  destinationType: string;
+  officeName?: string;
+  cityName?: string;
+  time: string;
+  officeCode?: string;
+}
+
 interface ShopifyOrder {
   id: string;
   shopify_order_id: string;
@@ -98,6 +109,13 @@ interface ShopifyOrder {
   tracking_url: string | null;
   tracking_company: string | null;
   fulfillment_status: string | null;
+  // Econt tracking data
+  econt_status?: string;
+  econt_status_en?: string;
+  econt_delivery_time?: string;
+  econt_events?: EcontTrackingEvent[];
+  econt_error?: string;
+  is_delivered?: boolean;
 }
 
 interface Summary {
@@ -106,6 +124,11 @@ interface Summary {
   pending: number;
   totalRevenue: number;
   pendingRevenue: number;
+  // Tracking stats
+  withTracking: number;
+  delivered: number;
+  inTransit: number;
+  noTracking: number;
 }
 
 interface Pagination {
@@ -123,6 +146,7 @@ export default function ShopifyOrdersPage() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncResult, setSyncResult] = useState<{ synced?: number; fixed?: number; namesFixed?: number; trackingUpdated?: number } | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [trackingFilter, setTrackingFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<ShopifyOrder | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -130,11 +154,11 @@ export default function ShopifyOrdersPage() {
 
   useEffect(() => {
     setCurrentPage(1); // Reset to page 1 when filters change
-  }, [statusFilter, searchQuery]);
+  }, [statusFilter, trackingFilter, searchQuery]);
 
   useEffect(() => {
     fetchOrders();
-  }, [statusFilter, currentPage, searchQuery]);
+  }, [statusFilter, trackingFilter, currentPage, searchQuery]);
 
   // Sync orders from Shopify (import new + fix status mismatches + fix customer names + sync tracking)
   const syncWithShopify = async () => {
@@ -196,6 +220,7 @@ export default function ShopifyOrdersPage() {
       params.set('page', currentPage.toString());
       params.set('limit', '20');
       if (statusFilter !== "all") params.set('status', statusFilter);
+      if (trackingFilter !== "all") params.set('tracking', trackingFilter);
       if (searchQuery.trim()) params.set('search', searchQuery.trim());
 
       const response = await fetch(`/api/admin/shopify-orders?${params.toString()}`);
@@ -253,6 +278,41 @@ export default function ShopifyOrdersPage() {
     return <Badge variant="outline" className="text-yellow-600 border-yellow-600">Pending</Badge>;
   };
 
+  const getEcontStatusBadge = (order: ShopifyOrder) => {
+    if (!order.tracking_number) {
+      return <span className="text-sm text-muted-foreground">Няма tracking</span>;
+    }
+
+    if (order.econt_error) {
+      return <Badge variant="outline" className="text-red-600 border-red-600">Грешка</Badge>;
+    }
+
+    if (order.is_delivered) {
+      return (
+        <Badge className="bg-green-500">
+          <PackageCheck className="w-3 h-3 mr-1" />
+          Доставена
+        </Badge>
+      );
+    }
+
+    if (order.econt_status) {
+      return (
+        <Badge variant="outline" className="text-blue-600 border-blue-600">
+          <Truck className="w-3 h-3 mr-1" />
+          {order.econt_status}
+        </Badge>
+      );
+    }
+
+    return (
+      <Badge variant="outline" className="text-yellow-600 border-yellow-600">
+        <Clock className="w-3 h-3 mr-1" />
+        В обработка
+      </Badge>
+    );
+  };
+
   const openOrderDetails = (order: ShopifyOrder) => {
     setSelectedOrder(order);
     setIsSheetOpen(true);
@@ -284,7 +344,7 @@ export default function ShopifyOrdersPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <ShoppingCart className="w-8 h-8" />
-              Shopify Orders
+              Shopify Orders & Econt Tracking
             </h1>
             <p className="text-muted-foreground mt-1">
               {pagination?.totalItems || summary?.total || 0} orders from Shopify
@@ -301,19 +361,6 @@ export default function ShopifyOrdersPage() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 w-64"
               />
-            </div>
-            {/* Status Filter */}
-            <div className="flex gap-1">
-              {(["all", "pending", "paid"] as const).map((status) => (
-                <Button
-                  key={status}
-                  variant={statusFilter === status ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setStatusFilter(status)}
-                >
-                  {status === "all" ? "All" : status === "pending" ? "Pending" : "Paid"}
-                </Button>
-              ))}
             </div>
             <Button
               variant="default"
@@ -335,6 +382,48 @@ export default function ShopifyOrdersPage() {
           </div>
         </div>
 
+        {/* Filter Buttons */}
+        <div className="flex flex-wrap gap-4">
+          {/* Payment Status Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Payment:</span>
+            <div className="flex gap-1">
+              {(["all", "pending", "paid"] as const).map((status) => (
+                <Button
+                  key={status}
+                  variant={statusFilter === status ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setStatusFilter(status)}
+                >
+                  {status === "all" ? "All" : status === "pending" ? "Pending" : "Paid"}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          {/* Tracking Status Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Tracking:</span>
+            <div className="flex gap-1">
+              {[
+                { key: "all", label: "All" },
+                { key: "delivered", label: "Delivered" },
+                { key: "in_transit", label: "In Transit" },
+                { key: "no_tracking", label: "No Tracking" },
+              ].map((filter) => (
+                <Button
+                  key={filter.key}
+                  variant={trackingFilter === filter.key ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setTrackingFilter(filter.key)}
+                >
+                  {filter.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Sync Result Message */}
         {syncResult && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
@@ -352,73 +441,131 @@ export default function ShopifyOrdersPage() {
           </div>
         )}
 
-        {/* Summary Cards */}
+        {/* Summary Cards - 2 rows */}
         {summary && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Package className="w-4 h-4" />
-                  Total Orders
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold">{summary.total}</div>
-              </CardContent>
-            </Card>
+          <>
+            {/* Row 1: Order Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Package className="w-4 h-4" />
+                    Total Orders
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold">{summary.total}</div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-yellow-500" />
-                  Pending
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-yellow-600">{summary.pending}</div>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Clock className="w-4 h-4 text-yellow-500" />
+                    Pending
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-yellow-600">{summary.pending}</div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  Paid
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-3xl font-bold text-green-600">{summary.paid}</div>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <CheckCircle className="w-4 h-4 text-green-500" />
+                    Paid
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-600">{summary.paid}</div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-green-500" />
-                  Revenue (Paid)
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {formatCurrency(summary.totalRevenue)}
-                </div>
-              </CardContent>
-            </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <DollarSign className="w-4 h-4 text-green-500" />
+                    Revenue (Paid)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {formatCurrency(summary.totalRevenue)}
+                  </div>
+                </CardContent>
+              </Card>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium flex items-center gap-2">
-                  <TrendingUp className="w-4 h-4 text-yellow-500" />
-                  Pending Revenue
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-yellow-600">
-                  {formatCurrency(summary.pendingRevenue)}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-yellow-500" />
+                    Pending Revenue
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-yellow-600">
+                    {formatCurrency(summary.pendingRevenue)}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Row 2: Tracking Stats (for ALL orders) */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <Card className="border-blue-200 bg-blue-50/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-blue-500" />
+                    С Tracking
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-blue-600">{summary.withTracking}</div>
+                  <p className="text-xs text-muted-foreground">от {summary.total} общо</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-green-200 bg-green-50/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <PackageCheck className="w-4 h-4 text-green-500" />
+                    Доставени
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-green-600">{summary.delivered}</div>
+                  <p className="text-xs text-muted-foreground">успешно доставени</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-yellow-200 bg-yellow-50/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <Truck className="w-4 h-4 text-yellow-500" />
+                    В Транзит
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-yellow-600">{summary.inTransit}</div>
+                  <p className="text-xs text-muted-foreground">на път към клиента</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-gray-200 bg-gray-50/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <PackageX className="w-4 h-4 text-gray-500" />
+                    Без Tracking
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-gray-600">{summary.noTracking}</div>
+                  <p className="text-xs text-muted-foreground">без tracking номер</p>
+                </CardContent>
+              </Card>
+            </div>
+          </>
         )}
 
         {/* Orders Table */}
@@ -444,8 +591,9 @@ export default function ShopifyOrdersPage() {
                       <TableHead>Customer</TableHead>
                       <TableHead>Products</TableHead>
                       <TableHead>Total</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Tracking</TableHead>
+                      <TableHead>Payment</TableHead>
+                      <TableHead>Tracking #</TableHead>
+                      <TableHead>Econt Status</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -476,24 +624,25 @@ export default function ShopifyOrdersPage() {
                         <TableCell>
                           {order.tracking_number ? (
                             <div className="flex items-center gap-1">
-                              <Truck className="w-3 h-3 text-green-600" />
-                              {order.tracking_url ? (
-                                <a
-                                  href={order.tracking_url}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="text-sm text-blue-600 hover:underline font-mono"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  {order.tracking_number}
-                                </a>
-                              ) : (
-                                <span className="text-sm font-mono">{order.tracking_number}</span>
-                              )}
+                              <span className="text-sm font-mono">{order.tracking_number}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  navigator.clipboard.writeText(order.tracking_number || '');
+                                }}
+                              >
+                                <Copy className="w-3 h-3" />
+                              </Button>
                             </div>
                           ) : (
-                            <span className="text-sm text-muted-foreground">-</span>
+                            <span className="text-sm text-muted-foreground italic">Няма tracking</span>
                           )}
+                        </TableCell>
+                        <TableCell>
+                          {getEcontStatusBadge(order)}
                         </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDate(order.created_at)}
@@ -600,7 +749,7 @@ export default function ShopifyOrdersPage() {
               <div className="mt-6 space-y-6">
                 {/* Status */}
                 <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Status</span>
+                  <span className="text-sm text-muted-foreground">Payment Status</span>
                   {getStatusBadge(selectedOrder.is_paid)}
                 </div>
 
@@ -690,13 +839,13 @@ export default function ShopifyOrdersPage() {
                   </>
                 )}
 
-                {/* Tracking */}
+                {/* Econt Tracking */}
                 <div className="space-y-3">
                   <h4 className="font-semibold flex items-center gap-2">
                     <Truck className="w-4 h-4" />
-                    Shipment Tracking
+                    Econt Tracking
                   </h4>
-                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-3">
                     {selectedOrder.tracking_number ? (
                       <>
                         <div className="flex items-center justify-between">
@@ -723,6 +872,39 @@ export default function ShopifyOrdersPage() {
                             <span className="font-medium">{selectedOrder.tracking_company}</span>
                           </div>
                         )}
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Econt Status</span>
+                          {getEcontStatusBadge(selectedOrder)}
+                        </div>
+                        {selectedOrder.econt_delivery_time && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Delivery Time</span>
+                            <span className="text-green-600 font-medium">
+                              {formatDate(selectedOrder.econt_delivery_time)}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Tracking Events */}
+                        {selectedOrder.econt_events && selectedOrder.econt_events.length > 0 && (
+                          <div className="pt-3 border-t">
+                            <p className="text-sm font-medium mb-2">Tracking History</p>
+                            <div className="space-y-2 max-h-48 overflow-y-auto">
+                              {selectedOrder.econt_events.map((event, index) => (
+                                <div key={index} className="text-sm border-l-2 border-blue-300 pl-3 py-1">
+                                  <p className="font-medium">{event.destinationType}</p>
+                                  <p className="text-muted-foreground">
+                                    {[event.officeName, event.cityName].filter(Boolean).join(', ')}
+                                  </p>
+                                  <p className="text-xs text-muted-foreground">
+                                    {formatDate(event.time)}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+
                         {selectedOrder.tracking_url && (
                           <div className="pt-2">
                             <a
@@ -736,18 +918,13 @@ export default function ShopifyOrdersPage() {
                             </a>
                           </div>
                         )}
-                        <div className="flex items-center justify-between pt-2">
-                          <span className="text-muted-foreground">Status</span>
-                          <Badge className={selectedOrder.fulfillment_status === 'fulfilled' ? 'bg-green-500' : 'bg-yellow-500'}>
-                            {selectedOrder.fulfillment_status || 'unfulfilled'}
-                          </Badge>
-                        </div>
                       </>
                     ) : (
-                      <div className="text-center py-2">
-                        <p className="text-muted-foreground text-sm">No tracking info yet</p>
+                      <div className="text-center py-4">
+                        <AlertCircle className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                        <p className="text-muted-foreground font-medium">Няма добавен tracking номер</p>
                         <p className="text-xs text-muted-foreground mt-1">
-                          Tracking will appear after order fulfillment in Shopify
+                          Tracking ще се появи след fulfillment в Shopify
                         </p>
                       </div>
                     )}
