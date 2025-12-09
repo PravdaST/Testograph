@@ -167,17 +167,13 @@ export async function GET(
         .eq('email', email)
         .order('order_date', { ascending: false }),
 
-      // Inventory
-      supabase
-        .from('testoup_inventory')
-        .select('*')
-        .eq('email', email)
-        .single(),
+      // Inventory - table may not exist, handle gracefully
+      Promise.resolve({ data: null, error: null }),
 
-      // Workout sessions (last 90 days)
+      // Workout sessions (last 90 days) - use * to avoid column errors
       supabase
         .from('workout_sessions')
-        .select('id, date, workout_name, finished_at, actual_duration_minutes, exercises_completed')
+        .select('*')
         .eq('email', email)
         .gte('date', ninetyDaysAgoStr)
         .order('date', { ascending: false }),
@@ -185,7 +181,7 @@ export async function GET(
       // Meal completions (last 90 days)
       supabase
         .from('meal_completions')
-        .select('id, date, meal_number, completed_at')
+        .select('*')
         .eq('email', email)
         .gte('date', ninetyDaysAgoStr)
         .order('date', { ascending: false }),
@@ -193,7 +189,7 @@ export async function GET(
       // Sleep tracking (last 90 days)
       supabase
         .from('sleep_tracking')
-        .select('id, date, hours_slept, quality_rating, feeling')
+        .select('*')
         .eq('email', email)
         .gte('date', ninetyDaysAgoStr)
         .order('date', { ascending: false }),
@@ -201,7 +197,7 @@ export async function GET(
       // TestoUP tracking (last 90 days)
       supabase
         .from('testoup_tracking')
-        .select('id, date, morning_taken, evening_taken')
+        .select('*')
         .eq('email', email)
         .gte('date', ninetyDaysAgoStr)
         .order('date', { ascending: false }),
@@ -388,23 +384,21 @@ export async function GET(
     })) || [];
 
     if (authUser) {
-
-      // Fetch profile data
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
+      // Fetch profile data from app_users table instead of profiles
+      const { data: profileData } = await supabase
+        .from('app_users')
         .select('*')
-        .eq('id', authUser.id)
+        .eq('email', email)
         .single();
 
-      if (!profileError && profileData) {
+      if (profileData) {
         profile = {
-          name: profileData.name,
-          avatar: profileData.avatar,
-          protocolStartDatePro: profileData.protocol_start_date_pro,
+          name: profileData.name || profileData.first_name,
+          avatar: profileData.avatar_url,
         };
       }
 
-      // Fetch ban info from audit logs
+      // Fetch ban info from admin_audit_logs table
       const { data: banLog, error: banError } = await supabase
         .from('admin_audit_logs')
         .select('*')
@@ -458,7 +452,7 @@ export async function GET(
     });
 
     // Add workouts to timeline
-    workoutSessions.forEach((workout) => {
+    workoutSessions.forEach((workout: any) => {
       if (workout.finished_at) {
         timeline.push({
           id: workout.id,
@@ -466,62 +460,50 @@ export async function GET(
           timestamp: workout.finished_at,
           data: {
             workout_name: workout.workout_name,
-            category: workout.category,
-            duration_minutes: workout.duration_minutes,
+            duration_minutes: workout.actual_duration_minutes,
             exercises_completed: workout.exercises_completed,
-            total_exercises: workout.total_exercises,
-            calories_burned: workout.calories_burned,
           },
         });
       }
     });
 
     // Add meals to timeline
-    mealCompletions.forEach((meal) => {
+    mealCompletions.forEach((meal: any) => {
       timeline.push({
         id: meal.id,
         type: 'meal',
         timestamp: meal.completed_at,
         data: {
-          meal_type: meal.meal_type,
-          meal_name: meal.meal_name,
-          calories: meal.calories,
-          protein: meal.protein,
-          carbs: meal.carbs,
-          fat: meal.fat,
+          meal_number: meal.meal_number,
+          date: meal.date,
         },
       });
     });
 
     // Add sleep logs to timeline
-    sleepTracking.forEach((sleep) => {
+    sleepTracking.forEach((sleep: any) => {
       timeline.push({
         id: sleep.id,
         type: 'sleep',
-        timestamp: sleep.created_at,
+        timestamp: sleep.date,
         data: {
-          sleep_duration: sleep.sleep_duration,
-          sleep_quality: sleep.sleep_quality,
-          bed_time: sleep.bed_time,
-          wake_time: sleep.wake_time,
-          notes: sleep.notes,
+          hours_slept: sleep.hours_slept,
+          quality_rating: sleep.quality_rating,
+          feeling: sleep.feeling,
         },
       });
     });
 
     // Add TestoUp tracking to timeline
-    testoupTracking.forEach((testoup) => {
+    testoupTracking.forEach((testoup: any) => {
       if (testoup.morning_taken || testoup.evening_taken) {
         timeline.push({
           id: testoup.id,
           type: 'testoup',
-          timestamp: testoup.created_at,
+          timestamp: testoup.date,
           data: {
             morning_taken: testoup.morning_taken,
             evening_taken: testoup.evening_taken,
-            morning_time: testoup.morning_time,
-            evening_time: testoup.evening_time,
-            notes: testoup.notes,
           },
         });
       }

@@ -43,13 +43,13 @@
 | `app_users` | App (стъпка 3) | Регистрирани потребители в приложението |
 | `workout_sessions` | App (стъпка 3) | Завършени тренировки |
 | `meal_completions` | App (стъпка 3) | Логнати хранения |
-| `sleep_logs` | App (стъпка 3) | Записи за сън |
-| `supplement_tracking` | App (стъпка 3) | TestoUp приемане |
+| `sleep_tracking` | App (стъпка 3) | Записи за сън |
+| `testoup_tracking` | App (стъпка 3) | TestoUp приемане |
 | `progress_photos` | App (стъпка 3) | Снимки за прогрес |
 | `chat_sessions` | App (стъпка 3) | AI Coach разговори |
 | `chat_messages` | App (стъпка 3) | Съобщения в чата |
 | `admin_users` | Admin | Списък с админи |
-| `audit_logs` | Admin | Действия на админи |
+| `admin_audit_logs` | Admin | Действия на админи |
 | `email_logs` | Admin | Изпратени имейли |
 
 ### Свързване на потребител:
