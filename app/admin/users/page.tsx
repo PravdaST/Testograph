@@ -70,6 +70,10 @@ import {
   CircleCheck,
   CircleDashed,
   AlertCircle,
+  Flame,
+  Phone,
+  Camera,
+  Ruler,
 } from "lucide-react";
 import { exportToCSV } from "@/lib/utils/exportToCSV";
 import { useToast } from "@/hooks/use-toast";
@@ -86,12 +90,15 @@ interface User {
   workoutLocation?: 'home' | 'gym';
   // Inventory
   capsulesRemaining?: number;
-  // Activity counts (last 7 days)
+  // Activity counts (ALL TIME)
   workoutCount?: number;
   mealCount?: number;
   sleepCount?: number;
   testoupCount?: number;
   coachMessages?: number;
+  // New tracking data
+  bodyMeasurements?: number;
+  progressPhotos?: number;
   // Legacy
   chatSessions: number;
   lastActivity: string;
@@ -122,6 +129,28 @@ interface User {
 interface UsersResponse {
   users: User[];
   total: number;
+  stats: {
+    withQuiz: number;
+    withoutQuiz: number;
+    withPurchases: number;
+    pendingPayments: number;
+    withCapsules: number;
+    activeThisWeek: number;
+    withAppAccess: number;
+    totalRevenue: number;
+    // Order-level stats (matches Shopify Orders page)
+    totalPaidOrders: number;
+    totalPendingOrders: number;
+    totalPaidRevenue: number;
+    totalPendingRevenue: number;
+    total: number;
+  };
+  pagination: {
+    page: number;
+    limit: number;
+    totalPages: number;
+    hasMore: boolean;
+  };
 }
 
 export default function UsersPage() {
@@ -132,6 +161,13 @@ export default function UsersPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<'all' | 'withQuiz' | 'withoutQuiz' | 'withPurchases' | 'pendingPayment' | 'active'>('all');
   const [actionLoading, setActionLoading] = useState(false);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize] = useState(50);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalFiltered, setTotalFiltered] = useState(0);
+  const [stats, setStats] = useState<UsersResponse['stats'] | null>(null);
 
   // Admin user authentication
   const [adminId, setAdminId] = useState<string | null>(null);
@@ -241,6 +277,65 @@ export default function UsersPage() {
     programDay: number | null;
   } | null>(null);
 
+  // NEW: Contact info from Shopify
+  const [userContactInfo, setUserContactInfo] = useState<{
+    phone: string | null;
+    customerName: string | null;
+    shippingAddress: any | null;
+  } | null>(null);
+
+  // NEW: Email history
+  const [userEmailHistory, setUserEmailHistory] = useState<Array<{
+    id: string;
+    subject: string;
+    status: string;
+    sentAt: string;
+    templateName: string;
+    metadata: any;
+  }>>([]);
+
+  // NEW: Progress photos
+  const [userProgressPhotos, setUserProgressPhotos] = useState<Array<{
+    id: string;
+    url: string;
+    type: string;
+    notes: string;
+    createdAt: string;
+  }>>([]);
+
+  // NEW: Body measurements
+  const [userBodyMeasurements, setUserBodyMeasurements] = useState<Array<{
+    id: string;
+    weight: number;
+    waist: number;
+    chest: number;
+    arms: number;
+    createdAt: string;
+  }>>([]);
+
+  // NEW: Admin notes
+  const [userAdminNotes, setUserAdminNotes] = useState<Array<{
+    id: string;
+    note: string;
+    adminEmail: string;
+    createdAt: string;
+  }>>([]);
+
+  // NEW: Streak/consistency data
+  const [userStreakData, setUserStreakData] = useState<{
+    currentStreak: number;
+    activeDaysLast30: number;
+    workoutDaysLast30: number;
+    mealDaysLast30: number;
+    sleepDaysLast30: number;
+    testoupDaysLast30: number;
+    consistencyPercentage: number;
+  } | null>(null);
+
+  // NEW: Add note form state
+  const [newAdminNote, setNewAdminNote] = useState("");
+  const [addingNote, setAddingNote] = useState(false);
+
   // Fetch admin user on mount
   useEffect(() => {
     const fetchAdminUser = async () => {
@@ -258,9 +353,16 @@ export default function UsersPage() {
 
   useEffect(() => {
     if (adminId && adminEmail) {
-      fetchUsers();
+      fetchUsers(1); // Reset to page 1 when search or filter changes
     }
-  }, [search, adminId, adminEmail]);
+  }, [search, statusFilter, adminId, adminEmail]);
+
+  // Fetch when page changes
+  useEffect(() => {
+    if (adminId && adminEmail && currentPage > 1) {
+      fetchUsers(currentPage);
+    }
+  }, [currentPage]);
 
   useEffect(() => {
     if (userDetailModal && selectedUser) {
@@ -277,6 +379,13 @@ export default function UsersPage() {
     setUserActivity(null);
     setUserCredentialsInfo(null);
     setUserFunnelJourney(null);
+    // NEW: Reset new state variables
+    setUserContactInfo(null);
+    setUserEmailHistory([]);
+    setUserProgressPhotos([]);
+    setUserBodyMeasurements([]);
+    setUserAdminNotes([]);
+    setUserStreakData(null);
     try {
       const response = await fetch(
         `/api/admin/users/${encodeURIComponent(email)}`,
@@ -317,6 +426,36 @@ export default function UsersPage() {
           credentialsEmailDate: data.credentialsEmailDate || null,
           programDay: data.programDay || null,
         });
+
+        // NEW: Save contact info
+        if (data.contactInfo) {
+          setUserContactInfo(data.contactInfo);
+        }
+
+        // NEW: Save email history
+        if (data.emailHistory) {
+          setUserEmailHistory(data.emailHistory);
+        }
+
+        // NEW: Save progress photos
+        if (data.progressPhotos) {
+          setUserProgressPhotos(data.progressPhotos);
+        }
+
+        // NEW: Save body measurements
+        if (data.bodyMeasurements) {
+          setUserBodyMeasurements(data.bodyMeasurements);
+        }
+
+        // NEW: Save admin notes
+        if (data.adminNotes) {
+          setUserAdminNotes(data.adminNotes);
+        }
+
+        // NEW: Save streak data
+        if (data.streakData) {
+          setUserStreakData(data.streakData);
+        }
 
         // Update selectedUser with enhanced data from API
         if (selectedUser) {
@@ -391,10 +530,13 @@ export default function UsersPage() {
     }
   };
 
-  const fetchUsers = async () => {
+  const fetchUsers = async (page: number = currentPage) => {
     setIsLoading(true);
     try {
       const params = new URLSearchParams();
+      params.append("page", page.toString());
+      params.append("limit", pageSize.toString());
+      params.append("statusFilter", statusFilter);
       if (search) {
         params.append("search", search);
       }
@@ -403,8 +545,11 @@ export default function UsersPage() {
       const data: UsersResponse = await response.json();
 
       if (response.ok) {
-        // Use data directly from API - don't fetch individual user details (causes N+1 problem)
         setUsers(data.users);
+        setStats(data.stats);
+        setTotalFiltered(data.total);
+        setTotalPages(data.pagination.totalPages);
+        setCurrentPage(data.pagination.page);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
@@ -476,11 +621,13 @@ export default function UsersPage() {
       "Capsules Remaining": user.capsulesRemaining || 0,
       "Purchases Count": user.purchasesCount,
       "Total Spent (BGN)": user.totalSpent?.toFixed(2) || "0.00",
-      "Workouts (7d)": user.workoutCount || 0,
-      "Meals (7d)": user.mealCount || 0,
-      "Sleep (7d)": user.sleepCount || 0,
-      "TestoUP (7d)": user.testoupCount || 0,
+      "Workouts (total)": user.workoutCount || 0,
+      "Meals (total)": user.mealCount || 0,
+      "Sleep (total)": user.sleepCount || 0,
+      "TestoUP (total)": user.testoupCount || 0,
       "Coach Messages": user.coachMessages || 0,
+      "Body Measurements": user.bodyMeasurements || 0,
+      "Progress Photos": user.progressPhotos || 0,
       "Quiz Reminder Sent": user.quizReminderSentAt ? formatDate(user.quizReminderSentAt) : "Not sent",
       "Has App Access": user.hasAppAccess ? "Yes" : "No",
       Banned: user.banned ? "Yes" : "No",
@@ -962,26 +1109,15 @@ export default function UsersPage() {
     }
   };
 
-  // Filtered users based on status filter
-  const filteredUsers = users.filter((user) => {
-    switch (statusFilter) {
-      case 'withQuiz':
-        return !!user.quizDate;
-      case 'withoutQuiz':
-        return !user.quizDate;
-      case 'withPurchases':
-        return user.purchasesCount > 0;
-      case 'pendingPayment':
-        return user.paymentStatus === 'pending';
-      case 'active':
-        return (user.workoutCount || 0) > 0 ||
-          (user.mealCount || 0) > 0 ||
-          (user.sleepCount || 0) > 0 ||
-          (user.testoupCount || 0) > 0;
-      default:
-        return true;
+  // Users are now filtered server-side, so just use users directly
+  const filteredUsers = users;
+
+  // Pagination controls
+  const goToPage = (page: number) => {
+    if (page >= 1 && page <= totalPages && page !== currentPage) {
+      setCurrentPage(page);
     }
-  });
+  };
 
   return (
     <AdminLayout>
@@ -996,7 +1132,7 @@ export default function UsersPage() {
         </div>
 
         {/* Stats Cards - Clickable Filters */}
-        {!isLoading && (
+        {!isLoading && stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
             <Card
               className={`cursor-pointer transition-all hover:shadow-md ${statusFilter === 'all' ? 'ring-2 ring-primary' : ''}`}
@@ -1009,7 +1145,7 @@ export default function UsersPage() {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="text-xl font-bold">
-                  {users.length}
+                  {stats.total}
                 </div>
               </CardContent>
             </Card>
@@ -1025,7 +1161,7 @@ export default function UsersPage() {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="text-xl font-bold text-primary">
-                  {users.filter((u) => u.quizDate).length}
+                  {stats.withQuiz}
                 </div>
               </CardContent>
             </Card>
@@ -1041,7 +1177,7 @@ export default function UsersPage() {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="text-xl font-bold text-red-600">
-                  {users.filter((u) => !u.quizDate).length}
+                  {stats.withoutQuiz}
                 </div>
               </CardContent>
             </Card>
@@ -1054,7 +1190,7 @@ export default function UsersPage() {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="text-xl font-bold text-green-600">
-                  {users.filter((u) => u.hasAppAccess).length}
+                  {stats.withAppAccess}
                 </div>
               </CardContent>
             </Card>
@@ -1070,12 +1206,7 @@ export default function UsersPage() {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="text-xl font-bold text-orange-600">
-                  {users.filter((u) =>
-                    (u.workoutCount || 0) > 0 ||
-                    (u.mealCount || 0) > 0 ||
-                    (u.sleepCount || 0) > 0 ||
-                    (u.testoupCount || 0) > 0
-                  ).length}
+                  {stats.activeThisWeek}
                 </div>
               </CardContent>
             </Card>
@@ -1086,12 +1217,15 @@ export default function UsersPage() {
             >
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs font-medium text-muted-foreground">
-                  С Покупки
+                  Платени Поръчки
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="text-xl font-bold text-green-600">
-                  {users.filter((u) => u.purchasesCount > 0).length}
+                  {stats.totalPaidOrders}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {stats.withPurchases} клиенти
                 </div>
               </CardContent>
             </Card>
@@ -1102,12 +1236,15 @@ export default function UsersPage() {
             >
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs font-medium text-muted-foreground">
-                  Чакащи Плащания
+                  Чакащи Поръчки
                 </CardTitle>
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="text-xl font-bold text-yellow-600">
-                  {users.filter((u) => u.paymentStatus === 'pending').length}
+                  {stats.totalPendingOrders}
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  {stats.pendingPayments} клиенти
                 </div>
               </CardContent>
             </Card>
@@ -1120,7 +1257,10 @@ export default function UsersPage() {
               </CardHeader>
               <CardContent className="pt-0">
                 <div className="text-xl font-bold text-green-600">
-                  {users.reduce((sum, u) => sum + (u.totalSpent || 0), 0).toFixed(0)} лв
+                  {stats.totalPaidRevenue?.toFixed(0) || 0} лв
+                </div>
+                <div className="text-xs text-muted-foreground mt-1">
+                  + {stats.totalPendingRevenue?.toFixed(0) || 0} лв чакащи
                 </div>
               </CardContent>
             </Card>
@@ -1151,8 +1291,8 @@ export default function UsersPage() {
                   )}
                 </CardTitle>
                 <CardDescription>
-                  {filteredUsers.length} от {users.length}{" "}
-                  {users.length === 1 ? "потребител" : "потребители"}
+                  {totalFiltered} {totalFiltered === 1 ? "потребител" : "потребители"}
+                  {totalPages > 1 && ` (страница ${currentPage} от ${totalPages})`}
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -1201,6 +1341,7 @@ export default function UsersPage() {
                 )}
               </div>
             ) : (
+              <>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -1211,11 +1352,13 @@ export default function UsersPage() {
                       <th className="text-center p-2 font-medium">Категория</th>
                       <th className="text-center p-2 font-medium">Капсули</th>
                       <th className="text-center p-2 font-medium">Покупки</th>
-                      <th className="text-center p-2 font-medium" title="Тренировки (7 дни)"><Dumbbell className="w-4 h-4 mx-auto text-muted-foreground" /></th>
-                      <th className="text-center p-2 font-medium" title="Хранене (7 дни)"><Utensils className="w-4 h-4 mx-auto text-muted-foreground" /></th>
-                      <th className="text-center p-2 font-medium" title="Сън (7 дни)"><Moon className="w-4 h-4 mx-auto text-muted-foreground" /></th>
-                      <th className="text-center p-2 font-medium" title="TestoUP (7 дни)"><Pill className="w-4 h-4 mx-auto text-muted-foreground" /></th>
+                      <th className="text-center p-2 font-medium" title="Тренировки (общо)"><Dumbbell className="w-4 h-4 mx-auto text-muted-foreground" /></th>
+                      <th className="text-center p-2 font-medium" title="Хранене (общо)"><Utensils className="w-4 h-4 mx-auto text-muted-foreground" /></th>
+                      <th className="text-center p-2 font-medium" title="Сън (общо)"><Moon className="w-4 h-4 mx-auto text-muted-foreground" /></th>
+                      <th className="text-center p-2 font-medium" title="TestoUP (общо)"><Pill className="w-4 h-4 mx-auto text-muted-foreground" /></th>
                       <th className="text-center p-2 font-medium" title="AI Coach съобщения"><Bot className="w-4 h-4 mx-auto text-muted-foreground" /></th>
+                      <th className="text-center p-2 font-medium" title="Измервания на тяло"><TrendingUp className="w-4 h-4 mx-auto text-muted-foreground" /></th>
+                      <th className="text-center p-2 font-medium" title="Прогрес снимки"><FileText className="w-4 h-4 mx-auto text-muted-foreground" /></th>
                       <th className="text-center p-2 font-medium" title="Quiz напомняне"><Mail className="w-4 h-4 mx-auto text-muted-foreground" /></th>
                       <th className="text-center p-2 font-medium">Статус</th>
                     </tr>
@@ -1373,6 +1516,28 @@ export default function UsersPage() {
                           )}
                         </td>
 
+                        {/* Body Measurements */}
+                        <td className="p-2 text-center">
+                          {(user.bodyMeasurements || 0) > 0 ? (
+                            <Badge variant="secondary" className="font-mono text-xs">
+                              {user.bodyMeasurements}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+
+                        {/* Progress Photos */}
+                        <td className="p-2 text-center">
+                          {(user.progressPhotos || 0) > 0 ? (
+                            <Badge variant="secondary" className="font-mono text-xs">
+                              {user.progressPhotos}
+                            </Badge>
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </td>
+
                         {/* Quiz Reminder Sent */}
                         <td className="p-2 text-center">
                           {user.quizReminderSentAt ? (
@@ -1401,6 +1566,76 @@ export default function UsersPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                  <div className="text-sm text-muted-foreground">
+                    Показване {((currentPage - 1) * pageSize) + 1} - {Math.min(currentPage * pageSize, totalFiltered)} от {totalFiltered}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(1)}
+                      disabled={currentPage === 1 || isLoading}
+                    >
+                      Първа
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage - 1)}
+                      disabled={currentPage === 1 || isLoading}
+                    >
+                      Назад
+                    </Button>
+                    <div className="flex items-center gap-1">
+                      {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                        let pageNum;
+                        if (totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (currentPage >= totalPages - 2) {
+                          pageNum = totalPages - 4 + i;
+                        } else {
+                          pageNum = currentPage - 2 + i;
+                        }
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => goToPage(pageNum)}
+                            disabled={isLoading}
+                            className="w-8 h-8 p-0"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(currentPage + 1)}
+                      disabled={currentPage === totalPages || isLoading}
+                    >
+                      Напред
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => goToPage(totalPages)}
+                      disabled={currentPage === totalPages || isLoading}
+                    >
+                      Последна
+                    </Button>
+                  </div>
+                </div>
+              )}
+              </>
             )}
           </CardContent>
         </Card>
@@ -2523,6 +2758,307 @@ ${hasTestoup ? '✓ TestoUP' : ''}`}
                   </CardContent>
                 </Card>
               )}
+
+              {/* NEW: Streak & Consistency Section */}
+              {userStreakData && (
+                <Card className="border-l-4 border-l-amber-400 bg-amber-50/50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-4">
+                      <Flame className="w-5 h-5 text-amber-600" />
+                      <h4 className="font-semibold text-amber-700">Streak & Consistency</h4>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="text-center p-3 bg-white rounded-lg">
+                        <p className="text-3xl font-bold text-amber-600">{userStreakData.currentStreak}</p>
+                        <p className="text-xs text-muted-foreground">Текущ Streak</p>
+                      </div>
+                      <div className="text-center p-3 bg-white rounded-lg">
+                        <p className="text-3xl font-bold text-green-600">{userStreakData.activeDaysLast30}</p>
+                        <p className="text-xs text-muted-foreground">Активни дни (30)</p>
+                      </div>
+                      <div className="text-center p-3 bg-white rounded-lg">
+                        <p className="text-3xl font-bold text-blue-600">{userStreakData.consistencyPercentage}%</p>
+                        <p className="text-xs text-muted-foreground">Consistency</p>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-4 gap-2 mt-3 text-center text-xs">
+                      <div className="p-2 bg-orange-50 rounded">
+                        <span className="font-bold text-orange-600">{userStreakData.workoutDaysLast30}</span>
+                        <span className="text-muted-foreground"> workout</span>
+                      </div>
+                      <div className="p-2 bg-green-50 rounded">
+                        <span className="font-bold text-green-600">{userStreakData.mealDaysLast30}</span>
+                        <span className="text-muted-foreground"> meal</span>
+                      </div>
+                      <div className="p-2 bg-purple-50 rounded">
+                        <span className="font-bold text-purple-600">{userStreakData.sleepDaysLast30}</span>
+                        <span className="text-muted-foreground"> sleep</span>
+                      </div>
+                      <div className="p-2 bg-blue-50 rounded">
+                        <span className="font-bold text-blue-600">{userStreakData.testoupDaysLast30}</span>
+                        <span className="text-muted-foreground"> testoup</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* NEW: Contact Info from Shopify */}
+              {userContactInfo && (userContactInfo.phone || userContactInfo.shippingAddress) && (
+                <Card className="border-l-4 border-l-teal-400 bg-teal-50/50">
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Phone className="w-5 h-5 text-teal-600" />
+                      <h4 className="font-semibold text-teal-700">Контактна информация</h4>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {userContactInfo.phone && (
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Телефон</Label>
+                          <div className="flex items-center gap-2 mt-1">
+                            <p className="font-medium">{userContactInfo.phone}</p>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => copyToClipboard(userContactInfo.phone!)}
+                            >
+                              <Copy className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                      {userContactInfo.customerName && (
+                        <div>
+                          <Label className="text-xs text-muted-foreground">Име от поръчка</Label>
+                          <p className="font-medium mt-1">{userContactInfo.customerName}</p>
+                        </div>
+                      )}
+                      {userContactInfo.shippingAddress && (
+                        <div className="md:col-span-2">
+                          <Label className="text-xs text-muted-foreground">Адрес за доставка</Label>
+                          <div className="mt-1 p-2 bg-white rounded text-sm">
+                            {userContactInfo.shippingAddress.name && (
+                              <p className="font-medium">{userContactInfo.shippingAddress.name}</p>
+                            )}
+                            {userContactInfo.shippingAddress.address1 && (
+                              <p>{userContactInfo.shippingAddress.address1}</p>
+                            )}
+                            {userContactInfo.shippingAddress.address2 && (
+                              <p>{userContactInfo.shippingAddress.address2}</p>
+                            )}
+                            <p>
+                              {[
+                                userContactInfo.shippingAddress.city,
+                                userContactInfo.shippingAddress.zip,
+                                userContactInfo.shippingAddress.country
+                              ].filter(Boolean).join(", ")}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* NEW: Progress Photos Gallery */}
+              {userProgressPhotos.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Camera className="w-5 h-5 text-pink-500" />
+                      Progress Photos
+                      <Badge variant="secondary" className="ml-2">
+                        {userProgressPhotos.length} снимки
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-3 md:grid-cols-4 gap-2">
+                      {userProgressPhotos.map((photo) => (
+                        <div key={photo.id} className="relative group">
+                          <img
+                            src={photo.url}
+                            alt={photo.type}
+                            className="w-full h-24 object-cover rounded-lg border"
+                          />
+                          <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center">
+                            <div className="text-center text-white text-xs">
+                              <p className="font-medium capitalize">{photo.type}</p>
+                              <p>{new Date(photo.createdAt).toLocaleDateString("bg-BG")}</p>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* NEW: Body Measurements */}
+              {userBodyMeasurements.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Ruler className="w-5 h-5 text-purple-500" />
+                      Измервания на тялото
+                      <Badge variant="secondary" className="ml-2">
+                        {userBodyMeasurements.length} записи
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="border-b">
+                            <th className="text-left p-2 font-medium">Дата</th>
+                            <th className="text-center p-2 font-medium">Тегло (кг)</th>
+                            <th className="text-center p-2 font-medium">Талия (см)</th>
+                            <th className="text-center p-2 font-medium">Гърди (см)</th>
+                            <th className="text-center p-2 font-medium">Ръце (см)</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {userBodyMeasurements.slice(0, 10).map((m) => (
+                            <tr key={m.id} className="border-b hover:bg-muted/30">
+                              <td className="p-2">
+                                {new Date(m.createdAt).toLocaleDateString("bg-BG")}
+                              </td>
+                              <td className="p-2 text-center font-mono">{m.weight || "-"}</td>
+                              <td className="p-2 text-center font-mono">{m.waist || "-"}</td>
+                              <td className="p-2 text-center font-mono">{m.chest || "-"}</td>
+                              <td className="p-2 text-center font-mono">{m.arms || "-"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    {userBodyMeasurements.length > 10 && (
+                      <p className="text-xs text-center text-muted-foreground mt-2">
+                        ... и още {userBodyMeasurements.length - 10} записи
+                      </p>
+                    )}
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* NEW: Email History */}
+              {userEmailHistory.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base flex items-center gap-2">
+                      <Mail className="w-5 h-5 text-blue-500" />
+                      Email История
+                      <Badge variant="secondary" className="ml-2">
+                        {userEmailHistory.length} имейла
+                      </Badge>
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {userEmailHistory.map((email) => (
+                        <div
+                          key={email.id}
+                          className="flex items-center justify-between p-2 bg-muted/30 rounded-lg"
+                        >
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-medium truncate">{email.subject}</p>
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                              <span>{email.templateName}</span>
+                              <span>•</span>
+                              <span>{new Date(email.sentAt).toLocaleDateString("bg-BG")}</span>
+                            </div>
+                          </div>
+                          <Badge
+                            variant={email.status === "sent" ? "default" : "secondary"}
+                            className={email.status === "sent" ? "bg-green-600" : ""}
+                          >
+                            {email.status}
+                          </Badge>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
+              {/* NEW: Admin Notes Section */}
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <FileText className="w-5 h-5 text-gray-500" />
+                    Admin Бележки
+                    {userAdminNotes.length > 0 && (
+                      <Badge variant="secondary" className="ml-2">
+                        {userAdminNotes.length}
+                      </Badge>
+                    )}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {/* Add new note form */}
+                  <div className="flex gap-2 mb-4">
+                    <Input
+                      placeholder="Добави бележка..."
+                      value={newAdminNote}
+                      onChange={(e) => setNewAdminNote(e.target.value)}
+                      className="flex-1"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={async () => {
+                        if (!newAdminNote.trim() || !selectedUser?.email || !adminEmail) return;
+                        setAddingNote(true);
+                        try {
+                          const response = await fetch(`/api/admin/users/${encodeURIComponent(selectedUser.email)}/notes`, {
+                            method: "POST",
+                            headers: { "Content-Type": "application/json" },
+                            body: JSON.stringify({
+                              note: newAdminNote,
+                              adminEmail: adminEmail,
+                            }),
+                          });
+                          if (response.ok) {
+                            const data = await response.json();
+                            setUserAdminNotes([data.note, ...userAdminNotes]);
+                            setNewAdminNote("");
+                            toast({ title: "Бележката е добавена" });
+                          }
+                        } catch (error) {
+                          toast({ title: "Грешка", variant: "destructive" });
+                        } finally {
+                          setAddingNote(false);
+                        }
+                      }}
+                      disabled={addingNote || !newAdminNote.trim()}
+                    >
+                      {addingNote ? <Loader2 className="w-4 h-4 animate-spin" /> : <Plus className="w-4 h-4" />}
+                    </Button>
+                  </div>
+
+                  {/* Notes list */}
+                  {userAdminNotes.length > 0 ? (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {userAdminNotes.map((note) => (
+                        <div key={note.id} className="p-3 bg-muted/30 rounded-lg">
+                          <p className="text-sm">{note.note}</p>
+                          <div className="flex items-center gap-2 mt-2 text-xs text-muted-foreground">
+                            <span>{note.adminEmail}</span>
+                            <span>•</span>
+                            <span>{new Date(note.createdAt).toLocaleString("bg-BG")}</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      Няма бележки за този потребител
+                    </p>
+                  )}
+                </CardContent>
+              </Card>
 
               {/* Status */}
               <div className="flex items-center gap-4 p-3 bg-muted/30 rounded-lg">

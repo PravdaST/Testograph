@@ -135,6 +135,11 @@ export async function GET(
       sleepTrackingRes,
       testoupTrackingRes,
       pendingOrdersRes,
+      // NEW: Additional data for enhanced user profile
+      emailLogsRes,
+      progressPhotosRes,
+      bodyMeasurementsRes,
+      adminNotesRes,
     ] = await Promise.all([
       // Chat sessions (legacy)
       supabase
@@ -167,8 +172,12 @@ export async function GET(
         .eq('email', email)
         .order('order_date', { ascending: false }),
 
-      // Inventory - table may not exist, handle gracefully
-      Promise.resolve({ data: null, error: null }),
+      // Inventory
+      supabase
+        .from('testoup_inventory')
+        .select('capsules_remaining, bottles_purchased, last_purchase_date')
+        .eq('email', email)
+        .single(),
 
       // Workout sessions (last 90 days) - use * to avoid column errors
       supabase
@@ -208,6 +217,35 @@ export async function GET(
         .select('id, order_id, order_number, status, total_price, currency, created_at, paid_at, products, customer_name, shipping_address, phone')
         .eq('email', email)
         .order('created_at', { ascending: false }),
+
+      // NEW: Email logs (all emails sent to this user)
+      supabase
+        .from('email_logs')
+        .select('id, subject, status, sent_at, template_name, metadata')
+        .eq('recipient_email', email)
+        .order('sent_at', { ascending: false })
+        .limit(50),
+
+      // NEW: Progress photos
+      supabase
+        .from('progress_photos')
+        .select('id, photo_url, photo_type, notes, created_at')
+        .eq('email', email)
+        .order('created_at', { ascending: false }),
+
+      // NEW: Body measurements (all time for trend)
+      supabase
+        .from('body_measurements')
+        .select('id, weight, waist, chest, arms, created_at')
+        .eq('email', email)
+        .order('created_at', { ascending: false }),
+
+      // NEW: Admin notes for this user
+      supabase
+        .from('admin_user_notes')
+        .select('id, note, admin_email, created_at')
+        .eq('user_email', email)
+        .order('created_at', { ascending: false }),
     ]);
 
     const chatSessions = chatSessionsRes.data || [];
@@ -220,6 +258,79 @@ export async function GET(
     const sleepTracking = sleepTrackingRes.data || [];
     const testoupTracking = testoupTrackingRes.data || [];
     let pendingOrders = pendingOrdersRes.data || [];
+
+    // NEW: Extract additional data
+    const emailLogs = emailLogsRes.data || [];
+    const progressPhotos = progressPhotosRes.data || [];
+    const bodyMeasurements = bodyMeasurementsRes.data || [];
+    const adminNotes = adminNotesRes.data || [];
+
+    // Extract contact info from pending orders or purchases (get most complete info)
+    let contactInfo: any = null;
+    const orderWithContact = pendingOrders.find((o: any) =>
+      o.phone || o.shipping_address || o.customer_name
+    );
+    if (orderWithContact) {
+      contactInfo = {
+        phone: orderWithContact.phone || null,
+        customerName: orderWithContact.customer_name || null,
+        shippingAddress: orderWithContact.shipping_address || null,
+      };
+    }
+
+    // Calculate streak/consistency data (last 30 days)
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    // Get unique active days for each tracking type
+    const workoutDays = new Set(workoutSessions.filter((w: any) => w.finished_at).map((w: any) => w.date?.split('T')[0]));
+    const mealDays = new Set(mealCompletions.map((m: any) => m.date?.split('T')[0]));
+    const sleepDays = new Set(sleepTracking.map((s: any) => s.date?.split('T')[0]));
+    const testoupDays = new Set(testoupTracking.filter((t: any) => t.morning_taken || t.evening_taken).map((t: any) => t.date?.split('T')[0]));
+
+    // Calculate current streak (consecutive days with any activity)
+    const allActivityDays = new Set([
+      ...Array.from(workoutDays),
+      ...Array.from(mealDays),
+      ...Array.from(sleepDays),
+      ...Array.from(testoupDays),
+    ]);
+
+    // Sort days descending to calculate current streak
+    const sortedDays = Array.from(allActivityDays)
+      .filter(Boolean)
+      .sort((a, b) => new Date(b as string).getTime() - new Date(a as string).getTime());
+
+    let currentStreak = 0;
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+    if (sortedDays.length > 0) {
+      // Check if last activity was today or yesterday
+      if (sortedDays[0] === today || sortedDays[0] === yesterday) {
+        currentStreak = 1;
+        for (let i = 1; i < sortedDays.length; i++) {
+          const prevDay = new Date(sortedDays[i - 1] as string);
+          const currDay = new Date(sortedDays[i] as string);
+          const diffDays = (prevDay.getTime() - currDay.getTime()) / (1000 * 60 * 60 * 24);
+          if (diffDays === 1) {
+            currentStreak++;
+          } else {
+            break;
+          }
+        }
+      }
+    }
+
+    const streakData = {
+      currentStreak,
+      activeDaysLast30: allActivityDays.size,
+      workoutDaysLast30: workoutDays.size,
+      mealDaysLast30: mealDays.size,
+      sleepDaysLast30: sleepDays.size,
+      testoupDaysLast30: testoupDays.size,
+      consistencyPercentage: Math.round((allActivityDays.size / 30) * 100),
+    };
 
     // Helper to check if products need re-enrichment (missing title or wrong capsule count)
     const needsReEnrichment = (products: any[]): boolean => {
@@ -332,21 +443,23 @@ export async function GET(
       // Step 3: Payment completed
       paymentCompleted: purchasesData.length > 0,
       firstPaymentAt: purchasesData[purchasesData.length - 1]?.order_date || null,
-      // Pending orders (placed but not paid)
-      pendingOrders: pendingOrders.map((o: any) => ({
-        id: o.id,
-        orderId: o.order_id,
-        orderNumber: o.order_number,
-        status: o.status,
-        totalPrice: o.total_price,
-        currency: o.currency,
-        createdAt: o.created_at,
-        paidAt: o.paid_at,
-        products: o.products,
-        customerName: o.customer_name,
-        shippingAddress: o.shipping_address,
-        phone: o.phone,
-      })),
+      // Pending orders (placed but not paid) - filter to only show actually pending orders
+      pendingOrders: pendingOrders
+        .filter((o: any) => o.status === 'pending')
+        .map((o: any) => ({
+          id: o.id,
+          orderId: o.order_id,
+          orderNumber: o.order_number,
+          status: o.status,
+          totalPrice: o.total_price,
+          currency: o.currency,
+          createdAt: o.created_at,
+          paidAt: o.paid_at,
+          products: o.products,
+          customerName: o.customer_name,
+          shippingAddress: o.shipping_address,
+          phone: o.phone,
+        })),
       // Current status
       currentStep: purchasesData.length > 0 ? 'paid' :
                    pendingOrders.some((o: any) => o.status === 'pending') ? 'pending_payment' :
@@ -359,13 +472,24 @@ export async function GET(
     let profile: any = null;
     let banInfo: any = null;
 
-    // Process inventory
+    // Calculate total capsules from purchase history (always accurate)
+    const totalCapsulesFromPurchases = purchasesData?.reduce((sum, p) => sum + (p.capsules_added || 0), 0) || 0;
+
+    // Process inventory - use purchase history as fallback if inventory is missing/empty
     let inventory: any = null;
-    if (inventoryData) {
+    if (inventoryData && inventoryData.capsules_remaining !== null) {
       inventory = {
         capsulesRemaining: inventoryData.capsules_remaining,
         totalBottles: inventoryData.bottles_purchased,
         lastPurchaseDate: inventoryData.last_purchase_date,
+      };
+    } else if (totalCapsulesFromPurchases > 0) {
+      // Fallback: if no inventory record but has purchases, show purchased capsules
+      inventory = {
+        capsulesRemaining: totalCapsulesFromPurchases,
+        totalBottles: purchasesData?.reduce((sum, p) => sum + (p.bottles_purchased || 0), 0) || 0,
+        lastPurchaseDate: purchasesData?.[0]?.order_date || null,
+        isEstimated: true, // Flag to indicate this is from purchases, not actual inventory
       };
     }
 
@@ -594,6 +718,43 @@ export async function GET(
         sleep: sleepTracking,
         testoup: testoupTracking,
       },
+      // NEW: Contact info from Shopify
+      contactInfo,
+      // NEW: Email history
+      emailHistory: emailLogs.map((log: any) => ({
+        id: log.id,
+        subject: log.subject,
+        status: log.status,
+        sentAt: log.sent_at,
+        templateName: log.template_name,
+        metadata: log.metadata,
+      })),
+      // NEW: Progress photos
+      progressPhotos: progressPhotos.map((photo: any) => ({
+        id: photo.id,
+        url: photo.photo_url,
+        type: photo.photo_type,
+        notes: photo.notes,
+        createdAt: photo.created_at,
+      })),
+      // NEW: Body measurements
+      bodyMeasurements: bodyMeasurements.map((m: any) => ({
+        id: m.id,
+        weight: m.weight,
+        waist: m.waist,
+        chest: m.chest,
+        arms: m.arms,
+        createdAt: m.created_at,
+      })),
+      // NEW: Admin notes
+      adminNotes: adminNotes.map((note: any) => ({
+        id: note.id,
+        note: note.note,
+        adminEmail: note.admin_email,
+        createdAt: note.created_at,
+      })),
+      // NEW: Streak/consistency data
+      streakData,
     });
   } catch (error: any) {
     console.error('Error fetching user timeline:', error);
