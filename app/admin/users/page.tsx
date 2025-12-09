@@ -403,28 +403,8 @@ export default function UsersPage() {
       const data: UsersResponse = await response.json();
 
       if (response.ok) {
-        // Fetch full user details (including userId and banned status)
-        const usersWithDetails = await Promise.all(
-          data.users.map(async (user) => {
-            try {
-              const detailsRes = await fetch(
-                `/api/admin/users/${encodeURIComponent(user.email)}`,
-              );
-              const details = await detailsRes.json();
-              return {
-                ...user,
-                id: details.userId,
-                banned: details.banned || false,
-                name: details.profile?.name,
-                avatar: details.profile?.avatar,
-              };
-            } catch (error) {
-              console.error(`Error fetching details for ${user.email}:`, error);
-              return user;
-            }
-          }),
-        );
-        setUsers(usersWithDetails);
+        // Use data directly from API - don't fetch individual user details (causes N+1 problem)
+        setUsers(data.users);
       }
     } catch (error) {
       console.error("Error fetching users:", error);
