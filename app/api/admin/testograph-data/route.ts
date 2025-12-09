@@ -64,12 +64,12 @@ async function getOverviewStats() {
     { data: inventoryData },
     { data: purchasesData }
   ] = await Promise.all([
-    supabase.from('profiles').select('*', { count: 'exact', head: true }),
+    supabase.from('app_users').select('*', { count: 'exact', head: true }), // Changed from profiles
     supabase.from('quiz_results_v2').select('*', { count: 'exact', head: true }),
     supabase.from('workout_sessions').select('*', { count: 'exact', head: true }),
     supabase.from('meal_completions').select('*', { count: 'exact', head: true }),
     supabase.from('sleep_tracking').select('*', { count: 'exact', head: true }),
-    supabase.from('testoup_inventory').select('email, capsules_remaining'),
+    Promise.resolve({ data: [], error: null }), // testoup_inventory table doesn't exist
     supabase.from('testoup_purchase_history').select('order_total').not('email', 'ilike', '%test%').not('order_id', 'eq', 'MANUAL_REFILL')
   ]);
 
