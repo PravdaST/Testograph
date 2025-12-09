@@ -124,6 +124,104 @@ serve(async (req)=>{
     // Check if this is from the website (simple coach mode)
     const isWebsiteSource = source === 'website';
 
+    // Helper function to search for orders
+    async function searchOrder(searchTerm: string): Promise<{
+      found: boolean;
+      order?: {
+        orderNumber: string;
+        status: string;
+        customerName: string;
+        products: string[];
+        totalPrice: number;
+        trackingNumber?: string;
+        createdAt: string;
+      };
+    }> {
+      // Search by email or order number
+      const isEmail = searchTerm.includes('@');
+      const isOrderNumber = /^#?\d+$/.test(searchTerm.replace('#', ''));
+
+      let query = supabase
+        .from('pending_orders')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (isEmail) {
+        query = query.eq('email', searchTerm.toLowerCase());
+      } else if (isOrderNumber) {
+        const orderNum = searchTerm.replace('#', '');
+        query = query.or(`order_number.eq.${orderNum},order_number.eq.#${orderNum}`);
+      } else {
+        return { found: false };
+      }
+
+      const { data, error } = await query.single();
+
+      if (data && !error) {
+        const products = data.products || [];
+        return {
+          found: true,
+          order: {
+            orderNumber: data.order_number || data.order_id,
+            status: data.status === 'paid' ? 'платена' : 'в обработка',
+            customerName: data.customer_name || 'Неизвестно',
+            products: products.map((p: any) => p.name || p.title || 'Продукт'),
+            totalPrice: data.total_price,
+            trackingNumber: data.tracking_number,
+            createdAt: data.created_at
+          }
+        };
+      }
+
+      return { found: false };
+    }
+
+    // Detect if user is asking about their order
+    const messageLower = message.toLowerCase();
+    const isOrderQuery = messageLower.includes('поръчка') ||
+                         messageLower.includes('доставка') ||
+                         messageLower.includes('пратка') ||
+                         messageLower.includes('проследя') ||
+                         messageLower.includes('получа') ||
+                         messageLower.includes('статус');
+
+    // Try to extract email or order number from message
+    const emailMatch = message.match(/[\w.-]+@[\w.-]+\.\w+/);
+    const orderMatch = message.match(/#?\d{4,}/);
+
+    let orderInfo = '';
+    if (isOrderQuery && (emailMatch || orderMatch)) {
+      const searchTerm = emailMatch ? emailMatch[0] : orderMatch![0];
+      console.log(`🔍 Searching for order with: ${searchTerm}`);
+
+      const result = await searchOrder(searchTerm);
+      if (result.found && result.order) {
+        const trackingLink = result.order.trackingNumber
+          ? `\nЗа проследяване: https://www.econt.com/en/services/track-shipment (товарителница: ${result.order.trackingNumber})`
+          : '\nТоварителницата все още не е генерирана - ще получиш SMS/имейл с линк за проследяване.';
+
+        orderInfo = `
+НАМЕРЕНА ПОРЪЧКА:
+- Номер: ${result.order.orderNumber}
+- Статус: ${result.order.status}
+- Клиент: ${result.order.customerName}
+- Продукти: ${result.order.products.join(', ')}
+- Сума: ${result.order.totalPrice} лв.
+- Дата: ${new Date(result.order.createdAt).toLocaleDateString('bg-BG')}${trackingLink}
+
+ИНСТРУКЦИЯ: Кажи на клиента информацията за поръчката му по приятелски начин.`;
+      } else {
+        orderInfo = `
+ПОРЪЧКА НЕ Е НАМЕРЕНА за: ${searchTerm}
+ИНСТРУКЦИЯ: Кажи че не можеш да намериш поръчката и помоли за правилния имейл или номер на поръчка.`;
+      }
+    } else if (isOrderQuery) {
+      orderInfo = `
+КЛИЕНТЪТ ПИТА ЗА ПОРЪЧКА но не е дал имейл/номер
+ИНСТРУКЦИЯ: Помоли клиента да даде имейла с който е поръчал или номера на поръчката за да провериш.`;
+    }
+
     // For website visitors, check quiz_results_v2 for personalization
     let websiteQuizData: {
       hasQuiz: boolean;
@@ -566,10 +664,13 @@ serve(async (req)=>{
 ` : `
 ПОТРЕБИТЕЛЯТ НЕ Е ПОПЪЛНИЛ QUIZ!
 - Не знаеш нищо за състоянието му
-- На всеки 2-3 съобщения ДИСКРЕТНО подканвай да попълни quiz-а
-- Използвай ТОЧНО този формат за бутон: [ACTION_BUTTON:Попълни безплатен тест:https://app.testograph.eu/quiz]
-- НЕ натрапвай! Добави бутона в края на отговора си
-- Продължи да отговаряш на въпросите му въпреки това
+- ВАЖНО: НЕ добавяй бутон за quiz на всеки отговор!
+- Добави quiz бутон САМО ако:
+  1. Човекът иска персонализиран план/програма
+  2. Човекът пита за конкретни стойности/резултати
+  3. Човекът изрично иска по-точни съвети
+- Формат за бутон: [ACTION_BUTTON:Попълни безплатен тест:https://app.testograph.eu/quiz]
+- Отговаряй на въпросите му БЕЗ да натрапваш quiz-а
 `;
 
     const websiteCoachPrompt = `Ти си К. Богданов - личен коуч по тестостерон и мъжко здраве в Testograph.
@@ -594,6 +695,12 @@ ${quizContextBlock}
 ИЗВЪН ТЕМАТА:
 Ако питат за нещо извън тези теми, кажи:
 "Аз съм коуч по тестостерон и мъжко здраве. За [тяхната тема] не мога да помогна. Имаш ли въпрос за здравето си?"
+
+ВЪПРОСИ ЗА ПОРЪЧКИ И МАГАЗИНА:
+- Ако питат КАК да поръчат - насочи към: "Можеш да поръчаш от нашия магазин: shop.testograph.eu"
+- Ако питат ЗА ТЯХНА ПОРЪЧКА (статус, доставка, проследяване) - помоли за имейл или номер на поръчка
+- Доставките се изпращат всеки работен ден до 16:00ч, след това - на следващия ден
+- За проследяване на пратка - линк към Еконт: https://www.econt.com/en/services/track-shipment
 
 ПРАВИЛА:
 1. Отговаряй директно на въпроса
@@ -787,10 +894,10 @@ A: "При ${testosteroneDisplay} е нормално. Тестостеронъ�
     // Add context about conversation history and make messages interactive
     const isFirstMessage = !messages || messages.length === 0;
 
-    let contextualMessage = message;
+    // If we have order info, add it to the message context
+    let contextualMessage = orderInfo ? `${message}\n\n${orderInfo}` : message;
 
-    // Smart context detection
-    const messageLower = message.toLowerCase();
+    // Smart context detection (messageLower already defined above for order detection)
 
     // Detect specific question types
     const specificDayQuestion = messageLower.match(/ден\s*(\d+)|day\s*(\d+)|първ[иа].*ден/i);
@@ -810,15 +917,8 @@ A: "При ${testosteroneDisplay} е нормално. Тестостеронъ�
     // Context-aware prompting with HORMOZI TRIGGERS
     // Skip complex triggers for website visitors - they get simple coaching
     if (isWebsiteSource) {
-      // For website visitors without quiz, periodically remind them
-      if (!websiteQuizData.hasQuiz && conversationTurns > 0 && conversationTurns % 3 === 0) {
-        contextualMessage = `${message}
-
-КОНТЕКСТ: Това е ${conversationTurns + 1}-то съобщение и потребителят НЕ Е попълнил quiz.
-ИНСТРУКЦИЯ: Отговори на въпроса и в края добави бутон за quiz-а.
-Напиши кратко: "За по-персонализирани съвети:" и после добави:
-[ACTION_BUTTON:Попълни бързия тест:https://app.testograph.eu/quiz]`;
-      } else if (websiteQuizData.hasQuiz && isFirstMessage) {
+      // For website visitors with quiz on first message
+      if (websiteQuizData.hasQuiz && isFirstMessage) {
         contextualMessage = `${message}
 
 КОНТЕКСТ: Първо съобщение от потребител с попълнен quiz!

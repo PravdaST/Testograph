@@ -81,6 +81,10 @@ export async function GET(request: Request) {
       paid_at: order.paid_at,
       created_at: order.created_at,
       updated_at: order.updated_at,
+      tracking_number: order.tracking_number,
+      tracking_url: order.tracking_url,
+      tracking_company: order.tracking_company,
+      fulfillment_status: order.fulfillment_status,
     })) || [];
 
     return NextResponse.json({

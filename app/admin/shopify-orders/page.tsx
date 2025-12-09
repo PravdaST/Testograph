@@ -51,6 +51,8 @@ import {
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
+  Truck,
+  Copy,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -92,6 +94,10 @@ interface ShopifyOrder {
   paid_at: string | null;
   created_at: string;
   updated_at: string;
+  tracking_number: string | null;
+  tracking_url: string | null;
+  tracking_company: string | null;
+  fulfillment_status: string | null;
 }
 
 interface Summary {
@@ -115,7 +121,7 @@ export default function ShopifyOrdersPage() {
   const [pagination, setPagination] = useState<Pagination | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(false);
-  const [syncResult, setSyncResult] = useState<{ synced?: number; fixed?: number; namesFixed?: number } | null>(null);
+  const [syncResult, setSyncResult] = useState<{ synced?: number; fixed?: number; namesFixed?: number; trackingUpdated?: number } | null>(null);
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [selectedOrder, setSelectedOrder] = useState<ShopifyOrder | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -130,7 +136,7 @@ export default function ShopifyOrdersPage() {
     fetchOrders();
   }, [statusFilter, currentPage, searchQuery]);
 
-  // Sync orders from Shopify (import new + fix status mismatches + fix customer names)
+  // Sync orders from Shopify (import new + fix status mismatches + fix customer names + sync tracking)
   const syncWithShopify = async () => {
     setIsSyncing(true);
     setSyncResult(null);
@@ -159,10 +165,19 @@ export default function ShopifyOrdersPage() {
       });
       const namesData = await namesResponse.json();
 
+      // Sync tracking numbers from Shopify fulfillments
+      const trackingResponse = await fetch('/api/admin/shopify-sync', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sync-tracking' }),
+      });
+      const trackingData = await trackingResponse.json();
+
       setSyncResult({
         synced: syncData.synced || 0,
         fixed: fixData.fixed || 0,
         namesFixed: namesData.fixed || 0,
+        trackingUpdated: trackingData.updated || 0,
       });
 
       // Refresh orders list
@@ -330,7 +345,8 @@ export default function ShopifyOrdersPage() {
                 {syncResult.synced > 0 && `${syncResult.synced} new orders imported. `}
                 {syncResult.fixed > 0 && `${syncResult.fixed} orders updated to Paid. `}
                 {syncResult.namesFixed > 0 && `${syncResult.namesFixed} customer names fixed. `}
-                {syncResult.synced === 0 && syncResult.fixed === 0 && (syncResult.namesFixed || 0) === 0 && 'Everything is up to date.'}
+                {syncResult.trackingUpdated > 0 && `${syncResult.trackingUpdated} tracking numbers updated. `}
+                {syncResult.synced === 0 && syncResult.fixed === 0 && (syncResult.namesFixed || 0) === 0 && (syncResult.trackingUpdated || 0) === 0 && 'Everything is up to date.'}
               </p>
             </div>
           </div>
@@ -429,6 +445,7 @@ export default function ShopifyOrdersPage() {
                       <TableHead>Products</TableHead>
                       <TableHead>Total</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Tracking</TableHead>
                       <TableHead>Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
@@ -456,6 +473,28 @@ export default function ShopifyOrdersPage() {
                           {formatCurrency(order.total_price, order.currency)}
                         </TableCell>
                         <TableCell>{getStatusBadge(order.is_paid)}</TableCell>
+                        <TableCell>
+                          {order.tracking_number ? (
+                            <div className="flex items-center gap-1">
+                              <Truck className="w-3 h-3 text-green-600" />
+                              {order.tracking_url ? (
+                                <a
+                                  href={order.tracking_url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="text-sm text-blue-600 hover:underline font-mono"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  {order.tracking_number}
+                                </a>
+                              ) : (
+                                <span className="text-sm font-mono">{order.tracking_number}</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-sm text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
                         <TableCell className="text-sm text-muted-foreground">
                           {formatDate(order.created_at)}
                         </TableCell>
@@ -650,6 +689,72 @@ export default function ShopifyOrdersPage() {
                     <Separator />
                   </>
                 )}
+
+                {/* Tracking */}
+                <div className="space-y-3">
+                  <h4 className="font-semibold flex items-center gap-2">
+                    <Truck className="w-4 h-4" />
+                    Shipment Tracking
+                  </h4>
+                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
+                    {selectedOrder.tracking_number ? (
+                      <>
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground">Tracking #</span>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-medium">
+                              {selectedOrder.tracking_number}
+                            </span>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0"
+                              onClick={() => {
+                                navigator.clipboard.writeText(selectedOrder.tracking_number || '');
+                              }}
+                            >
+                              <Copy className="w-3 h-3" />
+                            </Button>
+                          </div>
+                        </div>
+                        {selectedOrder.tracking_company && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Carrier</span>
+                            <span className="font-medium">{selectedOrder.tracking_company}</span>
+                          </div>
+                        )}
+                        {selectedOrder.tracking_url && (
+                          <div className="pt-2">
+                            <a
+                              href={selectedOrder.tracking_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-blue-600 hover:underline text-sm"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                              Track Shipment
+                            </a>
+                          </div>
+                        )}
+                        <div className="flex items-center justify-between pt-2">
+                          <span className="text-muted-foreground">Status</span>
+                          <Badge className={selectedOrder.fulfillment_status === 'fulfilled' ? 'bg-green-500' : 'bg-yellow-500'}>
+                            {selectedOrder.fulfillment_status || 'unfulfilled'}
+                          </Badge>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="text-center py-2">
+                        <p className="text-muted-foreground text-sm">No tracking info yet</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Tracking will appear after order fulfillment in Shopify
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <Separator />
 
                 {/* Products */}
                 <div className="space-y-3">

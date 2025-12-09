@@ -2297,99 +2297,171 @@ export default function QuizAnalyticsDashboard() {
 
           {/* Overview Cards */}
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-4">
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                  <Database className="w-4 h-4" />
-                  Общо Quiz
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{overviewData?.completions.total || 0}</div>
-              </CardContent>
-            </Card>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <Card className="cursor-help">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium flex items-center gap-2">
+                      <Database className="w-4 h-4" />
+                      Общо Quiz
+                      <Info className="w-3 h-3 text-muted-foreground" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{overviewData?.completions.total || 0}</div>
+                  </CardContent>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p className="font-semibold">Всички Quiz Completions (All-time)</p>
+                <p className="text-xs mt-1">Източник: quiz_results_v2 таблица</p>
+                <p className="text-xs">Включва ВСИЧКИ завършени quiz-ове от началото (10.11.2024)</p>
+              </TooltipContent>
+            </UITooltip>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                  <Target className="w-4 h-4" />
-                  Среден Score
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{trendsData?.avgScore || 0}</div>
-              </CardContent>
-            </Card>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <Card className="cursor-help">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium flex items-center gap-2">
+                      <Target className="w-4 h-4" />
+                      Среден Score
+                      <Info className="w-3 h-3 text-muted-foreground" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{trendsData?.avgScore || 0}</div>
+                  </CardContent>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p className="font-semibold">Среден Total Score</p>
+                <p className="text-xs mt-1">Изчислен от всички завършени quiz-ове</p>
+                <p className="text-xs">Максимален score: 100 точки</p>
+              </TooltipContent>
+            </UITooltip>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                  <CheckCircle className="w-4 h-4 text-green-500" />
-                  Completion Rate
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {statsData?.overview.completionRate || 0}%
-                </div>
-              </CardContent>
-            </Card>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <Card className="cursor-help">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium flex items-center gap-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" />
+                      Completion Rate
+                      <Info className="w-3 h-3 text-muted-foreground" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">
+                      {statsData?.overview.completionRate || 0}%
+                    </div>
+                  </CardContent>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p className="font-semibold">Completion Rate (от Tracked сесии)</p>
+                <p className="text-xs mt-1">Източник: quiz_step_events (step tracking)</p>
+                <p className="text-xs text-amber-600">Важно: Tracking е активно от 02.12.2024!</p>
+                <p className="text-xs mt-1">Показва: {statsData?.overview.completedSessions || 0} завършени от {statsData?.overview.totalSessions || 0} tracked сесии</p>
+              </TooltipContent>
+            </UITooltip>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                  <CreditCard className="w-4 h-4 text-green-500" />
-                  Платени поръчки
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {userJourneyData?.conversionStats.purchaseRate || 0}%
-                </div>
-              </CardContent>
-            </Card>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <Card className="cursor-help">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium flex items-center gap-2">
+                      <CreditCard className="w-4 h-4 text-green-500" />
+                      Платени поръчки
+                      <Info className="w-3 h-3 text-muted-foreground" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-green-600">
+                      {userJourneyData?.conversionStats.purchaseRate || 0}%
+                    </div>
+                  </CardContent>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p className="font-semibold">Purchase Rate</p>
+                <p className="text-xs mt-1">% от quiz потребители които са купили</p>
+                <p className="text-xs">Източник: pending_orders таблица</p>
+              </TooltipContent>
+            </UITooltip>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                  <UserCheck className="w-4 h-4 text-purple-500" />
-                  В App
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-purple-600">
-                  {userJourneyData?.conversionStats.registrationRate || 0}%
-                </div>
-              </CardContent>
-            </Card>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <Card className="cursor-help">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium flex items-center gap-2">
+                      <UserCheck className="w-4 h-4 text-purple-500" />
+                      В App
+                      <Info className="w-3 h-3 text-muted-foreground" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-purple-600">
+                      {userJourneyData?.conversionStats.registrationRate || 0}%
+                    </div>
+                  </CardContent>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p className="font-semibold">App Registration Rate</p>
+                <p className="text-xs mt-1">% от quiz потребители регистрирани в app.testograph.eu</p>
+                <p className="text-xs">Източник: Supabase Auth users</p>
+              </TooltipContent>
+            </UITooltip>
 
-            <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-medium flex items-center gap-2">
-                  <Activity className="w-4 h-4 text-orange-500" />
-                  Активни
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">
-                  {userJourneyData?.conversionStats.activeRate || 0}%
-                </div>
-              </CardContent>
-            </Card>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <Card className="cursor-help">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium flex items-center gap-2">
+                      <Activity className="w-4 h-4 text-orange-500" />
+                      Активни
+                      <Info className="w-3 h-3 text-muted-foreground" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {userJourneyData?.conversionStats.activeRate || 0}%
+                    </div>
+                  </CardContent>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p className="font-semibold">Active Users Rate</p>
+                <p className="text-xs mt-1">% от регистрирани потребители с активност в app-а</p>
+                <p className="text-xs">Активност = workout/meal/sleep logs</p>
+              </TooltipContent>
+            </UITooltip>
 
-            <Card className="bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-xs font-medium flex items-center gap-2 text-orange-600">
-                  <AlertCircle className="w-4 h-4" />
-                  CRM Actions
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-orange-600">
-                  {crmData ? crmData.segments.quizNoOrder.count + crmData.segments.orderNoQuiz.count : 0}
-                </div>
-              </CardContent>
-            </Card>
+            <UITooltip>
+              <TooltipTrigger asChild>
+                <Card className="bg-orange-50 dark:bg-orange-950 border-orange-200 dark:border-orange-800 cursor-help">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-xs font-medium flex items-center gap-2 text-orange-600">
+                      <AlertCircle className="w-4 h-4" />
+                      CRM Actions
+                      <Info className="w-3 h-3" />
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold text-orange-600">
+                      {crmData ? crmData.segments.quizNoOrder.count + crmData.segments.orderNoQuiz.count : 0}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" className="max-w-xs">
+                <p className="font-semibold">CRM Action Items</p>
+                <p className="text-xs mt-1">Потребители изискващи внимание:</p>
+                <p className="text-xs">• Quiz без поръчка: {crmData?.segments.quizNoOrder.count || 0}</p>
+                <p className="text-xs">• Поръчка без quiz: {crmData?.segments.orderNoQuiz.count || 0}</p>
+              </TooltipContent>
+            </UITooltip>
           </div>
 
           {/* Tab Navigation - Simplified 3 tabs */}
@@ -2428,119 +2500,193 @@ export default function QuizAnalyticsDashboard() {
           {/* ============ DASHBOARD TAB ============ */}
           {activeTab === "dashboard" && (
             <div className="space-y-6">
+              {/* Data Sources Info Banner */}
+              <div className="bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+                <div className="flex items-start gap-2">
+                  <Info className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" />
+                  <div className="text-sm">
+                    <p className="font-medium text-amber-800 dark:text-amber-200">Данните идват от 2 източника:</p>
+                    <div className="mt-1 grid grid-cols-1 md:grid-cols-2 gap-2 text-amber-700 dark:text-amber-300">
+                      <div className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+                        <span><strong>quiz_results_v2</strong> - Всички завършени quiz-ове (от 10.11.2024)</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="w-3 h-3 rounded-full bg-amber-500"></span>
+                        <span><strong>quiz_step_events</strong> - Step tracking (от 02.12.2024)</span>
+                      </div>
+                    </div>
+                    <p className="mt-1 text-xs text-amber-600 dark:text-amber-400">
+                      Hover върху всяка метрика за детайлно обяснение на източника.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* Circular Progress Indicators */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {/* Total Quiz Completions (All-time) */}
-                <Card
-                  className="p-4 cursor-pointer hover:shadow-lg hover:border-blue-300 transition-all"
-                  onClick={() => { setSelectedMetric('total'); setMetricDialogOpen(true); }}
-                >
-                  <div className="flex flex-col items-center">
-                    <div className="relative w-24 h-24">
-                      <svg className="w-24 h-24 transform -rotate-90">
-                        <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
-                        <circle
-                          cx="48" cy="48" r="40"
-                          stroke="#3b82f6"
-                          strokeWidth="8"
-                          fill="none"
-                          strokeDasharray={`${2 * Math.PI * 40}`}
-                          strokeDashoffset={0}
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-2xl font-bold">{overviewData?.completions.total || 0}</span>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <Card
+                      className="p-4 cursor-pointer hover:shadow-lg hover:border-blue-300 transition-all"
+                      onClick={() => { setSelectedMetric('total'); setMetricDialogOpen(true); }}
+                    >
+                      <div className="flex flex-col items-center">
+                        <div className="relative w-24 h-24">
+                          <svg className="w-24 h-24 transform -rotate-90">
+                            <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
+                            <circle
+                              cx="48" cy="48" r="40"
+                              stroke="#3b82f6"
+                              strokeWidth="8"
+                              fill="none"
+                              strokeDasharray={`${2 * Math.PI * 40}`}
+                              strokeDashoffset={0}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-2xl font-bold">{overviewData?.completions.total || 0}</span>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-sm text-muted-foreground flex items-center gap-1">
+                          Общо Quiz <Info className="w-3 h-3" />
+                        </p>
+                        <p className="text-xs text-muted-foreground">(all-time)</p>
                       </div>
-                    </div>
-                    <p className="mt-2 text-sm text-muted-foreground">Общо Quiz</p>
-                    <p className="text-xs text-muted-foreground">(all-time)</p>
-                  </div>
-                </Card>
+                    </Card>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p className="font-semibold text-blue-600">Всички Quiz Completions</p>
+                    <p className="text-xs mt-1">Източник: quiz_results_v2</p>
+                    <p className="text-xs">Включва ВСИЧКИ завършени quiz-ове от 10.11.2024</p>
+                    <p className="text-xs mt-1 text-green-600">Това е истинският брой завършени quiz-ове!</p>
+                  </TooltipContent>
+                </UITooltip>
 
                 {/* Tracked Sessions */}
-                <Card
-                  className="p-4 cursor-pointer hover:shadow-lg hover:border-amber-300 transition-all"
-                  onClick={() => { setSelectedMetric('tracked'); setMetricDialogOpen(true); }}
-                >
-                  <div className="flex flex-col items-center">
-                    <div className="relative w-24 h-24">
-                      <svg className="w-24 h-24 transform -rotate-90">
-                        <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
-                        <circle
-                          cx="48" cy="48" r="40"
-                          stroke="#f59e0b"
-                          strokeWidth="8"
-                          fill="none"
-                          strokeDasharray={`${2 * Math.PI * 40}`}
-                          strokeDashoffset={0}
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-2xl font-bold text-amber-600">{statsData?.overview.totalSessions || 0}</span>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <Card
+                      className="p-4 cursor-pointer hover:shadow-lg hover:border-amber-300 transition-all"
+                      onClick={() => { setSelectedMetric('tracked'); setMetricDialogOpen(true); }}
+                    >
+                      <div className="flex flex-col items-center">
+                        <div className="relative w-24 h-24">
+                          <svg className="w-24 h-24 transform -rotate-90">
+                            <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
+                            <circle
+                              cx="48" cy="48" r="40"
+                              stroke="#f59e0b"
+                              strokeWidth="8"
+                              fill="none"
+                              strokeDasharray={`${2 * Math.PI * 40}`}
+                              strokeDashoffset={0}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-2xl font-bold text-amber-600">{statsData?.overview.totalSessions || 0}</span>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-sm text-muted-foreground flex items-center gap-1">
+                          Tracked <Info className="w-3 h-3" />
+                        </p>
+                        <p className="text-xs text-muted-foreground">({selectedDays} дни)</p>
                       </div>
-                    </div>
-                    <p className="mt-2 text-sm text-muted-foreground">Tracked</p>
-                    <p className="text-xs text-muted-foreground">({selectedDays} дни)</p>
-                  </div>
-                </Card>
+                    </Card>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p className="font-semibold text-amber-600">Tracked Sessions (Step Tracking)</p>
+                    <p className="text-xs mt-1">Източник: quiz_step_events</p>
+                    <p className="text-xs text-amber-600 font-medium">Tracking активно от: 02.12.2024!</p>
+                    <p className="text-xs mt-1">Сесии със записани стъпки (step_entered, step_exited)</p>
+                    <p className="text-xs">НЕ включва quiz-ове преди 02.12.2024</p>
+                  </TooltipContent>
+                </UITooltip>
 
                 {/* Completed from Tracked */}
-                <Card
-                  className="p-4 cursor-pointer hover:shadow-lg hover:border-green-300 transition-all"
-                  onClick={() => { setSelectedMetric('completed'); setMetricDialogOpen(true); }}
-                >
-                  <div className="flex flex-col items-center">
-                    <div className="relative w-24 h-24">
-                      <svg className="w-24 h-24 transform -rotate-90">
-                        <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
-                        <circle
-                          cx="48" cy="48" r="40"
-                          stroke="#22c55e"
-                          strokeWidth="8"
-                          fill="none"
-                          strokeDasharray={`${2 * Math.PI * 40}`}
-                          strokeDashoffset={`${2 * Math.PI * 40 * (1 - (statsData?.overview.completionRate || 0) / 100)}`}
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-2xl font-bold text-green-600">{statsData?.overview.completedSessions || 0}</span>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <Card
+                      className="p-4 cursor-pointer hover:shadow-lg hover:border-green-300 transition-all"
+                      onClick={() => { setSelectedMetric('completed'); setMetricDialogOpen(true); }}
+                    >
+                      <div className="flex flex-col items-center">
+                        <div className="relative w-24 h-24">
+                          <svg className="w-24 h-24 transform -rotate-90">
+                            <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
+                            <circle
+                              cx="48" cy="48" r="40"
+                              stroke="#22c55e"
+                              strokeWidth="8"
+                              fill="none"
+                              strokeDasharray={`${2 * Math.PI * 40}`}
+                              strokeDashoffset={`${2 * Math.PI * 40 * (1 - (statsData?.overview.completionRate || 0) / 100)}`}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-2xl font-bold text-green-600">{statsData?.overview.completedSessions || 0}</span>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-sm text-muted-foreground flex items-center gap-1">
+                          Завършени <Info className="w-3 h-3" />
+                        </p>
+                        <p className="text-xs text-amber-600">(от tracked)</p>
                       </div>
-                    </div>
-                    <p className="mt-2 text-sm text-muted-foreground">Завършени</p>
-                    <p className="text-xs text-muted-foreground">({selectedDays} дни)</p>
-                  </div>
-                </Card>
+                    </Card>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p className="font-semibold text-green-600">Завършени от Tracked Сесии</p>
+                    <p className="text-xs mt-1">Tracked сесии стигнали до step 24+</p>
+                    <p className="text-xs text-amber-600 font-medium">Само от tracking данните (от 02.12.2024)</p>
+                    <p className="text-xs mt-1">Completion Rate: {statsData?.overview.completionRate || 0}%</p>
+                    <p className="text-xs">({statsData?.overview.completedSessions || 0} от {statsData?.overview.totalSessions || 0} tracked)</p>
+                  </TooltipContent>
+                </UITooltip>
 
                 {/* Abandoned from Tracked */}
-                <Card
-                  className="p-4 cursor-pointer hover:shadow-lg hover:border-red-300 transition-all"
-                  onClick={() => { setSelectedMetric('abandoned'); setMetricDialogOpen(true); }}
-                >
-                  <div className="flex flex-col items-center">
-                    <div className="relative w-24 h-24">
-                      <svg className="w-24 h-24 transform -rotate-90">
-                        <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
-                        <circle
-                          cx="48" cy="48" r="40"
-                          stroke="#ef4444"
-                          strokeWidth="8"
-                          fill="none"
-                          strokeDasharray={`${2 * Math.PI * 40}`}
-                          strokeDashoffset={`${2 * Math.PI * 40 * (statsData?.overview.completionRate || 0) / 100}`}
-                          strokeLinecap="round"
-                        />
-                      </svg>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-2xl font-bold text-red-500">{statsData?.overview.abandonedSessions || 0}</span>
+                <UITooltip>
+                  <TooltipTrigger asChild>
+                    <Card
+                      className="p-4 cursor-pointer hover:shadow-lg hover:border-red-300 transition-all"
+                      onClick={() => { setSelectedMetric('abandoned'); setMetricDialogOpen(true); }}
+                    >
+                      <div className="flex flex-col items-center">
+                        <div className="relative w-24 h-24">
+                          <svg className="w-24 h-24 transform -rotate-90">
+                            <circle cx="48" cy="48" r="40" stroke="#e5e7eb" strokeWidth="8" fill="none" />
+                            <circle
+                              cx="48" cy="48" r="40"
+                              stroke="#ef4444"
+                              strokeWidth="8"
+                              fill="none"
+                              strokeDasharray={`${2 * Math.PI * 40}`}
+                              strokeDashoffset={`${2 * Math.PI * 40 * (statsData?.overview.completionRate || 0) / 100}`}
+                              strokeLinecap="round"
+                            />
+                          </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-2xl font-bold text-red-500">{statsData?.overview.abandonedSessions || 0}</span>
+                          </div>
+                        </div>
+                        <p className="mt-2 text-sm text-muted-foreground flex items-center gap-1">
+                          Изоставени <Info className="w-3 h-3" />
+                        </p>
+                        <p className="text-xs text-amber-600">(от tracked)</p>
                       </div>
-                    </div>
-                    <p className="mt-2 text-sm text-muted-foreground">Изоставени</p>
-                    <p className="text-xs text-muted-foreground">({selectedDays} дни)</p>
-                  </div>
-                </Card>
+                    </Card>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <p className="font-semibold text-red-600">Изоставени Tracked Сесии</p>
+                    <p className="text-xs mt-1">Tracked сесии НЕ стигнали до финала</p>
+                    <p className="text-xs text-amber-600 font-medium">Само от tracking данните (от 02.12.2024)</p>
+                    <p className="text-xs mt-1">Drop Rate: {100 - (statsData?.overview.completionRate || 0)}%</p>
+                    <p className="text-xs">({statsData?.overview.abandonedSessions || 0} от {statsData?.overview.totalSessions || 0} tracked)</p>
+                  </TooltipContent>
+                </UITooltip>
               </div>
 
               {/* Pie Charts Row */}

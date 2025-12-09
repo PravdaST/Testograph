@@ -19,6 +19,16 @@ interface ShopifyAddress {
   name: string;
 }
 
+interface ShopifyFulfillment {
+  id: number;
+  tracking_number: string | null;
+  tracking_url: string | null;
+  tracking_company: string | null;
+  tracking_numbers: string[];
+  tracking_urls: string[];
+  status: string;
+}
+
 interface ShopifyOrder {
   id: string;
   order_number: number;
@@ -28,6 +38,7 @@ interface ShopifyOrder {
   fulfillment_status: string | null;
   total_price: string;
   currency: string;
+  fulfillments?: ShopifyFulfillment[];
   customer: {
     first_name: string;
     last_name: string;
@@ -43,6 +54,45 @@ interface ShopifyOrder {
     sku: string;
     price: string;
   }>;
+}
+
+// Extract tracking info from fulfillments
+function extractTrackingInfo(fulfillments?: ShopifyFulfillment[]): {
+  tracking_number: string | null;
+  tracking_url: string | null;
+  tracking_company: string | null;
+  fulfillment_status: string;
+} {
+  if (!fulfillments || fulfillments.length === 0) {
+    return {
+      tracking_number: null,
+      tracking_url: null,
+      tracking_company: null,
+      fulfillment_status: 'unfulfilled',
+    };
+  }
+
+  const fulfillmentWithTracking = fulfillments.find(f =>
+    f.tracking_number || (f.tracking_numbers && f.tracking_numbers.length > 0)
+  );
+
+  if (fulfillmentWithTracking) {
+    return {
+      tracking_number: fulfillmentWithTracking.tracking_number ||
+        (fulfillmentWithTracking.tracking_numbers?.[0] ?? null),
+      tracking_url: fulfillmentWithTracking.tracking_url ||
+        (fulfillmentWithTracking.tracking_urls?.[0] ?? null),
+      tracking_company: fulfillmentWithTracking.tracking_company,
+      fulfillment_status: 'fulfilled',
+    };
+  }
+
+  return {
+    tracking_number: null,
+    tracking_url: null,
+    tracking_company: null,
+    fulfillment_status: fulfillments.some(f => f.status === 'success') ? 'fulfilled' : 'partial',
+  };
 }
 
 // Check if product is a trial/sample pack
@@ -446,6 +496,43 @@ export async function POST(request: Request) {
       }
 
       return NextResponse.json({ success: true, fixed, total: ordersToFix.length });
+    }
+
+    if (action === 'sync-tracking') {
+      // Sync tracking numbers from Shopify fulfillments
+      const shopifyOrders = await fetchAllShopifyOrders(shopDomain, accessToken);
+      let updated = 0;
+
+      for (const order of shopifyOrders) {
+        // Only process orders that have fulfillments
+        if (!order.fulfillments || order.fulfillments.length === 0) continue;
+
+        const trackingInfo = extractTrackingInfo(order.fulfillments);
+        if (!trackingInfo.tracking_number) continue;
+
+        const { data: dbOrder } = await supabase
+          .from('pending_orders')
+          .select('id, tracking_number')
+          .eq('order_id', order.id.toString())
+          .single();
+
+        // Only update if order exists and tracking number is different or missing
+        if (dbOrder && dbOrder.tracking_number !== trackingInfo.tracking_number) {
+          const { error } = await supabase
+            .from('pending_orders')
+            .update({
+              tracking_number: trackingInfo.tracking_number,
+              tracking_url: trackingInfo.tracking_url,
+              tracking_company: trackingInfo.tracking_company,
+              fulfillment_status: trackingInfo.fulfillment_status,
+            })
+            .eq('id', dbOrder.id);
+
+          if (!error) updated++;
+        }
+      }
+
+      return NextResponse.json({ success: true, updated });
     }
 
     return NextResponse.json({ error: 'Invalid action' }, { status: 400 });

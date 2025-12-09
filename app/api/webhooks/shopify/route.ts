@@ -47,6 +47,16 @@ function isTrialProduct(sku: string, title: string): boolean {
   return false;
 }
 
+interface ShopifyFulfillment {
+  id: number;
+  tracking_number: string | null;
+  tracking_url: string | null;
+  tracking_company: string | null;
+  tracking_numbers: string[];
+  tracking_urls: string[];
+  status: string;
+}
+
 interface ShopifyWebhookOrder {
   id: number;
   order_number: number;
@@ -56,6 +66,7 @@ interface ShopifyWebhookOrder {
   fulfillment_status: string | null;
   total_price: string;
   currency: string;
+  fulfillments?: ShopifyFulfillment[];
   customer: {
     id: number;
     first_name: string;
@@ -96,9 +107,50 @@ interface ShopifyWebhookOrder {
   }>;
 }
 
+// Extract tracking info from fulfillments
+function extractTrackingInfo(fulfillments?: ShopifyFulfillment[]): {
+  tracking_number: string | null;
+  tracking_url: string | null;
+  tracking_company: string | null;
+  fulfillment_status: string;
+} {
+  if (!fulfillments || fulfillments.length === 0) {
+    return {
+      tracking_number: null,
+      tracking_url: null,
+      tracking_company: null,
+      fulfillment_status: 'unfulfilled',
+    };
+  }
+
+  // Get the most recent fulfillment with tracking
+  const fulfillmentWithTracking = fulfillments.find(f =>
+    f.tracking_number || (f.tracking_numbers && f.tracking_numbers.length > 0)
+  );
+
+  if (fulfillmentWithTracking) {
+    return {
+      tracking_number: fulfillmentWithTracking.tracking_number ||
+        (fulfillmentWithTracking.tracking_numbers?.[0] ?? null),
+      tracking_url: fulfillmentWithTracking.tracking_url ||
+        (fulfillmentWithTracking.tracking_urls?.[0] ?? null),
+      tracking_company: fulfillmentWithTracking.tracking_company,
+      fulfillment_status: 'fulfilled',
+    };
+  }
+
+  // Has fulfillments but no tracking yet
+  return {
+    tracking_number: null,
+    tracking_url: null,
+    tracking_company: null,
+    fulfillment_status: fulfillments.some(f => f.status === 'success') ? 'fulfilled' : 'partial',
+  };
+}
+
 /**
  * POST /api/webhooks/shopify
- * Receives order payment webhooks from Shopify
+ * Receives order webhooks from Shopify (create, paid, fulfilled)
  * Webhooks contain FULL PII data even on Basic plan!
  */
 export async function POST(request: Request) {
@@ -174,6 +226,10 @@ export async function POST(request: Request) {
     const customerEmail = order.email || order.customer?.email || '';
     const isPaid = order.financial_status === 'paid';
 
+    // Extract tracking info from fulfillments
+    const trackingInfo = extractTrackingInfo(order.fulfillments);
+    console.log(`[Shopify Webhook] Tracking: ${trackingInfo.tracking_number || 'N/A'} (${trackingInfo.fulfillment_status})`);
+
     if (existing) {
       console.log(`[Shopify Webhook] Updating existing order ${order.id}`);
 
@@ -182,6 +238,11 @@ export async function POST(request: Request) {
         phone,
         shipping_address: order.shipping_address,
         products,
+        // Always update tracking info
+        tracking_number: trackingInfo.tracking_number,
+        tracking_url: trackingInfo.tracking_url,
+        tracking_company: trackingInfo.tracking_company,
+        fulfillment_status: trackingInfo.fulfillment_status,
       };
 
       if (isPaid && existing.status !== 'paid') {
@@ -218,6 +279,11 @@ export async function POST(request: Request) {
           phone,
           created_at: order.created_at,
           paid_at: isPaid ? order.created_at : null,
+          // Include tracking info
+          tracking_number: trackingInfo.tracking_number,
+          tracking_url: trackingInfo.tracking_url,
+          tracking_company: trackingInfo.tracking_company,
+          fulfillment_status: trackingInfo.fulfillment_status,
         });
 
       if (insertError) {

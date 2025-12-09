@@ -921,7 +921,79 @@ export async function GET(request: NextRequest) {
     if (view === 'user-journey') {
       // Get search and filter params
       const searchQuery = searchParams.get('search')?.trim().toLowerCase() || ''
-      const statusFilter = searchParams.get('status') || 'all' // all, purchased, not-purchased, in-app, not-in-app, active
+      const statusFilter = searchParams.get('status') || 'all' // all, purchased, not-purchased, in-app, active
+
+      // When filtering by status, we need to first determine which emails match the filter
+      // This requires fetching related data first
+      let statusFilterEmails: Set<string> | null = null
+
+      if (statusFilter !== 'all') {
+        // Fetch all quiz emails first
+        const { data: allQuizResultsForFilter } = await supabase
+          .from('quiz_results_v2')
+          .select('email')
+          .not('email', 'is', null)
+
+        const allQuizEmails = new Set(
+          allQuizResultsForFilter?.map(r => r.email?.toLowerCase()).filter(Boolean) as string[]
+        )
+
+        // Fetch orders
+        const { data: ordersForFilter } = await supabase
+          .from('pending_orders')
+          .select('email, status')
+
+        const paidOrderEmails = new Set(
+          ordersForFilter?.filter(o => o.status === 'paid')
+            .map(o => o.email?.toLowerCase())
+            .filter(email => email && allQuizEmails.has(email)) || []
+        )
+
+        // Fetch auth users (app registrations)
+        const { data: authUsersData } = await supabase.auth.admin.listUsers()
+        const registeredEmails = new Set(
+          authUsersData?.users?.map(u => u.email?.toLowerCase())
+            .filter(email => email && allQuizEmails.has(email)) || []
+        )
+
+        // Fetch activity data for active filter
+        const [
+          { data: workoutActivity },
+          { data: mealActivity },
+          { data: sleepActivity },
+          { data: testoActivity },
+          { data: progressActivity }
+        ] = await Promise.all([
+          supabase.from('workout_sessions').select('email'),
+          supabase.from('meal_completions').select('email'),
+          supabase.from('sleep_tracking').select('email'),
+          supabase.from('testoup_tracking').select('email'),
+          supabase.from('daily_progress_scores').select('email')
+        ])
+
+        const activeEmails = new Set<string>()
+        workoutActivity?.forEach(w => w.email && allQuizEmails.has(w.email.toLowerCase()) && activeEmails.add(w.email.toLowerCase()))
+        mealActivity?.forEach(m => m.email && allQuizEmails.has(m.email.toLowerCase()) && activeEmails.add(m.email.toLowerCase()))
+        sleepActivity?.forEach(s => s.email && allQuizEmails.has(s.email.toLowerCase()) && activeEmails.add(s.email.toLowerCase()))
+        testoActivity?.forEach(t => t.email && allQuizEmails.has(t.email.toLowerCase()) && activeEmails.add(t.email.toLowerCase()))
+        progressActivity?.forEach(p => p.email && allQuizEmails.has(p.email.toLowerCase()) && activeEmails.add(p.email.toLowerCase()))
+
+        // Determine which emails match the filter
+        switch (statusFilter) {
+          case 'purchased':
+            statusFilterEmails = paidOrderEmails
+            break
+          case 'not-purchased':
+            statusFilterEmails = new Set([...allQuizEmails].filter(email => !paidOrderEmails.has(email)))
+            break
+          case 'in-app':
+            statusFilterEmails = registeredEmails
+            break
+          case 'active':
+            statusFilterEmails = activeEmails
+            break
+        }
+      }
 
       // Get all quiz results with emails (including session_id for tracking)
       let query = supabase
@@ -943,6 +1015,40 @@ export async function GET(request: NextRequest) {
         query = query.or(`email.ilike.%${searchQuery}%,first_name.ilike.%${searchQuery}%`)
       }
 
+      // If we have status filter emails, filter by them
+      if (statusFilterEmails !== null) {
+        const emailsArray = [...statusFilterEmails]
+        if (emailsArray.length === 0) {
+          // No emails match the filter, return empty results
+          return NextResponse.json({
+            view: 'user-journey',
+            period: days > 0 ? { days, startDate: startDateStr } : { days: 'all', startDate: null },
+            category,
+            statusFilter,
+            conversionStats: {
+              totalQuizSubmissions: 0,
+              registeredInApp: 0,
+              withPaidOrder: 0,
+              activeInApp: 0,
+              registrationRate: 0,
+              purchaseRate: 0,
+              activeRate: 0,
+              notRegisteredCount: 0,
+            },
+            results: [],
+            pagination: {
+              total: 0,
+              page: 1,
+              pageSize: limit,
+              totalPages: 0,
+              hasMore: false
+            }
+          })
+        }
+        // Use .in() filter for emails (case-insensitive by using lowercase emails)
+        query = query.in('email', emailsArray)
+      }
+
       // Apply pagination
       query = query.range(offset, offset + limit - 1)
 
@@ -962,6 +1068,11 @@ export async function GET(request: NextRequest) {
 
       if (category !== 'all') {
         countQuery = countQuery.eq('category', category)
+      }
+
+      // Apply status filter to count query as well
+      if (statusFilterEmails !== null) {
+        countQuery = countQuery.in('email', [...statusFilterEmails])
       }
 
       const { count: totalCount } = await countQuery
@@ -1290,6 +1401,7 @@ export async function GET(request: NextRequest) {
         notRegisteredCount: uniqueQuizEmails.length - registeredEmails.size,
       }
 
+      // Pagination is already applied in the query with status filter
       const totalResults = totalCount || 0
       const totalPages = Math.ceil(totalResults / limit)
       const currentPage = Math.floor(offset / limit) + 1
@@ -1298,6 +1410,7 @@ export async function GET(request: NextRequest) {
         view: 'user-journey',
         period: days > 0 ? { days, startDate: startDateStr } : { days: 'all', startDate: null },
         category,
+        statusFilter,
         conversionStats,
         results: enrichedResults,
         pagination: {
