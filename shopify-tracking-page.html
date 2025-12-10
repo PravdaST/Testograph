@@ -1,146 +1,359 @@
 <style>
+  /* Modern 2025 Design - Mobile First */
+  :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --primary-light: #818cf8;
+    --success: #10b981;
+    --success-bg: #d1fae5;
+    --warning: #f59e0b;
+    --warning-bg: #fef3c7;
+    --danger: #ef4444;
+    --danger-bg: #fee2e2;
+    --info: #3b82f6;
+    --info-bg: #dbeafe;
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    --radius: 16px;
+    --radius-lg: 24px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -2px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+    --shadow-xl: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  .track-wrapper {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f0f4ff 0%, #faf5ff 50%, #fff1f2 100%);
+    padding: 16px;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  }
+
   .track-container {
-    max-width: 600px;
+    max-width: 480px;
     margin: 0 auto;
-    padding: 20px;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+    padding-top: 24px;
   }
 
-  .track-form {
-    background: #f8f9fa;
-    border-radius: 12px;
-    padding: 30px;
-    margin-bottom: 30px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  /* Header */
+  .track-header {
+    text-align: center;
+    margin-bottom: 24px;
   }
 
-  .track-form h2 {
-    margin: 0 0 20px 0;
-    font-size: 24px;
-    color: #1a1a1a;
-  }
-
-  .track-form p {
-    color: #666;
-    margin-bottom: 20px;
-  }
-
-  .input-group {
+  .track-icon {
+    width: 64px;
+    height: 64px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    border-radius: 20px;
     display: flex;
-    gap: 10px;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 16px;
+    box-shadow: 0 8px 16px rgba(99, 102, 241, 0.3);
+  }
+
+  .track-icon svg {
+    width: 32px;
+    height: 32px;
+    color: white;
+  }
+
+  .track-header h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 8px 0;
+    letter-spacing: -0.5px;
+  }
+
+  .track-header p {
+    font-size: 15px;
+    color: var(--gray-500);
+    margin: 0;
+    line-height: 1.5;
+  }
+
+  /* Form Card */
+  .track-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    margin-bottom: 16px;
+  }
+
+  .input-wrapper {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .input-label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--gray-700);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
   }
 
   .track-input {
-    flex: 1;
-    padding: 14px 18px;
-    font-size: 16px;
-    border: 2px solid #e0e0e0;
-    border-radius: 8px;
+    width: 100%;
+    padding: 16px 20px;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--gray-900);
+    background: var(--gray-50);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius);
     outline: none;
-    transition: border-color 0.2s;
+    transition: all 0.2s ease;
+    -webkit-appearance: none;
+    letter-spacing: 1px;
+  }
+
+  .track-input::placeholder {
+    color: var(--gray-400);
+    font-weight: 400;
+    letter-spacing: 0;
   }
 
   .track-input:focus {
-    border-color: #2563eb;
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
   }
 
   .track-btn {
-    padding: 14px 28px;
+    width: 100%;
+    padding: 18px 24px;
     font-size: 16px;
     font-weight: 600;
     color: white;
-    background: #2563eb;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
     border: none;
-    border-radius: 8px;
+    border-radius: var(--radius);
     cursor: pointer;
-    transition: background 0.2s;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    -webkit-tap-highlight-color: transparent;
   }
 
   .track-btn:hover {
-    background: #1d4ed8;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+  }
+
+  .track-btn:active {
+    transform: translateY(0);
   }
 
   .track-btn:disabled {
-    background: #94a3b8;
+    background: var(--gray-300);
+    box-shadow: none;
     cursor: not-allowed;
+    transform: none;
   }
 
+  .track-btn svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Result Section */
   .track-result {
     display: none;
+  }
+
+  .track-result.show {
+    display: block;
+    animation: slideUp 0.4s ease;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Status Card */
+  .status-card {
     background: white;
-    border-radius: 12px;
-    padding: 30px;
-    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-lg);
+    margin-bottom: 16px;
+    border: 1px solid var(--gray-100);
+  }
+
+  .status-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .status-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    flex-shrink: 0;
+  }
+
+  .status-icon.delivered {
+    background: var(--success-bg);
+  }
+
+  .status-icon.in_transit {
+    background: var(--info-bg);
+  }
+
+  .status-icon.returned {
+    background: var(--danger-bg);
+  }
+
+  .status-icon.processing {
+    background: var(--warning-bg);
+  }
+
+  .status-info h2 {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 4px 0;
+  }
+
+  .status-info p {
+    font-size: 14px;
+    color: var(--gray-500);
+    margin: 0;
   }
 
   .status-badge {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    border-radius: 20px;
+    padding: 6px 12px;
+    border-radius: 100px;
+    font-size: 13px;
     font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 20px;
   }
 
-  .status-delivered {
-    background: #dcfce7;
-    color: #166534;
+  .status-badge.delivered {
+    background: var(--success-bg);
+    color: #059669;
   }
 
-  .status-in_transit {
-    background: #dbeafe;
-    color: #1e40af;
+  .status-badge.in_transit {
+    background: var(--info-bg);
+    color: #2563eb;
   }
 
-  .status-returned {
-    background: #fee2e2;
-    color: #991b1b;
+  .status-badge.returned {
+    background: var(--danger-bg);
+    color: #dc2626;
   }
 
-  .status-processing {
-    background: #fef3c7;
-    color: #92400e;
+  .status-badge.processing {
+    background: var(--warning-bg);
+    color: #d97706;
   }
 
-  .order-info {
-    background: #f8f9fa;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 24px;
+  /* Order Info */
+  .order-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--gray-100);
   }
 
-  .order-info h4 {
-    margin: 0 0 10px 0;
-    color: #666;
-    font-size: 12px;
+  .order-info-item {
+    background: var(--gray-50);
+    border-radius: 12px;
+    padding: 14px;
+  }
+
+  .order-info-item.full {
+    grid-column: 1 / -1;
+  }
+
+  .order-info-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--gray-400);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    margin-bottom: 4px;
   }
 
-  .order-info p {
-    margin: 4px 0;
-    color: #1a1a1a;
+  .order-info-value {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-900);
+  }
+
+  /* Timeline */
+  .timeline-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 24px;
+    box-shadow: var(--shadow-lg);
+    border: 1px solid var(--gray-100);
+  }
+
+  .timeline-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--gray-900);
+    margin: 0 0 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .timeline-title svg {
+    width: 20px;
+    height: 20px;
+    color: var(--primary);
   }
 
   .timeline {
     position: relative;
-    padding-left: 30px;
-  }
-
-  .timeline::before {
-    content: '';
-    position: absolute;
-    left: 9px;
-    top: 0;
-    bottom: 0;
-    width: 2px;
-    background: #e0e0e0;
   }
 
   .timeline-item {
     position: relative;
+    padding-left: 36px;
     padding-bottom: 24px;
   }
 
@@ -151,89 +364,211 @@
   .timeline-item::before {
     content: '';
     position: absolute;
-    left: -21px;
-    top: 4px;
-    width: 12px;
-    height: 12px;
-    background: #2563eb;
-    border-radius: 50%;
-    border: 2px solid white;
-    box-shadow: 0 0 0 2px #2563eb;
+    left: 11px;
+    top: 24px;
+    bottom: 0;
+    width: 2px;
+    background: var(--gray-200);
   }
 
-  .timeline-item:not(:first-child)::before {
-    background: #e0e0e0;
-    box-shadow: 0 0 0 2px #e0e0e0;
+  .timeline-item:last-child::before {
+    display: none;
+  }
+
+  .timeline-dot {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 24px;
+    height: 24px;
+    background: var(--primary);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.15);
+  }
+
+  .timeline-dot svg {
+    width: 12px;
+    height: 12px;
+    color: white;
+  }
+
+  .timeline-item:not(:first-child) .timeline-dot {
+    background: var(--gray-300);
+    box-shadow: none;
+  }
+
+  .timeline-content {
+    background: var(--gray-50);
+    border-radius: 12px;
+    padding: 14px 16px;
+  }
+
+  .timeline-event {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--gray-900);
+    margin-bottom: 4px;
+  }
+
+  .timeline-location {
+    font-size: 13px;
+    color: var(--gray-500);
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 
   .timeline-time {
     font-size: 12px;
-    color: #666;
-    margin-bottom: 4px;
+    color: var(--gray-400);
   }
 
-  .timeline-event {
-    font-weight: 600;
-    color: #1a1a1a;
-    margin-bottom: 2px;
-  }
-
-  .timeline-location {
-    font-size: 14px;
-    color: #666;
-  }
-
-  .error-message {
-    background: #fee2e2;
-    color: #991b1b;
-    padding: 16px;
-    border-radius: 8px;
+  /* Error */
+  .error-card {
+    background: var(--danger-bg);
+    border-radius: var(--radius);
+    padding: 20px;
     text-align: center;
+    border: 1px solid #fecaca;
   }
 
-  .loading {
+  .error-card p {
+    color: #b91c1c;
+    font-size: 15px;
+    font-weight: 500;
+    margin: 0;
+  }
+
+  /* Loading */
+  .loading-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    padding: 48px 24px;
     text-align: center;
-    padding: 40px;
-    color: #666;
+    box-shadow: var(--shadow-lg);
   }
 
   .loading-spinner {
-    display: inline-block;
-    width: 24px;
-    height: 24px;
-    border: 3px solid #e0e0e0;
-    border-top-color: #2563eb;
+    width: 48px;
+    height: 48px;
+    border: 4px solid var(--gray-200);
+    border-top-color: var(--primary);
     border-radius: 50%;
-    animation: spin 1s linear infinite;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
   }
 
   @keyframes spin {
     to { transform: rotate(360deg); }
   }
+
+  .loading-text {
+    font-size: 15px;
+    color: var(--gray-500);
+    margin: 0;
+  }
+
+  /* Desktop Styles */
+  @media (min-width: 640px) {
+    .track-wrapper {
+      padding: 40px 24px;
+    }
+
+    .track-container {
+      max-width: 520px;
+      padding-top: 40px;
+    }
+
+    .track-header h1 {
+      font-size: 28px;
+    }
+
+    .track-card {
+      padding: 32px;
+    }
+
+    .status-card,
+    .timeline-card {
+      padding: 28px;
+    }
+
+    .track-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 24px;
+    }
+
+    .track-icon svg {
+      width: 36px;
+      height: 36px;
+    }
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Remove iOS input zoom */
+  @media screen and (max-width: 640px) {
+    .track-input {
+      font-size: 16px;
+    }
+  }
 </style>
 
-<div class="track-container">
-  <div class="track-form">
-    <h2>Проследи поръчката си</h2>
-    <p>Въведи tracking номера от имейла за потвърждение на поръчката.</p>
-    <div class="input-group">
-      <input type="text" id="tracking-input" class="track-input" placeholder="Напр. 1080039456459" maxlength="15">
-      <button id="track-btn" class="track-btn" onclick="trackOrder()">Проследи</button>
+<div class="track-wrapper">
+  <div class="track-container">
+    <!-- Header -->
+    <div class="track-header">
+      <div class="track-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/>
+        </svg>
+      </div>
+      <h1>Проследи поръчката</h1>
+      <p>Въведи tracking номера от имейла за потвърждение</p>
     </div>
-  </div>
 
-  <div id="track-result" class="track-result"></div>
+    <!-- Input Card -->
+    <div class="track-card">
+      <div class="input-wrapper">
+        <label class="input-label" for="tracking-input">Tracking номер</label>
+        <input
+          type="text"
+          id="tracking-input"
+          class="track-input"
+          placeholder="Напр. 1080039456459"
+          maxlength="15"
+          inputmode="numeric"
+          pattern="[0-9]*"
+        >
+      </div>
+      <button id="track-btn" class="track-btn" onclick="trackOrder()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <span>Проследи пратката</span>
+      </button>
+    </div>
+
+    <!-- Result Section -->
+    <div id="track-result" class="track-result"></div>
+  </div>
 </div>
 
 <script>
   const API_URL = 'https://testograph.eu/api/public/track';
 
-  // Event type translations
   const eventTranslations = {
     'client': 'Доставено на клиент',
     'courier': 'Предадено на куриер',
     'courier_direction': 'Изпратено към куриер',
-    'arrival_departure_from_hub': 'Преминаване през сортировъчен център',
+    'arrival_departure_from_hub': 'В сортировъчен център',
     'in_pickup_office': 'В офис за получаване',
     'office': 'В офис',
     'sender': 'При подателя',
@@ -246,31 +581,54 @@
 
   function formatDate(timestamp) {
     if (!timestamp) return '';
-    // Handle both Unix timestamps (seconds/milliseconds) and ISO strings
     let date;
     if (typeof timestamp === 'number') {
-      // If it's a very large number, it's in milliseconds
       date = new Date(timestamp > 9999999999 ? timestamp : timestamp * 1000);
     } else {
       date = new Date(timestamp);
     }
     return date.toLocaleDateString('bg-BG', {
-      year: 'numeric',
-      month: 'long',
       day: 'numeric',
+      month: 'short',
+      year: 'numeric',
       hour: '2-digit',
       minute: '2-digit'
     });
   }
 
-  function getStatusIcon(status) {
-    const icons = {
-      'delivered': '✓',
-      'in_transit': '🚚',
-      'returned': '↩',
-      'processing': '⏳'
+  function formatDateShort(timestamp) {
+    if (!timestamp) return '';
+    let date;
+    if (typeof timestamp === 'number') {
+      date = new Date(timestamp > 9999999999 ? timestamp : timestamp * 1000);
+    } else {
+      date = new Date(timestamp);
+    }
+    return date.toLocaleDateString('bg-BG', {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric'
+    });
+  }
+
+  function getStatusEmoji(status) {
+    const emojis = {
+      'delivered': '&#10004;&#65039;',
+      'in_transit': '&#128666;',
+      'returned': '&#8617;&#65039;',
+      'processing': '&#9203;'
     };
-    return icons[status] || '📦';
+    return emojis[status] || '&#128230;';
+  }
+
+  function getStatusText(status) {
+    const texts = {
+      'delivered': 'Доставена',
+      'in_transit': 'В движение',
+      'returned': 'Върната',
+      'processing': 'Обработва се'
+    };
+    return texts[status] || 'Неизвестен';
   }
 
   async function trackOrder() {
@@ -281,77 +639,93 @@
     const tracking = trackingInput.value.trim();
 
     if (!tracking) {
-      alert('Моля, въведете tracking номер.');
+      trackingInput.focus();
       return;
     }
 
     // Show loading
     trackBtn.disabled = true;
-    trackBtn.textContent = 'Търсене...';
-    resultDiv.style.display = 'block';
-    resultDiv.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Търсене на пратката...</p></div>';
+    trackBtn.innerHTML = '<div class="loading-spinner" style="width:20px;height:20px;margin:0;border-width:2px;"></div><span>Търсене...</span>';
+    resultDiv.classList.add('show');
+    resultDiv.innerHTML = '<div class="loading-card"><div class="loading-spinner"></div><p class="loading-text">Търсене на пратката...</p></div>';
 
     try {
       const response = await fetch(API_URL + '?tracking=' + encodeURIComponent(tracking));
       const data = await response.json();
 
       if (!data.success) {
-        resultDiv.innerHTML = '<div class="error-message">' + (data.error || 'Грешка при търсене.') + '</div>';
+        resultDiv.innerHTML = '<div class="error-card"><p>' + (data.error || 'Грешка при търсене.') + '</p></div>';
         return;
       }
 
-      // Build result HTML
       let html = '';
 
-      // Status badge
-      html += '<div class="status-badge status-' + data.delivery.status + '">';
-      html += getStatusIcon(data.delivery.status) + ' ' + data.delivery.status_bg;
+      // Status Card
+      html += '<div class="status-card">';
+      html += '<div class="status-header">';
+      html += '<div class="status-icon ' + data.delivery.status + '">' + getStatusEmoji(data.delivery.status) + '</div>';
+      html += '<div class="status-info">';
+      html += '<h2>' + data.delivery.status_bg + '</h2>';
+      if (data.delivery.delivered_at) {
+        html += '<p>Доставено на ' + formatDateShort(data.delivery.delivered_at) + '</p>';
+      } else if (data.delivery.sent_at) {
+        html += '<p>Изпратено на ' + formatDateShort(data.delivery.sent_at) + '</p>';
+      }
+      html += '</div>';
       html += '</div>';
 
-      // Order info (if available)
+      // Order Info Grid
       if (data.order) {
-        html += '<div class="order-info">';
-        html += '<h4>Информация за поръчката</h4>';
-        html += '<p><strong>Поръчка:</strong> #' + data.order.order_number + '</p>';
-        html += '<p><strong>Дата:</strong> ' + formatDate(data.order.created_at) + '</p>';
-        html += '<p><strong>Сума:</strong> ' + parseFloat(data.order.total_price).toFixed(2) + ' ' + data.order.currency + '</p>';
+        html += '<div class="order-info-grid">';
+        html += '<div class="order-info-item"><div class="order-info-label">Поръчка</div><div class="order-info-value">#' + data.order.order_number + '</div></div>';
+        html += '<div class="order-info-item"><div class="order-info-label">Сума</div><div class="order-info-value">' + parseFloat(data.order.total_price).toFixed(2) + ' лв</div></div>';
+        html += '<div class="order-info-item full"><div class="order-info-label">Дата на поръчка</div><div class="order-info-value">' + formatDateShort(data.order.created_at) + '</div></div>';
         html += '</div>';
       }
-
-      // Delivery info
-      if (data.delivery.delivered_at) {
-        html += '<p style="margin-bottom:20px;color:#166534;font-weight:600;">Доставено на: ' + formatDate(data.delivery.delivered_at) + '</p>';
-      }
+      html += '</div>';
 
       // Timeline
       if (data.timeline && data.timeline.length > 0) {
-        html += '<h3 style="margin-bottom:16px;font-size:16px;">История на доставката</h3>';
+        html += '<div class="timeline-card">';
+        html += '<h3 class="timeline-title"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>История на доставката</h3>';
         html += '<div class="timeline">';
-        data.timeline.forEach(function(item) {
+        data.timeline.forEach(function(item, index) {
           html += '<div class="timeline-item">';
-          html += '<div class="timeline-time">' + formatDate(item.time) + '</div>';
+          html += '<div class="timeline-dot"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></div>';
+          html += '<div class="timeline-content">';
           html += '<div class="timeline-event">' + translateEvent(item.event) + '</div>';
-          html += '<div class="timeline-location">' + item.location + '</div>';
+          html += '<div class="timeline-location"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>' + item.location + '</div>';
+          html += '<div class="timeline-time">' + formatDate(item.time) + '</div>';
+          html += '</div>';
           html += '</div>';
         });
+        html += '</div>';
         html += '</div>';
       }
 
       resultDiv.innerHTML = html;
 
+      // Smooth scroll to results
+      resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
     } catch (error) {
       console.error('Track error:', error);
-      resultDiv.innerHTML = '<div class="error-message">Грешка при свързване. Моля, опитайте по-късно.</div>';
+      resultDiv.innerHTML = '<div class="error-card"><p>Грешка при свързване. Моля, опитайте по-късно.</p></div>';
     } finally {
       trackBtn.disabled = false;
-      trackBtn.textContent = 'Проследи';
+      trackBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg><span>Проследи пратката</span>';
     }
   }
 
-  // Allow Enter key to submit
+  // Enter key support
   document.getElementById('tracking-input').addEventListener('keypress', function(e) {
     if (e.key === 'Enter') {
       trackOrder();
     }
+  });
+
+  // Auto-focus on load
+  document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('tracking-input').focus();
   });
 </script>
