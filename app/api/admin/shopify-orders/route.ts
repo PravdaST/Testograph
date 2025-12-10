@@ -116,7 +116,9 @@ function isReturned(status?: string): boolean {
     'returned', 'върната', 'върнато', 'върнат',
     'refused', 'отказана', 'отказано', 'отказ',
     'неуспешна доставка', 'недоставена',
-    'returned to sender', 'върната на подател'
+    'returned to sender', 'върната на подател',
+    'върната и доставена към подател', // Exact Econt status
+    'анулирана' // Cancelled
   ];
   return returnedStatuses.some(s => status.toLowerCase().includes(s.toLowerCase()));
 }
