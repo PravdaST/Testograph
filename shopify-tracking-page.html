@@ -1,0 +1,357 @@
+<style>
+  .track-container {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  }
+
+  .track-form {
+    background: #f8f9fa;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+
+  .track-form h2 {
+    margin: 0 0 20px 0;
+    font-size: 24px;
+    color: #1a1a1a;
+  }
+
+  .track-form p {
+    color: #666;
+    margin-bottom: 20px;
+  }
+
+  .input-group {
+    display: flex;
+    gap: 10px;
+  }
+
+  .track-input {
+    flex: 1;
+    padding: 14px 18px;
+    font-size: 16px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .track-input:focus {
+    border-color: #2563eb;
+  }
+
+  .track-btn {
+    padding: 14px 28px;
+    font-size: 16px;
+    font-weight: 600;
+    color: white;
+    background: #2563eb;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .track-btn:hover {
+    background: #1d4ed8;
+  }
+
+  .track-btn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+  }
+
+  .track-result {
+    display: none;
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    box-shadow: 0 2px 20px rgba(0,0,0,0.08);
+  }
+
+  .status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 20px;
+  }
+
+  .status-delivered {
+    background: #dcfce7;
+    color: #166534;
+  }
+
+  .status-in_transit {
+    background: #dbeafe;
+    color: #1e40af;
+  }
+
+  .status-returned {
+    background: #fee2e2;
+    color: #991b1b;
+  }
+
+  .status-processing {
+    background: #fef3c7;
+    color: #92400e;
+  }
+
+  .order-info {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 16px;
+    margin-bottom: 24px;
+  }
+
+  .order-info h4 {
+    margin: 0 0 10px 0;
+    color: #666;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  .order-info p {
+    margin: 4px 0;
+    color: #1a1a1a;
+  }
+
+  .timeline {
+    position: relative;
+    padding-left: 30px;
+  }
+
+  .timeline::before {
+    content: '';
+    position: absolute;
+    left: 9px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: #e0e0e0;
+  }
+
+  .timeline-item {
+    position: relative;
+    padding-bottom: 24px;
+  }
+
+  .timeline-item:last-child {
+    padding-bottom: 0;
+  }
+
+  .timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -21px;
+    top: 4px;
+    width: 12px;
+    height: 12px;
+    background: #2563eb;
+    border-radius: 50%;
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px #2563eb;
+  }
+
+  .timeline-item:not(:first-child)::before {
+    background: #e0e0e0;
+    box-shadow: 0 0 0 2px #e0e0e0;
+  }
+
+  .timeline-time {
+    font-size: 12px;
+    color: #666;
+    margin-bottom: 4px;
+  }
+
+  .timeline-event {
+    font-weight: 600;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+  }
+
+  .timeline-location {
+    font-size: 14px;
+    color: #666;
+  }
+
+  .error-message {
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 16px;
+    border-radius: 8px;
+    text-align: center;
+  }
+
+  .loading {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+  }
+
+  .loading-spinner {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border: 3px solid #e0e0e0;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+</style>
+
+<div class="track-container">
+  <div class="track-form">
+    <h2>Проследи поръчката си</h2>
+    <p>Въведи tracking номера от имейла за потвърждение на поръчката.</p>
+    <div class="input-group">
+      <input type="text" id="tracking-input" class="track-input" placeholder="Напр. 1080039456459" maxlength="15">
+      <button id="track-btn" class="track-btn" onclick="trackOrder()">Проследи</button>
+    </div>
+  </div>
+
+  <div id="track-result" class="track-result"></div>
+</div>
+
+<script>
+  const API_URL = 'https://testograph.eu/api/public/track';
+
+  // Event type translations
+  const eventTranslations = {
+    'client': 'Доставено на клиент',
+    'courier': 'Предадено на куриер',
+    'courier_direction': 'Изпратено към куриер',
+    'arrival_departure_from_hub': 'Преминаване през сортировъчен център',
+    'in_pickup_office': 'В офис за получаване',
+    'office': 'В офис',
+    'sender': 'При подателя',
+    'hub': 'В сортировъчен център'
+  };
+
+  function translateEvent(event) {
+    return eventTranslations[event] || event;
+  }
+
+  function formatDate(timestamp) {
+    if (!timestamp) return '';
+    // Handle both Unix timestamps (seconds/milliseconds) and ISO strings
+    let date;
+    if (typeof timestamp === 'number') {
+      // If it's a very large number, it's in milliseconds
+      date = new Date(timestamp > 9999999999 ? timestamp : timestamp * 1000);
+    } else {
+      date = new Date(timestamp);
+    }
+    return date.toLocaleDateString('bg-BG', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }
+
+  function getStatusIcon(status) {
+    const icons = {
+      'delivered': '✓',
+      'in_transit': '🚚',
+      'returned': '↩',
+      'processing': '⏳'
+    };
+    return icons[status] || '📦';
+  }
+
+  async function trackOrder() {
+    const trackingInput = document.getElementById('tracking-input');
+    const resultDiv = document.getElementById('track-result');
+    const trackBtn = document.getElementById('track-btn');
+
+    const tracking = trackingInput.value.trim();
+
+    if (!tracking) {
+      alert('Моля, въведете tracking номер.');
+      return;
+    }
+
+    // Show loading
+    trackBtn.disabled = true;
+    trackBtn.textContent = 'Търсене...';
+    resultDiv.style.display = 'block';
+    resultDiv.innerHTML = '<div class="loading"><div class="loading-spinner"></div><p>Търсене на пратката...</p></div>';
+
+    try {
+      const response = await fetch(API_URL + '?tracking=' + encodeURIComponent(tracking));
+      const data = await response.json();
+
+      if (!data.success) {
+        resultDiv.innerHTML = '<div class="error-message">' + (data.error || 'Грешка при търсене.') + '</div>';
+        return;
+      }
+
+      // Build result HTML
+      let html = '';
+
+      // Status badge
+      html += '<div class="status-badge status-' + data.delivery.status + '">';
+      html += getStatusIcon(data.delivery.status) + ' ' + data.delivery.status_bg;
+      html += '</div>';
+
+      // Order info (if available)
+      if (data.order) {
+        html += '<div class="order-info">';
+        html += '<h4>Информация за поръчката</h4>';
+        html += '<p><strong>Поръчка:</strong> #' + data.order.order_number + '</p>';
+        html += '<p><strong>Дата:</strong> ' + formatDate(data.order.created_at) + '</p>';
+        html += '<p><strong>Сума:</strong> ' + parseFloat(data.order.total_price).toFixed(2) + ' ' + data.order.currency + '</p>';
+        html += '</div>';
+      }
+
+      // Delivery info
+      if (data.delivery.delivered_at) {
+        html += '<p style="margin-bottom:20px;color:#166534;font-weight:600;">Доставено на: ' + formatDate(data.delivery.delivered_at) + '</p>';
+      }
+
+      // Timeline
+      if (data.timeline && data.timeline.length > 0) {
+        html += '<h3 style="margin-bottom:16px;font-size:16px;">История на доставката</h3>';
+        html += '<div class="timeline">';
+        data.timeline.forEach(function(item) {
+          html += '<div class="timeline-item">';
+          html += '<div class="timeline-time">' + formatDate(item.time) + '</div>';
+          html += '<div class="timeline-event">' + translateEvent(item.event) + '</div>';
+          html += '<div class="timeline-location">' + item.location + '</div>';
+          html += '</div>';
+        });
+        html += '</div>';
+      }
+
+      resultDiv.innerHTML = html;
+
+    } catch (error) {
+      console.error('Track error:', error);
+      resultDiv.innerHTML = '<div class="error-message">Грешка при свързване. Моля, опитайте по-късно.</div>';
+    } finally {
+      trackBtn.disabled = false;
+      trackBtn.textContent = 'Проследи';
+    }
+  }
+
+  // Allow Enter key to submit
+  document.getElementById('tracking-input').addEventListener('keypress', function(e) {
+    if (e.key === 'Enter') {
+      trackOrder();
+    }
+  });
+</script>
