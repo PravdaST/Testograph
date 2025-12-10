@@ -422,6 +422,16 @@ curl -X POST http://localhost:3006/api/admin/learn-content/create-cluster \
 
 ## Recent Changes Log
 
+### 2024-12-10: Public Order Tracking Page for Shopify
+- Created public API `/api/public/track` for Econt tracking lookup
+- CORS enabled for `shop.testograph.eu` cross-origin requests
+- Rate limiting: 10 requests/min per IP to prevent abuse
+- Security: Only tracking number accepted (no order # to prevent enumeration)
+- Created `shopify-tracking-page.html` with modern 2025 mobile-first design
+- Features: Glassmorphism, gradient background, SVG icons, smooth animations
+- URL: `https://shop.testograph.eu/pages/track`
+- No sensitive data exposed (no name, email, phone, address)
+
 ### 2024-12-10: Sync Delivered Orders to Shopify as Paid
 - Added `/api/admin/sync-delivery-status` API using GraphQL `orderMarkAsPaid` mutation
 - Marks COD orders as "Paid" in Shopify when Econt shows "Delivered"
