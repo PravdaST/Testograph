@@ -108,6 +108,20 @@ function isDelivered(status?: string): boolean {
 }
 
 /**
+ * Check if shipment is returned/refused based on status
+ */
+function isReturned(status?: string): boolean {
+  if (!status) return false;
+  const returnedStatuses = [
+    'returned', 'върната', 'върнато', 'върнат',
+    'refused', 'отказана', 'отказано', 'отказ',
+    'неуспешна доставка', 'недоставена',
+    'returned to sender', 'върната на подател'
+  ];
+  return returnedStatuses.some(s => status.toLowerCase().includes(s.toLowerCase()));
+}
+
+/**
  * GET /api/admin/shopify-orders
  * Returns all Shopify orders from the pending_orders table with Econt tracking status
  */
@@ -136,22 +150,32 @@ export async function GET(request: Request) {
     // Fetch Econt status for all orders to calculate accurate stats AND for filtering
     const allEcontStatuses = await getEcontTrackingStatus(allTrackingNumbers);
 
-    // Build a map of order ID to delivery status for filtering
-    const orderDeliveryStatus = new Map<string, boolean>();
+    // Build maps of order ID to delivery/returned status for filtering
+    const orderDeliveryStatus = new Map<string, 'delivered' | 'returned' | 'in_transit'>();
     (allOrders || []).forEach(order => {
       if (order.tracking_number) {
         const econtStatus = allEcontStatuses.get(order.tracking_number);
-        const delivered = isDelivered(econtStatus?.shortDeliveryStatus || econtStatus?.shortDeliveryStatusEn);
-        orderDeliveryStatus.set(order.id, delivered);
+        const statusText = econtStatus?.shortDeliveryStatus || econtStatus?.shortDeliveryStatusEn;
+        if (isDelivered(statusText)) {
+          orderDeliveryStatus.set(order.id, 'delivered');
+        } else if (isReturned(statusText)) {
+          orderDeliveryStatus.set(order.id, 'returned');
+        } else {
+          orderDeliveryStatus.set(order.id, 'in_transit');
+        }
       }
     });
 
     let deliveredCount = 0;
     let inTransitCount = 0;
+    let returnedCount = 0;
     (allOrders || []).forEach(order => {
       if (order.tracking_number) {
-        if (orderDeliveryStatus.get(order.id)) {
+        const status = orderDeliveryStatus.get(order.id);
+        if (status === 'delivered') {
           deliveredCount++;
+        } else if (status === 'returned') {
+          returnedCount++;
         } else {
           inTransitCount++;
         }
@@ -166,11 +190,15 @@ export async function GET(request: Request) {
 
     if (trackingFilter === 'delivered') {
       filteredOrderIds = (allOrders || [])
-        .filter(o => o.tracking_number && orderDeliveryStatus.get(o.id) === true)
+        .filter(o => o.tracking_number && orderDeliveryStatus.get(o.id) === 'delivered')
         .map(o => o.id);
     } else if (trackingFilter === 'in_transit') {
       filteredOrderIds = (allOrders || [])
-        .filter(o => o.tracking_number && orderDeliveryStatus.get(o.id) === false)
+        .filter(o => o.tracking_number && orderDeliveryStatus.get(o.id) === 'in_transit')
+        .map(o => o.id);
+    } else if (trackingFilter === 'returned') {
+      filteredOrderIds = (allOrders || [])
+        .filter(o => o.tracking_number && orderDeliveryStatus.get(o.id) === 'returned')
         .map(o => o.id);
     } else if (trackingFilter === 'no_tracking') {
       filteredOrderIds = (allOrders || [])
@@ -215,6 +243,7 @@ export async function GET(request: Request) {
             withTracking: withTrackingCount,
             delivered: deliveredCount,
             inTransit: inTransitCount,
+            returned: returnedCount,
             noTracking: noTrackingCount,
           },
           pagination: {
@@ -292,6 +321,7 @@ export async function GET(request: Request) {
       withTracking: withTrackingCount,
       delivered: deliveredCount,
       inTransit: inTransitCount,
+      returned: returnedCount,
       noTracking: noTrackingCount,
     };
 

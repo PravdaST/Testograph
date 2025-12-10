@@ -56,6 +56,7 @@ import {
   PackageCheck,
   PackageX,
   AlertCircle,
+  RotateCcw,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 
@@ -409,6 +410,7 @@ export default function ShopifyOrdersPage() {
                 { key: "all", label: "All" },
                 { key: "delivered", label: "Delivered" },
                 { key: "in_transit", label: "In Transit" },
+                { key: "returned", label: "Returned" },
                 { key: "no_tracking", label: "No Tracking" },
               ].map((filter) => (
                 <Button
@@ -549,6 +551,19 @@ export default function ShopifyOrdersPage() {
                 <CardContent>
                   <div className="text-3xl font-bold text-yellow-600">{summary.inTransit}</div>
                   <p className="text-xs text-muted-foreground">на път към клиента</p>
+                </CardContent>
+              </Card>
+
+              <Card className="border-red-200 bg-red-50/50">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium flex items-center gap-2">
+                    <RotateCcw className="w-4 h-4 text-red-500" />
+                    Върнати
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-red-600">{summary.returned || 0}</div>
+                  <p className="text-xs text-muted-foreground">върнати/отказани</p>
                 </CardContent>
               </Card>
 
