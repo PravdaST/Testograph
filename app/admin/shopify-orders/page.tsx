@@ -57,7 +57,16 @@ import {
   PackageX,
   AlertCircle,
   RotateCcw,
+  Download,
+  FileSpreadsheet,
 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 
 interface Product {
@@ -129,6 +138,7 @@ interface Summary {
   withTracking: number;
   delivered: number;
   inTransit: number;
+  returned: number;
   noTracking: number;
 }
 
@@ -152,6 +162,91 @@ export default function ShopifyOrdersPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [exportMonth, setExportMonth] = useState(() => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  });
+  const [isExporting, setIsExporting] = useState(false);
+  const [isSyncingDelivery, setIsSyncingDelivery] = useState(false);
+  const [deliverySyncResult, setDeliverySyncResult] = useState<{
+    synced: number;
+    alreadySynced: number;
+    failed: number;
+    noFulfillment: number;
+    total: number;
+  } | null>(null);
+
+  // Generate last 12 months for export dropdown
+  const getMonthOptions = () => {
+    const options = [];
+    const now = new Date();
+    for (let i = 0; i < 12; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      const label = date.toLocaleDateString('bg-BG', { year: 'numeric', month: 'long' });
+      options.push({ value, label });
+    }
+    return options;
+  };
+
+  // Export returned orders as CSV
+  const exportReturnedOrders = async () => {
+    setIsExporting(true);
+    try {
+      const response = await fetch(`/api/admin/export-returned-orders?month=${exportMonth}`);
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || 'Failed to export');
+        return;
+      }
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `returned_orders_${exportMonth}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Export error:', error);
+      alert('Failed to export returned orders');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Sync delivered orders to Shopify
+  const syncDeliveryToShopify = async () => {
+    setIsSyncingDelivery(true);
+    setDeliverySyncResult(null);
+    try {
+      const response = await fetch('/api/admin/sync-delivery-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dryRun: false }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        alert(data.error || 'Failed to sync delivery status');
+        return;
+      }
+
+      setDeliverySyncResult({
+        synced: data.summary?.synced || 0,
+        alreadySynced: data.summary?.alreadySynced || 0,
+        failed: data.summary?.failed || 0,
+        noFulfillment: data.summary?.noFulfillment || 0,
+        total: data.summary?.total || 0,
+      });
+    } catch (error) {
+      console.error('Sync error:', error);
+      alert('Failed to sync delivery status to Shopify');
+    } finally {
+      setIsSyncingDelivery(false);
+    }
+  };
 
   useEffect(() => {
     setCurrentPage(1); // Reset to page 1 when filters change
@@ -424,6 +519,37 @@ export default function ShopifyOrdersPage() {
               ))}
             </div>
           </div>
+
+          {/* Export Section */}
+          <div className="flex items-center gap-2 ml-auto">
+            <span className="text-sm text-muted-foreground">Export:</span>
+            <Select value={exportMonth} onValueChange={setExportMonth}>
+              <SelectTrigger className="w-44">
+                <SelectValue placeholder="Select month" />
+              </SelectTrigger>
+              <SelectContent>
+                {getMonthOptions().map((option) => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={exportReturnedOrders}
+              disabled={isExporting}
+              className="text-red-600 border-red-300 hover:bg-red-50"
+            >
+              {isExporting ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="w-4 h-4 mr-2" />
+              )}
+              Върнати (CSV)
+            </Button>
+          </div>
         </div>
 
         {/* Sync Result Message */}
@@ -438,6 +564,23 @@ export default function ShopifyOrdersPage() {
                 {syncResult.namesFixed > 0 && `${syncResult.namesFixed} customer names fixed. `}
                 {syncResult.trackingUpdated > 0 && `${syncResult.trackingUpdated} tracking numbers updated. `}
                 {syncResult.synced === 0 && syncResult.fixed === 0 && (syncResult.namesFixed || 0) === 0 && (syncResult.trackingUpdated || 0) === 0 && 'Everything is up to date.'}
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Delivery Sync Result Message */}
+        {deliverySyncResult && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
+            <CloudDownload className="w-5 h-5 text-blue-600" />
+            <div>
+              <p className="font-medium text-blue-800">Shopify Delivery Sync Completed!</p>
+              <p className="text-sm text-blue-700">
+                {deliverySyncResult.synced > 0 && `${deliverySyncResult.synced} orders marked as delivered. `}
+                {deliverySyncResult.alreadySynced > 0 && `${deliverySyncResult.alreadySynced} already synced. `}
+                {deliverySyncResult.failed > 0 && `${deliverySyncResult.failed} failed. `}
+                {deliverySyncResult.noFulfillment > 0 && `${deliverySyncResult.noFulfillment} without fulfillment. `}
+                {deliverySyncResult.synced === 0 && deliverySyncResult.alreadySynced === 0 && 'No orders to sync.'}
               </p>
             </div>
           </div>
@@ -537,7 +680,26 @@ export default function ShopifyOrdersPage() {
                 </CardHeader>
                 <CardContent>
                   <div className="text-3xl font-bold text-green-600">{summary.delivered}</div>
-                  <p className="text-xs text-muted-foreground">успешно доставени</p>
+                  <p className="text-xs text-muted-foreground mb-2">успешно доставени</p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-xs"
+                    onClick={syncDeliveryToShopify}
+                    disabled={isSyncingDelivery}
+                  >
+                    {isSyncingDelivery ? (
+                      <>
+                        <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                        Синхронизация...
+                      </>
+                    ) : (
+                      <>
+                        <CloudDownload className="w-3 h-3 mr-1" />
+                        Sync to Shopify
+                      </>
+                    )}
+                  </Button>
                 </CardContent>
               </Card>
 
@@ -562,7 +724,7 @@ export default function ShopifyOrdersPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="text-3xl font-bold text-red-600">{summary.returned || 0}</div>
+                  <div className="text-3xl font-bold text-red-600">{summary.returned}</div>
                   <p className="text-xs text-muted-foreground">върнати/отказани</p>
                 </CardContent>
               </Card>
