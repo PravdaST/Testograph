@@ -24,8 +24,7 @@
 
 ### Admin Pages Mapping:
 - `/admin/users` - Quiz потребители (от стъпка 1) с pagination и filtering
-- `/admin/shopify-orders` - Поръчки (от стъпка 2)
-- `/admin/econt` - Econt проследяване на пратки (доставки)
+- `/admin/shopify-orders` - Поръчки + Econt tracking + Sync to Shopify (от стъпка 2)
 - `/admin/users` popup - 360° профил на потребител (всичко заедно)
 - `/admin/quiz-analytics` - Quiz статистики и Session Explorer
 - `/admin/learn-content` - AI Learn Content System
@@ -69,8 +68,7 @@ Testograph is a Next.js application for testosterone health assessment and perso
 | **Users** | `/admin/users` | Quiz потребители с pagination, filtering, popup детайли |
 | Business Analytics | `/admin/business-analytics` | Revenue & operations |
 | Quiz Analytics | `/admin/quiz-analytics` | Quiz stats, Session Explorer, CSV Export |
-| **Shopify Orders** | `/admin/shopify-orders` | Order management |
-| **Econt Tracking** | `/admin/econt` | Econt delivery tracking |
+| **Shopify Orders** | `/admin/shopify-orders` | Orders + Econt tracking + Sync to Shopify |
 | Chat Sessions | `/admin/chat-sessions` | AI chat logs |
 | Affiliates | `/admin/affiliates` | Affiliate tracking |
 | **Learn Content** | `/admin/learn-content` | AI Content Generation System |
@@ -215,16 +213,18 @@ SHOPIFY_WEBHOOK_SECRET="xxx"
 
 ---
 
-## Econt Integration (`/admin/econt`)
+## Econt Integration (в `/admin/shopify-orders`)
 
 ### Overview
-Real-time tracking of shipments through Econt courier API. Shows all paid orders with delivery status.
+Real-time tracking of shipments through Econt courier API. Integrated directly into the Shopify Orders page.
 
 ### Features
 - **Live Tracking** - Fetches current status from Econt API
-- **Stats Dashboard** - Delivered, in transit, no tracking counts
+- **Stats Dashboard** - Delivered, in transit, returned, no tracking counts
 - **Order Details** - Expandable rows with tracking events history
-- **Filters** - All, Delivered, In Transit, No Tracking
+- **Filters** - All, Delivered, In Transit, Returned, No Tracking
+- **Sync to Shopify** - Mark delivered COD orders as "Paid" in Shopify
+- **Export CSV** - Export returned orders for specific month
 
 ### Environment Variables
 ```env
@@ -237,23 +237,36 @@ ECONT_PASSWORD=your_econt_password
 
 | Route | Method | Description |
 |-------|--------|-------------|
-| `/api/admin/econt` | GET | List paid orders with Econt status |
-| `/api/admin/econt` | POST | Check status for specific tracking numbers |
+| `/api/admin/shopify-orders` | GET | Orders with Econt status |
+| `/api/admin/sync-delivery-status` | POST | Sync delivered orders to Shopify as Paid |
+| `/api/admin/export-returned-orders` | GET | CSV export of returned orders |
+
+### Sync Delivery Status API
+
+Marks COD orders as "Paid" in Shopify when Econt shows "Delivered":
+
+```bash
+# Dry run (preview only)
+curl -X POST http://localhost:3006/api/admin/sync-delivery-status \
+  -H "Content-Type: application/json" \
+  -d '{"dryRun": true}'
+
+# Actual sync
+curl -X POST http://localhost:3006/api/admin/sync-delivery-status \
+  -H "Content-Type: application/json" \
+  -d '{"dryRun": false}'
+```
+
+**Technical Details:**
+- Uses Shopify GraphQL API `orderMarkAsPaid` mutation
+- Requires myshopify.com domain (not custom domain) for GraphQL
+- Rate limited at ~500ms between requests
+- Updates both fulfillment status and payment status
 
 ### Key Files
-- `app/admin/econt/page.tsx` - Admin tracking page
-- `app/api/admin/econt/route.ts` - Econt API integration
-
-### Econt API Response
-```typescript
-interface EcontShipmentStatus {
-  shipmentNumber: string;
-  shortDeliveryStatus?: string;      // BG status
-  shortDeliveryStatusEn?: string;    // EN status
-  deliveryTime?: string;             // Delivery timestamp
-  trackingEvents?: EcontTrackingEvent[];
-}
-```
+- `app/admin/shopify-orders/page.tsx` - Orders + Econt tracking page
+- `app/api/admin/sync-delivery-status/route.ts` - Sync to Shopify API
+- `app/api/admin/export-returned-orders/route.ts` - CSV export API
 
 ---
 
@@ -329,18 +342,19 @@ components/admin/
 ### API Routes
 ```
 app/api/admin/
-├── users/route.ts           # Users list with pagination
-├── users/notes/route.ts     # Admin notes CRUD
-├── shopify-orders/route.ts  # Orders CRUD
-├── shopify-sync/route.ts    # Shopify sync logic
-├── econt/route.ts           # Econt tracking API
+├── users/route.ts              # Users list with pagination
+├── users/notes/route.ts        # Admin notes CRUD
+├── shopify-orders/route.ts     # Orders + Econt status
+├── shopify-sync/route.ts       # Shopify sync logic
+├── sync-delivery-status/       # Sync delivered orders to Shopify as Paid
+├── export-returned-orders/     # CSV export of returned orders
 ├── learn-content/
-│   ├── create-cluster/      # AI cluster generation
-│   ├── create-pillar/       # AI pillar generation
-│   ├── stats/               # Dashboard stats
-│   ├── guides/              # Guides CRUD
-│   └── suggest-clusters/    # AI suggestions
-└── webhooks/shopify/        # Shopify webhooks
+│   ├── create-cluster/         # AI cluster generation
+│   ├── create-pillar/          # AI pillar generation
+│   ├── stats/                  # Dashboard stats
+│   ├── guides/                 # Guides CRUD
+│   └── suggest-clusters/       # AI suggestions
+└── webhooks/shopify/           # Shopify webhooks
 ```
 
 ### Utilities
@@ -408,10 +422,18 @@ curl -X POST http://localhost:3006/api/admin/learn-content/create-cluster \
 
 ## Recent Changes Log
 
+### 2024-12-10: Sync Delivered Orders to Shopify as Paid
+- Added `/api/admin/sync-delivery-status` API using GraphQL `orderMarkAsPaid` mutation
+- Marks COD orders as "Paid" in Shopify when Econt shows "Delivered"
+- Added "Sync to Shopify" button in `/admin/shopify-orders` page
+- Added `/api/admin/export-returned-orders` for CSV export of returned orders
+- Added VAT invoice download scripts using Playwright persistent browser
+- Initial sync: 226 orders marked as paid, 0 failures
+
 ### 2024-12-09: Econt Tracking Integration
-- Created `/admin/econt` page for shipment tracking
-- Integrated Econt API for real-time delivery status
-- Added stats: total, delivered, in transit, no tracking
+- Integrated Econt API into `/admin/shopify-orders` page
+- Real-time delivery status from Econt courier
+- Added stats: total, delivered, in transit, returned, no tracking
 - Expandable rows with tracking event history
 - Added Econt environment variables
 
