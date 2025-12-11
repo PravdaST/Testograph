@@ -672,10 +672,13 @@ export async function GET(request: NextRequest) {
         .order('created_at', { ascending: false })
         .limit(1)
 
-      // Count tracking sessions
+      // Count tracking sessions - use step 0 events (each session has exactly one)
       const { data: trackingSessions } = await supabase
         .from('quiz_step_events')
         .select('session_id')
+        .eq('event_type', 'step_entered')
+        .eq('step_number', 0)
+        .limit(50000)
 
       const uniqueTrackingSessions = new Set(trackingSessions?.map(s => s.session_id) || [])
 
@@ -707,6 +710,7 @@ export async function GET(request: NextRequest) {
       const { data: byCategory } = await supabase
         .from('quiz_results_v2')
         .select('category')
+        .limit(50000)
 
       const categoryCounts: Record<string, number> = {}
       byCategory?.forEach(r => {
@@ -717,6 +721,7 @@ export async function GET(request: NextRequest) {
       const { data: byLevel } = await supabase
         .from('quiz_results_v2')
         .select('determined_level')
+        .limit(50000)
 
       const levelCounts: Record<string, number> = {}
       byLevel?.forEach(r => {
@@ -995,6 +1000,7 @@ export async function GET(request: NextRequest) {
           .from('quiz_results_v2')
           .select('email')
           .not('email', 'is', null)
+          .limit(50000)
 
         const allQuizEmails = new Set(
           allQuizResultsForFilter?.map(r => r.email?.toLowerCase()).filter(Boolean) as string[]
@@ -1004,6 +1010,7 @@ export async function GET(request: NextRequest) {
         const { data: ordersForFilter } = await supabase
           .from('pending_orders')
           .select('email, status')
+          .limit(50000)
 
         const paidOrderEmails = new Set(
           ordersForFilter?.filter(o => o.status === 'paid')
@@ -1026,11 +1033,11 @@ export async function GET(request: NextRequest) {
           { data: testoActivity },
           { data: progressActivity }
         ] = await Promise.all([
-          supabase.from('workout_sessions').select('email'),
-          supabase.from('meal_completions').select('email'),
-          supabase.from('sleep_tracking').select('email'),
-          supabase.from('testoup_tracking').select('email'),
-          supabase.from('daily_progress_scores').select('email')
+          supabase.from('workout_sessions').select('email').limit(50000),
+          supabase.from('meal_completions').select('email').limit(50000),
+          supabase.from('sleep_tracking').select('email').limit(50000),
+          supabase.from('testoup_tracking').select('email').limit(50000),
+          supabase.from('daily_progress_scores').select('email').limit(50000)
         ])
 
         const activeEmails = new Set<string>()
