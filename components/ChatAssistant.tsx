@@ -75,63 +75,35 @@ const ChatAssistant = () => {
     setIsLoading(true);
 
     try {
-      // Check for existing session or create new one
-      const { data: existingSessions, error: sessionError } = await supabase
-        .from('chat_sessions')
+      // Check for existing messages in coach_messages (unified with App)
+      const { data: existingMessages, error: messagesError } = await supabase
+        .from('coach_messages')
         .select('*')
-        .eq('email', email.trim())
-        .order('created_at', { ascending: false })
-        .limit(1);
+        .eq('email', email.trim().toLowerCase())
+        .order('created_at', { ascending: true })
+        .limit(20);
 
-      if (sessionError) throw sessionError;
-
-      let currentSession;
-      let existingMessages: Message[] = [];
-
-      if (existingSessions && existingSessions.length > 0) {
-        // Use existing session
-        currentSession = existingSessions[0];
-        setSessionId(currentSession.id);
-
-        // Load existing messages
-        const { data: messages, error: messagesError } = await supabase
-          .from('chat_messages')
-          .select('*')
-          .eq('session_id', currentSession.id)
-          .order('created_at', { ascending: true });
-
-        if (messagesError) throw messagesError;
-
-        existingMessages = messages?.map(msg => ({
-          id: msg.id,
-          role: msg.role as 'user' | 'assistant',
-          content: msg.content,
-          timestamp: msg.created_at || new Date().toISOString()
-        })) || [];
-
-        toast({
-          title: "Добре дошли отново!",
-          description: "Възстановихме вашия предишен разговор",
-        });
-      } else {
-        // Create new session
-        const { data: newSession, error: newSessionError } = await supabase
-          .from('chat_sessions')
-          .insert({ email })
-          .select()
-          .single();
-
-        if (newSessionError) throw newSessionError;
-
-        currentSession = newSession;
-        setSessionId(newSession.id);
+      if (messagesError) {
+        console.error('Error loading messages:', messagesError);
+        // Continue anyway - we'll start fresh
       }
 
       setIsEmailSubmitted(true);
 
       // Set messages (existing or welcome)
-      if (existingMessages.length > 0) {
-        setMessages(existingMessages);
+      if (existingMessages && existingMessages.length > 0) {
+        const loadedMessages: Message[] = existingMessages.map(msg => ({
+          id: msg.id,
+          role: msg.role as 'user' | 'assistant',
+          content: msg.content,
+          timestamp: msg.created_at || new Date().toISOString()
+        }));
+        setMessages(loadedMessages);
+
+        toast({
+          title: "Добре дошли отново!",
+          description: "Възстановихме вашия предишен разговор",
+        });
       } else {
         const firstName = email.split('@')[0];
         const welcomeMessage: Message = {
@@ -141,22 +113,13 @@ const ChatAssistant = () => {
           timestamp: new Date().toISOString()
         };
         setMessages([welcomeMessage]);
-
-        // Save welcome message to database
-        await supabase
-          .from('chat_messages')
-          .insert({
-            session_id: currentSession.id,
-            role: 'assistant',
-            content: welcomeMessage.content
-          });
       }
 
     } catch (error) {
-      console.error('Error creating/loading session:', error);
+      console.error('Error loading session:', error);
       toast({
         title: "Грешка",
-        description: "Възникна проблем при създаването на сесията",
+        description: "Възникна проблем при зареждането",
         variant: "destructive",
       });
     } finally {
@@ -178,28 +141,65 @@ const ChatAssistant = () => {
     setIsLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('chat-assistant', {
-        body: {
+      // Use unified App Coach API with streaming
+      const response = await fetch('/api/coach/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
           message: messageContent,
           email,
-          sessionId,
-          source: 'website' // Flag to indicate this is from website (simpler responses)
-        },
+          source: 'website'
+        })
       });
 
-      if (error) throw error;
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
 
-      const assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+      // Handle streaming response
+      const reader = response.body?.getReader();
+      if (!reader) throw new Error('No response body');
+
+      const decoder = new TextDecoder();
+      let fullResponse = '';
+      const assistantMessageId = (Date.now() + 1).toString();
+
+      // Add placeholder message for streaming
+      setMessages(prev => [...prev, {
+        id: assistantMessageId,
         role: 'assistant',
-        content: data.message,
+        content: '',
         timestamp: new Date().toISOString()
-      };
+      }]);
 
-      setMessages(prev => [...prev, assistantMessage]);
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
 
-      if (data.sessionId && !sessionId) {
-        setSessionId(data.sessionId);
+        const chunk = decoder.decode(value, { stream: true });
+        const lines = chunk.split('\n');
+
+        for (const line of lines) {
+          if (line.startsWith('data: ')) {
+            const data = line.slice(6);
+            if (data === '[DONE]') continue;
+
+            try {
+              const parsed = JSON.parse(data);
+              if (parsed.content) {
+                fullResponse += parsed.content;
+                // Update message in real-time
+                setMessages(prev => prev.map(msg =>
+                  msg.id === assistantMessageId
+                    ? { ...msg, content: fullResponse }
+                    : msg
+                ));
+              }
+            } catch {
+              // Ignore parse errors
+            }
+          }
+        }
       }
 
     } catch (error) {

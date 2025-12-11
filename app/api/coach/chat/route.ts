@@ -21,14 +21,36 @@ import {
 export async function POST(request: NextRequest) {
   console.log('Coach chat API called')
   try {
-    // 1. Validate session
-    console.log('Validating session...')
-    const { isValid, email, error: authError } = await validateSession()
-    if (!isValid || !email) {
-      console.log('Session validation failed')
-      return authError || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    // 1. Parse request body first to check source
+    const body = await request.json()
+    const { message, email: bodyEmail, source } = body as {
+      message: string
+      email?: string
+      source?: 'website' | 'app'
     }
-    console.log('Session valid for:', email)
+
+    // 2. Validate session OR use email from body (for website)
+    let email: string
+    console.log('Source:', source)
+
+    if (source === 'website') {
+      // Website source - use email from body, skip session validation
+      if (!bodyEmail) {
+        return NextResponse.json({ error: 'Email required for website chat' }, { status: 400 })
+      }
+      email = bodyEmail.trim().toLowerCase()
+      console.log('Website chat for:', email)
+    } else {
+      // App source - validate session
+      console.log('Validating session...')
+      const { isValid, email: sessionEmail, error: authError } = await validateSession()
+      if (!isValid || !sessionEmail) {
+        console.log('Session validation failed')
+        return authError || NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      }
+      email = sessionEmail
+      console.log('Session valid for:', email)
+    }
 
     // 2. Check rate limit
     const rateLimit = checkRateLimit(email)
@@ -42,10 +64,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 3. Parse request body
-    const body = await request.json()
-    const { message } = body as { message: string }
-
+    // 3. Validate message (already parsed above)
     if (!message || message.trim().length === 0) {
       return NextResponse.json(
         { error: 'Saobshtenieto ne mozhe da bade prazno' },
@@ -59,7 +78,9 @@ export async function POST(request: NextRequest) {
     // 4. Fetch user context (parallel for performance)
     console.log('Fetching user context and chat history...')
     const [userContext, chatHistory] = await Promise.all([
-      fetchUserContext(email, supabase),
+      source === 'website'
+        ? fetchGuestContext(email, supabase)
+        : fetchUserContext(email, supabase),
       fetchChatHistory(email, supabase, 10),
     ])
     console.log('User context fetched:', userContext.firstName, 'Day', userContext.programDay)
@@ -156,6 +177,39 @@ export async function POST(request: NextRequest) {
       { error: 'Vaznikna greshka. Molya, opitay otnovo.' },
       { status: 500 }
     )
+  }
+}
+
+/**
+ * Fetch guest context for website visitors (simplified, no daily tasks)
+ */
+async function fetchGuestContext(
+  email: string,
+  supabase: ReturnType<typeof createServiceClient>
+): Promise<UserContext> {
+  // Check if guest has quiz data
+  const { data: quizResult } = await (supabase.from('quiz_results_v2') as any)
+    .select('*')
+    .eq('email', email)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .single()
+
+  // Return simplified context for guests
+  return {
+    firstName: quizResult?.first_name || email.split('@')[0],
+    email,
+    category: quizResult?.category || 'energy',
+    level: quizResult?.determined_level || 'normal',
+    programDay: 1,
+    progressScore: 50,
+    completedTasks: 0,
+    totalTasks: 4,
+    workoutLocation: quizResult?.workout_location || 'gym',
+    dietaryPreference: quizResult?.dietary_preference || 'omnivor',
+    capsulesRemaining: 0,
+    currentHour: new Date().getHours(),
+    // No todayTasks or programContext for guests - keeps prompt simpler
   }
 }
 
