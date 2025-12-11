@@ -2593,7 +2593,7 @@ export default function QuizAnalyticsDashboard() {
                         <p className="mt-2 text-sm text-muted-foreground flex items-center gap-1">
                           Tracked <Info className="w-3 h-3" />
                         </p>
-                        <p className="text-xs text-muted-foreground">({selectedDays} дни)</p>
+                        <p className="text-xs text-muted-foreground">({selectedDays === -1 ? 'Всички' : `${selectedDays} дни`})</p>
                       </div>
                     </Card>
                   </TooltipTrigger>
@@ -5405,19 +5405,19 @@ export default function QuizAnalyticsDashboard() {
                 {selectedMetric === 'tracked' && (
                   <>
                     <Activity className="w-5 h-5 text-amber-500" />
-                    Tracked Sessions ({selectedDays} дни)
+                    Tracked Sessions ({selectedDays === -1 ? 'Всички' : `${selectedDays} дни`})
                   </>
                 )}
                 {selectedMetric === 'completed' && (
                   <>
                     <CheckCircle className="w-5 h-5 text-green-500" />
-                    Завършени Quiz-ове ({selectedDays} дни)
+                    Завършени Quiz-ове ({selectedDays === -1 ? 'Всички' : `${selectedDays} дни`})
                   </>
                 )}
                 {selectedMetric === 'abandoned' && (
                   <>
                     <XCircle className="w-5 h-5 text-red-500" />
-                    Изоставени Quiz-ове ({selectedDays} дни)
+                    Изоставени Quiz-ове ({selectedDays === -1 ? 'Всички' : `${selectedDays} дни`})
                   </>
                 )}
               </DialogTitle>
@@ -5487,7 +5487,7 @@ export default function QuizAnalyticsDashboard() {
                         <strong>Източник:</strong> API /api/admin/quiz-flow?view=stats&days={selectedDays}
                       </p>
                       <p className="text-sm mt-1">
-                        <strong>Период:</strong> Последните {selectedDays} дни
+                        <strong>Период:</strong> {selectedDays === -1 ? 'Всички' : `Последните ${selectedDays} дни`}
                       </p>
                     </div>
                   </div>
@@ -5530,7 +5530,7 @@ export default function QuizAnalyticsDashboard() {
                         <strong>Източник:</strong> API /api/admin/quiz-flow?view=stats&days={selectedDays}
                       </p>
                       <p className="text-sm mt-1">
-                        <strong>Период:</strong> Последните {selectedDays} дни
+                        <strong>Период:</strong> {selectedDays === -1 ? 'Всички' : `Последните ${selectedDays} дни`}
                       </p>
                       <p className="text-sm mt-1">
                         <strong>Completion Rate:</strong> {statsData?.overview.completionRate || 0}% от tracked сесиите
@@ -5570,7 +5570,7 @@ export default function QuizAnalyticsDashboard() {
                         <strong>Източник:</strong> API /api/admin/quiz-flow?view=stats&days={selectedDays}
                       </p>
                       <p className="text-sm mt-1">
-                        <strong>Период:</strong> Последните {selectedDays} дни
+                        <strong>Период:</strong> {selectedDays === -1 ? 'Всички' : `Последните ${selectedDays} дни`}
                       </p>
                       <p className="text-sm mt-1">
                         <strong>Drop Rate:</strong> {100 - (statsData?.overview.completionRate || 0)}% от tracked сесиите
@@ -5606,18 +5606,18 @@ export default function QuizAnalyticsDashboard() {
                     },
                     tracked: {
                       title: "Tracked Sessions",
-                      description: `Всички tracked сесии за последните ${selectedDays} дни`,
+                      description: selectedDays === -1 ? `Всички tracked сесии` : `Всички tracked сесии за последните ${selectedDays} дни`,
                       dataType: "quiz_sessions",
                     },
                     completed: {
                       title: "Завършени Quiz-ове",
-                      description: `Успешно завършени quiz-ове за последните ${selectedDays} дни`,
+                      description: selectedDays === -1 ? `Успешно завършени quiz-ове` : `Успешно завършени quiz-ове за последните ${selectedDays} дни`,
                       dataType: "quiz_sessions",
                       additionalFilters: { completed: "true" },
                     },
                     abandoned: {
                       title: "Изоставени Сесии",
-                      description: `Изоставени quiz сесии за последните ${selectedDays} дни`,
+                      description: selectedDays === -1 ? `Изоставени quiz сесии` : `Изоставени quiz сесии за последните ${selectedDays} дни`,
                       dataType: "abandoned_sessions",
                     },
                   };

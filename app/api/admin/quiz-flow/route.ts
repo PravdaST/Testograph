@@ -36,46 +36,98 @@ export async function GET(request: NextRequest) {
 
     // ============ STATS VIEW ============
     if (view === 'stats') {
-      // Get all events with metadata for comprehensive stats
-      let query = supabase
+      // Strategy: Use step_number 0 events to count total sessions (each session has exactly one),
+      // and step_number 24 events to count completed sessions. This avoids fetching all events.
+
+      // 1. Get first step events (step 0) - these give us total sessions and device info
+      let firstStepQuery = supabase
         .from('quiz_step_events')
-        .select('session_id, category, step_number, event_type, time_spent_seconds, metadata, created_at, question_id, answer_value')
+        .select('session_id, metadata')
+        .eq('event_type', 'step_entered')
+        .eq('step_number', 0)
         .gte('created_at', startDateStr)
+        .limit(50000) // High limit for first step events
 
       if (category !== 'all') {
-        query = query.eq('category', category)
+        firstStepQuery = firstStepQuery.eq('category', category)
       }
 
-      const { data: events, error } = await query
+      const { data: firstStepEvents } = await firstStepQuery
 
-      if (error) throw error
-
-      // Calculate device breakdown from first step_entered events (they have metadata)
+      // Count total unique sessions from step 0 events
+      const allSessions = new Set<string>()
       const deviceCounts: Record<string, number> = { mobile: 0, tablet: 0, desktop: 0, unknown: 0 }
-      const trafficSources: Record<string, number> = {}
-      const ageCounts: Record<string, number> = {}
-      const seenSessions = new Set<string>()
 
-      events?.forEach(event => {
-        if (event.event_type === 'step_entered' && event.step_number === 0 && !seenSessions.has(event.session_id)) {
-          seenSessions.add(event.session_id)
-          const metadata = event.metadata as Record<string, any> || {}
-
-          // Device
-          const device = metadata.device || 'unknown'
+      firstStepEvents?.forEach((event: { session_id: string; metadata: Record<string, unknown> | null }) => {
+        if (!allSessions.has(event.session_id)) {
+          allSessions.add(event.session_id)
+          const metadata = event.metadata || {}
+          const device = (metadata.device as string) || 'unknown'
           deviceCounts[device] = (deviceCounts[device] || 0) + 1
-
-          // Traffic source
-          const source = metadata.utm_source || metadata.referrer || 'direct'
-          const sourceKey = source.substring(0, 50) // Truncate long referrers
-          trafficSources[sourceKey] = (trafficSources[sourceKey] || 0) + 1
         }
+      })
 
-        // Age breakdown from answer_selected events with age question
-        if (event.event_type === 'answer_selected' &&
-            event.question_id &&
-            event.question_id.includes('age') &&
-            event.answer_value) {
+      const totalSessions = allSessions.size
+
+      // 2. Get completed sessions (those that reached step 24)
+      let completedQuery = supabase
+        .from('quiz_step_events')
+        .select('session_id')
+        .eq('event_type', 'step_entered')
+        .eq('step_number', 24)
+        .gte('created_at', startDateStr)
+        .limit(50000)
+
+      if (category !== 'all') {
+        completedQuery = completedQuery.eq('category', category)
+      }
+
+      const { data: completedStepEvents } = await completedQuery
+
+      const completedSessionsSet = new Set<string>()
+      completedStepEvents?.forEach((event: { session_id: string }) => {
+        completedSessionsSet.add(event.session_id)
+      })
+
+      const completedSessions = completedSessionsSet.size
+      const abandonedSessions = totalSessions - completedSessions
+
+      // 3. Get traffic sources from first step events
+      const trafficSources: Record<string, number> = {}
+      firstStepEvents?.forEach((event: { session_id: string; metadata: Record<string, unknown> | null }) => {
+        const metadata = event.metadata || {}
+        const source = (metadata.utm_source as string) || (metadata.referrer as string) || 'direct'
+        const sourceKey = source.substring(0, 50)
+        trafficSources[sourceKey] = (trafficSources[sourceKey] || 0) + 1
+      })
+
+      const sortedTrafficSources = Object.entries(trafficSources)
+        .map(([source, count]) => ({ source, count }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 10)
+
+      // 4. Get age breakdown from answer_selected events
+      const ageCounts: Record<string, number> = {}
+
+      let ageQuery = supabase
+        .from('quiz_step_events')
+        .select('session_id, answer_value')
+        .eq('event_type', 'answer_selected')
+        .ilike('question_id', '%age%')
+        .gte('created_at', startDateStr)
+        .not('answer_value', 'is', null)
+        .limit(50000)
+
+      if (category !== 'all') {
+        ageQuery = ageQuery.eq('category', category)
+      }
+
+      const { data: ageEvents } = await ageQuery
+
+      const seenAgeSessions = new Set<string>()
+      ageEvents?.forEach((event: { session_id: string; answer_value: string | null }) => {
+        if (event.answer_value && !seenAgeSessions.has(event.session_id)) {
+          seenAgeSessions.add(event.session_id)
           const ageLabel = event.answer_value
             .replace('age_', '')
             .replace('_', '-')
@@ -84,10 +136,24 @@ export async function GET(request: NextRequest) {
         }
       })
 
-      // Calculate average time per step
+      // 5. Get average time per step
+      let timeQuery = supabase
+        .from('quiz_step_events')
+        .select('step_number, time_spent_seconds')
+        .eq('event_type', 'step_exited')
+        .gte('created_at', startDateStr)
+        .not('time_spent_seconds', 'is', null)
+        .limit(100000)
+
+      if (category !== 'all') {
+        timeQuery = timeQuery.eq('category', category)
+      }
+
+      const { data: timeEvents } = await timeQuery
+
       const stepTimes: Record<number, number[]> = {}
-      events?.forEach(event => {
-        if (event.event_type === 'step_exited' && event.time_spent_seconds) {
+      timeEvents?.forEach((event: { step_number: number; time_spent_seconds: number | null }) => {
+        if (event.time_spent_seconds) {
           if (!stepTimes[event.step_number]) {
             stepTimes[event.step_number] = []
           }
@@ -100,42 +166,31 @@ export async function GET(request: NextRequest) {
         avgTimePerStep[parseInt(step)] = Math.round(times.reduce((a, b) => a + b, 0) / times.length)
       })
 
-      // Count abandoned sessions
-      const sessionMaxSteps: Record<string, number> = {}
-      events?.forEach(event => {
-        if (event.event_type === 'step_entered') {
-          if (!sessionMaxSteps[event.session_id] || event.step_number > sessionMaxSteps[event.session_id]) {
-            sessionMaxSteps[event.session_id] = event.step_number
-          }
-        }
-      })
+      // 6. Count abandonment events
+      let abandonQuery = supabase
+        .from('quiz_step_events')
+        .select('*', { count: 'exact', head: true })
+        .in('event_type', ['quiz_abandoned', 'page_hidden'])
+        .gte('created_at', startDateStr)
 
-      const abandonedSessions = Object.values(sessionMaxSteps).filter(s => s < 24).length
-      const completedSessions = Object.values(sessionMaxSteps).filter(s => s >= 24).length
+      if (category !== 'all') {
+        abandonQuery = abandonQuery.eq('category', category)
+      }
 
-      // Count page_hidden and quiz_abandoned events
-      const abandonmentEvents = events?.filter(e =>
-        e.event_type === 'quiz_abandoned' || e.event_type === 'page_hidden'
-      ).length || 0
-
-      // Sort traffic sources by count
-      const sortedTrafficSources = Object.entries(trafficSources)
-        .map(([source, count]) => ({ source, count }))
-        .sort((a, b) => b.count - a.count)
-        .slice(0, 10)
+      const { count: abandonmentEvents } = await abandonQuery
 
       return NextResponse.json({
         view: 'stats',
         period: { days, startDate: startDateStr },
         category,
         overview: {
-          totalSessions: Object.keys(sessionMaxSteps).length,
+          totalSessions,
           completedSessions,
           abandonedSessions,
-          completionRate: Object.keys(sessionMaxSteps).length > 0
-            ? Math.round((completedSessions / Object.keys(sessionMaxSteps).length) * 100)
+          completionRate: totalSessions > 0
+            ? Math.round((completedSessions / totalSessions) * 100)
             : 0,
-          abandonmentEvents,
+          abandonmentEvents: abandonmentEvents || 0,
         },
         deviceBreakdown: deviceCounts,
         trafficSources: sortedTrafficSources,
@@ -220,6 +275,7 @@ export async function GET(request: NextRequest) {
         .select('session_id, step_number, category')
         .eq('event_type', 'step_entered')
         .gte('created_at', startDateStr)
+        .limit(100000) // Avoid Supabase default 1000 limit
 
       if (category !== 'all') {
         sessionQuery = sessionQuery.eq('category', category)
