@@ -92,13 +92,17 @@ export async function GET(request: NextRequest) {
       const completedSessions = completedSessionsSet.size
       const abandonedSessions = totalSessions - completedSessions
 
-      // 3. Get traffic sources from first step events
+      // 3. Get traffic sources from first step events (deduplicated by session)
       const trafficSources: Record<string, number> = {}
+      const seenTrafficSessions = new Set<string>()
       firstStepEvents?.forEach((event: { session_id: string; metadata: Record<string, unknown> | null }) => {
-        const metadata = event.metadata || {}
-        const source = (metadata.utm_source as string) || (metadata.referrer as string) || 'direct'
-        const sourceKey = source.substring(0, 50)
-        trafficSources[sourceKey] = (trafficSources[sourceKey] || 0) + 1
+        if (!seenTrafficSessions.has(event.session_id)) {
+          seenTrafficSessions.add(event.session_id)
+          const metadata = event.metadata || {}
+          const source = (metadata.utm_source as string) || (metadata.referrer as string) || 'direct'
+          const sourceKey = source.substring(0, 50)
+          trafficSources[sourceKey] = (trafficSources[sourceKey] || 0) + 1
+        }
       })
 
       const sortedTrafficSources = Object.entries(trafficSources)
@@ -107,6 +111,7 @@ export async function GET(request: NextRequest) {
         .slice(0, 10)
 
       // 4. Get age breakdown from answer_selected events
+      // Only count sessions that are in allSessions (our tracked sessions)
       const ageCounts: Record<string, number> = {}
 
       let ageQuery = supabase
@@ -126,7 +131,8 @@ export async function GET(request: NextRequest) {
 
       const seenAgeSessions = new Set<string>()
       ageEvents?.forEach((event: { session_id: string; answer_value: string | null }) => {
-        if (event.answer_value && !seenAgeSessions.has(event.session_id)) {
+        // Only count if session is in our tracked sessions AND not already counted
+        if (event.answer_value && allSessions.has(event.session_id) && !seenAgeSessions.has(event.session_id)) {
           seenAgeSessions.add(event.session_id)
           const ageLabel = event.answer_value
             .replace('age_', '')
