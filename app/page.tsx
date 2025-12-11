@@ -117,8 +117,8 @@ export default function HomePage() {
       {/* Minimal Footer */}
       <Footer />
 
-      {/* Chat Assistant */}
-      <ChatAssistant />
+      {/* Chat Assistant - временно деактивиран за технически ъпдейт */}
+      {/* <ChatAssistant /> */}
 
       {/* Global Reveal Styles */}
       <style jsx global>{`
