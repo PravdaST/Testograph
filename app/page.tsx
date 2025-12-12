@@ -235,7 +235,7 @@ function HeroSection() {
             <span className="text-brand-dark/40 text-[8px] md:text-xs font-mono">V.2.0</span>
           </div>
 
-          <h1 class="font-display font-bold text-xl leading-tight sm:text-4xl md:text-6xl md:leading-[0.95] text-brand-dark mb-2 md:mb-8 w-full">
+          <h1 className="font-display font-bold text-xl leading-tight sm:text-4xl md:text-6xl md:leading-[0.95] text-brand-dark mb-2 md:mb-8 w-full">
             ОПТИМИЗИРАЙ<br />
             <span className="text-brand-green italic">ТЕСТОСТЕРОНА</span> СИ.
           </h1>
