@@ -15,7 +15,6 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import {
   ArrowLeft,
-  FileText,
   Download,
   User,
   Calendar,
@@ -23,37 +22,40 @@ import {
   Loader2,
   Copy,
   Check,
+  Bot,
 } from "lucide-react";
 import { exportToTextFile } from "@/lib/utils/exportToCSV";
 
-interface ChatMessage {
+interface CoachMessage {
   id: string;
+  email: string;
   role: "user" | "assistant";
   content: string;
   created_at: string;
+  model_used?: string;
 }
 
-interface ChatSession {
-  id: string;
+interface CoachSession {
   email: string;
-  pdf_filename: string | null;
-  pdf_url: string | null;
-  created_at: string;
-  updated_at: string;
+  message_count: number;
+  user_messages: number;
+  assistant_messages: number;
+  first_message_at: string;
+  last_message_at: string;
 }
 
 interface SessionDetailsResponse {
-  session: ChatSession;
-  messages: ChatMessage[];
+  session: CoachSession;
+  messages: CoachMessage[];
 }
 
 export default function ChatSessionDetailsPage() {
   const params = useParams();
   const router = useRouter();
-  const sessionId = params?.id as string;
+  const sessionId = params?.id as string; // This is now a URL-encoded email
 
-  const [session, setSession] = useState<ChatSession | null>(null);
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [session, setSession] = useState<CoachSession | null>(null);
+  const [messages, setMessages] = useState<CoachMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isCopied, setIsCopied] = useState(false);
 
@@ -114,16 +116,16 @@ export default function ChatSessionDetailsPage() {
     const transcript = messages
       .map((msg) => {
         const timestamp = formatTime(msg.created_at);
-        return `[${timestamp}] ${msg.role === "user" ? "User" : "Assistant"}:\n${msg.content}`;
+        return `[${timestamp}] ${msg.role === "user" ? "User" : "AI Coach"}:\n${msg.content}`;
       })
       .join("\n\n---\n\n");
 
-    const header = `Chat Transcript - ${session?.email}\nSession ID: ${sessionId}\nDate: ${session ? formatDate(session.created_at) : ""}\n\n${"=".repeat(60)}\n\n`;
+    const header = `App Coach Transcript - ${session?.email}\nFirst Message: ${session ? formatDate(session.first_message_at) : ""}\nLast Message: ${session ? formatDate(session.last_message_at) : ""}\nTotal Messages: ${session?.message_count || 0}\n\n${"=".repeat(60)}\n\n`;
     const fullTranscript = header + transcript;
 
     exportToTextFile(
       fullTranscript,
-      `chat-transcript-${session?.email.replace("@", "_")}-${new Date().toISOString().split("T")[0]}`,
+      `coach-transcript-${session?.email.replace("@", "_")}-${new Date().toISOString().split("T")[0]}`,
       "txt",
     );
   };
@@ -168,10 +170,10 @@ export default function ChatSessionDetailsPage() {
           </Button>
           <div className="flex-1">
             <h1 className="text-xl sm:text-2xl sm:text-3xl font-bold">
-              Chat Session Details
+              App Coach Разговор
             </h1>
             <p className="text-muted-foreground mt-1">
-              Преглед на разговор и информация
+              Преглед на AI коуч сесия
             </p>
           </div>
           <div className="flex gap-2">
@@ -216,9 +218,9 @@ export default function ChatSessionDetailsPage() {
                 <div>
                   <p className="text-sm text-muted-foreground mb-2">
                     <Calendar className="h-4 w-4 inline mr-1" />
-                    Създадена
+                    Първо съобщение
                   </p>
-                  <p className="text-sm">{formatDate(session.created_at)}</p>
+                  <p className="text-sm">{formatDate(session.first_message_at)}</p>
                 </div>
 
                 <div>
@@ -226,7 +228,7 @@ export default function ChatSessionDetailsPage() {
                     <Calendar className="h-4 w-4 inline mr-1" />
                     Последна активност
                   </p>
-                  <p className="text-sm">{formatDate(session.updated_at)}</p>
+                  <p className="text-sm">{formatDate(session.last_message_at)}</p>
                 </div>
 
                 <Separator />
@@ -237,39 +239,21 @@ export default function ChatSessionDetailsPage() {
                     Брой съобщения
                   </p>
                   <p className="text-xl sm:text-2xl font-bold">
-                    {messages.length}
+                    {session.message_count}
                   </p>
+                  <div className="flex gap-4 mt-2 text-sm">
+                    <span className="flex items-center gap-1 text-blue-600">
+                      <User className="h-4 w-4" />
+                      {session.user_messages} user
+                    </span>
+                    <span className="flex items-center gap-1 text-green-600">
+                      <Bot className="h-4 w-4" />
+                      {session.assistant_messages} AI
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
-
-            {/* PDF Info */}
-            {session.pdf_filename && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    PDF Файл
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <p className="text-sm font-medium truncate">
-                    {session.pdf_filename}
-                  </p>
-                  {session.pdf_url && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => window.open(session.pdf_url!, "_blank")}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Изтегли PDF
-                    </Button>
-                  )}
-                </CardContent>
-              </Card>
-            )}
           </div>
 
           {/* Conversation */}
@@ -278,7 +262,7 @@ export default function ChatSessionDetailsPage() {
               <CardHeader>
                 <CardTitle>Разговор</CardTitle>
                 <CardDescription>
-                  Пълна история на чата между потребителя и AI асистента
+                  Пълна история на чата с App Coach
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -314,7 +298,7 @@ export default function ChatSessionDetailsPage() {
                             >
                               {message.role === "user"
                                 ? "Потребител"
-                                : "AI Асистент"}
+                                : "App Coach"}
                             </Badge>
                             <span className="text-xs opacity-70">
                               {formatTime(message.created_at)}

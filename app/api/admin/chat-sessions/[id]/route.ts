@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.NEXT_SUPABASE_SERVICE_ROLE_KEY!
 );
 
 export async function GET(
@@ -13,37 +13,41 @@ export async function GET(
   try {
     const { id } = await params;
 
-    // Get session details
-    const { data: session, error: sessionError } = await supabase
-      .from('chat_sessions')
-      .select('*')
-      .eq('id', id)
-      .single();
+    // The 'id' is now a URL-encoded email address
+    const email = decodeURIComponent(id);
 
-    if (sessionError) throw sessionError;
-
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Session not found' },
-        { status: 404 }
-      );
-    }
-
-    // Get all messages for this session
+    // Get all coach messages for this email
     const { data: messages, error: messagesError } = await supabase
-      .from('chat_messages')
+      .from('coach_messages')
       .select('*')
-      .eq('session_id', id)
+      .eq('email', email)
       .order('created_at', { ascending: true });
 
     if (messagesError) throw messagesError;
 
+    if (!messages || messages.length === 0) {
+      return NextResponse.json(
+        { error: 'No messages found for this user' },
+        { status: 404 }
+      );
+    }
+
+    // Build session info from messages
+    const session = {
+      email,
+      message_count: messages.length,
+      user_messages: messages.filter(m => m.role === 'user').length,
+      assistant_messages: messages.filter(m => m.role === 'assistant').length,
+      first_message_at: messages[0].created_at,
+      last_message_at: messages[messages.length - 1].created_at,
+    };
+
     return NextResponse.json({
       session,
-      messages: messages || [],
+      messages,
     });
   } catch (error: any) {
-    console.error('Error fetching chat session details:', error);
+    console.error('Error fetching coach session details:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to fetch session details' },
       { status: 500 }

@@ -286,12 +286,21 @@ async function markFulfillmentDelivered(orderId: string, fulfillmentId: string):
 /**
  * POST /api/admin/sync-delivery-status
  * Syncs delivered orders from Econt to Shopify
+ * Supports batch processing to avoid Vercel timeout (300s limit)
+ *
+ * Parameters:
+ * - batchSize: number of orders to process (default 25, max 50)
+ * - offset: starting position for batch processing (default 0)
+ * - dryRun: if true, don't make changes
+ * - testOrderId: process single order for testing
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
     const dryRun = body.dryRun === true;
     const testOrderId = body.testOrderId; // Optional: test with single order
+    const batchSize = Math.min(body.batchSize || 25, 50); // Max 50 per batch
+    const offset = body.offset || 0;
 
     if (!SHOPIFY_ACCESS_TOKEN) {
       return NextResponse.json(
@@ -323,6 +332,7 @@ export async function POST(request: Request) {
         message: 'No orders with Econt tracking found',
         results: [],
         summary: { total: 0, synced: 0, alreadySynced: 0, failed: 0, noFulfillment: 0, paymentMarked: 0 },
+        batch: { processed: 0, remaining: 0, isComplete: true },
       });
     }
 
@@ -331,13 +341,20 @@ export async function POST(request: Request) {
     const econtStatuses = await getEcontTrackingStatus(trackingNumbers);
 
     // Filter to only delivered orders
-    const deliveredOrders = orders.filter(order => {
+    const allDeliveredOrders = orders.filter(order => {
       const econtStatus = econtStatuses.get(order.tracking_number);
       const statusText = econtStatus?.shortDeliveryStatus || econtStatus?.shortDeliveryStatusEn;
       return isDelivered(statusText);
     });
 
-    console.log(`[Sync] Found ${deliveredOrders.length} delivered orders out of ${orders.length} total`);
+    const totalDelivered = allDeliveredOrders.length;
+
+    // Apply batch pagination
+    const deliveredOrders = allDeliveredOrders.slice(offset, offset + batchSize);
+    const remaining = Math.max(0, totalDelivered - offset - deliveredOrders.length);
+    const isComplete = remaining === 0;
+
+    console.log(`[Sync] Processing batch: ${deliveredOrders.length} orders (offset: ${offset}, total: ${totalDelivered}, remaining: ${remaining})`);
 
     const results: SyncResult[] = [];
     let synced = 0;
@@ -484,6 +501,15 @@ export async function POST(request: Request) {
         failed,
         noFulfillment,
         paymentMarked: paymentMarkedCount,
+      },
+      batch: {
+        offset,
+        batchSize,
+        processed: deliveredOrders.length,
+        totalDelivered,
+        remaining,
+        isComplete,
+        nextOffset: isComplete ? null : offset + deliveredOrders.length,
       },
       results,
     });

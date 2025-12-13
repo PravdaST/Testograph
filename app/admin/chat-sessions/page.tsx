@@ -22,27 +22,27 @@ import {
 } from "@/components/ui/table";
 import {
   Search,
-  FileText,
   MessageSquare,
   ChevronLeft,
   ChevronRight,
   Loader2,
   Download,
+  User,
+  Bot,
 } from "lucide-react";
 import { exportToCSV } from "@/lib/utils/exportToCSV";
 
-interface ChatSession {
-  id: string;
+interface CoachSession {
   email: string;
-  pdf_filename: string | null;
-  pdf_url: string | null;
-  created_at: string;
-  updated_at: string;
   message_count: number;
+  user_messages: number;
+  assistant_messages: number;
+  first_message_at: string;
+  last_message_at: string;
 }
 
 interface ChatSessionsResponse {
-  sessions: ChatSession[];
+  sessions: CoachSession[];
   total: number;
   limit: number;
   offset: number;
@@ -50,7 +50,7 @@ interface ChatSessionsResponse {
 
 export default function ChatSessionsPage() {
   const router = useRouter();
-  const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [sessions, setSessions] = useState<CoachSession[]>([]);
   const [total, setTotal] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
@@ -105,15 +105,16 @@ export default function ChatSessionsPage() {
   const handleExport = () => {
     const exportData = sessions.map((session) => ({
       Email: session.email,
-      "PDF Filename": session.pdf_filename || "N/A",
-      "Message Count": session.message_count,
-      "Created At": formatDate(session.created_at),
-      "Last Activity": formatDate(session.updated_at),
+      "Total Messages": session.message_count,
+      "User Messages": session.user_messages,
+      "AI Responses": session.assistant_messages,
+      "First Message": formatDate(session.first_message_at),
+      "Last Activity": formatDate(session.last_message_at),
     }));
 
     exportToCSV(
       exportData,
-      `chat-sessions-${new Date().toISOString().split("T")[0]}`,
+      `app-coach-sessions-${new Date().toISOString().split("T")[0]}`,
     );
   };
 
@@ -121,9 +122,9 @@ export default function ChatSessionsPage() {
     <AdminLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">Чат Сесии</h1>
+          <h1 className="text-3xl font-bold">App Coach Сесии</h1>
           <p className="text-muted-foreground mt-2">
-            Преглед на всички AI чат сесии и качени PDF файлове
+            Преглед на всички AI коуч разговори от мобилното приложение
           </p>
         </div>
 
@@ -176,9 +177,10 @@ export default function ChatSessionsPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Email</TableHead>
-                        <TableHead>PDF Файл</TableHead>
-                        <TableHead className="text-center">Съобщения</TableHead>
-                        <TableHead>Създадена</TableHead>
+                        <TableHead className="text-center">User</TableHead>
+                        <TableHead className="text-center">AI</TableHead>
+                        <TableHead className="text-center">Total</TableHead>
+                        <TableHead>Първо съобщение</TableHead>
                         <TableHead>Последна активност</TableHead>
                         <TableHead className="text-right">Действия</TableHead>
                       </TableRow>
@@ -186,28 +188,26 @@ export default function ChatSessionsPage() {
                     <TableBody>
                       {sessions.map((session) => (
                         <TableRow
-                          key={session.id}
+                          key={session.email}
                           className="cursor-pointer hover:bg-accent"
                           onClick={() =>
-                            router.push(`/admin/chat-sessions/${session.id}`)
+                            router.push(`/admin/chat-sessions/${encodeURIComponent(session.email)}`)
                           }
                         >
                           <TableCell className="font-medium">
                             {session.email}
                           </TableCell>
-                          <TableCell>
-                            {session.pdf_filename ? (
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-sm truncate max-w-[200px]">
-                                  {session.pdf_filename}
-                                </span>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground text-sm">
-                                Няма PDF
-                              </span>
-                            )}
+                          <TableCell className="text-center">
+                            <span className="inline-flex items-center gap-1 text-blue-600">
+                              <User className="h-4 w-4" />
+                              {session.user_messages}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="inline-flex items-center gap-1 text-green-600">
+                              <Bot className="h-4 w-4" />
+                              {session.assistant_messages}
+                            </span>
                           </TableCell>
                           <TableCell className="text-center">
                             <span className="inline-flex items-center gap-1">
@@ -216,10 +216,10 @@ export default function ChatSessionsPage() {
                             </span>
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
-                            {formatDate(session.created_at)}
+                            {formatDate(session.first_message_at)}
                           </TableCell>
                           <TableCell className="text-sm text-muted-foreground">
-                            {formatDate(session.updated_at)}
+                            {formatDate(session.last_message_at)}
                           </TableCell>
                           <TableCell className="text-right">
                             <Button
@@ -228,7 +228,7 @@ export default function ChatSessionsPage() {
                               onClick={(e) => {
                                 e.stopPropagation();
                                 router.push(
-                                  `/admin/chat-sessions/${session.id}`,
+                                  `/admin/chat-sessions/${encodeURIComponent(session.email)}`,
                                 );
                               }}
                             >

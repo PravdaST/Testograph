@@ -168,6 +168,11 @@ export default function ShopifyOrdersPage() {
   });
   const [isExporting, setIsExporting] = useState(false);
   const [isSyncingDelivery, setIsSyncingDelivery] = useState(false);
+  const [deliverySyncProgress, setDeliverySyncProgress] = useState<{
+    current: number;
+    total: number;
+    batchNumber: number;
+  } | null>(null);
   const [deliverySyncResult, setDeliverySyncResult] = useState<{
     synced: number;
     alreadySynced: number;
@@ -216,35 +221,77 @@ export default function ShopifyOrdersPage() {
     }
   };
 
-  // Sync delivered orders to Shopify
+  // Sync delivered orders to Shopify (batch processing)
   const syncDeliveryToShopify = async () => {
     setIsSyncingDelivery(true);
     setDeliverySyncResult(null);
-    try {
-      const response = await fetch('/api/admin/sync-delivery-status', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ dryRun: false }),
-      });
-      const data = await response.json();
+    setDeliverySyncProgress(null);
 
-      if (!response.ok) {
-        alert(data.error || 'Failed to sync delivery status');
-        return;
+    let offset = 0;
+    const batchSize = 25;
+    let batchNumber = 0;
+    let totalSynced = 0;
+    let totalAlreadySynced = 0;
+    let totalFailed = 0;
+    let totalNoFulfillment = 0;
+    let totalDelivered = 0;
+
+    try {
+      while (true) {
+        batchNumber++;
+
+        const response = await fetch('/api/admin/sync-delivery-status', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ dryRun: false, batchSize, offset }),
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+          alert(data.error || 'Failed to sync delivery status');
+          break;
+        }
+
+        // Accumulate results
+        totalSynced += data.summary?.synced || 0;
+        totalAlreadySynced += data.summary?.alreadySynced || 0;
+        totalFailed += data.summary?.failed || 0;
+        totalNoFulfillment += data.summary?.noFulfillment || 0;
+        totalDelivered = data.batch?.totalDelivered || totalDelivered;
+
+        // Update progress
+        const currentProcessed = offset + (data.batch?.processed || 0);
+        setDeliverySyncProgress({
+          current: currentProcessed,
+          total: totalDelivered,
+          batchNumber,
+        });
+
+        // Check if we're done
+        if (data.batch?.isComplete) {
+          break;
+        }
+
+        // Move to next batch
+        offset = data.batch?.nextOffset || (offset + batchSize);
+
+        // Small delay between batches
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
 
       setDeliverySyncResult({
-        synced: data.summary?.synced || 0,
-        alreadySynced: data.summary?.alreadySynced || 0,
-        failed: data.summary?.failed || 0,
-        noFulfillment: data.summary?.noFulfillment || 0,
-        total: data.summary?.total || 0,
+        synced: totalSynced,
+        alreadySynced: totalAlreadySynced,
+        failed: totalFailed,
+        noFulfillment: totalNoFulfillment,
+        total: totalDelivered,
       });
     } catch (error) {
       console.error('Sync error:', error);
       alert('Failed to sync delivery status to Shopify');
     } finally {
       setIsSyncingDelivery(false);
+      setDeliverySyncProgress(null);
     }
   };
 
@@ -691,7 +738,9 @@ export default function ShopifyOrdersPage() {
                     {isSyncingDelivery ? (
                       <>
                         <Loader2 className="w-3 h-3 mr-1 animate-spin" />
-                        Синхронизация...
+                        {deliverySyncProgress
+                          ? `${deliverySyncProgress.current}/${deliverySyncProgress.total}`
+                          : 'Starting...'}
                       </>
                     ) : (
                       <>
