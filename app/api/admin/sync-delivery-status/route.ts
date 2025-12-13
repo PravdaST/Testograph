@@ -7,7 +7,7 @@ const supabase = createClient(
 );
 
 // Shopify API configuration
-const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || 'shop.testograph.eu';
+const SHOPIFY_STORE_DOMAIN = process.env.SHOPIFY_STORE_DOMAIN || '9j8fjr-64.myshopify.com';
 const SHOPIFY_MYSHOPIFY_DOMAIN = '9j8fjr-64.myshopify.com'; // Required for GraphQL API
 const SHOPIFY_ACCESS_TOKEN = process.env.SHOPIFY_ADMIN_ACCESS_TOKEN;
 const SHOPIFY_API_VERSION = '2024-01';

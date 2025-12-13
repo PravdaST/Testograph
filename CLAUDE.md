@@ -183,7 +183,7 @@ The users page shows aggregate stats:
 
 ### Environment Variables
 ```env
-SHOPIFY_STORE_DOMAIN="shop.testograph.eu"
+SHOPIFY_STORE_DOMAIN="9j8fjr-64.myshopify.com"
 SHOPIFY_ADMIN_ACCESS_TOKEN="shpat_xxx"
 SHOPIFY_WEBHOOK_SECRET="xxx"
 ```
@@ -385,7 +385,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=xxx
 SUPABASE_SERVICE_ROLE_KEY=xxx
 
 # Shopify
-SHOPIFY_STORE_DOMAIN=shop.testograph.eu
+SHOPIFY_STORE_DOMAIN=9j8fjr-64.myshopify.com
 SHOPIFY_ADMIN_ACCESS_TOKEN=shpat_xxx
 SHOPIFY_WEBHOOK_SECRET=xxx
 
