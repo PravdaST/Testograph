@@ -15,7 +15,9 @@ export function AnalyticsScripts() {
 
   return (
     <>
-      {/* Facebook Meta Pixel */}
+      {/* Facebook Meta Pixel - ДЕАКТИВИРАН 2024-12-13
+          Pixel ID: 9450560195068576
+          Виж doc/FACEBOOK-PIXEL-BACKUP.md за информация
       <Script
         id="facebook-pixel"
         strategy="afterInteractive"
@@ -34,6 +36,7 @@ export function AnalyticsScripts() {
           `
         }}
       />
+      */}
 
       {/* Google Analytics */}
       <Script
