@@ -402,7 +402,7 @@ function HeroSection() {
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </a>
               <a
-                href="#system"
+                href="#how-it-works"
                 className="inline-flex items-center justify-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-900 font-bold py-3 px-6 md:py-4 md:px-8 rounded-full text-base md:text-lg transition-all duration-300 border border-gray-200"
               >
                 <span>Виж как работи</span>
@@ -1126,7 +1126,7 @@ function HowItWorksSection() {
   ];
 
   return (
-    <section className="py-10 md:py-24 px-3 md:px-6 bg-gradient-to-b from-gray-900 via-gray-900 to-black overflow-hidden reveal relative">
+    <section id="how-it-works" className="py-10 md:py-24 px-3 md:px-6 bg-gradient-to-b from-gray-900 via-gray-900 to-black overflow-hidden reveal relative">
       {/* Animated Background Grid */}
       <div className="absolute inset-0 opacity-10">
         <div className="absolute inset-0" style={{
