@@ -223,8 +223,7 @@ export default function HomePage() {
       <HowItWorksSection />
 
       {/* Testograph V2 App Section - Безплатно приложение */}
-      {/* ВРЕМЕННО СКРИТО - за да върнеш, разкоментирай реда по-долу */}
-      {/* <TestographV2Section /> */}
+      <TestographV2Section />
 
       {/* Quote Testimonials - Какво казват мъжете + 30-дневна гаранция */}
       <QuoteTestimonialsSection />
@@ -1679,11 +1678,11 @@ function TestographV2Section() {
           </p>
         </div>
 
-        {/* Main Content - Bento Style */}
-        <div className="relative grid lg:grid-cols-2 gap-4 md:gap-8 items-start">
+        {/* Main Content - Centered Receipt */}
+        <div className="relative flex justify-center">
 
-          {/* Left - Receipt Value Card */}
-          <div className={`transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-10'}`}>
+          {/* Receipt Value Card - Centered */}
+          <div className={`transition-all duration-700 delay-200 ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
             <div className="relative flex items-start justify-center bg-gradient-to-br from-gray-50 to-white rounded-2xl md:rounded-3xl p-4 md:p-8 border border-gray-100">
               <img
                 src="/app/labble-app.webp"
@@ -1693,14 +1692,10 @@ function TestographV2Section() {
             </div>
           </div>
 
-          {/* Connector Arrow - Desktop Only */}
+          {/* ВРЕМЕННО СКРИТО - Phone Carousel и Connector Arrow
           <div className={`hidden lg:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10 flex-col items-center gap-2 transition-all duration-700 delay-500 ${isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-75'}`}>
-            {/* Animated flowing dots */}
             <div className="relative w-24 h-12 flex items-center justify-center">
-              {/* Background pill */}
               <div className="absolute inset-0 bg-white rounded-full shadow-lg border border-gray-100" />
-
-              {/* Flowing dots animation */}
               <div className="relative flex items-center gap-1.5">
                 <div className="w-2 h-2 bg-brand-green rounded-full animate-[flowRight_1.5s_ease-in-out_infinite]" style={{ animationDelay: '0s' }} />
                 <div className="w-2 h-2 bg-brand-green/70 rounded-full animate-[flowRight_1.5s_ease-in-out_infinite]" style={{ animationDelay: '0.2s' }} />
@@ -1708,17 +1703,14 @@ function TestographV2Section() {
                 <ArrowRight className="w-5 h-5 text-brand-green ml-1" />
               </div>
             </div>
-
-            {/* Label */}
             <span className="text-[10px] font-bold text-brand-green uppercase tracking-wider bg-white px-2 py-0.5 rounded-full shadow-sm border border-brand-green/20">
               Безплатно
             </span>
           </div>
-
-          {/* Right Side - Phone Carousel */}
           <div>
             <PhoneCarouselSection isVisible={isVisible} />
           </div>
+          */}
         </div>
 
         {/* Compact 2x2 Features Grid - Below Both */}
