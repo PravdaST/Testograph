@@ -35,11 +35,11 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL('https://testograph.eu'),
   title: {
-    default: 'TestoUP: Цялостна система за висок тестостерон и мъжко здраве | Testograph',
+    default: 'TestoUP: Система за мъжка енергия и виталност | Testograph',
     template: '%s | Testograph'
   },
-  description: 'Повиши своя тестостерон по естествен път със системата TestoUP. Клинично тествана добавка и персонално приложение за повече енергия, по-силно либидо и по-добри резултати. Започни днес!',
-  keywords: ['тестостерон', 'повишаване на тестостерон', 'мъжко здраве', 'либидо', 'енергия', 'хранителна добавка', 'TestoUP', 'фитнес', 'мускулна маса', 'натурални съставки'],
+  description: 'Открий повече енергия и виталност със системата TestoUP. Премиум добавка с натурални съставки и персонализирано приложение за по-добро възстановяване и резултати. Започни днес!',
+  keywords: ['мъжко здраве', 'енергия', 'виталност', 'хранителна добавка', 'TestoUP', 'фитнес', 'възстановяване', 'натурални съставки'],
   authors: [{ name: 'Testograph' }],
   creator: 'Testograph',
   publisher: 'Testograph',
@@ -53,21 +53,21 @@ export const metadata: Metadata = {
     locale: 'bg_BG',
     url: 'https://testograph.eu',
     siteName: 'Testograph',
-    title: 'TestoUP: Цялостна система за висок тестостерон и мъжко здраве',
-    description: 'Повиши своя тестостерон по естествен път със системата TestoUP. Клинично тествана добавка и персонално приложение за повече енергия, по-силно либидо и по-добри резултати. Започни днес!',
+    title: 'TestoUP: Система за мъжка енергия и виталност',
+    description: 'Открий повече енергия и виталност със системата TestoUP. Премиум добавка с натурални съставки и персонализирано приложение за по-добро възстановяване и резултати.',
     images: [
       {
         url: 'https://storage.googleapis.com/gpt-engineer-file-uploads/5ByhMx7vllZrlm4HJCiFF4YTglh2/social-images/social-1757673646778-20250908_1219_Testograph Futuristic Logo_simple_compose_01k4m9x1xzeb899xy44fmbdc9j.png',
         width: 1200,
         height: 630,
-        alt: 'Testograph - Цялостна система за висок тестостерон',
+        alt: 'Testograph - Система за мъжка енергия',
       },
     ],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'TestoUP: Цялостна система за висок тестостерон и мъжко здраве',
-    description: 'Повиши своя тестостерон по естествен път със системата TestoUP. Клинично тествана добавка и персонално приложение за повече енергия, по-силно либидо и по-добри резултати. Започни днес!',
+    title: 'TestoUP: Система за мъжка енергия и виталност',
+    description: 'Открий повече енергия и виталност със системата TestoUP. Премиум добавка с натурални съставки и персонализирано приложение за по-добро възстановяване и резултати.',
     images: ['https://storage.googleapis.com/gpt-engineer-file-uploads/5ByhMx7vllZrlm4HJCiFF4YTglh2/social-images/social-1757673646778-20250908_1219_Testograph Futuristic Logo_simple_compose_01k4m9x1xzeb899xy44fmbdc9j.png'],
   },
   alternates: {
@@ -106,8 +106,8 @@ export default function RootLayout({
             __html: JSON.stringify({
               "@context": "https://schema.org",
               "@type": "Product",
-              "name": "TestoUP - Цялостна система за повишаване на тестостерона",
-              "description": "TestoUP е цялостна система за естествено повишаване на тестостерона, включваща клинично тествана хранителна добавка и персонализирано приложение за тренировки, хранене и възстановяване.",
+              "name": "TestoUP - Система за мъжка енергия и виталност",
+              "description": "TestoUP е цялостна система за повече енергия и виталност, включваща премиум добавка с натурални съставки и персонализирано приложение за тренировки, хранене и възстановяване.",
               "url": "https://testograph.eu",
               "image": "https://storage.googleapis.com/gpt-engineer-file-uploads/5ByhMx7vllZrlm4HJCiFF4YTglh2/social-images/social-1757673646778-20250908_1219_Testograph Futuristic Logo_simple_compose_01k4m9x1xzeb899xy44fmbdc9j.png",
               "brand": {
@@ -167,7 +167,7 @@ export default function RootLayout({
               "name": "Testograph",
               "url": "https://testograph.eu",
               "logo": "https://storage.googleapis.com/gpt-engineer-file-uploads/5ByhMx7vllZrlm4HJCiFF4YTglh2/uploads/1757675182985-Minimalist dark themed logo design for the brand Testograph. Vector style, futuristic and masculine. Bold geometric typography inspired by Clash Display Bold, the word Testograph in clean white wi.png",
-              "description": "Testograph е водещата компания за мъжко здраве в България, предлагаща цялостна система за естествено повишаване на тестостерона чрез клинично тествани добавки и персонализирано приложение.",
+              "description": "Testograph е водещата компания за мъжко здраве в България, предлагаща цялостна система за енергия и виталност чрез премиум добавки с натурални съставки и персонализирано приложение.",
               "sameAs": [
                 "https://www.facebook.com/testograph",
                 "https://www.instagram.com/testograph",
@@ -197,7 +197,7 @@ export default function RootLayout({
               "@type": "WebSite",
               "name": "Testograph",
               "url": "https://testograph.eu",
-              "description": "Цялостна система за естествено повишаване на тестостерона при мъжете - клинично тествана добавка и персонализирано AI приложение.",
+              "description": "Цялостна система за мъжка енергия и виталност - премиум добавка с натурални съставки и персонализирано AI приложение.",
               "publisher": {
                 "@type": "Organization",
                 "name": "Testograph",

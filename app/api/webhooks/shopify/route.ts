@@ -196,29 +196,70 @@ export async function POST(request: Request) {
       || order.phone
       || null;
 
+    // Helper to check if a value is a valid name (not null, undefined, empty, etc.)
+    const isValidName = (value: string | null | undefined): boolean => {
+      if (!value) return false;
+      const trimmed = value.trim().toLowerCase();
+      if (trimmed === '') return false;
+      if (trimmed === 'null') return false;
+      if (trimmed === 'undefined') return false;
+      if (trimmed === 'undefined undefined') return false;
+      if (trimmed === 'null null') return false;
+      return true;
+    };
+
+    const buildFullName = (firstName: string | null | undefined, lastName: string | null | undefined): string | null => {
+      const first = firstName && isValidName(firstName) ? firstName.trim() : '';
+      const last = lastName && isValidName(lastName) ? lastName.trim() : '';
+      const fullName = `${first} ${last}`.trim();
+      return isValidName(fullName) ? fullName : null;
+    };
+
     const getCustomerName = (): string | null => {
-      if (order.customer?.first_name || order.customer?.last_name) {
-        const firstName = order.customer.first_name || '';
-        const lastName = order.customer.last_name || '';
-        const name = `${firstName} ${lastName}`.trim();
-        if (name && name !== 'undefined' && name !== 'undefined undefined') {
-          return name;
+      // 1. Try customer object
+      if (order.customer) {
+        const name = buildFullName(order.customer.first_name, order.customer.last_name);
+        if (name) return name;
+      }
+
+      // 2. Try shipping_address.name (full name field)
+      if (isValidName(order.shipping_address?.name)) {
+        return order.shipping_address!.name;
+      }
+
+      // 3. Try shipping_address first_name + last_name
+      if (order.shipping_address) {
+        const name = buildFullName(order.shipping_address.first_name, order.shipping_address.last_name);
+        if (name) return name;
+      }
+
+      // 4. Try billing_address.name
+      if (isValidName(order.billing_address?.name)) {
+        return order.billing_address!.name;
+      }
+
+      // 5. Try billing_address first_name + last_name
+      if (order.billing_address) {
+        const name = buildFullName(order.billing_address.first_name, order.billing_address.last_name);
+        if (name) return name;
+      }
+
+      // 6. Fallback: extract from email (e.g., "ivan.petrov@gmail.com" -> "Ivan Petrov")
+      const emailToTry = order.email || order.customer?.email;
+      if (emailToTry && emailToTry.includes('@')) {
+        const localPart = emailToTry.split('@')[0];
+        // Split by common separators: . _ -
+        const parts = localPart.split(/[._-]/).filter(p => p.length > 1);
+        if (parts.length >= 1) {
+          const formattedName = parts
+            .map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase())
+            .join(' ');
+          if (isValidName(formattedName)) {
+            return formattedName;
+          }
         }
       }
-      if (order.shipping_address?.name) {
-        return order.shipping_address.name;
-      }
-      if (order.shipping_address?.first_name || order.shipping_address?.last_name) {
-        const firstName = order.shipping_address.first_name || '';
-        const lastName = order.shipping_address.last_name || '';
-        const name = `${firstName} ${lastName}`.trim();
-        if (name && name !== 'undefined') {
-          return name;
-        }
-      }
-      if (order.billing_address?.name) {
-        return order.billing_address.name;
-      }
+
       return null;
     };
 
