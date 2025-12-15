@@ -743,14 +743,14 @@ function DidYouKnowSection() {
                   {[
                     { name: "Ашваганда", dose: "400мг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/ashwagandha.png" },
                     { name: "Витамин D3", dose: "2400 МЕ", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/vitamin-d3.png" },
-                    { name: "Цинк", dose: "15мг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/zinc.png" },
-                    { name: "Селен", dose: "200мкг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/selenium.png" },
-                    { name: "Витамин B12", dose: "600мкг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/vitamin-b12.png" },
-                    { name: "Витамин E", dose: "270мг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/vitamin-e.png" },
-                    { name: "Трибулус", dose: "600мг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/tribulus.png" },
-                    { name: "Магнезий", dose: "44мг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/magnesium.png" },
+                    { name: "Цинк", dose: "50мг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/zinc.png" },
+                    { name: "Селен", dose: "100мкг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/selenium.png" },
+                    { name: "Витамин B12", dose: "10мкг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/vitamin-b12.png" },
+                    { name: "Витамин E", dose: "30мг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/vitamin-e.png" },
+                    { name: "Трибулус", dose: "500мг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/tribulus.png" },
+                    { name: "Магнезий", dose: "400мг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/magnesium.png" },
                     { name: "Витамин K2", dose: "100мкг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/vitamin-k2.png" },
-                    { name: "Витамин B6", dose: "10мг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/vitamin-b6.png" },
+                    { name: "Витамин B6", dose: "5мг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/vitamin-b6.png" },
                     { name: "Фолат B9", dose: "400мкг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/folate-b9.png" },
                     { name: "Витамин C", dose: "200мг", img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/vitamin-c.png" }
                   ].map((ing, idx) => (
