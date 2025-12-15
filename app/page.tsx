@@ -1623,8 +1623,8 @@ function TestographV2Section() {
     },
     {
       icon: Brain,
-      title: "AI хормонален експерт",
-      desc: "24/7 достъп до асистент",
+      title: "24/7 достъп до асистент",
+      desc: "",
       color: "from-orange-500 to-amber-600",
       bg: "bg-orange-50",
       delay: "300ms"
@@ -1731,9 +1731,8 @@ function TestographV2Section() {
                 <div className={`w-9 h-9 rounded-lg ${feature.bg} flex items-center justify-center flex-shrink-0`}>
                   <feature.icon className="w-4 h-4" style={{ color: feature.color.includes('purple') ? '#8b5cf6' : feature.color.includes('emerald') ? '#10b981' : feature.color.includes('blue') ? '#3b82f6' : '#f97316' }} />
                 </div>
-                <div>
+                <div className="flex items-center">
                   <h4 className="font-bold text-gray-900 text-xs md:text-sm leading-tight">{feature.title}</h4>
-                  <p className="text-[10px] md:text-xs text-gray-500">{feature.desc}</p>
                 </div>
               </div>
             </div>
