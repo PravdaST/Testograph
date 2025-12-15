@@ -223,7 +223,8 @@ export default function HomePage() {
       <HowItWorksSection />
 
       {/* Testograph V2 App Section - Безплатно приложение */}
-      <TestographV2Section />
+      {/* ВРЕМЕННО СКРИТО - за да върнеш, разкоментирай реда по-долу */}
+      {/* <TestographV2Section /> */}
 
       {/* Quote Testimonials - Какво казват мъжете + 30-дневна гаранция */}
       <QuoteTestimonialsSection />
