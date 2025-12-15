@@ -471,7 +471,7 @@ function TrustBadgesBento() {
 function DidYouKnowSection() {
   const problems = [
     {
-      text: "Намалено либидо",
+      text: "Намалена виталност",
       icon: (
         <svg className="w-5 h-5 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
@@ -536,7 +536,7 @@ function DidYouKnowSection() {
                     С напредването на възрастта мъжкият организъм постепенно произвежда по-малко тестостерон.
                   </p>
                   <p className="text-base md:text-lg text-white/70 leading-relaxed">
-                    Той е отговорен за <span className="text-brand-green font-semibold">мускулната маса</span>. За <span className="text-brand-green font-semibold">плътността на костите</span>. За <span className="text-brand-green font-semibold">либидото</span>. За <span className="text-brand-green font-semibold">енергийните нива</span>.
+                    Той е отговорен за <span className="text-brand-green font-semibold">мускулната маса</span>. За <span className="text-brand-green font-semibold">плътността на костите</span>. За <span className="text-brand-green font-semibold">виталността</span>. За <span className="text-brand-green font-semibold">енергийните нива</span>.
                   </p>
                 </div>
                 {/* Animated Testosterone Decline Chart */}
@@ -819,7 +819,7 @@ function IngredientsDetailSection() {
     {
       name: "Tribulus Terrestris",
       dose: "600мг",
-      description: "Повишава либидото и мъжката жизненост. Натурален стимулант, използван от хиляди години.",
+      description: "Повишава виталността и мъжката жизненост. Натурален стимулант, използван от хиляди години.",
       img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/tribulus.png",
       color: "lime"
     },
@@ -833,7 +833,7 @@ function IngredientsDetailSection() {
     {
       name: "Цинк цитрат",
       dose: "50мг",
-      description: "Ключов за мъжкото здраве и либидо. 5x повече от аптечните добавки. Тялото не го складира - трябва ти всеки ден.",
+      description: "Ключов за мъжкото здраве и виталност. 5x повече от аптечните добавки. Тялото не го складира - трябва ти всеки ден.",
       img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/zinc.png",
       color: "blue"
     },
@@ -1099,7 +1099,7 @@ function HowItWorksSection() {
       title: "Реална разлика",
       points: [
         "Забележима сила в залата.",
-        "Постоянно високо либидо.",
+        "Постоянна мъжка виталност.",
         "Увереност, която личи."
       ],
       image: timelineImages["day-30"],
@@ -1343,7 +1343,7 @@ function HowItWorksSection() {
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-green to-lime-400">2.5x</div>
-                <div className="text-xs md:text-sm text-gray-400 mt-1">По-добро либидо</div>
+                <div className="text-xs md:text-sm text-gray-400 mt-1">По-добра виталност</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl md:text-4xl font-black text-white">90</div>
@@ -1384,9 +1384,9 @@ function VideoTestimonialsSection() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   const videos = [
-    { src: "/testimonials/TestoUp - Libido 1.mp4", title: "Подобрено либидо след 2 седмици", tag: "ЛИБИДО" },
-    { src: "/testimonials/TestoUP - LIBIDO 2.mp4", title: "Връщане на сексуалната енергия", tag: "ЛИБИДО" },
-    { src: "/testimonials/TestoUP - Libido 3.mp4", title: "По-силно желание и увереност", tag: "ЛИБИДО" },
+    { src: "/testimonials/TestoUp - Libido 1.mp4", title: "Подобрена виталност след 2 седмици", tag: "ВИТАЛНОСТ" },
+    { src: "/testimonials/TestoUP - LIBIDO 2.mp4", title: "Връщане на мъжката енергия", tag: "ВИТАЛНОСТ" },
+    { src: "/testimonials/TestoUP - Libido 3.mp4", title: "По-силно желание и увереност", tag: "ВИТАЛНОСТ" },
     { src: "/testimonials/TestoUp - Pregmant 1.mp4", title: "Успешна бременност след години опити", tag: "ФЕРТИЛНОСТ" },
     { src: "/testimonials/TestoUp - Pregmant 2.mp4", title: "Подобрени параметри и зачатие", tag: "ФЕРТИЛНОСТ" },
     { src: "/testimonials/TestoUp - Pregmant 3.mp4", title: "Реална промяна в качеството", tag: "ФЕРТИЛНОСТ" }
@@ -1842,7 +1842,7 @@ function AnimatedChatCard() {
   const conversations = [
     {
       userMsg: "Колко време отнема да видя резултати?",
-      aiMsg: "Първите ефекти (повишено либидо, повече енергия) се усещат в рамките на 3-7 дни. За пълна трансформация препоръчвам 60-90 дни следване на програмата."
+      aiMsg: "Първите ефекти (повишена виталност, повече енергия) се усещат в рамките на 3-7 дни. За пълна трансформация препоръчвам 60-90 дни следване на програмата."
     },
     {
       userMsg: "Как получавам достъп до приложението?",
@@ -2107,7 +2107,7 @@ function HowToOrderSection() {
     {
       icon: <TrendingUp className="w-16 h-16 text-brand-green" />,
       title: "3. Постигни резултати",
-      description: "Седмица 1: Повишено либидо и по-добри ерекции.\nМесец 1: Повече енергия и по-бързо възстановяване.\nМесец 2: Цялостна трансформация."
+      description: "Седмица 1: Повишена виталност и по-добро събуждане.\nМесец 1: Повече енергия и по-бързо възстановяване.\nМесец 2: Цялостна трансформация."
     }
   ];
 
@@ -2507,14 +2507,14 @@ function ProductPackagesSection() {
 function MemberTestimonialsSection() {
   const testimonials = [
     { text: "Първите две седмици бях скептичен. След това обаче забелязах, че приключвам работния ден без да съм напълно изтощен. Това е огромна промяна за мен.", author: "Стоян, 34г., София", avatar: "/funnel/stoyan-avatar.jpg" },
-    { text: "На четвъртия ден се появи сутрешна ерекция, което не ми се беше случвало от месеци. Жена ми забеляза, че нещо се променя, още преди да ѝ кажа.", author: "Димитър, 40г., Пловдив", avatar: "/funnel/dimitar-avatar.jpg" },
+    { text: "На четвъртия ден се събудих с енергия, каквато не бях имал от месеци. Жена ми забеляза, че нещо се променя, още преди да ѝ кажа.", author: "Димитър, 40г., Пловдив", avatar: "/funnel/dimitar-avatar.jpg" },
     { text: "Без приложението нямаше да знам какво да правя. Особено частта за съня - промених часа си на лягане и температурата в стаята. Разликата беше огромна.", author: "Николай, 37г., Варна", avatar: "/funnel/avatar-extra1.jpg" },
     { text: "Пета седмица: момчетата в залата ме питат 'какво взимаш?'. Вдигам повече и се възстановявам по-бързо.", author: "Иван, 29г., Бургас", avatar: "/funnel/ivan-avatar.jpg" },
     { text: "Пробвал съм трибулус и мака преди, но без резултат. Тук е различно, защото следваш цялостна програма, а не просто пиеш хапчета.", author: "Петър, 42г., Русе", avatar: "/funnel/petar-avatar.jpg" },
     { text: "Преди спях по 5-6 часа и се чувствах разбит. Сега спя по 7-8 часа и се събуждам сам, преди алармата. Енергията ми през деня е стабилна.", author: "Георги, 45г., Стара Загора", avatar: "/funnel/georgi-avatar.jpg" },
     { text: "Не стана за седмица, отне ми около месец и половина. Но програмата наистина работи, стига да си постоянен.", author: "Христо, 38г., Плевен", avatar: "/funnel/emil-avatar.jpg" },
     { text: "Харчил съм толкова пари за безполезни неща. Това е първото, което реално промени начина, по който се чувствам всеки ден.", author: "Александър, 35г., Велико Търново", avatar: "/funnel/avatar-extra2.jpg" },
-    { text: "Преди два месеца бях постоянно уморен, с нулево либидо и в лошо настроение. Сега отново се чувствам нормално. Просто нормално. Това е всичко, което исках.", author: "Мартин, 41г., Благоевград", avatar: "/funnel/martin-avatar.jpg" }
+    { text: "Преди два месеца бях постоянно уморен, без никаква мотивация и в лошо настроение. Сега отново се чувствам нормално. Просто нормално. Това е всичко, което исках.", author: "Мартин, 41г., Благоевград", avatar: "/funnel/martin-avatar.jpg" }
   ];
 
   return (
@@ -2578,7 +2578,7 @@ function QuoteTestimonialsSection() {
       verified: true
     },
     {
-      text: "Не очаквах толкова много неща да са включени. Добавката, апликацията, плановете... Всичко на едно място. Разликата в либидото се усети още първата седмица.",
+      text: "Не очаквах толкова много неща да са включени. Добавката, апликацията, плановете... Всичко на едно място. Разликата в енергията се усети още първата седмица.",
       name: "Димитър",
       age: "41г.",
       avatar: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/avatars/dimitar-41.png",
@@ -3024,7 +3024,7 @@ function FAQSection() {
   const faqs = [
     {
       q: "Колко време отнема, за да видя резултати?",
-      a: "Повечето мъже забелязват първите ефекти (повишено либидо, повече енергия) в рамките на 3 до 7 дни. За цялостна трансформация са необходими между 60 и 90 дни стриктно следване на програмата."
+      a: "Повечето мъже забелязват първите ефекти (повишена виталност, повече енергия) в рамките на 3 до 7 дни. За цялостна трансформация са необходими между 60 и 90 дни стриктно следване на програмата."
     },
     {
       q: "Як получавам достъп до приложението?",
