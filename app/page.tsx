@@ -1329,30 +1329,6 @@ function HowItWorksSection() {
           ))}
         </div>
 
-        {/* Bottom Stats Bar */}
-        <div className="mt-8 md:mt-16">
-          <div className="bg-white/5 backdrop-blur-xl rounded-xl md:rounded-2xl border border-white/10 p-4 md:p-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-8">
-              <div className="text-center">
-                <div className="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-lime-400 to-emerald-400">97%</div>
-                <div className="text-xs md:text-sm text-gray-400 mt-1">Усещат разлика в първите 7 дни</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-brand-green">+43%</div>
-                <div className="text-xs md:text-sm text-gray-400 mt-1">Повече енергия на ден 30</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl md:text-4xl font-black text-transparent bg-clip-text bg-gradient-to-r from-brand-green to-lime-400">2.5x</div>
-                <div className="text-xs md:text-sm text-gray-400 mt-1">По-добро либидо</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl md:text-4xl font-black text-white">90</div>
-                <div className="text-xs md:text-sm text-gray-400 mt-1">Дни за пълна трансформация</div>
-              </div>
-            </div>
-          </div>
-        </div>
-
         {/* CTA */}
         <div className="mt-8 md:mt-10 text-center">
           <a
