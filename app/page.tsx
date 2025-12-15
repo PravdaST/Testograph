@@ -2833,7 +2833,7 @@ function QuoteTestimonialsSection() {
 
                   {/* CTA Button */}
                   <a
-                    href="https://shop.testograph.eu/products/testoup"
+                    href="https://shop.testograph.eu/products/testoup-sample-7"
                     className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-green to-emerald-600 hover:from-emerald-600 hover:to-brand-green text-white font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-lg shadow-brand-green/30 hover:shadow-brand-green/50 hover:scale-105 text-sm md:text-base"
                   >
                     <span>ПОРЪЧАЙ БЕЗПЛАТНА ПРОБА</span>
