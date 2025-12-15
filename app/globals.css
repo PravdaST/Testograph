@@ -377,6 +377,87 @@ button, .btn {
   animation: gradient 15s ease infinite;
 }
 
+/* Line Draw Animation for Charts */
+@keyframes drawLine {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Phone Carousel Animation - 5 slides with pause */
+@keyframes phoneCarousel {
+  0%, 16% { transform: translateX(0); }
+  20%, 36% { transform: translateX(-100%); }
+  40%, 56% { transform: translateX(-200%); }
+  60%, 76% { transform: translateX(-300%); }
+  80%, 96% { transform: translateX(-400%); }
+  100% { transform: translateX(0); }
+}
+
+/* Flow Right Animation for connector dots */
+@keyframes flowRight {
+  0% {
+    transform: translateX(-8px);
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(8px);
+    opacity: 0;
+  }
+}
+
+/* Phone Screen Auto-Scroll Animation */
+@keyframes phoneScroll {
+  0%, 10% {
+    transform: translateY(0);
+  }
+  45%, 55% {
+    transform: translateY(-30%);
+  }
+  90%, 100% {
+    transform: translateY(0);
+  }
+}
+
+/* Hero Background Blob Animation */
+@keyframes blob {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(20px, -30px) scale(1.05);
+  }
+  50% {
+    transform: translate(-20px, 20px) scale(0.95);
+  }
+  75% {
+    transform: translate(30px, 10px) scale(1.02);
+  }
+}
+
+/* Hero Floating Particles Animation */
+@keyframes floatParticle {
+  0%, 100% {
+    transform: translate(0, 0) rotate(0deg);
+    opacity: 0.3;
+  }
+  25% {
+    transform: translate(15px, -25px) rotate(90deg);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translate(-10px, -40px) rotate(180deg);
+    opacity: 0.4;
+  }
+  75% {
+    transform: translate(20px, -15px) rotate(270deg);
+    opacity: 0.5;
+  }
+}
+
 /* Accessibility: Reduce Motion */
 @media (prefers-reduced-motion: reduce) {
   *,
