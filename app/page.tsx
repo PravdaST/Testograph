@@ -382,9 +382,9 @@ function HeroSection() {
           <div className="order-2 lg:order-1 lg:flex-1 text-center lg:text-left">
             {/* Title */}
             <h1 className="font-display font-bold text-3xl md:text-5xl lg:text-7xl text-gray-900 mb-3 md:mb-6 leading-tight">
-              TestoUP <span className="text-brand-green">№1</span>
+              TestoUP <span className="text-brand-green">№1</span> добавка
               <br />
-              <span className="text-brand-green italic">за мъже</span>
+              <span className="text-brand-green italic">САМО за МЪЖЕ</span>
             </h1>
 
             {/* Subtitle */}
