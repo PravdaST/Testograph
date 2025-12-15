@@ -789,7 +789,7 @@ function DidYouKnowSection() {
             <div className="absolute inset-0 bg-brand-green/30 rounded-3xl blur-xl opacity-50 group-hover:opacity-70 transition-all" />
             <div className="relative h-64 md:h-full min-h-[280px] rounded-3xl overflow-hidden border border-brand-green/30">
               <img
-                src="https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/did-you-know/energetic-man.png"
+                src="https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/did-you-know/energetic-man.png?v=2"
                 alt="Оптимални нива на тестостерон с TestoUP"
                 className="w-full h-full object-cover"
               />
@@ -1072,9 +1072,9 @@ function IngredientsDetailSection() {
 // ============================================
 function HowItWorksSection() {
   const timelineImages = {
-    "day-7": "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/timeline/day-7.png",
-    "day-30": "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/timeline/day-30.png",
-    "day-90": "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/timeline/day-90.png",
+    "day-7": "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/timeline/day-7.png?v=2",
+    "day-30": "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/timeline/day-30.png?v=2",
+    "day-90": "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/timeline/day-90.png?v=2",
   };
 
   const milestones = [
