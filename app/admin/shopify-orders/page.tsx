@@ -180,6 +180,14 @@ export default function ShopifyOrdersPage() {
     noFulfillment: number;
     total: number;
   } | null>(null);
+  // Single order check state
+  const [checkingOrderId, setCheckingOrderId] = useState<string | null>(null);
+  const [singleCheckResult, setSingleCheckResult] = useState<{
+    success: boolean;
+    message: string;
+    synced?: boolean;
+    alreadySynced?: boolean;
+  } | null>(null);
 
   // Generate last 12 months for export dropdown
   const getMonthOptions = () => {
@@ -292,6 +300,74 @@ export default function ShopifyOrdersPage() {
     } finally {
       setIsSyncingDelivery(false);
       setDeliverySyncProgress(null);
+    }
+  };
+
+  // Check single order delivery status in Econt
+  const checkSingleOrderDelivery = async (orderId: string, showAlert: boolean = false) => {
+    setCheckingOrderId(orderId);
+    if (!showAlert) setSingleCheckResult(null);
+
+    try {
+      const response = await fetch('/api/admin/sync-delivery-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dryRun: false, testOrderId: orderId }),
+      });
+      const data = await response.json();
+
+      if (!response.ok) {
+        const message = data.error || 'Failed to check delivery status';
+        if (showAlert) {
+          alert(`❌ ${message}`);
+        } else {
+          setSingleCheckResult({ success: false, message });
+        }
+        return;
+      }
+
+      // Check the result
+      const summary = data.summary || {};
+      let resultMessage = '';
+      let synced = false;
+      let alreadySynced = false;
+
+      if (summary.synced > 0) {
+        resultMessage = 'Поръчката е маркирана като доставена и платена!';
+        synced = true;
+        // Refresh orders to show updated status
+        await fetchOrders();
+        // Update selected order if it's the one we checked
+        if (selectedOrder && selectedOrder.shopify_order_id === orderId) {
+          const updatedOrder = orders.find(o => o.shopify_order_id === orderId);
+          if (updatedOrder) {
+            setSelectedOrder(updatedOrder);
+          }
+        }
+      } else if (summary.alreadySynced > 0) {
+        resultMessage = 'Поръчката вече е синхронизирана.';
+        alreadySynced = true;
+      } else if (data.orders && data.orders.length === 0) {
+        resultMessage = 'Поръчката не е намерена или няма tracking.';
+      } else {
+        resultMessage = 'Пратката още не е доставена в Econt.';
+      }
+
+      if (showAlert) {
+        alert(synced ? `✅ ${resultMessage}` : `ℹ️ ${resultMessage}`);
+      } else {
+        setSingleCheckResult({ success: true, message: resultMessage, synced, alreadySynced });
+      }
+    } catch (error) {
+      console.error('Single order check error:', error);
+      const message = 'Грешка при проверка на статуса';
+      if (showAlert) {
+        alert(`❌ ${message}`);
+      } else {
+        setSingleCheckResult({ success: false, message });
+      }
+    } finally {
+      setCheckingOrderId(null);
     }
   };
 
@@ -459,6 +535,7 @@ export default function ShopifyOrdersPage() {
   const openOrderDetails = (order: ShopifyOrder) => {
     setSelectedOrder(order);
     setIsSheetOpen(true);
+    setSingleCheckResult(null); // Clear previous check result
   };
 
   const getTotalCapsules = (products: Product[]) => {
@@ -875,6 +952,26 @@ export default function ShopifyOrdersPage() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex gap-1 justify-end">
+                            {/* Quick Check Econt Status */}
+                            {order.tracking_number && !order.is_paid && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-orange-500 hover:text-orange-700 hover:bg-orange-50"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  checkSingleOrderDelivery(order.shopify_order_id, true);
+                                }}
+                                disabled={checkingOrderId === order.shopify_order_id}
+                                title="Провери статус в Econt"
+                              >
+                                {checkingOrderId === order.shopify_order_id ? (
+                                  <Loader2 className="w-4 h-4 animate-spin" />
+                                ) : (
+                                  <Search className="w-4 h-4" />
+                                )}
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
@@ -958,7 +1055,10 @@ export default function ShopifyOrdersPage() {
       </div>
 
       {/* Order Details Sheet */}
-      <Sheet open={isSheetOpen} onOpenChange={setIsSheetOpen}>
+      <Sheet open={isSheetOpen} onOpenChange={(open) => {
+        setIsSheetOpen(open);
+        if (!open) setSingleCheckResult(null); // Clear result when closing
+      }}>
         <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
           {selectedOrder && (
             <>
@@ -1255,20 +1355,73 @@ export default function ShopifyOrdersPage() {
                 <Separator />
 
                 {/* Actions */}
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => {
-                      window.open(
-                        `https://shop.testograph.eu/admin/orders/${selectedOrder.shopify_order_id}`,
-                        "_blank"
-                      );
-                    }}
-                  >
-                    <ExternalLink className="w-4 h-4 mr-2" />
-                    View in Shopify
-                  </Button>
+                <div className="space-y-3">
+                  {/* Single Order Check Result */}
+                  {singleCheckResult && (
+                    <div className={`rounded-lg p-3 flex items-start gap-2 ${
+                      singleCheckResult.success
+                        ? singleCheckResult.synced
+                          ? 'bg-green-50 border border-green-200'
+                          : 'bg-blue-50 border border-blue-200'
+                        : 'bg-red-50 border border-red-200'
+                    }`}>
+                      {singleCheckResult.success ? (
+                        singleCheckResult.synced ? (
+                          <CheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
+                        ) : (
+                          <AlertCircle className="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                        )
+                      ) : (
+                        <AlertCircle className="w-4 h-4 text-red-600 mt-0.5 flex-shrink-0" />
+                      )}
+                      <p className={`text-sm ${
+                        singleCheckResult.success
+                          ? singleCheckResult.synced
+                            ? 'text-green-700'
+                            : 'text-blue-700'
+                          : 'text-red-700'
+                      }`}>
+                        {singleCheckResult.message}
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    {/* Check Econt Status Button */}
+                    {selectedOrder.tracking_number && !selectedOrder.is_paid && (
+                      <Button
+                        variant="default"
+                        className="flex-1 bg-orange-500 hover:bg-orange-600"
+                        onClick={() => checkSingleOrderDelivery(selectedOrder.shopify_order_id)}
+                        disabled={checkingOrderId === selectedOrder.shopify_order_id}
+                      >
+                        {checkingOrderId === selectedOrder.shopify_order_id ? (
+                          <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Проверяване...
+                          </>
+                        ) : (
+                          <>
+                            <Truck className="w-4 h-4 mr-2" />
+                            Провери Econt статус
+                          </>
+                        )}
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      className="flex-1"
+                      onClick={() => {
+                        window.open(
+                          `https://shop.testograph.eu/admin/orders/${selectedOrder.shopify_order_id}`,
+                          "_blank"
+                        );
+                      }}
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      View in Shopify
+                    </Button>
+                  </div>
                 </div>
               </div>
             </>

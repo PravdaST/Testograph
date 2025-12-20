@@ -75,6 +75,17 @@ async function getEcontTrackingStatus(trackingNumbers: string[]): Promise<Map<st
 }
 
 /**
+ * Check if tracking number looks like an Econt tracking number
+ * Econt tracking numbers are typically 13 digits starting with 108, 109, 110, etc.
+ */
+function isEcontTrackingNumber(trackingNumber?: string): boolean {
+  if (!trackingNumber) return false;
+  // Econt tracking numbers: 13 digits, often starting with 108, 109, 110, 111, etc.
+  const econtPattern = /^(108|109|110|111|112)\d{10}$/;
+  return econtPattern.test(trackingNumber);
+}
+
+/**
  * Check if shipment is delivered
  */
 function isDelivered(status?: string): boolean {
@@ -310,17 +321,24 @@ export async function POST(request: Request) {
     }
 
     // Get orders with Econt tracking (or single order if testOrderId provided)
+    // Fetch all orders with tracking numbers, then filter for Econt in JavaScript
+    // This is because tracking_company might be "Other" but tracking number is Econt format
     let query = supabase
       .from('pending_orders')
       .select('id, order_id, order_number, tracking_number, tracking_company, fulfillment_status')
-      .not('tracking_number', 'is', null)
-      .ilike('tracking_company', '%econt%');
+      .not('tracking_number', 'is', null);
 
     if (testOrderId) {
       query = query.eq('order_id', testOrderId);
     }
 
-    const { data: orders, error } = await query;
+    const { data: allOrders, error } = await query;
+
+    // Filter to only include Econt orders (by company name OR tracking number format)
+    const orders = allOrders?.filter(o =>
+      o.tracking_company?.toLowerCase().includes('econt') ||
+      isEcontTrackingNumber(o.tracking_number)
+    ) || [];
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
@@ -530,15 +548,21 @@ export async function POST(request: Request) {
 export async function GET() {
   try {
     // Get all orders with Econt tracking
-    const { data: orders, error } = await supabase
+    // Fetch all orders with tracking numbers, then filter for Econt in JavaScript
+    const { data: allOrders, error } = await supabase
       .from('pending_orders')
       .select('id, order_id, order_number, tracking_number, tracking_company')
-      .not('tracking_number', 'is', null)
-      .ilike('tracking_company', '%econt%');
+      .not('tracking_number', 'is', null);
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
+
+    // Filter to only include Econt orders (by company name OR tracking number format)
+    const orders = allOrders?.filter(o =>
+      o.tracking_company?.toLowerCase().includes('econt') ||
+      isEcontTrackingNumber(o.tracking_number)
+    ) || [];
 
     if (!orders || orders.length === 0) {
       return NextResponse.json({

@@ -50,49 +50,63 @@ async function getEcontTrackingStatus(trackingNumbers: string[]): Promise<Map<st
     return statusMap;
   }
 
-  try {
-    // Econt API expects Basic auth and JSON body
-    const authHeader = 'Basic ' + Buffer.from(`${ECONT_USERNAME}:${ECONT_PASSWORD}`).toString('base64');
-
-    const response = await fetch(ECONT_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': authHeader,
-      },
-      body: JSON.stringify({
-        shipmentNumbers: trackingNumbers,
-      }),
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[Econt] API error:', response.status, errorText);
-      return statusMap;
-    }
-
-    const data = await response.json();
-
-    // Handle response - Econt API returns { shipmentStatuses: [{ status: {...}, error: null }] }
-    const rawShipments = Array.isArray(data)
-      ? data
-      : (data.shipments || data.shipmentStatuses || []);
-
-    for (const item of rawShipments) {
-      // Econt wraps the actual status in a "status" object
-      const shipment: EcontShipmentStatus = item.status || item;
-      if (shipment.shipmentNumber) {
-        statusMap.set(shipment.shipmentNumber, shipment);
-      }
-    }
-
-    console.log(`[Econt] Got status for ${statusMap.size} shipments`);
-    return statusMap;
-
-  } catch (error) {
-    console.error('[Econt] Tracking error:', error);
-    return statusMap;
+  // Econt API limits to 1000 shipments per request - batch them
+  const BATCH_SIZE = 1000;
+  const batches: string[][] = [];
+  for (let i = 0; i < trackingNumbers.length; i += BATCH_SIZE) {
+    batches.push(trackingNumbers.slice(i, i + BATCH_SIZE));
   }
+
+  console.log(`[Econt] Processing ${trackingNumbers.length} tracking numbers in ${batches.length} batch(es)`);
+
+  const authHeader = 'Basic ' + Buffer.from(`${ECONT_USERNAME}:${ECONT_PASSWORD}`).toString('base64');
+
+  // Process batches in parallel (up to 3 concurrent requests to avoid overwhelming the API)
+  const processBatch = async (batch: string[]): Promise<void> => {
+    try {
+      const response = await fetch(ECONT_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader,
+        },
+        body: JSON.stringify({
+          shipmentNumbers: batch,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[Econt] API error:', response.status, errorText);
+        return;
+      }
+
+      const data = await response.json();
+
+      // Handle response - Econt API returns { shipmentStatuses: [{ status: {...}, error: null }] }
+      const rawShipments = Array.isArray(data)
+        ? data
+        : (data.shipments || data.shipmentStatuses || []);
+
+      for (const item of rawShipments) {
+        // Econt wraps the actual status in a "status" object
+        const shipment: EcontShipmentStatus = item.status || item;
+        if (shipment.shipmentNumber) {
+          statusMap.set(shipment.shipmentNumber, shipment);
+        }
+      }
+    } catch (error) {
+      console.error('[Econt] Batch tracking error:', error);
+    }
+  };
+
+  // Process all batches (sequentially to be safe with API rate limits)
+  for (const batch of batches) {
+    await processBatch(batch);
+  }
+
+  console.log(`[Econt] Got status for ${statusMap.size} shipments`);
+  return statusMap;
 }
 
 /**
@@ -105,6 +119,17 @@ function isDelivered(status?: string): boolean {
     'delivered to recipient', 'доставено на получател'
   ];
   return deliveredStatuses.some(s => status.toLowerCase().includes(s.toLowerCase()));
+}
+
+/**
+ * Check if tracking number looks like an Econt tracking number
+ * Econt tracking numbers are typically 13 digits starting with 108, 109, 110, etc.
+ */
+function isEcontTrackingNumber(trackingNumber?: string): boolean {
+  if (!trackingNumber) return false;
+  // Econt tracking numbers: 13 digits, often starting with 108, 109, 110, 111, etc.
+  const econtPattern = /^(108|109|110|111|112)\d{10}$/;
+  return econtPattern.test(trackingNumber);
 }
 
 /**
@@ -136,17 +161,51 @@ export async function GET(request: Request) {
     const search = searchParams.get('search')?.trim(); // search by email, name, order number
     const trackingFilter = searchParams.get('tracking'); // all, delivered, in_transit, no_tracking
 
-    // Get summary stats first (we need this for all requests)
-    const { data: allOrders } = await supabase
-      .from('pending_orders')
-      .select('id, status, total_price, paid_at, tracking_number, tracking_company');
+    // Get summary stats using proper count queries (not limited to 1000)
+    const [
+      { count: totalCount },
+      { count: paidCount },
+      { count: pendingCount },
+      { data: paidOrdersData },
+      { data: pendingOrdersData }
+    ] = await Promise.all([
+      supabase.from('pending_orders').select('*', { count: 'exact', head: true }),
+      supabase.from('pending_orders').select('*', { count: 'exact', head: true }).not('paid_at', 'is', null),
+      supabase.from('pending_orders').select('*', { count: 'exact', head: true }).is('paid_at', null),
+      supabase.from('pending_orders').select('total_price').not('paid_at', 'is', null),
+      supabase.from('pending_orders').select('total_price').is('paid_at', null)
+    ]);
 
-    const paidOrders = allOrders?.filter(o => o.paid_at !== null) || [];
-    const pendingOrders = allOrders?.filter(o => o.paid_at === null) || [];
+    // For revenue calculations, we need the actual price data (up to 1000 is usually enough for revenue)
+    const paidOrders = paidOrdersData || [];
+    const pendingOrders = pendingOrdersData || [];
+
+    // Get ALL orders with Econt tracking for status checks (need to paginate to get all)
+    let allOrders: any[] = [];
+    let fetchOffset = 0;
+    const batchSize = 1000;
+
+    while (true) {
+      const { data: batch } = await supabase
+        .from('pending_orders')
+        .select('id, status, total_price, paid_at, tracking_number, tracking_company')
+        .range(fetchOffset, fetchOffset + batchSize - 1);
+
+      if (!batch || batch.length === 0) break;
+      allOrders = allOrders.concat(batch);
+      if (batch.length < batchSize) break;
+      fetchOffset += batchSize;
+    }
+
+    console.log(`[Shopify Orders] Fetched ${allOrders.length} orders for tracking stats`);
 
     // Calculate tracking stats from ALL orders
+    // Include orders where tracking_company contains 'econt' OR tracking number looks like Econt format
     const allTrackingNumbers = (allOrders || [])
-      .filter(o => o.tracking_number && o.tracking_company?.toLowerCase().includes('econt'))
+      .filter(o => o.tracking_number && (
+        o.tracking_company?.toLowerCase().includes('econt') ||
+        isEcontTrackingNumber(o.tracking_number)
+      ))
       .map(o => o.tracking_number);
 
     // Fetch Econt status for all orders to calculate accurate stats AND for filtering
@@ -237,9 +296,9 @@ export async function GET(request: Request) {
           orders: [],
           count: 0,
           summary: {
-            total: allOrders?.length || 0,
-            paid: paidOrders.length,
-            pending: pendingOrders.length,
+            total: totalCount || 0,
+            paid: paidCount || 0,
+            pending: pendingCount || 0,
             totalRevenue: paidOrders.reduce((sum, o) => sum + parseFloat(o.total_price || '0'), 0),
             pendingRevenue: pendingOrders.reduce((sum, o) => sum + parseFloat(o.total_price || '0'), 0),
             withTracking: withTrackingCount,
@@ -271,8 +330,12 @@ export async function GET(request: Request) {
     }
 
     // Collect tracking numbers for Econt lookup (for displaying status in table)
+    // Include orders where tracking_company contains 'econt' OR tracking number looks like Econt format
     const trackingNumbers = orders
-      ?.filter(o => o.tracking_number && o.tracking_company?.toLowerCase().includes('econt'))
+      ?.filter(o => o.tracking_number && (
+        o.tracking_company?.toLowerCase().includes('econt') ||
+        isEcontTrackingNumber(o.tracking_number)
+      ))
       .map(o => o.tracking_number) || [];
 
     // Use the already-fetched Econt statuses instead of fetching again
@@ -314,9 +377,9 @@ export async function GET(request: Request) {
     }) || [];
 
     const summary = {
-      total: allOrders?.length || 0,
-      paid: paidOrders.length,
-      pending: pendingOrders.length,
+      total: totalCount || 0,
+      paid: paidCount || 0,
+      pending: pendingCount || 0,
       totalRevenue: paidOrders.reduce((sum, o) => sum + parseFloat(o.total_price || '0'), 0),
       pendingRevenue: pendingOrders.reduce((sum, o) => sum + parseFloat(o.total_price || '0'), 0),
       // Tracking stats (for ALL orders)
