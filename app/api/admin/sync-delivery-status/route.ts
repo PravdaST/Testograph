@@ -28,13 +28,14 @@ interface SyncResult {
   orderId: string;
   orderNumber: string;
   trackingNumber: string;
-  status: 'synced' | 'already_synced' | 'failed' | 'no_fulfillment';
+  status: 'synced' | 'already_synced' | 'failed' | 'no_fulfillment' | 'cancelled';
   message?: string;
   paymentMarked?: boolean;
+  econtStatus?: string;
 }
 
 /**
- * Fetch tracking status from Econt API
+ * Fetch tracking status from Econt API with batching (max 1000 per request)
  */
 async function getEcontTrackingStatus(trackingNumbers: string[]): Promise<Map<string, EcontShipmentStatus>> {
   const statusMap = new Map<string, EcontShipmentStatus>();
@@ -43,35 +44,55 @@ async function getEcontTrackingStatus(trackingNumbers: string[]): Promise<Map<st
     return statusMap;
   }
 
-  try {
-    const authHeader = 'Basic ' + Buffer.from(`${ECONT_USERNAME}:${ECONT_PASSWORD}`).toString('base64');
-
-    const response = await fetch(ECONT_API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': authHeader,
-      },
-      body: JSON.stringify({ shipmentNumbers: trackingNumbers }),
-    });
-
-    if (!response.ok) return statusMap;
-
-    const data = await response.json();
-    const rawShipments = Array.isArray(data) ? data : (data.shipments || data.shipmentStatuses || []);
-
-    for (const item of rawShipments) {
-      const shipment: EcontShipmentStatus = item.status || item;
-      if (shipment.shipmentNumber) {
-        statusMap.set(shipment.shipmentNumber, shipment);
-      }
-    }
-
-    return statusMap;
-  } catch (error) {
-    console.error('[Econt] Tracking error:', error);
-    return statusMap;
+  // Econt API limits to 1000 shipments per request - batch them
+  const BATCH_SIZE = 1000;
+  const batches: string[][] = [];
+  for (let i = 0; i < trackingNumbers.length; i += BATCH_SIZE) {
+    batches.push(trackingNumbers.slice(i, i + BATCH_SIZE));
   }
+
+  console.log(`[Econt] Processing ${trackingNumbers.length} tracking numbers in ${batches.length} batch(es)`);
+
+  const authHeader = 'Basic ' + Buffer.from(`${ECONT_USERNAME}:${ECONT_PASSWORD}`).toString('base64');
+
+  const processBatch = async (batch: string[]): Promise<void> => {
+    try {
+      const response = await fetch(ECONT_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': authHeader,
+        },
+        body: JSON.stringify({ shipmentNumbers: batch }),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[Econt] API error:', response.status, errorText);
+        return;
+      }
+
+      const data = await response.json();
+      const rawShipments = Array.isArray(data) ? data : (data.shipments || data.shipmentStatuses || []);
+
+      for (const item of rawShipments) {
+        const shipment: EcontShipmentStatus = item.status || item;
+        if (shipment.shipmentNumber) {
+          statusMap.set(shipment.shipmentNumber, shipment);
+        }
+      }
+    } catch (error) {
+      console.error('[Econt] Batch tracking error:', error);
+    }
+  };
+
+  // Process all batches sequentially
+  for (const batch of batches) {
+    await processBatch(batch);
+  }
+
+  console.log(`[Econt] Got status for ${statusMap.size} shipments`);
+  return statusMap;
 }
 
 /**
@@ -80,7 +101,6 @@ async function getEcontTrackingStatus(trackingNumbers: string[]): Promise<Map<st
  */
 function isEcontTrackingNumber(trackingNumber?: string): boolean {
   if (!trackingNumber) return false;
-  // Econt tracking numbers: 13 digits, often starting with 108, 109, 110, 111, etc.
   const econtPattern = /^(108|109|110|111|112)\d{10}$/;
   return econtPattern.test(trackingNumber);
 }
@@ -98,6 +118,22 @@ function isDelivered(status?: string): boolean {
 }
 
 /**
+ * Check if shipment is returned/refused
+ */
+function isReturned(status?: string): boolean {
+  if (!status) return false;
+  const returnedStatuses = [
+    'returned', 'върната', 'върнато', 'върнат',
+    'refused', 'отказана', 'отказано', 'отказ',
+    'неуспешна доставка', 'недоставена',
+    'returned to sender', 'върната на подател',
+    'върната и доставена към подател',
+    'анулирана'
+  ];
+  return returnedStatuses.some(s => status.toLowerCase().includes(s.toLowerCase()));
+}
+
+/**
  * Get order details from Shopify including financial status
  */
 async function getShopifyOrder(orderId: string): Promise<{
@@ -105,6 +141,7 @@ async function getShopifyOrder(orderId: string): Promise<{
   financial_status: string;
   total_price: string;
   currency: string;
+  cancelled_at: string | null;
 } | null> {
   if (!SHOPIFY_ACCESS_TOKEN) return null;
 
@@ -130,6 +167,7 @@ async function getShopifyOrder(orderId: string): Promise<{
         financial_status: order.financial_status,
         total_price: order.total_price,
         currency: order.currency,
+        cancelled_at: order.cancelled_at,
       };
     }
 
@@ -142,13 +180,11 @@ async function getShopifyOrder(orderId: string): Promise<{
 
 /**
  * Mark order as paid in Shopify using GraphQL API
- * Uses orderMarkAsPaid mutation which works for manual payment gateways like COD
  */
-async function markOrderAsPaid(orderId: string, amount: string, currency: string): Promise<boolean> {
+async function markOrderAsPaid(orderId: string): Promise<boolean> {
   if (!SHOPIFY_ACCESS_TOKEN) return false;
 
   try {
-    // Convert numeric order ID to Shopify GraphQL global ID format
     const globalOrderId = `gid://shopify/Order/${orderId}`;
 
     const mutation = `
@@ -172,7 +208,7 @@ async function markOrderAsPaid(orderId: string, amount: string, currency: string
       },
     };
 
-    console.log(`[Shopify] Marking order ${orderId} as paid via GraphQL...`);
+    console.log(`[Shopify] Marking order ${orderId} as paid...`);
 
     const response = await fetch(
       `https://${SHOPIFY_MYSHOPIFY_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/graphql.json`,
@@ -187,7 +223,6 @@ async function markOrderAsPaid(orderId: string, amount: string, currency: string
     );
 
     const responseText = await response.text();
-    console.log(`[Shopify] GraphQL response for ${orderId}: ${response.status} ${responseText}`);
 
     if (!response.ok) {
       console.error(`[Shopify] Failed to mark as paid: ${response.status} ${responseText}`);
@@ -196,13 +231,11 @@ async function markOrderAsPaid(orderId: string, amount: string, currency: string
 
     const data = JSON.parse(responseText);
 
-    // Check for GraphQL errors
     if (data.errors && data.errors.length > 0) {
       console.error(`[Shopify] GraphQL errors:`, data.errors);
       return false;
     }
 
-    // Check for user errors
     const userErrors = data.data?.orderMarkAsPaid?.userErrors || [];
     if (userErrors.length > 0) {
       console.error(`[Shopify] User errors:`, userErrors);
@@ -215,6 +248,45 @@ async function markOrderAsPaid(orderId: string, amount: string, currency: string
     return financialStatus === 'PAID' || financialStatus === 'PARTIALLY_PAID';
   } catch (error) {
     console.error(`[Shopify] Error marking order as paid:`, error);
+    return false;
+  }
+}
+
+/**
+ * Cancel order in Shopify (for returned/refused shipments)
+ */
+async function cancelShopifyOrder(orderId: string, reason: string): Promise<boolean> {
+  if (!SHOPIFY_ACCESS_TOKEN) return false;
+
+  try {
+    console.log(`[Shopify] Cancelling order ${orderId} - reason: ${reason}`);
+
+    const response = await fetch(
+      `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/orders/${orderId}/cancel.json`,
+      {
+        method: 'POST',
+        headers: {
+          'X-Shopify-Access-Token': SHOPIFY_ACCESS_TOKEN,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          reason: 'customer', // customer, fraud, inventory, declined, other
+          email: false, // Don't send cancellation email
+          restock: false, // Don't restock items
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(`[Shopify] Failed to cancel order: ${response.status} ${errorText}`);
+      return false;
+    }
+
+    console.log(`[Shopify] Order ${orderId} cancelled successfully`);
+    return true;
+  } catch (error) {
+    console.error(`[Shopify] Error cancelling order:`, error);
     return false;
   }
 }
@@ -241,7 +313,6 @@ async function getShopifyFulfillment(orderId: string): Promise<{ id: string; sta
     const data = await response.json();
     const fulfillments = data.fulfillments || [];
 
-    // Return the first fulfillment (most orders have one)
     if (fulfillments.length > 0) {
       return {
         id: fulfillments[0].id,
@@ -263,7 +334,6 @@ async function markFulfillmentDelivered(orderId: string, fulfillmentId: string):
   if (!SHOPIFY_ACCESS_TOKEN) return false;
 
   try {
-    // Create a fulfillment event with status "delivered"
     const response = await fetch(
       `https://${SHOPIFY_STORE_DOMAIN}/admin/api/${SHOPIFY_API_VERSION}/orders/${orderId}/fulfillments/${fulfillmentId}/events.json`,
       {
@@ -295,22 +365,43 @@ async function markFulfillmentDelivered(orderId: string, fulfillmentId: string):
 }
 
 /**
+ * Update local database when order is synced
+ */
+async function updateLocalOrderStatus(orderId: string, isPaid: boolean, isCancelled: boolean): Promise<void> {
+  try {
+    const updates: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isPaid) {
+      updates.paid_at = new Date().toISOString();
+      updates.status = 'paid';
+    }
+
+    if (isCancelled) {
+      updates.status = 'cancelled';
+    }
+
+    await supabase
+      .from('pending_orders')
+      .update(updates)
+      .eq('order_id', orderId);
+  } catch (error) {
+    console.error(`[DB] Error updating order ${orderId}:`, error);
+  }
+}
+
+/**
  * POST /api/admin/sync-delivery-status
- * Syncs delivered orders from Econt to Shopify
- * Supports batch processing to avoid Vercel timeout (300s limit)
- *
- * Parameters:
- * - batchSize: number of orders to process (default 25, max 50)
- * - offset: starting position for batch processing (default 0)
- * - dryRun: if true, don't make changes
- * - testOrderId: process single order for testing
+ * Syncs delivered/returned orders from Econt to Shopify
+ * NOW ONLY PROCESSES PENDING (UNPAID) ORDERS
  */
 export async function POST(request: Request) {
   try {
     const body = await request.json().catch(() => ({}));
     const dryRun = body.dryRun === true;
-    const testOrderId = body.testOrderId; // Optional: test with single order
-    const batchSize = Math.min(body.batchSize || 25, 50); // Max 50 per batch
+    const testOrderId = body.testOrderId;
+    const batchSize = Math.min(body.batchSize || 25, 50);
     const offset = body.offset || 0;
 
     if (!SHOPIFY_ACCESS_TOKEN) {
@@ -320,59 +411,74 @@ export async function POST(request: Request) {
       );
     }
 
-    // Get orders with Econt tracking (or single order if testOrderId provided)
-    // Fetch all orders with tracking numbers, then filter for Econt in JavaScript
-    // This is because tracking_company might be "Other" but tracking number is Econt format
+    // Get ONLY PENDING orders with Econt tracking (paid_at IS NULL)
     let query = supabase
       .from('pending_orders')
-      .select('id, order_id, order_number, tracking_number, tracking_company, fulfillment_status')
+      .select('id, order_id, order_number, tracking_number, tracking_company, fulfillment_status, paid_at')
       .not('tracking_number', 'is', null);
 
-    if (testOrderId) {
+    // Only filter pending if not testing specific order
+    if (!testOrderId) {
+      query = query.is('paid_at', null); // Only pending (unpaid) orders
+    } else {
       query = query.eq('order_id', testOrderId);
     }
 
     const { data: allOrders, error } = await query;
 
-    // Filter to only include Econt orders (by company name OR tracking number format)
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+
+    // Filter to only include Econt orders
     const orders = allOrders?.filter(o =>
       o.tracking_company?.toLowerCase().includes('econt') ||
       isEcontTrackingNumber(o.tracking_number)
     ) || [];
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
     if (!orders || orders.length === 0) {
       return NextResponse.json({
         success: true,
-        message: 'No orders with Econt tracking found',
+        message: 'No pending orders with Econt tracking found',
         results: [],
-        summary: { total: 0, synced: 0, alreadySynced: 0, failed: 0, noFulfillment: 0, paymentMarked: 0 },
+        summary: { total: 0, synced: 0, alreadySynced: 0, failed: 0, noFulfillment: 0, paymentMarked: 0, cancelled: 0 },
         batch: { processed: 0, remaining: 0, isComplete: true },
       });
     }
+
+    console.log(`[Sync] Found ${orders.length} pending orders with Econt tracking`);
 
     // Get Econt status for all tracking numbers
     const trackingNumbers = orders.map(o => o.tracking_number);
     const econtStatuses = await getEcontTrackingStatus(trackingNumbers);
 
-    // Filter to only delivered orders
-    const allDeliveredOrders = orders.filter(order => {
+    // Separate orders by Econt status
+    const deliveredOrders: typeof orders = [];
+    const returnedOrders: typeof orders = [];
+
+    for (const order of orders) {
       const econtStatus = econtStatuses.get(order.tracking_number);
       const statusText = econtStatus?.shortDeliveryStatus || econtStatus?.shortDeliveryStatusEn;
-      return isDelivered(statusText);
-    });
 
-    const totalDelivered = allDeliveredOrders.length;
+      if (isDelivered(statusText)) {
+        deliveredOrders.push(order);
+      } else if (isReturned(statusText)) {
+        returnedOrders.push(order);
+      }
+    }
+
+    console.log(`[Sync] Delivered: ${deliveredOrders.length}, Returned: ${returnedOrders.length}`);
+
+    // Combine for processing
+    const ordersToProcess = [...deliveredOrders, ...returnedOrders];
+    const totalToProcess = ordersToProcess.length;
 
     // Apply batch pagination
-    const deliveredOrders = allDeliveredOrders.slice(offset, offset + batchSize);
-    const remaining = Math.max(0, totalDelivered - offset - deliveredOrders.length);
+    const batchOrders = ordersToProcess.slice(offset, offset + batchSize);
+    const remaining = Math.max(0, totalToProcess - offset - batchOrders.length);
     const isComplete = remaining === 0;
 
-    console.log(`[Sync] Processing batch: ${deliveredOrders.length} orders (offset: ${offset}, total: ${totalDelivered}, remaining: ${remaining})`);
+    console.log(`[Sync] Processing batch: ${batchOrders.length} orders (offset: ${offset}, total: ${totalToProcess}, remaining: ${remaining})`);
 
     const results: SyncResult[] = [];
     let synced = 0;
@@ -380,17 +486,19 @@ export async function POST(request: Request) {
     let failed = 0;
     let noFulfillment = 0;
     let paymentMarkedCount = 0;
+    let cancelledCount = 0;
 
-    // Process each delivered order
-    // Shopify rate limit: 2 requests/second = 500ms between calls
-    // We make up to 4 calls per order, so need 2+ seconds per order to be safe
-    const API_DELAY = 800; // 800ms between each API call
+    const API_DELAY = 800;
 
-    for (const order of deliveredOrders) {
-      // Initial delay before processing each order
+    for (const order of batchOrders) {
       await new Promise(resolve => setTimeout(resolve, API_DELAY));
 
-      // Get order details from Shopify (for financial status and amount)
+      const econtStatus = econtStatuses.get(order.tracking_number);
+      const statusText = econtStatus?.shortDeliveryStatus || econtStatus?.shortDeliveryStatusEn || 'Unknown';
+      const orderIsDelivered = isDelivered(statusText);
+      const orderIsReturned = isReturned(statusText);
+
+      // Get order details from Shopify
       const shopifyOrder = await getShopifyOrder(order.order_id);
 
       if (!shopifyOrder) {
@@ -400,109 +508,170 @@ export async function POST(request: Request) {
           trackingNumber: order.tracking_number,
           status: 'failed',
           message: 'Could not fetch order from Shopify',
+          econtStatus: statusText,
         });
         failed++;
         continue;
       }
 
-      // Get fulfillment from Shopify
-      await new Promise(resolve => setTimeout(resolve, API_DELAY));
-      const fulfillment = await getShopifyFulfillment(order.order_id);
-
-      let deliveryMarked = false;
-      let paymentMarked = false;
       const messages: string[] = [];
 
-      // Check delivery status and mark as delivered if needed
-      if (!fulfillment) {
-        messages.push('No fulfillment found');
-        noFulfillment++;
-      } else if (fulfillment.status === 'delivered') {
-        messages.push('Already delivered');
-        deliveryMarked = true;
-      } else {
-        // Mark as delivered
-        if (!dryRun) {
-          await new Promise(resolve => setTimeout(resolve, API_DELAY));
-          const deliverySuccess = await markFulfillmentDelivered(order.order_id, fulfillment.id);
-          if (deliverySuccess) {
-            messages.push('Marked as delivered');
-            deliveryMarked = true;
-          } else {
-            messages.push('Failed to mark delivered');
-          }
+      // Handle RETURNED orders - cancel in Shopify
+      if (orderIsReturned) {
+        if (shopifyOrder.cancelled_at) {
+          messages.push('Already cancelled');
+          results.push({
+            orderId: order.order_id,
+            orderNumber: order.order_number,
+            trackingNumber: order.tracking_number,
+            status: 'already_synced',
+            message: messages.join(', '),
+            econtStatus: statusText,
+          });
+          alreadySynced++;
         } else {
-          messages.push('[DRY RUN] Would mark delivered');
-          deliveryMarked = true;
+          if (!dryRun) {
+            await new Promise(resolve => setTimeout(resolve, API_DELAY));
+            const cancelSuccess = await cancelShopifyOrder(order.order_id, statusText);
+            if (cancelSuccess) {
+              messages.push('Cancelled in Shopify');
+              await updateLocalOrderStatus(order.order_id, false, true);
+              cancelledCount++;
+              results.push({
+                orderId: order.order_id,
+                orderNumber: order.order_number,
+                trackingNumber: order.tracking_number,
+                status: 'cancelled',
+                message: messages.join(', '),
+                econtStatus: statusText,
+              });
+              synced++;
+            } else {
+              messages.push('Failed to cancel');
+              results.push({
+                orderId: order.order_id,
+                orderNumber: order.order_number,
+                trackingNumber: order.tracking_number,
+                status: 'failed',
+                message: messages.join(', '),
+                econtStatus: statusText,
+              });
+              failed++;
+            }
+          } else {
+            messages.push('[DRY RUN] Would cancel');
+            cancelledCount++;
+            results.push({
+              orderId: order.order_id,
+              orderNumber: order.order_number,
+              trackingNumber: order.tracking_number,
+              status: 'cancelled',
+              message: messages.join(', '),
+              econtStatus: statusText,
+            });
+            synced++;
+          }
         }
+        continue;
       }
 
-      // Check payment status and mark as paid if needed
-      const isPaid = shopifyOrder.financial_status === 'paid' ||
-                     shopifyOrder.financial_status === 'partially_paid' ||
-                     shopifyOrder.financial_status === 'refunded' ||
-                     shopifyOrder.financial_status === 'partially_refunded';
+      // Handle DELIVERED orders - mark as paid + delivered
+      if (orderIsDelivered) {
+        await new Promise(resolve => setTimeout(resolve, API_DELAY));
+        const fulfillment = await getShopifyFulfillment(order.order_id);
 
-      if (isPaid) {
-        messages.push('Already paid');
-        paymentMarked = true;
-      } else {
-        // Mark as paid (COD order - delivery means payment collected)
-        if (!dryRun) {
-          await new Promise(resolve => setTimeout(resolve, API_DELAY));
-          const paymentSuccess = await markOrderAsPaid(
-            order.order_id,
-            shopifyOrder.total_price,
-            shopifyOrder.currency
-          );
-          if (paymentSuccess) {
-            messages.push('Marked as paid');
+        let deliveryMarked = false;
+        let paymentMarked = false;
+
+        // Check/update delivery status
+        if (!fulfillment) {
+          messages.push('No fulfillment found');
+          noFulfillment++;
+        } else if (fulfillment.status === 'delivered') {
+          messages.push('Already delivered');
+          deliveryMarked = true;
+        } else {
+          if (!dryRun) {
+            await new Promise(resolve => setTimeout(resolve, API_DELAY));
+            const deliverySuccess = await markFulfillmentDelivered(order.order_id, fulfillment.id);
+            if (deliverySuccess) {
+              messages.push('Marked as delivered');
+              deliveryMarked = true;
+            } else {
+              messages.push('Failed to mark delivered');
+            }
+          } else {
+            messages.push('[DRY RUN] Would mark delivered');
+            deliveryMarked = true;
+          }
+        }
+
+        // Check/update payment status
+        const isPaid = shopifyOrder.financial_status === 'paid' ||
+                       shopifyOrder.financial_status === 'partially_paid' ||
+                       shopifyOrder.financial_status === 'refunded' ||
+                       shopifyOrder.financial_status === 'partially_refunded';
+
+        if (isPaid) {
+          messages.push('Already paid');
+          paymentMarked = true;
+        } else {
+          if (!dryRun) {
+            await new Promise(resolve => setTimeout(resolve, API_DELAY));
+            const paymentSuccess = await markOrderAsPaid(order.order_id);
+            if (paymentSuccess) {
+              messages.push('Marked as paid');
+              paymentMarked = true;
+              paymentMarkedCount++;
+              await updateLocalOrderStatus(order.order_id, true, false);
+            } else {
+              messages.push('Failed to mark paid');
+            }
+          } else {
+            messages.push('[DRY RUN] Would mark paid');
             paymentMarked = true;
             paymentMarkedCount++;
-          } else {
-            messages.push('Failed to mark paid');
           }
-        } else {
-          messages.push('[DRY RUN] Would mark paid');
-          paymentMarked = true;
-          paymentMarkedCount++;
         }
-      }
 
-      // Determine overall status
-      const isSuccess = deliveryMarked || paymentMarked;
-      const wasAlreadySynced = fulfillment?.status === 'delivered' && isPaid;
+        // Determine result status
+        const isSuccess = deliveryMarked || paymentMarked;
+        const wasAlreadySynced = fulfillment?.status === 'delivered' && isPaid;
 
-      if (wasAlreadySynced) {
-        results.push({
-          orderId: order.order_id,
-          orderNumber: order.order_number,
-          trackingNumber: order.tracking_number,
-          status: 'already_synced',
-          message: messages.join(', '),
-          paymentMarked,
-        });
-        alreadySynced++;
-      } else if (isSuccess) {
-        results.push({
-          orderId: order.order_id,
-          orderNumber: order.order_number,
-          trackingNumber: order.tracking_number,
-          status: 'synced',
-          message: messages.join(', '),
-          paymentMarked,
-        });
-        synced++;
-      } else {
-        results.push({
-          orderId: order.order_id,
-          orderNumber: order.order_number,
-          trackingNumber: order.tracking_number,
-          status: 'failed',
-          message: messages.join(', '),
-          paymentMarked: false,
-        });
-        failed++;
+        if (wasAlreadySynced) {
+          results.push({
+            orderId: order.order_id,
+            orderNumber: order.order_number,
+            trackingNumber: order.tracking_number,
+            status: 'already_synced',
+            message: messages.join(', '),
+            paymentMarked,
+            econtStatus: statusText,
+          });
+          alreadySynced++;
+        } else if (isSuccess) {
+          results.push({
+            orderId: order.order_id,
+            orderNumber: order.order_number,
+            trackingNumber: order.tracking_number,
+            status: 'synced',
+            message: messages.join(', '),
+            paymentMarked,
+            econtStatus: statusText,
+          });
+          synced++;
+        } else {
+          results.push({
+            orderId: order.order_id,
+            orderNumber: order.order_number,
+            trackingNumber: order.tracking_number,
+            status: 'failed',
+            message: messages.join(', '),
+            paymentMarked: false,
+            econtStatus: statusText,
+          });
+          failed++;
+        }
       }
     }
 
@@ -510,24 +679,28 @@ export async function POST(request: Request) {
       success: true,
       dryRun,
       message: dryRun
-        ? `[DRY RUN] Would sync ${synced} orders (${paymentMarkedCount} payments)`
-        : `Synced ${synced} orders (${paymentMarkedCount} marked as paid)`,
+        ? `[DRY RUN] Would sync ${synced} orders (${paymentMarkedCount} paid, ${cancelledCount} cancelled)`
+        : `Synced ${synced} orders (${paymentMarkedCount} marked as paid, ${cancelledCount} cancelled)`,
       summary: {
-        total: deliveredOrders.length,
+        total: batchOrders.length,
         synced,
         alreadySynced,
         failed,
         noFulfillment,
         paymentMarked: paymentMarkedCount,
+        cancelled: cancelledCount,
+        pendingOrdersChecked: orders.length,
+        deliveredFound: deliveredOrders.length,
+        returnedFound: returnedOrders.length,
       },
       batch: {
         offset,
         batchSize,
-        processed: deliveredOrders.length,
-        totalDelivered,
+        processed: batchOrders.length,
+        totalToProcess,
         remaining,
         isComplete,
-        nextOffset: isComplete ? null : offset + deliveredOrders.length,
+        nextOffset: isComplete ? null : offset + batchOrders.length,
       },
       results,
     });
@@ -543,22 +716,22 @@ export async function POST(request: Request) {
 
 /**
  * GET /api/admin/sync-delivery-status
- * Returns statistics about what would be synced
+ * Returns statistics about pending orders that need syncing
  */
 export async function GET() {
   try {
-    // Get all orders with Econt tracking
-    // Fetch all orders with tracking numbers, then filter for Econt in JavaScript
+    // Get ONLY PENDING orders with Econt tracking
     const { data: allOrders, error } = await supabase
       .from('pending_orders')
       .select('id, order_id, order_number, tracking_number, tracking_company')
-      .not('tracking_number', 'is', null);
+      .not('tracking_number', 'is', null)
+      .is('paid_at', null); // Only pending (unpaid) orders
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    // Filter to only include Econt orders (by company name OR tracking number format)
+    // Filter to only include Econt orders
     const orders = allOrders?.filter(o =>
       o.tracking_company?.toLowerCase().includes('econt') ||
       isEcontTrackingNumber(o.tracking_number)
@@ -567,9 +740,10 @@ export async function GET() {
     if (!orders || orders.length === 0) {
       return NextResponse.json({
         success: true,
-        totalWithTracking: 0,
+        pendingWithTracking: 0,
         deliveredCount: 0,
-        message: 'No orders with Econt tracking found',
+        returnedCount: 0,
+        message: 'No pending orders with Econt tracking found',
       });
     }
 
@@ -577,21 +751,31 @@ export async function GET() {
     const trackingNumbers = orders.map(o => o.tracking_number);
     const econtStatuses = await getEcontTrackingStatus(trackingNumbers);
 
-    // Count delivered orders
+    // Count by status
     let deliveredCount = 0;
+    let returnedCount = 0;
+    let inTransitCount = 0;
+
     for (const order of orders) {
       const econtStatus = econtStatuses.get(order.tracking_number);
       const statusText = econtStatus?.shortDeliveryStatus || econtStatus?.shortDeliveryStatusEn;
+
       if (isDelivered(statusText)) {
         deliveredCount++;
+      } else if (isReturned(statusText)) {
+        returnedCount++;
+      } else {
+        inTransitCount++;
       }
     }
 
     return NextResponse.json({
       success: true,
-      totalWithTracking: orders.length,
+      pendingWithTracking: orders.length,
       deliveredCount,
-      message: `Found ${deliveredCount} delivered orders that can be synced to Shopify`,
+      returnedCount,
+      inTransitCount,
+      message: `Found ${deliveredCount} delivered + ${returnedCount} returned orders to sync (${inTransitCount} still in transit)`,
     });
 
   } catch (error: any) {
