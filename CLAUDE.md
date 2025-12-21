@@ -220,11 +220,13 @@ Real-time tracking of shipments through Econt courier API. Integrated directly i
 
 ### Features
 - **Live Tracking** - Fetches current status from Econt API
+- **Smart Detection** - Detects Econt tracking numbers by format (13 digits starting with 108-112)
 - **Stats Dashboard** - Delivered, in transit, returned, no tracking counts
 - **Order Details** - Expandable rows with tracking events history
 - **Filters** - All, Delivered, In Transit, Returned, No Tracking
-- **Sync to Shopify** - Mark delivered COD orders as "Paid" in Shopify
+- **Sync to Shopify** - Syncs pending orders to Shopify (delivered → paid, returned → cancelled)
 - **Export CSV** - Export returned orders for specific month
+- **Batching** - Handles 1000+ tracking numbers with automatic batching
 
 ### Environment Variables
 ```env
@@ -238,33 +240,53 @@ ECONT_PASSWORD=your_econt_password
 | Route | Method | Description |
 |-------|--------|-------------|
 | `/api/admin/shopify-orders` | GET | Orders with Econt status |
-| `/api/admin/sync-delivery-status` | POST | Sync delivered orders to Shopify as Paid |
+| `/api/admin/sync-delivery-status` | GET | Stats for pending orders to sync |
+| `/api/admin/sync-delivery-status` | POST | Sync pending orders to Shopify |
 | `/api/admin/export-returned-orders` | GET | CSV export of returned orders |
 
-### Sync Delivery Status API
+### Sync Delivery Status API (Updated Dec 2025)
 
-Marks COD orders as "Paid" in Shopify when Econt shows "Delivered":
+**Only processes PENDING (unpaid) orders** for efficiency. Handles both delivered and returned shipments:
 
+| Econt Status | Shopify Action | Local DB Update |
+|--------------|----------------|-----------------|
+| Доставена | Mark as `paid` + `delivered` | `paid_at = now()`, `status = 'paid'` |
+| Върната/Отказана | Cancel order | `status = 'cancelled'` |
+| В транзит | Skip (wait) | No change |
+
+**GET endpoint** - Returns stats:
+```json
+{
+  "pendingWithTracking": 576,
+  "deliveredCount": 298,
+  "returnedCount": 1,
+  "inTransitCount": 277
+}
+```
+
+**POST endpoint** - Syncs orders:
 ```bash
 # Dry run (preview only)
 curl -X POST http://localhost:3006/api/admin/sync-delivery-status \
   -H "Content-Type: application/json" \
   -d '{"dryRun": true}'
 
-# Actual sync
+# Actual sync (with batching)
 curl -X POST http://localhost:3006/api/admin/sync-delivery-status \
   -H "Content-Type: application/json" \
-  -d '{"dryRun": false}'
+  -d '{"dryRun": false, "batchSize": 25}'
 ```
 
 **Technical Details:**
-- Uses Shopify GraphQL API `orderMarkAsPaid` mutation
-- Requires myshopify.com domain (not custom domain) for GraphQL
-- Rate limited at ~500ms between requests
-- Updates both fulfillment status and payment status
+- Uses Shopify GraphQL API `orderMarkAsPaid` mutation for payments
+- Uses Shopify REST API `orders/{id}/cancel.json` for cancellations
+- Econt API batching: max 1000 tracking numbers per request
+- Rate limited at ~800ms between Shopify API calls
+- Detects Econt tracking by company name OR by number format (regex: `^(108|109|110|111|112)\d{10}$`)
 
 ### Key Files
 - `app/admin/shopify-orders/page.tsx` - Orders + Econt tracking page
+- `app/api/admin/shopify-orders/route.ts` - Orders API with Econt status
 - `app/api/admin/sync-delivery-status/route.ts` - Sync to Shopify API
 - `app/api/admin/export-returned-orders/route.ts` - CSV export API
 
