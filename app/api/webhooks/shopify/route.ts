@@ -47,6 +47,36 @@ function isTrialProduct(sku: string, title: string): boolean {
   return false;
 }
 
+// Check if product is NOT a capsule product (digital guides, books, etc.)
+function isNonCapsuleProduct(sku: string, title: string): boolean {
+  const skuLower = (sku || '').toLowerCase();
+  const titleLower = (title || '').toLowerCase();
+
+  // TESTOGRAPH and related digital products
+  if (skuLower.includes('testograph')) return true;
+  if (titleLower.includes('testograph')) return true;
+
+  // Digital guides by SKU
+  const digitalSkus = [
+    'exercise-guide',
+    'meal-planner',
+    'lab-testing',
+    'sleep-protocol',
+    'supplement-timing',
+  ];
+  if (digitalSkus.some(ds => skuLower.includes(ds))) return true;
+
+  // Digital guides by title keywords
+  if (titleLower.includes('ръководство')) return true;
+  if (titleLower.includes('guide')) return true;
+  if (titleLower.includes('book')) return true;
+  if (titleLower.includes('книга')) return true;
+  if (titleLower.includes('planner')) return true;
+  if (titleLower.includes('protocol')) return true;
+
+  return false;
+}
+
 interface ShopifyFulfillment {
   id: number;
   tracking_number: string | null;
@@ -180,13 +210,18 @@ export async function POST(request: Request) {
 
     const products = order.line_items.map(li => {
       const isTrial = isTrialProduct(li.sku, li.title);
+      const isNonCapsule = isNonCapsuleProduct(li.sku, li.title);
+
+      // Non-capsule products (digital guides, books) have 0 capsules
+      const capsuleCount = isNonCapsule ? 0 : (isTrial ? 10 : 60);
+
       return {
         title: li.title,
         quantity: li.quantity,
         sku: li.sku,
-        type: isTrial ? 'trial' : 'full',
-        capsules: isTrial ? 10 : 60,
-        totalCapsules: (isTrial ? 10 : 60) * li.quantity
+        type: isNonCapsule ? 'digital' : (isTrial ? 'trial' : 'full'),
+        capsules: capsuleCount,
+        totalCapsules: capsuleCount * li.quantity
       };
     });
 

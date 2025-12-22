@@ -493,7 +493,8 @@ export default function ShopifyOrdersPage() {
     if (!products || products.length === 0) return "N/A";
     return products.map((p, i) => (
       <div key={i} className="text-sm">
-        {p.quantity}x {p.title || p.sku} ({p.totalCapsules} caps)
+        {p.quantity}x {p.title || p.sku}
+        {p.totalCapsules > 0 && ` (${p.totalCapsules} caps)`}
       </div>
     ));
   };
@@ -1355,12 +1356,19 @@ export default function ShopifyOrdersPage() {
                               </div>
                               <Badge variant="secondary">x{product.quantity}</Badge>
                             </div>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Pill className="w-4 h-4 text-muted-foreground" />
-                              <span>
-                                {product.capsules} капс./бр. = {product.totalCapsules} общо
-                              </span>
-                            </div>
+                            {product.capsules > 0 ? (
+                              <div className="flex items-center gap-2 text-sm">
+                                <Pill className="w-4 h-4 text-muted-foreground" />
+                                <span>
+                                  {product.capsules} капс./бр. = {product.totalCapsules} общо
+                                </span>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <Package className="w-4 h-4" />
+                                <span>Дигитален продукт</span>
+                              </div>
+                            )}
                           </div>
                         ))
                       ) : (
