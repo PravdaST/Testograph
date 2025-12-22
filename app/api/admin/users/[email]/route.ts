@@ -87,18 +87,40 @@ function isTrialProduct(sku: string, title: string): boolean {
   return false;
 }
 
+// Get capsule count based on SKU
+function getCapsuleCount(sku: string, title: string): number {
+  const skuLower = (sku || '').toLowerCase();
+  const titleLower = (title || '').toLowerCase();
+
+  // SKU-based mapping (most accurate)
+  if (skuLower.includes('s14') || skuLower.includes('-14')) return 14; // TUP-S14 = 14 caps
+  if (skuLower.includes('s10') || skuLower.includes('-10')) return 10;
+  if (skuLower.includes('s60') || skuLower.includes('-60')) return 60;
+  if (skuLower.includes('s30') || skuLower.includes('-30')) return 30;
+
+  // Title-based fallback
+  // Look for patterns like "(14 caps)", "(10 капсули)", etc.
+  const capsMatch = titleLower.match(/\((\d+)\s*(caps|капс)/);
+  if (capsMatch) return parseInt(capsMatch[1], 10);
+
+  // Default based on trial/full
+  if (isTrialProduct(sku, title)) return 14; // Default trial to 14
+  return 60; // Default full to 60
+}
+
 // Convert Shopify line items to our products format
 function convertToProducts(lineItems: ShopifyLineItem[]) {
   return lineItems.map(li => {
     const isTrial = isTrialProduct(li.sku, li.title);
+    const capsules = getCapsuleCount(li.sku, li.title);
     return {
       title: li.title,
       quantity: li.quantity,
       sku: li.sku,
       price: li.price,
       type: isTrial ? 'trial' : 'full',
-      capsules: isTrial ? 10 : 60,
-      totalCapsules: (isTrial ? 10 : 60) * li.quantity
+      capsules: capsules,
+      totalCapsules: capsules * li.quantity
     };
   });
 }
