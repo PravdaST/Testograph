@@ -160,6 +160,24 @@ export async function GET(request: Request) {
     const status = searchParams.get('status'); // pending, paid, all
     const search = searchParams.get('search')?.trim(); // search by email, name, order number
     const trackingFilter = searchParams.get('tracking'); // all, delivered, in_transit, no_tracking
+    const dateRange = searchParams.get('dateRange'); // all, today, week, month
+
+    // Calculate date range boundaries
+    let dateFrom: string | null = null;
+    if (dateRange && dateRange !== 'all') {
+      const now = new Date();
+      if (dateRange === 'today') {
+        dateFrom = new Date(now.getFullYear(), now.getMonth(), now.getDate()).toISOString();
+      } else if (dateRange === 'week') {
+        const weekAgo = new Date(now);
+        weekAgo.setDate(now.getDate() - 7);
+        dateFrom = weekAgo.toISOString();
+      } else if (dateRange === 'month') {
+        const monthAgo = new Date(now);
+        monthAgo.setMonth(now.getMonth() - 1);
+        dateFrom = monthAgo.toISOString();
+      }
+    }
 
     // Get summary stats using proper count queries (not limited to 1000)
     const [
@@ -212,15 +230,17 @@ export async function GET(request: Request) {
     const allEcontStatuses = await getEcontTrackingStatus(allTrackingNumbers);
 
     // Build maps of order ID to delivery/returned status for filtering
+    // IMPORTANT: Check isReturned() FIRST because "Върната и доставена към подател"
+    // contains "доставена" but means returned TO SENDER, not delivered to customer
     const orderDeliveryStatus = new Map<string, 'delivered' | 'returned' | 'in_transit'>();
     (allOrders || []).forEach(order => {
       if (order.tracking_number) {
         const econtStatus = allEcontStatuses.get(order.tracking_number);
         const statusText = econtStatus?.shortDeliveryStatus || econtStatus?.shortDeliveryStatusEn;
-        if (isDelivered(statusText)) {
-          orderDeliveryStatus.set(order.id, 'delivered');
-        } else if (isReturned(statusText)) {
+        if (isReturned(statusText)) {
           orderDeliveryStatus.set(order.id, 'returned');
+        } else if (isDelivered(statusText)) {
+          orderDeliveryStatus.set(order.id, 'delivered');
         } else {
           orderDeliveryStatus.set(order.id, 'in_transit');
         }
@@ -287,6 +307,11 @@ export async function GET(request: Request) {
       }
     }
 
+    // Apply date range filter
+    if (dateFrom) {
+      query = query.gte('created_at', dateFrom);
+    }
+
     // Apply tracking filter by IDs if set
     if (filteredOrderIds !== null) {
       if (filteredOrderIds.length === 0) {
@@ -344,7 +369,10 @@ export async function GET(request: Request) {
     // Transform orders to match expected format with Econt data
     const transformedOrders = orders?.map(order => {
       const econtStatus = order.tracking_number ? allEcontStatuses.get(order.tracking_number) : undefined;
-      const econtDelivered = isDelivered(econtStatus?.shortDeliveryStatus || econtStatus?.shortDeliveryStatusEn);
+      const statusText = econtStatus?.shortDeliveryStatus || econtStatus?.shortDeliveryStatusEn;
+      // Check returned FIRST (same logic as above)
+      const econtReturned = isReturned(statusText);
+      const econtDelivered = !econtReturned && isDelivered(statusText);
 
       return {
         id: order.id,
@@ -373,6 +401,7 @@ export async function GET(request: Request) {
         econt_events: econtStatus?.trackingEvents,
         econt_error: econtStatus?.error,
         is_delivered: econtDelivered,
+        is_returned: econtReturned,
       };
     }) || [];
 

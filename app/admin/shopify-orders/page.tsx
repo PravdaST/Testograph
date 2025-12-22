@@ -26,6 +26,12 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "@/components/ui/tabs";
 import { Separator } from "@/components/ui/separator";
 import {
   RefreshCw,
@@ -162,6 +168,7 @@ export default function ShopifyOrdersPage() {
   const [isSheetOpen, setIsSheetOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+  const [dateFilter, setDateFilter] = useState<string>("all"); // all, today, week, month
   const [exportMonth, setExportMonth] = useState(() => {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
@@ -373,11 +380,11 @@ export default function ShopifyOrdersPage() {
 
   useEffect(() => {
     setCurrentPage(1); // Reset to page 1 when filters change
-  }, [statusFilter, trackingFilter, searchQuery]);
+  }, [statusFilter, trackingFilter, searchQuery, dateFilter]);
 
   useEffect(() => {
     fetchOrders();
-  }, [statusFilter, trackingFilter, currentPage, searchQuery]);
+  }, [statusFilter, trackingFilter, currentPage, searchQuery, dateFilter]);
 
   // Sync orders from Shopify (import new + fix status mismatches + fix customer names + sync tracking)
   const syncWithShopify = async () => {
@@ -441,6 +448,7 @@ export default function ShopifyOrdersPage() {
       if (statusFilter !== "all") params.set('status', statusFilter);
       if (trackingFilter !== "all") params.set('tracking', trackingFilter);
       if (searchQuery.trim()) params.set('search', searchQuery.trim());
+      if (dateFilter !== "all") params.set('dateRange', dateFilter);
 
       const response = await fetch(`/api/admin/shopify-orders?${params.toString()}`);
       if (response.ok) {
@@ -492,9 +500,9 @@ export default function ShopifyOrdersPage() {
 
   const getStatusBadge = (isPaid: boolean) => {
     if (isPaid) {
-      return <Badge className="bg-green-500">Paid</Badge>;
+      return <Badge className="bg-green-500">Платена</Badge>;
     }
-    return <Badge variant="outline" className="text-yellow-600 border-yellow-600">Pending</Badge>;
+    return <Badge variant="outline" className="text-yellow-600 border-yellow-600">Чакаща</Badge>;
   };
 
   const getEcontStatusBadge = (order: ShopifyOrder) => {
@@ -543,14 +551,118 @@ export default function ShopifyOrdersPage() {
     return products.reduce((sum, p) => sum + (p.totalCapsules || 0), 0);
   };
 
+  // Skeleton Loading Component
+  const SkeletonCard = ({ className = "" }: { className?: string }) => (
+    <Card className={className}>
+      <CardHeader className="pb-2">
+        <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+      </CardHeader>
+      <CardContent>
+        <div className="h-8 w-16 bg-muted animate-pulse rounded" />
+      </CardContent>
+    </Card>
+  );
+
+  const SkeletonTableRow = () => (
+    <TableRow>
+      <TableCell><div className="h-4 w-16 bg-muted animate-pulse rounded" /></TableCell>
+      <TableCell>
+        <div className="space-y-2">
+          <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+          <div className="h-3 w-40 bg-muted animate-pulse rounded" />
+        </div>
+      </TableCell>
+      <TableCell><div className="h-4 w-24 bg-muted animate-pulse rounded" /></TableCell>
+      <TableCell><div className="h-4 w-16 bg-muted animate-pulse rounded" /></TableCell>
+      <TableCell><div className="h-6 w-16 bg-muted animate-pulse rounded-full" /></TableCell>
+      <TableCell><div className="h-4 w-28 bg-muted animate-pulse rounded" /></TableCell>
+      <TableCell><div className="h-6 w-20 bg-muted animate-pulse rounded-full" /></TableCell>
+      <TableCell><div className="h-4 w-24 bg-muted animate-pulse rounded" /></TableCell>
+      <TableCell className="text-right">
+        <div className="flex gap-1 justify-end">
+          <div className="h-8 w-8 bg-muted animate-pulse rounded" />
+          <div className="h-8 w-8 bg-muted animate-pulse rounded" />
+        </div>
+      </TableCell>
+    </TableRow>
+  );
+
   if (isLoading) {
     return (
       <AdminLayout>
-        <div className="flex items-center justify-center py-12">
-          <div className="text-center">
-            <Loader2 className="w-12 h-12 animate-spin mx-auto mb-4 text-primary" />
-            <p className="text-muted-foreground">Loading orders...</p>
+        <div className="space-y-6">
+          {/* Header Skeleton */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div>
+              <div className="h-8 w-64 bg-muted animate-pulse rounded mb-2" />
+              <div className="h-4 w-40 bg-muted animate-pulse rounded" />
+            </div>
+            <div className="flex gap-2">
+              <div className="h-10 w-64 bg-muted animate-pulse rounded" />
+              <div className="h-10 w-32 bg-muted animate-pulse rounded" />
+              <div className="h-10 w-24 bg-muted animate-pulse rounded" />
+            </div>
           </div>
+
+          {/* Filter Skeleton */}
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-16 bg-muted animate-pulse rounded" />
+              <div className="flex gap-1">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-8 w-20 bg-muted animate-pulse rounded" />
+                ))}
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="h-4 w-16 bg-muted animate-pulse rounded" />
+              <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div key={i} className="h-8 w-24 bg-muted animate-pulse rounded" />
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Summary Cards Skeleton - Row 1 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+
+          {/* Summary Cards Skeleton - Row 2 */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+
+          {/* Table Skeleton */}
+          <Card>
+            <CardHeader>
+              <div className="h-6 w-24 bg-muted animate-pulse rounded" />
+              <div className="h-4 w-32 bg-muted animate-pulse rounded" />
+            </CardHeader>
+            <CardContent>
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      {['Поръчка #', 'Клиент', 'Продукти', 'Сума', 'Плащане', 'Tracking #', 'Econt Статус', 'Дата', 'Действия'].map((h) => (
+                        <TableHead key={h}>{h}</TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+                      <SkeletonTableRow key={i} />
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </AdminLayout>
     );
@@ -564,11 +676,11 @@ export default function ShopifyOrdersPage() {
           <div>
             <h1 className="text-3xl font-bold flex items-center gap-2">
               <ShoppingCart className="w-8 h-8" />
-              Shopify Orders & Econt Tracking
+              Поръчки & Econt Проследяване
             </h1>
             <p className="text-muted-foreground mt-1">
-              {pagination?.totalItems || summary?.total || 0} orders from Shopify
-              {searchQuery && ` (searching: "${searchQuery}")`}
+              {pagination?.totalItems || summary?.total || 0} поръчки от Shopify
+              {searchQuery && ` (търсене: "${searchQuery}")`}
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -576,7 +688,7 @@ export default function ShopifyOrdersPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
-                placeholder="Search email, name, order #..."
+                placeholder="Търси имейл, име, поръчка #..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 w-64"
@@ -593,11 +705,11 @@ export default function ShopifyOrdersPage() {
               ) : (
                 <CloudDownload className="w-4 h-4 mr-2" />
               )}
-              {isSyncing ? 'Syncing...' : 'Sync with Shopify'}
+              {isSyncing ? 'Синхронизиране...' : 'Синхронизирай'}
             </Button>
             <Button variant="outline" onClick={() => fetchOrders()} disabled={isSyncing}>
               <RefreshCw className="w-4 h-4 mr-2" />
-              Refresh
+              Обнови
             </Button>
           </div>
         </div>
@@ -606,7 +718,7 @@ export default function ShopifyOrdersPage() {
         <div className="flex flex-wrap gap-4">
           {/* Payment Status Filter */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Payment:</span>
+            <span className="text-sm text-muted-foreground">Плащане:</span>
             <div className="flex gap-1">
               {(["all", "pending", "paid"] as const).map((status) => (
                 <Button
@@ -615,7 +727,7 @@ export default function ShopifyOrdersPage() {
                   size="sm"
                   onClick={() => setStatusFilter(status)}
                 >
-                  {status === "all" ? "All" : status === "pending" ? "Pending" : "Paid"}
+                  {status === "all" ? "Всички" : status === "pending" ? "Чакащи" : "Платени"}
                 </Button>
               ))}
             </div>
@@ -623,14 +735,14 @@ export default function ShopifyOrdersPage() {
 
           {/* Tracking Status Filter */}
           <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Tracking:</span>
+            <span className="text-sm text-muted-foreground">Доставка:</span>
             <div className="flex gap-1">
               {[
-                { key: "all", label: "All" },
-                { key: "delivered", label: "Delivered" },
-                { key: "in_transit", label: "In Transit" },
-                { key: "returned", label: "Returned" },
-                { key: "no_tracking", label: "No Tracking" },
+                { key: "all", label: "Всички" },
+                { key: "delivered", label: "Доставени" },
+                { key: "in_transit", label: "В транзит" },
+                { key: "returned", label: "Върнати" },
+                { key: "no_tracking", label: "Без tracking" },
               ].map((filter) => (
                 <Button
                   key={filter.key}
@@ -644,12 +756,34 @@ export default function ShopifyOrdersPage() {
             </div>
           </div>
 
+          {/* Date Filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Период:</span>
+            <div className="flex gap-1">
+              {[
+                { key: "all", label: "Всички" },
+                { key: "today", label: "Днес" },
+                { key: "week", label: "Тази седмица" },
+                { key: "month", label: "Този месец" },
+              ].map((filter) => (
+                <Button
+                  key={filter.key}
+                  variant={dateFilter === filter.key ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setDateFilter(filter.key)}
+                >
+                  {filter.label}
+                </Button>
+              ))}
+            </div>
+          </div>
+
           {/* Export Section */}
           <div className="flex items-center gap-2 ml-auto">
-            <span className="text-sm text-muted-foreground">Export:</span>
+            <span className="text-sm text-muted-foreground">Експорт:</span>
             <Select value={exportMonth} onValueChange={setExportMonth}>
               <SelectTrigger className="w-44">
-                <SelectValue placeholder="Select month" />
+                <SelectValue placeholder="Избери месец" />
               </SelectTrigger>
               <SelectContent>
                 {getMonthOptions().map((option) => (
@@ -681,13 +815,13 @@ export default function ShopifyOrdersPage() {
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
             <CheckCircle className="w-5 h-5 text-green-600" />
             <div>
-              <p className="font-medium text-green-800">Sync completed!</p>
+              <p className="font-medium text-green-800">Синхронизацията завърши!</p>
               <p className="text-sm text-green-700">
-                {syncResult.synced > 0 && `${syncResult.synced} new orders imported. `}
-                {syncResult.fixed > 0 && `${syncResult.fixed} orders updated to Paid. `}
-                {syncResult.namesFixed > 0 && `${syncResult.namesFixed} customer names fixed. `}
-                {syncResult.trackingUpdated > 0 && `${syncResult.trackingUpdated} tracking numbers updated. `}
-                {syncResult.synced === 0 && syncResult.fixed === 0 && (syncResult.namesFixed || 0) === 0 && (syncResult.trackingUpdated || 0) === 0 && 'Everything is up to date.'}
+                {syncResult.synced > 0 && `${syncResult.synced} нови поръчки импортирани. `}
+                {syncResult.fixed > 0 && `${syncResult.fixed} поръчки обновени на Платени. `}
+                {syncResult.namesFixed > 0 && `${syncResult.namesFixed} имена на клиенти поправени. `}
+                {syncResult.trackingUpdated > 0 && `${syncResult.trackingUpdated} tracking номера обновени. `}
+                {syncResult.synced === 0 && syncResult.fixed === 0 && (syncResult.namesFixed || 0) === 0 && (syncResult.trackingUpdated || 0) === 0 && 'Всичко е актуално.'}
               </p>
             </div>
           </div>
@@ -698,13 +832,13 @@ export default function ShopifyOrdersPage() {
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center gap-3">
             <CloudDownload className="w-5 h-5 text-blue-600" />
             <div>
-              <p className="font-medium text-blue-800">Shopify Delivery Sync Completed!</p>
+              <p className="font-medium text-blue-800">Синхронизацията със Shopify завърши!</p>
               <p className="text-sm text-blue-700">
-                {deliverySyncResult.synced > 0 && `${deliverySyncResult.synced} orders marked as delivered. `}
-                {deliverySyncResult.alreadySynced > 0 && `${deliverySyncResult.alreadySynced} already synced. `}
-                {deliverySyncResult.failed > 0 && `${deliverySyncResult.failed} failed. `}
-                {deliverySyncResult.noFulfillment > 0 && `${deliverySyncResult.noFulfillment} without fulfillment. `}
-                {deliverySyncResult.synced === 0 && deliverySyncResult.alreadySynced === 0 && 'No orders to sync.'}
+                {deliverySyncResult.synced > 0 && `${deliverySyncResult.synced} поръчки маркирани като доставени. `}
+                {deliverySyncResult.alreadySynced > 0 && `${deliverySyncResult.alreadySynced} вече синхронизирани. `}
+                {deliverySyncResult.failed > 0 && `${deliverySyncResult.failed} неуспешни. `}
+                {deliverySyncResult.noFulfillment > 0 && `${deliverySyncResult.noFulfillment} без fulfillment. `}
+                {deliverySyncResult.synced === 0 && deliverySyncResult.alreadySynced === 0 && 'Няма поръчки за синхронизация.'}
               </p>
             </div>
           </div>
@@ -719,7 +853,7 @@ export default function ShopifyOrdersPage() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <Package className="w-4 h-4" />
-                    Total Orders
+                    Общо Поръчки
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -731,7 +865,7 @@ export default function ShopifyOrdersPage() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <Clock className="w-4 h-4 text-yellow-500" />
-                    Pending
+                    Чакащи
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -743,7 +877,7 @@ export default function ShopifyOrdersPage() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <CheckCircle className="w-4 h-4 text-green-500" />
-                    Paid
+                    Платени
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -755,7 +889,7 @@ export default function ShopifyOrdersPage() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <DollarSign className="w-4 h-4 text-green-500" />
-                    Revenue (Paid)
+                    Приходи (Платени)
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -769,7 +903,7 @@ export default function ShopifyOrdersPage() {
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
                     <TrendingUp className="w-4 h-4 text-yellow-500" />
-                    Pending Revenue
+                    Чакащи Приходи
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -781,7 +915,7 @@ export default function ShopifyOrdersPage() {
             </div>
 
             {/* Row 2: Tracking Stats (for ALL orders) */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <Card className="border-blue-200 bg-blue-50/50">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-sm font-medium flex items-center gap-2">
@@ -817,12 +951,12 @@ export default function ShopifyOrdersPage() {
                         <Loader2 className="w-3 h-3 mr-1 animate-spin" />
                         {deliverySyncProgress
                           ? `${deliverySyncProgress.current}/${deliverySyncProgress.total}`
-                          : 'Starting...'}
+                          : 'Стартиране...'}
                       </>
                     ) : (
                       <>
                         <CloudDownload className="w-3 h-3 mr-1" />
-                        Sync to Shopify
+                        Синхронизирай с Shopify
                       </>
                     )}
                   </Button>
@@ -874,31 +1008,31 @@ export default function ShopifyOrdersPage() {
         {/* Orders Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Orders</CardTitle>
+            <CardTitle>Поръчки</CardTitle>
             <CardDescription>
-              {orders.length} orders displayed
+              {orders.length} поръчки показани
             </CardDescription>
           </CardHeader>
           <CardContent>
             {orders.length === 0 ? (
               <div className="text-center py-12">
                 <ShoppingCart className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground">No orders found</p>
+                <p className="text-muted-foreground">Няма намерени поръчки</p>
               </div>
             ) : (
               <div className="rounded-md border overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Order #</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Products</TableHead>
-                      <TableHead>Total</TableHead>
-                      <TableHead>Payment</TableHead>
+                      <TableHead>Поръчка #</TableHead>
+                      <TableHead>Клиент</TableHead>
+                      <TableHead>Продукти</TableHead>
+                      <TableHead>Сума</TableHead>
+                      <TableHead>Плащане</TableHead>
                       <TableHead>Tracking #</TableHead>
-                      <TableHead>Econt Status</TableHead>
-                      <TableHead>Date</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>Econt Статус</TableHead>
+                      <TableHead>Дата</TableHead>
+                      <TableHead className="text-right">Действия</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -1008,7 +1142,7 @@ export default function ShopifyOrdersPage() {
             {pagination && pagination.totalPages > 1 && (
               <div className="flex items-center justify-between pt-4 border-t">
                 <div className="text-sm text-muted-foreground">
-                  Showing {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.totalItems)} of {pagination.totalItems} orders
+                  Показване {((pagination.page - 1) * pagination.limit) + 1} - {Math.min(pagination.page * pagination.limit, pagination.totalItems)} от {pagination.totalItems} поръчки
                 </div>
                 <div className="flex items-center gap-1">
                   <Button
@@ -1028,8 +1162,8 @@ export default function ShopifyOrdersPage() {
                     <ChevronLeft className="w-4 h-4" />
                   </Button>
                   <div className="flex items-center gap-1 px-2">
-                    <span className="text-sm font-medium">Page {pagination.page}</span>
-                    <span className="text-sm text-muted-foreground">of {pagination.totalPages}</span>
+                    <span className="text-sm font-medium">Страница {pagination.page}</span>
+                    <span className="text-sm text-muted-foreground">от {pagination.totalPages}</span>
                   </div>
                   <Button
                     variant="outline"
@@ -1065,64 +1199,77 @@ export default function ShopifyOrdersPage() {
               <SheetHeader>
                 <SheetTitle className="flex items-center gap-2">
                   <ShoppingCart className="w-5 h-5" />
-                  Order #{selectedOrder.shopify_order_number}
+                  Поръчка #{selectedOrder.shopify_order_number}
                 </SheetTitle>
                 <SheetDescription>
                   {formatDate(selectedOrder.created_at)}
                 </SheetDescription>
               </SheetHeader>
 
-              <div className="mt-6 space-y-6">
-                {/* Status */}
-                <div className="flex items-center justify-between">
-                  <span className="text-sm text-muted-foreground">Payment Status</span>
-                  {getStatusBadge(selectedOrder.is_paid)}
-                </div>
+              {/* Status Bar */}
+              <div className="mt-4 flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                <span className="text-sm text-muted-foreground">Статус на плащане</span>
+                {getStatusBadge(selectedOrder.is_paid)}
+              </div>
 
-                <Separator />
-
-                {/* Customer Info */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold flex items-center gap-2">
+              {/* Tabs */}
+              <Tabs defaultValue="customer" className="mt-4">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="customer" className="flex items-center gap-1.5">
                     <User className="w-4 h-4" />
-                    Customer
-                  </h4>
-                  <div className="bg-muted/50 rounded-lg p-4 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <User className="w-4 h-4 text-muted-foreground" />
-                      <span className="font-medium">
-                        {selectedOrder.customer_name || "N/A"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Mail className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">
-                        {selectedOrder.customer_email || "No email"}
-                      </span>
-                    </div>
-                    {selectedOrder.customer_phone && (
+                    Клиент
+                  </TabsTrigger>
+                  <TabsTrigger value="products" className="flex items-center gap-1.5">
+                    <Package className="w-4 h-4" />
+                    Продукти
+                  </TabsTrigger>
+                  <TabsTrigger value="tracking" className="flex items-center gap-1.5">
+                    <Truck className="w-4 h-4" />
+                    Доставка
+                  </TabsTrigger>
+                </TabsList>
+
+                {/* Tab 1: Customer */}
+                <TabsContent value="customer" className="mt-4 space-y-4">
+                  {/* Customer Info */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <User className="w-4 h-4" />
+                      Данни за клиент
+                    </h4>
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                       <div className="flex items-center gap-2">
-                        <Phone className="w-4 h-4 text-muted-foreground" />
-                        <a
-                          href={`tel:${selectedOrder.customer_phone}`}
-                          className="text-sm text-blue-600 hover:underline"
-                        >
-                          {selectedOrder.customer_phone}
-                        </a>
+                        <User className="w-4 h-4 text-muted-foreground" />
+                        <span className="font-medium">
+                          {selectedOrder.customer_name || "N/A"}
+                        </span>
                       </div>
-                    )}
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-muted-foreground" />
+                        <span className="text-sm">
+                          {selectedOrder.customer_email || "Няма имейл"}
+                        </span>
+                      </div>
+                      {selectedOrder.customer_phone && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-4 h-4 text-muted-foreground" />
+                          <a
+                            href={`tel:${selectedOrder.customer_phone}`}
+                            className="text-sm text-blue-600 hover:underline"
+                          >
+                            {selectedOrder.customer_phone}
+                          </a>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
 
-                <Separator />
-
-                {/* Shipping Address */}
-                {selectedOrder.shipping_address && (
-                  <>
+                  {/* Shipping Address */}
+                  {selectedOrder.shipping_address && (
                     <div className="space-y-3">
                       <h4 className="font-semibold flex items-center gap-2">
                         <MapPin className="w-4 h-4" />
-                        Shipping Address
+                        Адрес за доставка
                       </h4>
                       <div className="bg-muted/50 rounded-lg p-4 space-y-1">
                         <p className="font-medium">
@@ -1161,201 +1308,204 @@ export default function ShopifyOrdersPage() {
                         )}
                       </div>
                     </div>
-                    <Separator />
-                  </>
-                )}
+                  )}
 
-                {/* Econt Tracking */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold flex items-center gap-2">
-                    <Truck className="w-4 h-4" />
-                    Econt Tracking
-                  </h4>
-                  <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                    {selectedOrder.tracking_number ? (
-                      <>
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Tracking #</span>
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono font-medium">
-                              {selectedOrder.tracking_number}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-6 w-6 p-0"
-                              onClick={() => {
-                                navigator.clipboard.writeText(selectedOrder.tracking_number || '');
-                              }}
-                            >
-                              <Copy className="w-3 h-3" />
-                            </Button>
-                          </div>
-                        </div>
-                        {selectedOrder.tracking_company && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">Carrier</span>
-                            <span className="font-medium">{selectedOrder.tracking_company}</span>
-                          </div>
-                        )}
-                        <div className="flex items-center justify-between">
-                          <span className="text-muted-foreground">Econt Status</span>
-                          {getEcontStatusBadge(selectedOrder)}
-                        </div>
-                        {selectedOrder.econt_delivery_time && (
-                          <div className="flex items-center justify-between">
-                            <span className="text-muted-foreground">Delivery Time</span>
-                            <span className="text-green-600 font-medium">
-                              {formatDate(selectedOrder.econt_delivery_time)}
-                            </span>
-                          </div>
-                        )}
-
-                        {/* Tracking Events */}
-                        {selectedOrder.econt_events && selectedOrder.econt_events.length > 0 && (
-                          <div className="pt-3 border-t">
-                            <p className="text-sm font-medium mb-2">Tracking History</p>
-                            <div className="space-y-2 max-h-48 overflow-y-auto">
-                              {selectedOrder.econt_events.map((event, index) => (
-                                <div key={index} className="text-sm border-l-2 border-blue-300 pl-3 py-1">
-                                  <p className="font-medium">{event.destinationType}</p>
-                                  <p className="text-muted-foreground">
-                                    {[event.officeName, event.cityName].filter(Boolean).join(', ')}
-                                  </p>
-                                  <p className="text-xs text-muted-foreground">
-                                    {formatDate(event.time)}
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-
-                        {selectedOrder.tracking_url && (
-                          <div className="pt-2">
-                            <a
-                              href={selectedOrder.tracking_url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="flex items-center gap-2 text-blue-600 hover:underline text-sm"
-                            >
-                              <ExternalLink className="w-4 h-4" />
-                              Track Shipment
-                            </a>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="text-center py-4">
-                        <AlertCircle className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
-                        <p className="text-muted-foreground font-medium">Няма добавен tracking номер</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Tracking ще се появи след fulfillment в Shopify
-                        </p>
+                  {/* Dates */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <Calendar className="w-4 h-4" />
+                      Дати
+                    </h4>
+                    <div className="bg-muted/50 rounded-lg p-3 space-y-2 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Създадена</span>
+                        <span>{formatDate(selectedOrder.created_at)}</span>
                       </div>
-                    )}
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Обновена</span>
+                        <span>{formatDate(selectedOrder.updated_at)}</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </TabsContent>
 
-                <Separator />
-
-                {/* Products */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold flex items-center gap-2">
-                    <Package className="w-4 h-4" />
-                    Products
-                  </h4>
-                  <div className="space-y-2">
-                    {selectedOrder.products && selectedOrder.products.length > 0 ? (
-                      selectedOrder.products.map((product, index) => (
-                        <div
-                          key={index}
-                          className="bg-muted/50 rounded-lg p-4 space-y-2"
-                        >
-                          <div className="flex justify-between items-start">
-                            <div>
-                              <p className="font-medium">
-                                {product.title || product.sku}
-                              </p>
-                              <p className="text-sm text-muted-foreground">
-                                SKU: {product.sku}
-                              </p>
+                {/* Tab 2: Products */}
+                <TabsContent value="products" className="mt-4 space-y-4">
+                  {/* Products List */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <Package className="w-4 h-4" />
+                      Продукти в поръчката
+                    </h4>
+                    <div className="space-y-2">
+                      {selectedOrder.products && selectedOrder.products.length > 0 ? (
+                        selectedOrder.products.map((product, index) => (
+                          <div
+                            key={index}
+                            className="bg-muted/50 rounded-lg p-4 space-y-2"
+                          >
+                            <div className="flex justify-between items-start">
+                              <div>
+                                <p className="font-medium">
+                                  {product.title || product.sku}
+                                </p>
+                                <p className="text-sm text-muted-foreground">
+                                  SKU: {product.sku}
+                                </p>
+                              </div>
+                              <Badge variant="secondary">x{product.quantity}</Badge>
                             </div>
-                            <Badge variant="secondary">x{product.quantity}</Badge>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Pill className="w-4 h-4 text-muted-foreground" />
+                              <span>
+                                {product.capsules} капс./бр. = {product.totalCapsules} общо
+                              </span>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <Pill className="w-4 h-4 text-muted-foreground" />
-                            <span>
-                              {product.capsules} caps/unit = {product.totalCapsules} total caps
-                            </span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <p className="text-muted-foreground text-sm">No products</p>
-                    )}
-                  </div>
-                  <div className="flex items-center justify-between pt-2">
-                    <span className="text-sm text-muted-foreground flex items-center gap-2">
-                      <Pill className="w-4 h-4" />
-                      Total Capsules
-                    </span>
-                    <span className="font-bold text-lg">
-                      {getTotalCapsules(selectedOrder.products)}
-                    </span>
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Payment */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
-                    Payment
-                  </h4>
-                  <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-muted-foreground">Total</span>
-                      <span className="text-2xl font-bold">
-                        {formatCurrency(selectedOrder.total_price, selectedOrder.currency)}
+                        ))
+                      ) : (
+                        <p className="text-muted-foreground text-sm">Няма продукти</p>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between pt-2 border-t">
+                      <span className="text-sm text-muted-foreground flex items-center gap-2">
+                        <Pill className="w-4 h-4" />
+                        Общо капсули
+                      </span>
+                      <span className="font-bold text-lg">
+                        {getTotalCapsules(selectedOrder.products)}
                       </span>
                     </div>
-                    {selectedOrder.paid_at && (
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-muted-foreground">Paid At</span>
-                        <span className="text-green-600">
-                          {formatDate(selectedOrder.paid_at)}
+                  </div>
+
+                  {/* Payment */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      Плащане
+                    </h4>
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Общо</span>
+                        <span className="text-2xl font-bold">
+                          {formatCurrency(selectedOrder.total_price, selectedOrder.currency)}
                         </span>
                       </div>
-                    )}
-                  </div>
-                </div>
-
-                <Separator />
-
-                {/* Dates */}
-                <div className="space-y-3">
-                  <h4 className="font-semibold flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Dates
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Created</span>
-                      <span>{formatDate(selectedOrder.created_at)}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Updated</span>
-                      <span>{formatDate(selectedOrder.updated_at)}</span>
+                      {selectedOrder.paid_at && (
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-muted-foreground">Платено на</span>
+                          <span className="text-green-600">
+                            {formatDate(selectedOrder.paid_at)}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </div>
-                </div>
+                </TabsContent>
 
-                <Separator />
+                {/* Tab 3: Tracking */}
+                <TabsContent value="tracking" className="mt-4 space-y-4">
+                  {/* Econt Tracking */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <Truck className="w-4 h-4" />
+                      Econt Проследяване
+                    </h4>
+                    <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                      {selectedOrder.tracking_number ? (
+                        <>
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Tracking #</span>
+                            <div className="flex items-center gap-2">
+                              <span className="font-mono font-medium">
+                                {selectedOrder.tracking_number}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 w-6 p-0"
+                                onClick={() => {
+                                  navigator.clipboard.writeText(selectedOrder.tracking_number || '');
+                                }}
+                              >
+                                <Copy className="w-3 h-3" />
+                              </Button>
+                            </div>
+                          </div>
+                          {selectedOrder.tracking_company && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Куриер</span>
+                              <span className="font-medium">{selectedOrder.tracking_company}</span>
+                            </div>
+                          )}
+                          <div className="flex items-center justify-between">
+                            <span className="text-muted-foreground">Статус</span>
+                            {getEcontStatusBadge(selectedOrder)}
+                          </div>
+                          {selectedOrder.econt_delivery_time && (
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Доставено на</span>
+                              <span className="text-green-600 font-medium">
+                                {formatDate(selectedOrder.econt_delivery_time)}
+                              </span>
+                            </div>
+                          )}
 
-                {/* Actions */}
-                <div className="space-y-3">
+                          {selectedOrder.tracking_url && (
+                            <div className="pt-2 border-t">
+                              <a
+                                href={selectedOrder.tracking_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex items-center gap-2 text-blue-600 hover:underline text-sm"
+                              >
+                                <ExternalLink className="w-4 h-4" />
+                                Проследи пратката в Econt
+                              </a>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <div className="text-center py-4">
+                          <AlertCircle className="w-8 h-8 text-muted-foreground mx-auto mb-2" />
+                          <p className="text-muted-foreground font-medium">Няма tracking номер</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Ще се появи след fulfillment в Shopify
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Tracking Events */}
+                  {selectedOrder.econt_events && selectedOrder.econt_events.length > 0 && (
+                    <div className="space-y-3">
+                      <h4 className="font-semibold flex items-center gap-2">
+                        <Calendar className="w-4 h-4" />
+                        История на пратката
+                      </h4>
+                      <div className="space-y-2 max-h-64 overflow-y-auto">
+                        {selectedOrder.econt_events.map((event, index) => (
+                          <div key={index} className="text-sm border-l-2 border-blue-300 pl-3 py-1 bg-muted/30 rounded-r-lg">
+                            <p className="font-medium">{event.destinationType}</p>
+                            <p className="text-muted-foreground">
+                              {[event.officeName, event.cityName].filter(Boolean).join(', ')}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {formatDate(event.time)}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
+
+              <Separator className="my-4" />
+
+              {/* Actions - Always visible */}
+              <div className="space-y-3">
                   {/* Single Order Check Result */}
                   {singleCheckResult && (
                     <div className={`rounded-lg p-3 flex items-start gap-2 ${
@@ -1419,11 +1569,10 @@ export default function ShopifyOrdersPage() {
                       }}
                     >
                       <ExternalLink className="w-4 h-4 mr-2" />
-                      View in Shopify
+                      Виж в Shopify
                     </Button>
                   </div>
                 </div>
-              </div>
             </>
           )}
         </SheetContent>
