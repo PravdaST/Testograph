@@ -491,12 +491,23 @@ export default function ShopifyOrdersPage() {
 
   const getProductsDisplay = (products: Product[]) => {
     if (!products || products.length === 0) return "N/A";
-    return products.map((p, i) => (
-      <div key={i} className="text-sm">
-        {p.quantity}x {p.title || p.sku}
-        {p.totalCapsules > 0 && ` (${p.totalCapsules} caps)`}
-      </div>
-    ));
+
+    // Non-capsule products (TESTOGRAPH is a digital guide, not capsules)
+    const isNonCapsuleProduct = (title: string, sku: string) => {
+      const titleLower = (title || '').toLowerCase();
+      const skuLower = (sku || '').toLowerCase();
+      return titleLower.includes('testograph') || skuLower.includes('testograph');
+    };
+
+    return products.map((p, i) => {
+      const showCapsules = p.totalCapsules > 0 && !isNonCapsuleProduct(p.title, p.sku);
+      return (
+        <div key={i} className="text-sm">
+          {p.quantity}x {p.title || p.sku}
+          {showCapsules && ` (${p.totalCapsules} caps)`}
+        </div>
+      );
+    });
   };
 
   const getStatusBadge = (isPaid: boolean) => {
