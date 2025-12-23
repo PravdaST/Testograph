@@ -54,7 +54,7 @@ function FloatingNav() {
           <Link href="/learn" className="text-brand-green font-semibold">Научи повече</Link>
         </div>
 
-        <a href="https://shop.testograph.eu/products/testoup" className="bg-brand-dark text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-brand-green transition-colors">
+        <a href="https://testograph.carrd.co" className="bg-brand-dark text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-brand-green transition-colors">
           Поръчай
         </a>
       </BentoCard>

@@ -293,7 +293,7 @@ function FloatingNav() {
           <Link href="/learn" className="hover:text-brand-green transition-colors">Научи повече</Link>
         </div>
 
-        <a href="https://shop.testograph.eu/products/testoup" className="bg-brand-green text-white px-3 md:px-6 py-1.5 md:py-2.5 rounded-full text-[11px] md:text-sm font-bold hover:bg-brand-dark transition-colors flex items-center">
+        <a href="https://testograph.carrd.co" className="bg-brand-green text-white px-3 md:px-6 py-1.5 md:py-2.5 rounded-full text-[11px] md:text-sm font-bold hover:bg-brand-dark transition-colors flex items-center">
           Поръчай
         </a>
       </BentoCard>
@@ -395,7 +395,7 @@ function HeroSection() {
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center lg:justify-start mb-5 md:mb-8">
               <a
-                href="https://shop.testograph.eu/products/testoup"
+                href="https://testograph.carrd.co"
                 className="group relative inline-flex items-center justify-center gap-3 bg-brand-green hover:bg-emerald-600 text-white font-bold py-3 px-6 md:py-4 md:px-8 rounded-full text-base md:text-lg transition-all duration-300 shadow-lg shadow-brand-green/30 hover:shadow-xl hover:shadow-brand-green/40 hover:scale-105"
               >
                 <span>Поръчай сега</span>
@@ -773,7 +773,7 @@ function DidYouKnowSection() {
               </div>
 
               <a
-                href="https://shop.testograph.eu"
+                href="https://testograph.carrd.co"
                 className="inline-flex items-center gap-3 px-6 py-3.5 bg-brand-green text-white font-semibold rounded-full hover:bg-brand-green/90 transition-all shadow-lg shadow-brand-green/25 hover:shadow-xl hover:shadow-brand-green/30 group/btn"
               >
                 Виж TestoUP
@@ -1332,7 +1332,7 @@ function HowItWorksSection() {
         {/* CTA */}
         <div className="mt-8 md:mt-10 text-center">
           <a
-            href="https://shop.testograph.eu/products/testoup"
+            href="https://testograph.carrd.co"
             className="inline-flex items-center gap-2 md:gap-3 px-6 py-3 md:px-8 md:py-4 bg-gradient-to-r from-brand-green to-emerald-600 text-white font-bold text-base md:text-lg rounded-full hover:shadow-2xl hover:shadow-brand-green/30 transition-all duration-300 hover:scale-105 group"
           >
             <span>Започни трансформацията</span>
@@ -1750,7 +1750,7 @@ function TestographV2Section() {
               </div>
 
               <a
-                href="https://shop.testograph.eu/products/testoup"
+                href="https://testograph.carrd.co"
                 className="group relative inline-flex items-center justify-center gap-2 px-6 py-3 md:px-8 md:py-4 bg-brand-green text-white font-bold text-base md:text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl shadow-brand-green/30 overflow-hidden whitespace-nowrap"
               >
                 <span className="relative z-10">Вземи TestoUP + App</span>
@@ -2212,7 +2212,7 @@ function ClinicalProofSection() {
 
         <div className="text-center reveal">
           <a
-            href="https://shop.testograph.eu/products/testoup"
+            href="https://testograph.carrd.co"
             className="inline-flex items-center gap-2 px-4 md:px-8 py-2.5 md:py-4 bg-brand-green text-white font-bold text-[12px] md:text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl shadow-brand-green/20 hover:bg-brand-dark"
           >
             Виж пълния състав
@@ -2321,7 +2321,7 @@ function ProductPackagesSection() {
               </div>
             </div>
             <a
-              href="https://shop.testograph.eu/products/testoup"
+              href="https://testograph.carrd.co"
               className="block w-full text-center py-1.5 md:py-3 rounded-full font-bold text-[10px] md:text-base bg-gray-100 hover:bg-gray-200 text-gray-900 border md:border-2 border-gray-300 transition-all duration-300 hover:scale-105"
             >
               Избери →
@@ -2372,7 +2372,7 @@ function ProductPackagesSection() {
               </div>
 
               <a
-                href="https://shop.testograph.eu/products/testoup"
+                href="https://testograph.carrd.co"
                 className="block w-full text-center py-2 md:py-4 rounded-full font-bold text-[11px] md:text-lg bg-brand-green hover:bg-brand-dark text-white shadow-xl shadow-brand-green/20 transition-all duration-300 hover:scale-105"
               >
                 Избери план →
@@ -2420,7 +2420,7 @@ function ProductPackagesSection() {
               </div>
 
               <a
-                href="https://shop.testograph.eu/products/testoup"
+                href="https://testograph.carrd.co"
                 className="block w-full text-center py-1.5 md:py-3 rounded-full font-bold text-[10px] md:text-base bg-orange-500 hover:bg-orange-600 text-white shadow-xl shadow-orange-500/20 transition-all duration-300 hover:scale-105"
               >
                 Избери →
@@ -2517,7 +2517,7 @@ function MemberTestimonialsSection() {
 
         <div className="text-center mt-4 md:mt-12 reveal">
           <a
-            href="https://shop.testograph.eu/products/testoup"
+            href="https://testograph.carrd.co"
             className="inline-flex items-center gap-2 px-4 md:px-8 py-2.5 md:py-4 bg-brand-green text-white font-bold text-[12px] md:text-lg rounded-full transition-all duration-300 hover:scale-105 shadow-xl shadow-brand-green/20 hover:bg-brand-dark"
           >
             Присъедини се към тях
@@ -2801,7 +2801,7 @@ function QuoteTestimonialsSection() {
 
                   {/* CTA Button */}
                   <a
-                    href="https://shop.testograph.eu/products/testoup-sample-7"
+                    href="https://testograph.carrd.co"
                     className="inline-flex items-center gap-2 bg-gradient-to-r from-brand-green to-emerald-600 hover:from-emerald-600 hover:to-brand-green text-white font-bold py-3 px-6 rounded-full transition-all duration-300 shadow-lg shadow-brand-green/30 hover:shadow-brand-green/50 hover:scale-105 text-sm md:text-base"
                   >
                     <span>ПОРЪЧАЙ БЕЗПЛАТНА ПРОБА</span>
@@ -2969,7 +2969,7 @@ function WhatYouGetSection() {
             {/* CTA Button */}
             <div className="pt-4 md:pt-6 reveal">
               <a
-                href="https://shop.testograph.eu/products/testoup"
+                href="https://testograph.carrd.co"
                 className="w-full md:w-auto inline-flex items-center justify-center gap-2 md:gap-3 bg-gradient-to-r from-brand-green to-emerald-600 hover:from-emerald-600 hover:to-brand-green text-white font-bold py-3 px-6 md:py-4 md:px-10 rounded-full transition-all duration-300 shadow-xl shadow-brand-green/30 hover:shadow-brand-green/50 hover:scale-105 text-base md:text-lg"
               >
                 <span>ПОРЪЧАЙ TESTOUP</span>

@@ -120,7 +120,7 @@ export default function RootLayout({
                 "price": "67.00",
                 "itemCondition": "https://schema.org/NewCondition",
                 "availability": "https://schema.org/InStock",
-                "url": "https://shop.testograph.eu/products/testoup"
+                "url": "https://testograph.carrd.co"
               },
               "aggregateRating": {
                 "@type": "AggregateRating",
@@ -171,7 +171,7 @@ export default function RootLayout({
               "sameAs": [
                 "https://www.facebook.com/testograph",
                 "https://www.instagram.com/testograph",
-                "https://shop.testograph.eu"
+                "https://testograph.carrd.co"
               ],
               "contactPoint": {
                 "@type": "ContactPoint",

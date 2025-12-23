@@ -51,7 +51,7 @@ function parseContent(content: string): { text: string; links: LinkItem[] } {
   const shopRegex = /\[\[SHOP:([^|]+)\|([^\]]+)\]\]/g
   while ((match = shopRegex.exec(content)) !== null) {
     const url = match[2].trim()
-    if (url.includes('shop.testograph.eu') || url.includes('testograph.eu')) {
+    if (url.includes('testograph.carrd.co') || url.includes('testograph.eu')) {
       links.push({
         title: match[1].trim(),
         url: url,
@@ -67,7 +67,7 @@ function parseContent(content: string): { text: string; links: LinkItem[] } {
     const title = match[1].trim()
     const url = match[2].trim()
     if (!links.some(l => l.url === url)) {
-      const type = url.includes('shop.testograph.eu') ? 'shop' : 'article'
+      const type = url.includes('testograph.carrd.co') ? 'shop' : 'article'
       links.push({ title, url, type })
     }
   }
@@ -129,7 +129,7 @@ function LinkCard({ title, url, type }: LinkItem) {
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-foreground truncate">{title}</p>
         <p className="text-xs text-muted-foreground">
-          {isShop ? 'shop.testograph.eu' : 'testograph.eu/learn'}
+          {isShop ? 'testograph.carrd.co' : 'testograph.eu/learn'}
         </p>
       </div>
       <ExternalLink className="w-4 h-4 text-muted-foreground group-hover:text-primary transition-colors" />

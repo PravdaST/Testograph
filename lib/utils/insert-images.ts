@@ -224,7 +224,7 @@ export function linkProductMentions(
   content: string,
   maxLinks: number = 3
 ): string {
-  const productUrl = 'https://shop.testograph.eu/products/testoup';
+  const productUrl = 'https://testograph.carrd.co';
   const productName = 'TestoUP';
 
   // Don't link if already contains links to the product
