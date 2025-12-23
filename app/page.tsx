@@ -278,6 +278,13 @@ export default function HomePage() {
 // FLOATING GLASS NAVIGATION
 // ============================================
 function FloatingNav() {
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   return (
     <nav className="fixed top-2 md:top-6 left-1/2 -translate-x-1/2 z-40 w-[96%] md:w-[90%] max-w-5xl">
       <BentoCard className="!rounded-full px-2 md:px-6 py-1.5 md:py-4 flex justify-between items-center shadow-xl bg-white/90">
@@ -287,10 +294,10 @@ function FloatingNav() {
         </div>
 
         <div className="hidden md:flex gap-8 text-sm font-semibold text-gray-700">
-          <a href="#system" className="hover:text-brand-green transition-colors">Системата</a>
-          <a href="#clinical-proof" className="hover:text-brand-green transition-colors">Формула</a>
-          <a href="#pricing" className="hover:text-brand-green transition-colors">Цени</a>
-          <Link href="/learn" className="text-brand-green">Научи повече</Link>
+          <button onClick={() => scrollToSection('how-it-works')} className="hover:text-brand-green transition-colors cursor-pointer">Как работи</button>
+          <button onClick={() => scrollToSection('formula')} className="hover:text-brand-green transition-colors cursor-pointer">Формула</button>
+          <button onClick={() => scrollToSection('order')} className="hover:text-brand-green transition-colors cursor-pointer">Поръчай</button>
+          <Link href="/learn" className="text-brand-green cursor-pointer">Научи повече</Link>
         </div>
 
         <a href="https://testograph.carrd.co" className="bg-brand-green text-white px-3 md:px-6 py-1.5 md:py-2.5 rounded-full text-[11px] md:text-sm font-bold hover:bg-brand-dark transition-colors flex items-center">
@@ -903,7 +910,7 @@ function IngredientsDetailSection() {
   ];
 
   return (
-    <section className="py-10 md:py-24 px-3 md:px-6 bg-white overflow-hidden reveal">
+    <section id="formula" className="py-10 md:py-24 px-3 md:px-6 bg-white overflow-hidden reveal">
       <div className="max-w-6xl mx-auto">
         {/* Section Header */}
         <div className="text-center mb-6 md:mb-16">
@@ -2870,7 +2877,7 @@ function WhatYouGetSection() {
   ];
 
   return (
-    <section className="py-10 md:py-24 bg-white relative overflow-hidden">
+    <section id="order" className="py-10 md:py-24 bg-white relative overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 pointer-events-none">
         {/* Floating circles */}
