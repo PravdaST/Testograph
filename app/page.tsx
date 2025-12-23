@@ -286,11 +286,11 @@ function FloatingNav() {
           <span className="font-display font-bold text-[11px] md:text-lg tracking-tight">TESTOGRAPH</span>
         </div>
 
-        <div className="hidden md:flex gap-8 text-sm font-medium text-brand-dark/70">
+        <div className="hidden md:flex gap-8 text-sm font-semibold text-gray-700">
           <a href="#system" className="hover:text-brand-green transition-colors">Системата</a>
           <a href="#clinical-proof" className="hover:text-brand-green transition-colors">Формула</a>
           <a href="#pricing" className="hover:text-brand-green transition-colors">Цени</a>
-          <Link href="/learn" className="hover:text-brand-green transition-colors">Научи повече</Link>
+          <Link href="/learn" className="text-brand-green">Научи повече</Link>
         </div>
 
         <a href="https://testograph.carrd.co" className="bg-brand-green text-white px-3 md:px-6 py-1.5 md:py-2.5 rounded-full text-[11px] md:text-sm font-bold hover:bg-brand-dark transition-colors flex items-center">
@@ -389,7 +389,7 @@ function HeroSection() {
 
             {/* Subtitle */}
             <p className="text-gray-600 text-sm md:text-xl mb-5 md:mb-8 max-w-lg mx-auto lg:mx-0 leading-relaxed">
-              Либидо. Енергия. Мускулна маса. Възстановяване.
+              Формула с 12 натурални съставки.
             </p>
 
             {/* CTA Buttons */}
@@ -790,7 +790,7 @@ function DidYouKnowSection() {
             <div className="relative h-64 md:h-full min-h-[280px] rounded-3xl overflow-hidden border border-brand-green/30">
               <img
                 src="https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/did-you-know/energetic-man.png?v=2"
-                alt="Оптимални нива на тестостерон с TestoUP"
+                alt="Нормални нива на тестостерон с TestoUP"
                 className="w-full h-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-brand-dark via-brand-dark/30 to-transparent" />
@@ -819,42 +819,42 @@ function IngredientsDetailSection() {
     {
       name: "Tribulus Terrestris",
       dose: "600мг",
-      description: "Повишава либидото и мъжката жизненост. Натурален стимулант, използван от хиляди години.",
+      description: "Традиционно растение, използвано от хиляди години в народната медицина за мъжка сила.",
       img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/tribulus.png",
       color: "lime"
     },
     {
       name: "Ашваганда",
       dose: "400мг",
-      description: "Намалява кортизола (хормона на стреса), подобрява възстановяването и издръжливостта. Доказан адаптоген.",
+      description: "Традиционно растение от Аюрведа (Withania somnifera), използвано от векове в индийската медицина.",
       img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/ashwagandha.png",
       color: "green"
     },
     {
       name: "Цинк цитрат",
       dose: "50мг",
-      description: "Ключов за мъжкото здраве и либидо. 5x повече от аптечните добавки. Тялото не го складира - трябва ти всеки ден.",
+      description: "Цинкът допринася за поддържане на нормални нива на тестостерон в кръвта и нормална фертилност.",
       img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/zinc.png",
       color: "blue"
     },
     {
       name: "Магнезий бисглицинат",
       dose: "400мг",
-      description: "Най-усвоимата форма. За дълбок сън, мускулна функция и възстановяване след тренировка.",
+      description: "Магнезият допринася за намаляване на умората и нормална мускулна функция. Най-усвоима форма.",
       img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/magnesium.png",
       color: "cyan"
     },
     {
       name: "Витамин D3",
       dose: "2400 МЕ",
-      description: "90% от българите имат дефицит. Директно влияе на енергията, настроението и мъжкото здраве.",
+      description: "Витамин D допринася за нормална мускулна функция и нормална функция на имунната система.",
       img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/vitamin-d3.png",
       color: "orange"
     },
     {
       name: "Витамин E",
       dose: "300мг",
-      description: "Мощен антиоксидант. Подкрепя кръвообращението и клетъчната защита.",
+      description: "Витамин E помага за защита на клетките от оксидативен стрес.",
       img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/vitamin-e.png",
       color: "amber"
     },
@@ -875,7 +875,7 @@ function IngredientsDetailSection() {
     {
       name: "Витамин B6",
       dose: "10мг",
-      description: "Регулира хормоналния баланс, подобрява енергийния метаболизъм.",
+      description: "Витамин B6 допринася за регулиране на хормоналната активност и нормален енергиен метаболизъм.",
       img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/vitamin-b6.png",
       color: "pink"
     },
@@ -889,7 +889,7 @@ function IngredientsDetailSection() {
     {
       name: "Витамин B9 (Фолат)",
       dose: "400мкг",
-      description: "Подкрепя клетъчното делене и здравето на сперматозоидите.",
+      description: "Фолатът допринася за нормално клетъчно делене и нормална сперматогенеза.",
       img: "https://mrpsaqtmucxpawajfxfn.supabase.co/storage/v1/object/public/blog-images/ingredients/folate-b9.png",
       color: "rose"
     },
@@ -917,7 +917,7 @@ function IngredientsDetailSection() {
             Какво има в TestoUP?
           </h2>
           <p className="text-sm md:text-xl text-gray-600 max-w-2xl mx-auto">
-            12 активни съставки в максимални дози
+            12 активни съставки в ефективни дози
           </p>
         </div>
 
@@ -1058,7 +1058,7 @@ function IngredientsDetailSection() {
               <svg className="w-5 h-5 text-brand-green" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-              <span className="text-brand-dark font-medium">Максимални дози за реален ефект</span>
+              <span className="text-brand-dark font-medium">Ефективни дози за реален ефект</span>
             </div>
           </div>
         </div>
@@ -1083,9 +1083,9 @@ function HowItWorksSection() {
       label: "Ден 7",
       title: "Първите промени",
       points: [
-        "Либидото се връща.",
-        "Настроението се подобрява.",
-        "Енергията е стабилна през целия ден."
+        "Мъжете забелязват първи промени.",
+        "По-добро настроение сутрин.",
+        "По-стабилна енергия през деня."
       ],
       image: timelineImages["day-7"],
       gradient: "from-lime-400 to-lime-600",
@@ -1098,8 +1098,8 @@ function HowItWorksSection() {
       label: "Ден 30",
       title: "Реална разлика",
       points: [
-        "Забележима сила в залата.",
-        "Постоянно високо либидо.",
+        "Чувстваш се по-силен.",
+        "По-добра физическа форма.",
         "Увереност, която личи."
       ],
       image: timelineImages["day-30"],
@@ -1113,8 +1113,8 @@ function HowItWorksSection() {
       label: "Ден 90",
       title: "Пълна трансформация",
       points: [
-        "Мускулна твърдост.",
-        "Постоянна мотивация и енергия.",
+        "По-добра физическа форма.",
+        "Мотивация и желание за действие.",
         "Всички около теб забелязват разликата."
       ],
       image: timelineImages["day-90"],
@@ -1360,12 +1360,12 @@ function VideoTestimonialsSection() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
   const videos = [
-    { src: "/testimonials/TestoUp - Libido 1.mp4", title: "Подобрено либидо след 2 седмици", tag: "ЛИБИДО" },
-    { src: "/testimonials/TestoUP - LIBIDO 2.mp4", title: "Връщане на сексуалната енергия", tag: "ЛИБИДО" },
-    { src: "/testimonials/TestoUP - Libido 3.mp4", title: "По-силно желание и увереност", tag: "ЛИБИДО" },
-    { src: "/testimonials/TestoUp - Pregmant 1.mp4", title: "Успешна бременност след години опити", tag: "ФЕРТИЛНОСТ" },
-    { src: "/testimonials/TestoUp - Pregmant 2.mp4", title: "Подобрени параметри и зачатие", tag: "ФЕРТИЛНОСТ" },
-    { src: "/testimonials/TestoUp - Pregmant 3.mp4", title: "Реална промяна в качеството", tag: "ФЕРТИЛНОСТ" }
+    { src: "/testimonials/TestoUp - Libido 1.mp4", title: "Историята на Георги за промяната", tag: "ОТЗИВ" },
+    { src: "/testimonials/TestoUP - LIBIDO 2.mp4", title: "Как се промени животът на Иван", tag: "ОТЗИВ" },
+    { src: "/testimonials/TestoUP - Libido 3.mp4", title: "Реален опит след 30 дни", tag: "ОТЗИВ" },
+    { src: "/testimonials/TestoUp - Pregmant 1.mp4", title: "Историята на семейство Петрови", tag: "ИСТОРИЯ" },
+    { src: "/testimonials/TestoUp - Pregmant 2.mp4", title: "Път към родителство", tag: "ИСТОРИЯ" },
+    { src: "/testimonials/TestoUp - Pregmant 3.mp4", title: "Реална история за промяна", tag: "ИСТОРИЯ" }
   ];
 
   // Auto-scroll carousel
@@ -1616,7 +1616,7 @@ function TestographV2Section() {
     {
       icon: Moon,
       title: "Сън и възстановяване",
-      desc: "Протоколи за оптимална почивка",
+      desc: "Съвети за по-добър сън",
       color: "from-blue-500 to-cyan-600",
       bg: "bg-blue-50",
       delay: "200ms"
@@ -1810,7 +1810,7 @@ function AnimatedChatCard() {
   const conversations = [
     {
       userMsg: "Колко време отнема да видя резултати?",
-      aiMsg: "Първите ефекти (повишено либидо, повече енергия) се усещат в рамките на 3-7 дни. За пълна трансформация препоръчвам 60-90 дни следване на програмата."
+      aiMsg: "Мъжете обикновено забелязват първите промени в рамките на 7-14 дни. За пълни резултати препоръчвам 60-90 дни следване на програмата с добавката и приложението."
     },
     {
       userMsg: "Как получавам достъп до приложението?",
@@ -2075,7 +2075,7 @@ function HowToOrderSection() {
     {
       icon: <TrendingUp className="w-16 h-16 text-brand-green" />,
       title: "3. Постигни резултати",
-      description: "Седмица 1: Повишено либидо и по-добри ерекции.\nМесец 1: Повече енергия и по-бързо възстановяване.\nМесец 2: Цялостна трансформация."
+      description: "Седмица 1: Първите промени.\nМесец 1: Забележими резултати.\nМесец 2-3: Пълна трансформация."
     }
   ];
 
@@ -2140,73 +2140,73 @@ function ClinicalProofSection() {
             ingredient="Витамин Д3 (2400 МЕ)"
             researcher="Д-р Майкъл Холик"
             institution="Бостънски университет"
-            quote="Дефицитът на витамин D е пряко свързан с ниските нива на тестостерон. Суплементирането с витамин D доказано ги повишава."
+            quote="Витамин D допринася за нормална мускулна функция и нормална функция на имунната система. Дефицитът му е изключително разпространен."
           />
           <ResearcherCard
             ingredient="Цинк (50мг)"
             researcher="Д-р Ананда Прасад"
             institution="Щатски университет 'Уейн'"
-            quote="Дефицитът на цинк директно намалява производството на тестостерон. Приемът му като добавка нормализира нивата в рамките на 3 до 6 месеца."
+            quote="Цинкът допринася за поддържане на нормални нива на тестостерон в кръвта и за нормална фертилност и репродукция."
           />
           <ResearcherCard
             ingredient="Ашваганда (400мг)"
             researcher="Д-р Биджасвит Оди"
             institution="Институт за клинични изследвания, Индия"
-            quote="Доказано повишава тестостерона с до 15% и намалява кортизола (хормона на стреса) с до 40% при възрастни, подложени на стрес."
+            quote="Withania somnifera (Ашваганда) е традиционно растение от Аюрведа, използвано от хилядолетия в индийската медицина."
           />
           <ResearcherCard
             ingredient="Магнезий (400мг)"
             researcher="Д-р Джовани Чеда"
             institution="Университет на Парма"
-            quote="Магнезият повишава както свободния, така и общия тестостерон, особено когато се комбинира с редовна физическа активност."
+            quote="Магнезият допринася за намаляване на умората и за нормална мускулна функция, особено при физически активни хора."
           />
           <ResearcherCard
             ingredient="Трибулус Терестрис (500мг)"
             researcher="Д-р Антонио Дзоло"
             institution="Институт по спортна медицина, Италия"
-            quote="Трибулус терестрис стимулира естественото производство на тестостерон и значително увеличава силата и мускулната маса при атлети."
+            quote="Tribulus terrestris е традиционно растение, използвано от векове в народната медицина за мъжка сила."
           />
           <ResearcherCard
             ingredient="Селен (100мкг)"
             researcher="Д-р Маргарет Рейман"
             institution="Университет на Съри"
-            quote="Селенът е критичен за производството на сперматозоиди и защитава клетките от оксидативен стрес, свързан с възрастта."
+            quote="Селенът допринася за нормална сперматогенеза и помага за защита на клетките от оксидативен стрес."
           />
           <ResearcherCard
             ingredient="Витамин Ц (200мг)"
             researcher="Д-р Балз Фрей"
             institution="Институт Линус Полинг"
-            quote="Витамин C намалява ефектите от стреса върху организма и защитава клетките от оксидативни увреждания."
+            quote="Витамин C допринася за намаляване на умората и помага за защита на клетките от оксидативен стрес."
           />
           <ResearcherCard
             ingredient="Витамин Е (30мг)"
             researcher="Д-р Ишваран Балачандран"
             institution="Университет на Кералa"
-            quote="Витамин E подобрява кръвообращението и клетъчното здраве, като поддържа нормални хормонални нива."
+            quote="Витамин E помага за защита на клетките от оксидативен стрес и е важен антиоксидант."
           />
           <ResearcherCard
             ingredient="Витамин К2 (100мкг)"
             researcher="Д-р Сис Вермеер"
             institution="Университет Маастрихт"
-            quote="Витамин K2 подсилва костите, оптимизира усвояването на калций и участва активно в хормоналната регулация."
+            quote="Витамин K допринася за поддържане на нормални кости и нормално кръвосъсирване."
           />
           <ResearcherCard
             ingredient="Витамин B6 (5мг)"
             researcher="Д-р Джон Дакс"
             institution="Университет на Алабама"
-            quote="Витамин B6 стимулира метаболизма, подпомага синтеза на тестостерон и значително намалява чувството на умора."
+            quote="Витамин B6 допринася за регулиране на хормоналната активност и за намаляване на умората и отпадналостта."
           />
           <ResearcherCard
             ingredient="Витамин B12 (10мкг)"
             researcher="Д-р Джошуа Миллър"
             institution="Ръткърс университет"
-            quote="B12 повишава енергията, издръжливостта и концентрацията, като поддържа оптимално функциониране на нервната система."
+            quote="Витамин B12 допринася за намаляване на умората и за нормален енергиен метаболизъм."
           />
           <ResearcherCard
             ingredient="Витамин B9 (400мкг)"
             researcher="Д-р Паул Жак"
             institution="Министерство на земеделието на САЩ"
-            quote="Фолиевата киселина подобрява клетъчния растеж, кръвообращението и е основна за репродуктивната функция."
+            quote="Фолиевата киселина допринася за нормален синтез на аминокиселини и за нормална функция на имунната система."
           />
         </div>
 
@@ -2415,7 +2415,7 @@ function ProductPackagesSection() {
                 </div>
                 <div className="flex items-center gap-2 text-gray-700">
                   <Check className="w-3 h-3 md:w-4 md:h-4 text-orange-600 flex-shrink-0" />
-                  <span>Максимални резултати</span>
+                  <span>Видими резултати</span>
                 </div>
               </div>
 
@@ -2474,15 +2474,15 @@ function ProductPackagesSection() {
 // ============================================
 function MemberTestimonialsSection() {
   const testimonials = [
-    { text: "TestoUP е най-добрият тестостерон бустер на пазара. Тестостеронови бустери мнения потвърждават това. Силно препоръчвам за мъжко здраве.", author: "Валентин Д.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/resizing_type:fill/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/ea730c03-1fda-4bb2-b073-a5a4d77d1977.jpeg" },
-    { text: "Страдах от липса на енергия и постоянна умора. TestoUP ми върна жизнеността. Сега се чувствам пълен с енергия всеки ден.", author: "Теодор Р.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/resizing_type:fill/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/782b0d5f-c721-45b1-b151-af563a50a005.jpeg" },
-    { text: "Хормоналният дисбаланс ми причиняваше много симптоми. TestoUP балансира хормоните естествено. Сега имам енергия и добро настроение.", author: "Тихомир Г.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/resizing_type:fill/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/9d29cee2-fff8-449c-b2ac-de5dcc29944a.jpeg" },
+    { text: "TestoUP е страхотна добавка за мъжка енергия. Силно препоръчвам за всеки мъж.", author: "Валентин Д.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/resizing_type:fill/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/ea730c03-1fda-4bb2-b073-a5a4d77d1977.jpeg" },
+    { text: "Страдах от липса на енергия и постоянна умора. TestoUP ми помогна. Сега се чувствам пълен с енергия всеки ден.", author: "Теодор Р.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/resizing_type:fill/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/782b0d5f-c721-45b1-b151-af563a50a005.jpeg" },
+    { text: "Имах проблеми с енергията и настроението. С TestoUP се чувствам много по-добре. Сега имам енергия и добро настроение.", author: "Тихомир Г.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/resizing_type:fill/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/9d29cee2-fff8-449c-b2ac-de5dcc29944a.jpeg" },
     { text: "Ниското самочувствие и липса на увереност ме ограничаваха. TestoUP ми даде нова енергия и увереност. Чувствам се като нов човек.", author: "Камен И.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/resizing_type:fill/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/0f0bae8a-a34e-4323-8941-0931ba143559.jpeg" },
-    { text: "TestoUP съдържа цинк и магнезий, които са есенциални за тестостерона. Усетих повече енергия и по-добър сън. Силно препоръчвам.", author: "Боян С.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/45b0b02e-bf82-43d9-9f2b-5d7de6d5907c.jpeg" },
-    { text: "Правя HIIT тренировки и TestoUP подобри издръжливостта ми. Възстановяването след тренировка е по-бързо.", author: "Огнян П.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/4d4dec2d-aa8a-4ded-9c7b-78b351d93472.jpeg" },
-    { text: "Правих изследване на тестостерон преди и след TestoUP. Нивата ми се повишиха значително за 6 седмици. Продуктът работи!", author: "Росен С.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/b1bb7cb0-4e71-4176-90a1-f760d2eb852f.jpeg" },
+    { text: "TestoUP съдържа цинк и магнезий, които са важни за мъжете. Усетих повече енергия и по-добър сън. Силно препоръчвам.", author: "Боян С.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/45b0b02e-bf82-43d9-9f2b-5d7de6d5907c.jpeg" },
+    { text: "Правя HIIT тренировки и с TestoUP се чувствам по-издръжлив. Възстановявам се по-бързо след тренировка.", author: "Огнян П.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/4d4dec2d-aa8a-4ded-9c7b-78b351d93472.jpeg" },
+    { text: "Взимам TestoUP от 6 седмици и усещам голяма разлика. Имам повече енергия и се чувствам по-добре. Препоръчвам!", author: "Росен С.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/b1bb7cb0-4e71-4176-90a1-f760d2eb852f.jpeg" },
     { text: "Хроничната умора и отпадналост бяха мой ежедневен спътник. TestoUP ми даде нова енергия за живот. Вече нямам нужда от следобеден сън.", author: "Ивайло Д.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/672b4e91-6baa-4081-9a69-bad8d341c285.jpeg" },
-    { text: "TestoUP стана част от здравословния ми начин на живот. Добавки за енергия като тази са незаменими за мъжкото здраве.", author: "Здравко М.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/e5c0f6eb-743b-431b-996e-1e08d531db0f.jpeg" }
+    { text: "TestoUP стана част от ежедневието ми. Добавки за енергия като тази са незаменими за мъже.", author: "Здравко М.", avatar: "https://reviews-media.services.klaviyo.com/abc/width:600/height:600/plain/https://klaviyo.s3.amazonaws.com/reviews/images/TZ2ckD/e5c0f6eb-743b-431b-996e-1e08d531db0f.jpeg" }
   ];
 
   return (
@@ -2992,7 +2992,7 @@ function FAQSection() {
   const faqs = [
     {
       q: "Колко време отнема, за да видя резултати?",
-      a: "Повечето мъже забелязват първите ефекти (повишено либидо, повече енергия) в рамките на 3 до 7 дни. За цялостна трансформация са необходими между 60 и 90 дни стриктно следване на програмата."
+      a: "Повечето мъже забелязват първите промени в рамките на 7 до 14 дни. За цялостна трансформация са необходими между 60 и 90 дни стриктно следване на програмата с добавката и приложението."
     },
     {
       q: "Як получавам достъп до приложението?",
