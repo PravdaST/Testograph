@@ -206,7 +206,7 @@ export async function GET(request: Request) {
     while (true) {
       const { data: batch } = await supabase
         .from('pending_orders')
-        .select('id, status, total_price, paid_at, tracking_number, tracking_company')
+        .select('id, status, total_price, paid_at, tracking_number, tracking_company, order_number')
         .range(fetchOffset, fetchOffset + batchSize - 1);
 
       if (!batch || batch.length === 0) break;
@@ -263,7 +263,17 @@ export async function GET(request: Request) {
       }
     });
 
-    const noTrackingCount = (allOrders || []).filter(o => !o.tracking_number).length;
+    // Helper to check if order is a test order (#1001-#1098)
+    const isTestOrder = (orderNumber: string | null | undefined): boolean => {
+      if (!orderNumber) return false;
+      const num = parseInt(orderNumber.replace('#', ''), 10);
+      return num >= 1001 && num <= 1098;
+    };
+
+    // Exclude test orders (#1001-#1098) from "Без Tracking" count
+    const noTrackingCount = (allOrders || []).filter(o =>
+      !o.tracking_number && !isTestOrder(o.order_number)
+    ).length;
     const withTrackingCount = (allOrders || []).filter(o => o.tracking_number).length;
 
     // For tracking filters (delivered, in_transit), we need to filter by IDs
@@ -282,8 +292,9 @@ export async function GET(request: Request) {
         .filter(o => o.tracking_number && orderDeliveryStatus.get(o.id) === 'returned')
         .map(o => o.id);
     } else if (trackingFilter === 'no_tracking') {
+      // Exclude test orders (#1001-#1098) from "Без Tracking" filter
       filteredOrderIds = (allOrders || [])
-        .filter(o => !o.tracking_number)
+        .filter(o => !o.tracking_number && !isTestOrder(o.order_number))
         .map(o => o.id);
     }
 
